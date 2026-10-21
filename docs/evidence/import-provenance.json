@@ -1,0 +1,164 @@
+{
+  "imported_on": "2026-10-22",
+  "original_package": "STEM_Notebook_Work_Implementation_Handover_2026-10-22(1).zip",
+  "package_sha256": "19abd8d6109e6f1de6e7ab021d109c5fd8b347ed86f0e0f4afcf4a79a15cdfa7",
+  "verified_members": 36,
+  "files": [
+    {
+      "path": "01_START/WORK_START_PROMPT.md",
+      "bytes": 6035,
+      "sha256": "8586b5ec6bd1aaa9cd09d74b0b64632c92b64d01e8a2cf2fea16b4c7faf4ea89",
+      "repository_path": "docs/imported/01_START/WORK_START_PROMPT.md"
+    },
+    {
+      "path": "02_GOVERNANCE/CURRENT_AUTHORITY_AND_PRECEDENCE.md",
+      "bytes": 7850,
+      "sha256": "54882f8dd5b69fafb5d3e3ab8279f3e650c08311d984c477da423b716726163e",
+      "repository_path": "docs/imported/02_GOVERNANCE/CURRENT_AUTHORITY_AND_PRECEDENCE.md"
+    },
+    {
+      "path": "02_GOVERNANCE/RELEASE_SCOPE_AND_ARCHITECTURE.md",
+      "bytes": 4641,
+      "sha256": "1f2ff1b29629dc0c823fe7baa518303036802041eae0189b11fc647113fd9721",
+      "repository_path": "docs/imported/02_GOVERNANCE/RELEASE_SCOPE_AND_ARCHITECTURE.md"
+    },
+    {
+      "path": "02_GOVERNANCE/SIGNED_OFF_BASELINE_NOTE.md",
+      "bytes": 1546,
+      "sha256": "c1266f8db1ba927a02587c9c65dddd16b2a5368e7cfed43fbe76c75dc75091c7",
+      "repository_path": "docs/imported/02_GOVERNANCE/SIGNED_OFF_BASELINE_NOTE.md"
+    },
+    {
+      "path": "03_IMPLEMENTATION/MODEL_CONVERTER_CONTRACTS.md",
+      "bytes": 3295,
+      "sha256": "c42ed71bf14e7d71d724fe7cf6bdf088559385b24d4c4f24a9d071e85cbc6d54",
+      "repository_path": "docs/imported/03_IMPLEMENTATION/MODEL_CONVERTER_CONTRACTS.md"
+    },
+    {
+      "path": "03_IMPLEMENTATION/PHASE_A_BACKEND_PLAN_AND_GATE.md",
+      "bytes": 6401,
+      "sha256": "ed7133bd2ff310fbaaa72fc30c6b77ffad8c2b6ae6af4263e454ede2a4e80179",
+      "repository_path": "docs/imported/03_IMPLEMENTATION/PHASE_A_BACKEND_PLAN_AND_GATE.md"
+    },
+    {
+      "path": "03_IMPLEMENTATION/PHASE_B_PROVISIONAL_ANDROID_HI.md",
+      "bytes": 2752,
+      "sha256": "e7ced7034ef274a54dc289fe0572271e35961e44a111684789ed3c531f0daa57",
+      "repository_path": "docs/imported/03_IMPLEMENTATION/PHASE_B_PROVISIONAL_ANDROID_HI.md"
+    },
+    {
+      "path": "03_IMPLEMENTATION/PROJECT_AGENT_GUIDELINES_AGENTS.md",
+      "bytes": 2292,
+      "sha256": "096d49ab5f84e027e21d194a534683b066bc92a5248cc1d82ae1731f2b9572d3",
+      "repository_path": "docs/imported/03_IMPLEMENTATION/PROJECT_AGENT_GUIDELINES_AGENTS.md"
+    },
+    {
+      "path": "03_IMPLEMENTATION/REPO_AND_DOCUMENT_HISTORY_POLICY.md",
+      "bytes": 3418,
+      "sha256": "bfb569ff0b7a0964b1609cbcc642711bd78a7ebb906f1903e37cd33ee413d64f",
+      "repository_path": "docs/imported/03_IMPLEMENTATION/REPO_AND_DOCUMENT_HISTORY_POLICY.md"
+    },
+    {
+      "path": "04_VERIFICATION/ACCEPTANCE_AND_TRACEABILITY_WORKPLAN.md",
+      "bytes": 3624,
+      "sha256": "7a17326cbf87dc138803d4635ca0512a71f76162f5b77bb6acb3d0e61611e8b5",
+      "repository_path": "docs/imported/04_VERIFICATION/ACCEPTANCE_AND_TRACEABILITY_WORKPLAN.md"
+    },
+    {
+      "path": "04_VERIFICATION/RISK_AND_OWNER_HANDOFF.md",
+      "bytes": 3527,
+      "sha256": "fed734574c3d4109b2b0475a1c1a07e57fa72ffaa850ea6f645e71fffe28cf94",
+      "repository_path": "docs/imported/04_VERIFICATION/RISK_AND_OWNER_HANDOFF.md"
+    },
+    {
+      "path": "05_SOURCES/REFERENCE_STATUS_AND_SUPERSESSION.md",
+      "bytes": 2020,
+      "sha256": "1a67fd2398ae88f8a1c0b0e179e9c91a2623035507c302ba9eea7577ca0b5fbb",
+      "repository_path": "docs/imported/05_SOURCES/REFERENCE_STATUS_AND_SUPERSESSION.md"
+    },
+    {
+      "path": "05_SOURCES/decisions/ST5C_Provisional_Architecture_Strategy_APPROVED.md",
+      "bytes": 5464,
+      "sha256": "ede357b6517cff5f6a6889501e220740b8b80bada282f5313565f28f854bd9a4",
+      "repository_path": "docs/imported/05_SOURCES/decisions/ST5C_Provisional_Architecture_Strategy_APPROVED.md"
+    },
+    {
+      "path": "05_SOURCES/decisions/Stage5D_Q13-Q17_Owner_Decision_Record.md",
+      "bytes": 5870,
+      "sha256": "9fcce6dcbca5da1c98684c00fb2f05195a89c5bd41e09e2a404628e122609ac3",
+      "repository_path": "docs/imported/05_SOURCES/decisions/Stage5D_Q13-Q17_Owner_Decision_Record.md"
+    },
+    {
+      "path": "05_SOURCES/decisions/Stage5D_Q18-Q22_Owner_Decision_Record.md",
+      "bytes": 6624,
+      "sha256": "3a0181d1bb362087151bee4ee617eafa62d3125a213c6032aca063971c034913",
+      "repository_path": "docs/imported/05_SOURCES/decisions/Stage5D_Q18-Q22_Owner_Decision_Record.md"
+    },
+    {
+      "path": "05_SOURCES/decisions/Stage5D_Q23-Q26_Owner_Decision_Record.md",
+      "bytes": 4158,
+      "sha256": "7b1393d9f85dd70618d8a7eb3a9fed648a99f9d6aebef79bb1fe9d6bb5fa03c8",
+      "repository_path": "docs/imported/05_SOURCES/decisions/Stage5D_Q23-Q26_Owner_Decision_Record.md"
+    },
+    {
+      "path": "05_SOURCES/normative/STEM_Notebook_Consolidated_Specification_v0.5.8.md",
+      "bytes": 310010,
+      "sha256": "68612d4dc4d0e69c61f0018fbcf67bf779559bcbb120bcd0f6c3f9333f27b7b3",
+      "repository_path": "docs/spec/approved-v0.5.8.md"
+    },
+    {
+      "path": "05_SOURCES/verification/Stage5D_16_SLO_Approval_and_Calibration_Register.csv",
+      "bytes": 7432,
+      "sha256": "d862e1df3fc1c0d4ad9712578b7fd8be22070a7a7783286e2d1fd3b4b16daf56",
+      "repository_path": "docs/imported/05_SOURCES/verification/Stage5D_16_SLO_Approval_and_Calibration_Register.csv"
+    },
+    {
+      "path": "05_SOURCES/verification/Stage5D_94_Requirement_Release_Contract_CROSSWALK.csv",
+      "bytes": 59850,
+      "sha256": "5d85dd3c593864eeaa7a1194ff89a690251d67dc9ac97b0cf09749e7361dd121",
+      "repository_path": "docs/imported/05_SOURCES/verification/Stage5D_94_Requirement_Release_Contract_CROSSWALK.csv"
+    },
+    {
+      "path": "05_SOURCES/verification/Stage5E_Proposed_Additional_Atomic_Acceptance_Checks.csv",
+      "bytes": 5139,
+      "sha256": "ae1591280a967c02649b72d662d661ba6b5767a87082b7afc079361f1215971e",
+      "repository_path": "docs/imported/05_SOURCES/verification/Stage5E_Proposed_Additional_Atomic_Acceptance_Checks.csv"
+    },
+    {
+      "path": "05_SOURCES/verification/Stage5E_Rephased_14_Feasibility_Gates_PROPOSED.csv",
+      "bytes": 6163,
+      "sha256": "7c5bb83ae2b98aebc72ad33c82cbd2de541f343e6c977f32eaaecbd8e6fb0b96",
+      "repository_path": "docs/imported/05_SOURCES/verification/Stage5E_Rephased_14_Feasibility_Gates_PROPOSED.csv"
+    },
+    {
+      "path": "05_SOURCES/verification/Stage5F_103_Inherited_Clause_Audit.csv",
+      "bytes": 21752,
+      "sha256": "4dfc042610b9e03bcb4b5ac0e90eb6c26f846a7d60866a8043ec1079a8e3f98b",
+      "repository_path": "docs/imported/05_SOURCES/verification/Stage5F_103_Inherited_Clause_Audit.csv"
+    },
+    {
+      "path": "05_SOURCES/verification/Stage5F_158_Test_Candidate_Provenance_Ledger.csv",
+      "bytes": 62273,
+      "sha256": "d4341234dd9f76cc26dee0fe04e19b527ae0a1ef8893d20e6c13d83f41ee1f6c",
+      "repository_path": "docs/imported/05_SOURCES/verification/Stage5F_158_Test_Candidate_Provenance_Ledger.csv"
+    },
+    {
+      "path": "05_SOURCES/verification/Stage5F_94_Requirement_to_Test_Link_Audit.csv",
+      "bytes": 10180,
+      "sha256": "cdc477660494a6358d7ae1f4ba75ae4e360a7017d29185dd359f21d38702d20e",
+      "repository_path": "docs/imported/05_SOURCES/verification/Stage5F_94_Requirement_to_Test_Link_Audit.csv"
+    },
+    {
+      "path": "05_SOURCES/verification/Stage5F_Readiness_and_Traceability_Audit.md",
+      "bytes": 6129,
+      "sha256": "047b6fb7222b6e7927ca84dcb0d4004e0085363234a281fbc3b91f3e6ed748d9",
+      "repository_path": "docs/imported/05_SOURCES/verification/Stage5F_Readiness_and_Traceability_Audit.md"
+    },
+    {
+      "path": "START_HERE.md",
+      "bytes": 4621,
+      "sha256": "b4b851b28dd94653086eb28ac113ceaff4ea7354b983c22a031b960bd9b9c407",
+      "repository_path": "docs/imported/START_HERE.md"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+new_candidate_check,phase,area,assertion,test_state,relationship_to_131_historical_tests
+ST5E-T-01,I0,Stroke provenance,Original pen order/time/pressure-missing preserved independent of recogniser outputs,NOT RUN,SUPPLEMENTARY / DEDUPLICATE before authoritative acceptance-suite freeze
+ST5E-T-02,I0,Recognition modality,Recognizer adapter consumes ordered stroke snapshots; reject any mandatory raster preprocessor,NOT RUN,SUPPLEMENTARY / DEDUPLICATE before authoritative acceptance-suite freeze
+ST5E-T-03,I0,Privacy,No recogniser or adapter has implicit network egress with ink payload,NOT RUN,SUPPLEMENTARY / DEDUPLICATE before authoritative acceptance-suite freeze
+ST5E-T-04,I0,Revision safety,Result from older ink revision cannot overwrite new strokes or edits,NOT RUN,SUPPLEMENTARY / DEDUPLICATE before authoritative acceptance-suite freeze
+ST5E-T-05,I0,Cancellation,Cancellation/timeout/crash cannot corrupt original ink or accepted content,NOT RUN,SUPPLEMENTARY / DEDUPLICATE before authoritative acceptance-suite freeze
+ST5E-T-06,I0,Math fidelity,Incorrect expressions retained uncorrected; source and parse diagnostics persist,NOT RUN,SUPPLEMENTARY / DEDUPLICATE before authoritative acceptance-suite freeze
+ST5E-T-07,I0,Code fidelity,Exact code spaces/indentation/leading zeros and newlines survive conversion,NOT RUN,SUPPLEMENTARY / DEDUPLICATE before authoritative acceptance-suite freeze
+ST5E-T-08,I0,Model manager,Install and remove compatible mock engines without altering user notes,NOT RUN,SUPPLEMENTARY / DEDUPLICATE before authoritative acceptance-suite freeze
+ST5E-T-09,I0,Model manager,Capability mismatch disallowed with meaningful explanation,NOT RUN,SUPPLEMENTARY / DEDUPLICATE before authoritative acceptance-suite freeze
+ST5E-T-10,I0,Model manager,Missing downloaded model signals writing ready vs recognition not ready,NOT RUN,SUPPLEMENTARY / DEDUPLICATE before authoritative acceptance-suite freeze
+ST5E-T-11,I0,Converters,"Lossy/incomplete conversion reports warnings, does not falsely claim full roundtrip",NOT RUN,SUPPLEMENTARY / DEDUPLICATE before authoritative acceptance-suite freeze
+ST5E-T-12,I0,Permissions,Protected source/linked content denied in unauthorized model requests or exports,NOT RUN,SUPPLEMENTARY / DEDUPLICATE before authoritative acceptance-suite freeze
+ST5E-T-13,I1,Models H.I.,User can compare/switch eligible recognisers without reauthoring a Note,NOT RUN,SUPPLEMENTARY / DEDUPLICATE before authoritative acceptance-suite freeze
+ST5E-T-14,I1,Organisation,Root/module/project/notebook parent matrix and Module max depth enforced by API,NOT RUN,SUPPLEMENTARY / DEDUPLICATE before authoritative acceptance-suite freeze
+ST5E-T-15,I1,Organisation,Unfiled view works without hidden parent and Move retains ID/history/ink,NOT RUN,SUPPLEMENTARY / DEDUPLICATE before authoritative acceptance-suite freeze
+ST5E-T-16,I1,Backlinks,Incoming/outgoing menu locates and highlights page relationship without graph requirement,NOT RUN,SUPPLEMENTARY / DEDUPLICATE before authoritative acceptance-suite freeze
+ST5E-T-17,I1,Deletion,Warn dependencies before Trash without protected-name disclosure; restore fixes refs,NOT RUN,SUPPLEMENTARY / DEDUPLICATE before authoritative acceptance-suite freeze
+ST5E-T-18,I1,Chronology,Chronological browsing/sorting without Journal Log creation,NOT RUN,SUPPLEMENTARY / DEDUPLICATE before authoritative acceptance-suite freeze
+ST5E-T-19,I1,PDF,Default external link and explicit managed-copy choice retain source-authorisation state,NOT RUN,SUPPLEMENTARY / DEDUPLICATE before authoritative acceptance-suite freeze
+ST5E-T-20,I1,Backup,OS auto-cloud backup excluded; explicit encrypted comprehensive backup restorable,NOT RUN,SUPPLEMENTARY / DEDUPLICATE before authoritative acceptance-suite freeze
+ST5E-T-21,I1,Protected export,Both protected-encrypted and deliberate plaintext protected exports demand re-auth,NOT RUN,SUPPLEMENTARY / DEDUPLICATE before authoritative acceptance-suite freeze
+ST5E-T-22,I1,Portable import,Encrypted package requires portable credential then permits destination local credentials,NOT RUN,SUPPLEMENTARY / DEDUPLICATE before authoritative acceptance-suite freeze
+ST5E-T-23,M1,Journal import,Structure-aware preview allows grouping multiple timestamped items into single Log,NOT RUN,SUPPLEMENTARY / DEDUPLICATE before authoritative acceptance-suite freeze
+ST5E-T-24,M1,Journal import,Date-only stays date-only; source/provenance and import timestamps distinct,NOT RUN,SUPPLEMENTARY / DEDUPLICATE before authoritative acceptance-suite freeze
+ST5E-T-25,M1,Journal import,Repeat imports detect edits and never overwrite local Logs silently,NOT RUN,SUPPLEMENTARY / DEDUPLICATE before authoritative acceptance-suite freeze
+ST5E-T-26,POST-BUILD,Manual acceptance,Owner-private math/prose/code/numerals model quality assessed on actual device,NOT RUN,SUPPLEMENTARY / DEDUPLICATE before authoritative acceptance-suite freeze
+ST5E-T-27,POST-BUILD,Manual acceptance,Galaxy S Pen native palm rejection latency and model-memory impact assessed,NOT RUN,SUPPLEMENTARY / DEDUPLICATE before authoritative acceptance-suite freeze

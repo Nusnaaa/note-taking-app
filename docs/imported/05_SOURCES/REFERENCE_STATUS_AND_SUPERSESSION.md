@@ -1,0 +1,10 @@
+# Classification of source artefacts and stale material
+
+- **Current normative:** `normative/STEM_Notebook_Consolidated_Specification_v0.5.8.md`. The file header was authored when pending approval; the owner **approved it subsequently**. Preserve this archived title; see `02_GOVERNANCE/CURRENT_AUTHORITY_AND_PRECEDENCE.md` for approval evidence.
+- **Direct approved owner decisions:** `decisions/*` and approved current-state overlays of v0.5.8. Later Q1–Q12 and other decisions are integrated in the normative file; owner-specific latest corrections remain controlling.
+- **Architecture:** `decisions/ST5C_...APPROVED` is strategic approval only. `architecture/Technical_Architecture...HISTORIC_CANDIDATE.md` is a large **historical candidate** retained for reasoning/provenance; numerous specific ADRs/recognition candidates are **NOT approved** and may now be obsolete. In particular, ignore any Pix2Text/raster-first baseline, mandatory prebuild manual model validation, commercial constraints and wrongly nested Notebooks.
+- **Verification:** `verification/*` contains audit inputs and proposed tests, **NOT RUN**; prior cases are not automatically independently approved or executable. Rephase and dedup evidence before implementation checks.
+- **External research:** `research_advisory/*` is third-party research and engineering suggestions. The source research originally examined commercialisation because it predated the latest owner direction; **commercial preparedness is NOT a goal**. Extract only documented personal-use licence duties and runtime/adapter facts. No candidate model or JSON schema is automatically approved.
+- **Project-specific SDD:** `process_evidence/*` is evidence, not coding instructions or a reusable SDD-framework proposal. Continue project-specific observations only; generic methodology happens elsewhere.
+
+Future Git history should import applicable Markdown/CSV source individually as traceable files, with a receipt/manifest, not dump old ZIPs or claim tests were executed.
