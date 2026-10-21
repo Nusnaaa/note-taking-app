@@ -1,1 +1,4 @@
+$ /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3 tools/traceability.py --check
+exit_code=0
+
 Traceability intact: 94 requirements, 103 inherited clauses, 158 candidates; no candidate PASS inferred.

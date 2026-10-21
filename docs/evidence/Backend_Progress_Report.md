@@ -42,7 +42,7 @@ remote inference, LLM or model telemetry was introduced.
 
 ## Exact executed evidence
 
-Tested source commit: **`ec616443b330b5337e23427814d3a9f7f7b4ce92`**.
+Tested source commit: **`a0fce748bea5e76afb16b24b26187176f2d0039c`**.
 Working tree was clean at the start. Subsequent evidence commit adds this report
 and logs only; it does not change tested implementation or test inputs.
 
@@ -87,8 +87,10 @@ result; the authoritative complete-run logs are those in `latest/`.
 | `5d8fc0b` | Encrypted portable subset, converters and failure/recovery tests |
 | `84b9489` | Reject cross-kind import ID aliases; fail closed on activation integrity/probe failure |
 | `ec61644` | Current requirement map, documented boundaries, licences and reproducible backend gate |
+| `a222bb3` | First complete 53-test evidence snapshot and explicit incomplete backend gate |
+| `a0fce74` | Record command/exit metadata for successful silent checks; validated again with all 53 tests passing |
 
-The next evidence-only commit contains this report and raw final logs. Use
+The final evidence-only commit contains this updated report and final command/output logs. Use
 `git log --oneline` for its exact ID; the code revision tested remains the one above.
 All commits contain individual source/test/documentation files. A separately
 provided Git bundle preserves the commit graph and is not committed as a source
