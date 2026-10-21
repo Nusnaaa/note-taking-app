@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 import re
 import shutil
+import shlex
 import subprocess
 import sys
 import time
@@ -52,7 +53,10 @@ def main():
     for name, command in commands:
         start = time.monotonic()
         result = subprocess.run(command, cwd=ROOT, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False)
-        (destination / f"{name}.log").write_text(result.stdout)
+        # Successful silent commands still need a useful, nonempty evidence file.
+        # Preserve captured output verbatim beneath explicit invocation metadata.
+        log = "$ " + shlex.join(command) + "\nexit_code=" + str(result.returncode) + "\n\n" + result.stdout
+        (destination / f"{name}.log").write_text(log)
         entry = {"name": name, "command": command, "exit_code": result.returncode, "result": "PASS" if result.returncode == 0 else "FAIL", "seconds": round(time.monotonic() - start, 3), "log": f"{name}.log"}
         report["checks"].append(entry)
         if name == "tests":
