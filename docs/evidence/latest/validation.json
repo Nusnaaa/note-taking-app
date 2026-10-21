@@ -1,0 +1,380 @@
+{
+  "started_utc": "2026-10-21T23:49:33.583524+00:00",
+  "source_commit": "ec616443b330b5337e23427814d3a9f7f7b4ce92",
+  "working_tree_before": "",
+  "platform": "Linux x86_64",
+  "cargo": "cargo 1.90.0 (840b83a10 2025-07-30)",
+  "source_sha256": {
+    ".gitignore": "b6b299d37f136cc978c744132f526e1d1f6ad5ae7b65c4796e10e5151dab6d15",
+    "AGENTS.md": "096d49ab5f84e027e21d194a534683b066bc92a5248cc1d82ae1731f2b9572d3",
+    "Cargo.lock": "c6bd956cf769a9bc5886a973770dd17c1fed00635a4aa564258a91b27d9bfda2",
+    "Cargo.toml": "68a361742b0452cd4f2ee0f9a1f36dbeed66283c32b9b1dd8d82ac03ee7bafa9",
+    "README.md": "80e2e4c9830263d172ceea457b9c2b7cb7d2d0cfc82f6e2ccf3c72b936f9edc3",
+    "core/Cargo.toml": "e21c4547875ea342810dc76db9833a443610b464608277714c594ff86ed3b199",
+    "core/migrations/001.sql": "99dad6121fe73b423becb107a9b446855adc6fc652f5927a2da2bdb4167de77c",
+    "core/migrations/002.sql": "65a83aaece959e6dca07080c3b1d4c24bafd6e4c962dd9ec8ab3874aea137c7d",
+    "core/src/bin/recovery_probe.rs": "c356449bddfdbc0e29ecf0592f952e8f129d6effdbd4451fe057b90e36064d3c",
+    "core/src/content.rs": "94a1180067a119f793f3b960ce7be68a41b90154e50498e569939f1b57b89d48",
+    "core/src/converters.rs": "45577c77224a9a960a33242b8d9c29b779cf18ff94f09a13f2b3efac4ad7ac09",
+    "core/src/crypto.rs": "090a892bbf649583dda78e915be5de826bd4098b8381133e0a6975e18f4330b4",
+    "core/src/help.rs": "6e590f88e4d92923f32ce1c9c0557c97a10dff8bb8039b16e4c034de809f4369",
+    "core/src/ink.rs": "bedf7b2bf0fbd065084caefb9711f1b7f4a849fda6d295815cbe847ec3ba7467",
+    "core/src/lib.rs": "80fc2452a8819252d0958bafdb412f563c49d28551b8c546ad96fe3bffdae41a",
+    "core/src/portable.rs": "371a785ef51453b8e9c2e5ad01851653d5fcd226d64d0a6cf4092808e7082e58",
+    "core/src/processing.rs": "0597fe00ad61918a7b3272b6e2d2061738d4556f05f779438e70259909d24362",
+    "core/src/security.rs": "53a8c68e232536e04ea3b40afa3e968c361b84314fb42ac1fd537b0e907a300d",
+    "core/src/sources.rs": "a91f6aa944582a797345e322201243aa5ff601ed0ddee33310244c2640e9aa8f",
+    "core/src/store.rs": "f82fa3bd4da8eccbd7a7b0de6d8c6029e78b8ceba7f5302682f39782ff88d7da",
+    "core/src/store/organisation.rs": "426975cc2c8926e3b01d02939ecc54de75c2e3278ff51ae1fd2c4697e592919c",
+    "core/src/store/proposals.rs": "837686a2d6bd2842091223619c6a1d39562479505909928295fddee59f51fd81",
+    "core/src/store/writing.rs": "a4dbe74f79913db616043feb78490d1de515fa6d14ceb98c5e4870ff54a9a33e",
+    "core/tests/common/mod.rs": "3a3dac7e0b727e605dfdbadf49185b1a641792ff64b677d9155fe3e84a5606a7",
+    "core/tests/converters.rs": "804296aa85a721207230cd5f710b41eb851904a3de3bd73bf6b4de46a8379a91",
+    "core/tests/organisation.rs": "daa071549362da0af485182073da639094b8653ac2b3b15919e818b8aa2ab5d4",
+    "core/tests/portable.rs": "204225c15c8cdb1c6171002b14c1fd526ef02e4c0abc3996fb71e48990996ffe",
+    "core/tests/recognition.rs": "bd1551ba19e5dc87f9323d3aab5e9cfeb31abf21cab2fca994ea8f091545a3c3",
+    "core/tests/recovery.rs": "70abe28e9dc9419bf85827eca730676676ad68a45aea3130c13ed62a5c0bc3db",
+    "core/tests/sources.rs": "442dd7fa2ad1b671666c87a3ba291ccfac7fce6719c265be7170dd2f81904b6a",
+    "core/tests/writing.rs": "c9d11c88e293853cd4bcecb42ea8d9777a803aa1fdba348264ed045657785b0c",
+    "docs/decisions/ADR-001-core-foundation.md": "90df43a72b8deacb2d9cf168cd268ad9e73331e8c9a131ecef493d2b45f16f9c",
+    "docs/decisions/ADR-002-portability-and-privacy-boundaries.md": "b44f45c688f0d83443b88c272911b22e99e65b254af1e58aa8b01505d50d5e6d",
+    "docs/decisions/owner-authorisation-2026-10-22.md": "4fedeef87589b9028ce27cc4ee64878fae9fdd42cbbe9a8d8c093ca3091c0788",
+    "docs/formats/native-subset-v1.md": "91254d45f98c9fe73344a16dd131d9cfe37e7ebf83bbf1a48d0d4a2c337db3f5",
+    "docs/imported/01_START/WORK_START_PROMPT.md": "8586b5ec6bd1aaa9cd09d74b0b64632c92b64d01e8a2cf2fea16b4c7faf4ea89",
+    "docs/imported/02_GOVERNANCE/CURRENT_AUTHORITY_AND_PRECEDENCE.md": "54882f8dd5b69fafb5d3e3ab8279f3e650c08311d984c477da423b716726163e",
+    "docs/imported/02_GOVERNANCE/RELEASE_SCOPE_AND_ARCHITECTURE.md": "1f2ff1b29629dc0c823fe7baa518303036802041eae0189b11fc647113fd9721",
+    "docs/imported/02_GOVERNANCE/SIGNED_OFF_BASELINE_NOTE.md": "c1266f8db1ba927a02587c9c65dddd16b2a5368e7cfed43fbe76c75dc75091c7",
+    "docs/imported/03_IMPLEMENTATION/MODEL_CONVERTER_CONTRACTS.md": "c42ed71bf14e7d71d724fe7cf6bdf088559385b24d4c4f24a9d071e85cbc6d54",
+    "docs/imported/03_IMPLEMENTATION/PHASE_A_BACKEND_PLAN_AND_GATE.md": "ed7133bd2ff310fbaaa72fc30c6b77ffad8c2b6ae6af4263e454ede2a4e80179",
+    "docs/imported/03_IMPLEMENTATION/PHASE_B_PROVISIONAL_ANDROID_HI.md": "e7ced7034ef274a54dc289fe0572271e35961e44a111684789ed3c531f0daa57",
+    "docs/imported/03_IMPLEMENTATION/PROJECT_AGENT_GUIDELINES_AGENTS.md": "096d49ab5f84e027e21d194a534683b066bc92a5248cc1d82ae1731f2b9572d3",
+    "docs/imported/03_IMPLEMENTATION/REPO_AND_DOCUMENT_HISTORY_POLICY.md": "bfb569ff0b7a0964b1609cbcc642711bd78a7ebb906f1903e37cd33ee413d64f",
+    "docs/imported/04_VERIFICATION/ACCEPTANCE_AND_TRACEABILITY_WORKPLAN.md": "7a17326cbf87dc138803d4635ca0512a71f76162f5b77bb6acb3d0e61611e8b5",
+    "docs/imported/04_VERIFICATION/RISK_AND_OWNER_HANDOFF.md": "fed734574c3d4109b2b0475a1c1a07e57fa72ffaa850ea6f645e71fffe28cf94",
+    "docs/imported/05_SOURCES/REFERENCE_STATUS_AND_SUPERSESSION.md": "1a67fd2398ae88f8a1c0b0e179e9c91a2623035507c302ba9eea7577ca0b5fbb",
+    "docs/imported/05_SOURCES/decisions/ST5C_Provisional_Architecture_Strategy_APPROVED.md": "ede357b6517cff5f6a6889501e220740b8b80bada282f5313565f28f854bd9a4",
+    "docs/imported/05_SOURCES/decisions/Stage5D_Q13-Q17_Owner_Decision_Record.md": "9fcce6dcbca5da1c98684c00fb2f05195a89c5bd41e09e2a404628e122609ac3",
+    "docs/imported/05_SOURCES/decisions/Stage5D_Q18-Q22_Owner_Decision_Record.md": "3a0181d1bb362087151bee4ee617eafa62d3125a213c6032aca063971c034913",
+    "docs/imported/05_SOURCES/decisions/Stage5D_Q23-Q26_Owner_Decision_Record.md": "7b1393d9f85dd70618d8a7eb3a9fed648a99f9d6aebef79bb1fe9d6bb5fa03c8",
+    "docs/imported/05_SOURCES/verification/Stage5D_16_SLO_Approval_and_Calibration_Register.csv": "d862e1df3fc1c0d4ad9712578b7fd8be22070a7a7783286e2d1fd3b4b16daf56",
+    "docs/imported/05_SOURCES/verification/Stage5D_94_Requirement_Release_Contract_CROSSWALK.csv": "5d85dd3c593864eeaa7a1194ff89a690251d67dc9ac97b0cf09749e7361dd121",
+    "docs/imported/05_SOURCES/verification/Stage5E_Proposed_Additional_Atomic_Acceptance_Checks.csv": "ae1591280a967c02649b72d662d661ba6b5767a87082b7afc079361f1215971e",
+    "docs/imported/05_SOURCES/verification/Stage5E_Rephased_14_Feasibility_Gates_PROPOSED.csv": "7c5bb83ae2b98aebc72ad33c82cbd2de541f343e6c977f32eaaecbd8e6fb0b96",
+    "docs/imported/05_SOURCES/verification/Stage5F_103_Inherited_Clause_Audit.csv": "4dfc042610b9e03bcb4b5ac0e90eb6c26f846a7d60866a8043ec1079a8e3f98b",
+    "docs/imported/05_SOURCES/verification/Stage5F_158_Test_Candidate_Provenance_Ledger.csv": "d4341234dd9f76cc26dee0fe04e19b527ae0a1ef8893d20e6c13d83f41ee1f6c",
+    "docs/imported/05_SOURCES/verification/Stage5F_94_Requirement_to_Test_Link_Audit.csv": "cdc477660494a6358d7ae1f4ba75ae4e360a7017d29185dd359f21d38702d20e",
+    "docs/imported/05_SOURCES/verification/Stage5F_Readiness_and_Traceability_Audit.md": "047b6fb7222b6e7927ca84dcb0d4004e0085363234a281fbc3b91f3e6ed748d9",
+    "docs/imported/START_HERE.md": "b4b851b28dd94653086eb28ac113ceaff4ea7354b983c22a031b960bd9b9c407",
+    "docs/licensing/DEPENDENCIES.md": "67fed77d62e503d57dbbee14756e36ff0a1f1d87bc49215aa8fadd9e74ea35d7",
+    "docs/licensing/dependency-inventory.json": "35dc2425a22617c6a5d2c478a1bfdc6bb64bb3f3e2718c5bb03f332b20afd362",
+    "docs/spec/approved-v0.5.8.md": "68612d4dc4d0e69c61f0018fbcf67bf779559bcbb120bcd0f6c3f9333f27b7b3",
+    "docs/verification/DEFERRED_MANUAL.md": "c694b9fe185c216204dfd72aa6c55d1f8d21e06c431bb50b126bce1a6b514e1c",
+    "docs/verification/TEST_PLAN.md": "046f2ab347a08d8e2fb474ad5b2e5778d333ba3a3b31c037b6ffeea6832524a1",
+    "docs/verification/backend-gaps.json": "00467ad9d1bf55446b53ac56f13516370039c7b829082a447a361f1762511016",
+    "docs/verification/candidates-current.csv": "d7ac55b0ea247e4ee22916eff57eb28eacc9fe6569f42a0291e61e261d9a3a66",
+    "docs/verification/inherited-current.csv": "a4e63fa17801befa59e4446dec448523465291af2e4482a72102a92230b2d277",
+    "docs/verification/requirements-current.csv": "23b069321f0100ea917946b10c9a7933e83a4eb17a68543ada9a9fe7decb94aa",
+    "docs/verification/traceability-manifest.json": "15d09e00b540a512b8e0b6afd98b06824e93d743d80317963ebe18d91d3adb22",
+    "rust-toolchain.toml": "c33d1f0b1b8fda448bea32d7dc867aa64947c87169fd9de7122ffccad1dd80f9",
+    "tools/backend_gate.py": "3268c7215aa26a7af9832ee068ce05d7fa63484bee89fe7025599cfe250d8398",
+    "tools/dependency_inventory.py": "a447680d4a481981742fd2683259a089828d7a779c63e7c82cd83a705c09a1b8",
+    "tools/traceability.py": "62a75c8e7038074ed39664cf9804664420b0e6763f69ae16839cf42e752096bb",
+    "tools/validate.py": "c6f39d4b2af06d30caa6766a13bb6f116a8fe4c2177873ec0575093023f377a0"
+  },
+  "checks": [
+    {
+      "name": "format",
+      "command": [
+        "/root/.cargo/bin/cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "result": "PASS",
+      "seconds": 0.242,
+      "log": "format.log"
+    },
+    {
+      "name": "lint",
+      "command": [
+        "/root/.cargo/bin/cargo",
+        "clippy",
+        "--workspace",
+        "--all-targets",
+        "--locked",
+        "--offline",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "result": "PASS",
+      "seconds": 2.341,
+      "log": "lint.log"
+    },
+    {
+      "name": "tests",
+      "command": [
+        "/root/.cargo/bin/cargo",
+        "test",
+        "--workspace",
+        "--locked",
+        "--offline"
+      ],
+      "exit_code": 0,
+      "result": "PASS",
+      "seconds": 9.835,
+      "log": "tests.log"
+    },
+    {
+      "name": "release-build",
+      "command": [
+        "/root/.cargo/bin/cargo",
+        "build",
+        "--workspace",
+        "--release",
+        "--locked",
+        "--offline"
+      ],
+      "exit_code": 0,
+      "result": "PASS",
+      "seconds": 59.499,
+      "log": "release-build.log"
+    },
+    {
+      "name": "traceability",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "tools/traceability.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "result": "PASS",
+      "seconds": 0.083,
+      "log": "traceability.log"
+    }
+  ],
+  "tests": [
+    {
+      "name": "store::storage_tests::sqlite_full_reports_failure_and_preserves_committed_work",
+      "result": "ok"
+    },
+    {
+      "name": "offline_help_covers_recovery_and_unsearchable_ink_without_remote_dependency",
+      "result": "ok"
+    },
+    {
+      "name": "code_plaintext_is_exact_and_markdown_fence_cannot_be_closed_by_content",
+      "result": "ok"
+    },
+    {
+      "name": "converter_preserves_deliberately_wrong_math_without_solving",
+      "result": "ok"
+    },
+    {
+      "name": "unsupported_maths_is_reported_and_xml_is_escaped",
+      "result": "ok"
+    },
+    {
+      "name": "stale_edit_and_interrupted_move_do_not_change_saved_state",
+      "result": "ok"
+    },
+    {
+      "name": "app_lock_and_inherited_protection_do_not_grant_via_link_or_move",
+      "result": "ok"
+    },
+    {
+      "name": "chronology_filters_by_actual_creation_without_journals",
+      "result": "ok"
+    },
+    {
+      "name": "locked_dependencies_disclose_presence_without_name_or_id",
+      "result": "ok"
+    },
+    {
+      "name": "module_moves_check_descendants_cycles_and_depth_atomically",
+      "result": "ok"
+    },
+    {
+      "name": "trash_dependency_review_restore_and_permanent_broken_link",
+      "result": "ok"
+    },
+    {
+      "name": "delete_review_is_invalidated_by_new_dependency",
+      "result": "ok"
+    },
+    {
+      "name": "unfiled_move_and_reopen_preserve_identity_creation_and_backlinks",
+      "result": "ok"
+    },
+    {
+      "name": "complete_parent_matrix_and_no_phantom_containers",
+      "result": "ok"
+    },
+    {
+      "name": "export_plan_cannot_survive_later_lock_or_source_change",
+      "result": "ok"
+    },
+    {
+      "name": "corrupt_native_import_and_interruption_do_not_touch_existing_documents",
+      "result": "ok"
+    },
+    {
+      "name": "hostile_native_relationships_rejected_even_with_recomputed_checksum",
+      "result": "ok"
+    },
+    {
+      "name": "hostile_cross_kind_identifier_aliases_are_rejected_before_import",
+      "result": "ok"
+    },
+    {
+      "name": "both_protected_export_paths_require_fresh_authentication",
+      "result": "ok"
+    },
+    {
+      "name": "raw_ink_requires_deliberate_inclusion_and_subset_export_never_follows_links",
+      "result": "ok"
+    },
+    {
+      "name": "concurrent_change_during_export_authentication_invalidates_output",
+      "result": "ok"
+    },
+    {
+      "name": "encrypted_header_payload_truncation_and_weak_credentials_fail_closed",
+      "result": "ok"
+    },
+    {
+      "name": "encrypted_native_roundtrip_creates_independent_copy_and_keeps_current_work",
+      "result": "ok"
+    },
+    {
+      "name": "encrypted_package_opens_with_password_or_independent_recovery_key",
+      "result": "ok"
+    },
+    {
+      "name": "failed_resource_reverification_clears_previous_readiness",
+      "result": "ok"
+    },
+    {
+      "name": "incompatible_raster_egress_and_unreviewed_licence_are_rejected",
+      "result": "ok"
+    },
+    {
+      "name": "readiness_requires_consent_integrity_and_actual_probe",
+      "result": "ok"
+    },
+    {
+      "name": "locked_ink_and_proposals_cannot_be_sent_or_reviewed_without_access",
+      "result": "ok"
+    },
+    {
+      "name": "panicking_model_probe_becomes_failed_readiness_without_disabling_notes",
+      "result": "ok"
+    },
+    {
+      "name": "cancel_timeout_and_worker_panic_discard_results",
+      "result": "ok"
+    },
+    {
+      "name": "model_switch_and_remove_leave_accepted_content_and_raw_strokes",
+      "result": "ok"
+    },
+    {
+      "name": "rejection_and_failed_atomic_accept_leave_ink_untouched",
+      "result": "ok"
+    },
+    {
+      "name": "stale_inference_and_stale_proposal_cannot_overwrite_corrections",
+      "result": "ok"
+    },
+    {
+      "name": "proposal_review_acceptance_and_source_survive_reopen",
+      "result": "ok"
+    },
+    {
+      "name": "two_connections_cannot_silently_overwrite_same_revision",
+      "result": "ok"
+    },
+    {
+      "name": "process_exit_before_and_after_commit_preserves_correct_durable_boundary",
+      "result": "ok"
+    },
+    {
+      "name": "failed_migration_rolls_back_and_newer_schema_is_not_downgraded",
+      "result": "ok"
+    },
+    {
+      "name": "v1_to_v2_migration_preserves_entities_and_is_repeatable",
+      "result": "ok"
+    },
+    {
+      "name": "link_default_managed_copy_requires_consent_and_matching_bytes",
+      "result": "ok"
+    },
+    {
+      "name": "source_link_never_bypasses_note_lock_or_creates_network_action",
+      "result": "ok"
+    },
+    {
+      "name": "q383_revocation_removes_caches_preserves_authored_work_and_independent_snapshot",
+      "result": "ok"
+    },
+    {
+      "name": "missing_pdf_view_reopens_and_relink_never_matches_by_filename",
+      "result": "ok"
+    },
+    {
+      "name": "math_subtree_edit_preserves_incomplete_fence_and_neighbours",
+      "result": "ok"
+    },
+    {
+      "name": "bad_samples_duplicate_ids_and_unordered_strokes_are_rejected",
+      "result": "ok"
+    },
+    {
+      "name": "exact_code_and_incorrect_math_survive_edits_and_restore_as_new_revision",
+      "result": "ok"
+    },
+    {
+      "name": "search_matches_literal_accepted_content_never_raw_or_locked_data",
+      "result": "ok"
+    },
+    {
+      "name": "interrupted_capture_rolls_back_block_strokes_and_document_revision",
+      "result": "ok"
+    },
+    {
+      "name": "mode_defaults_and_inheritance_do_not_convert_existing_ink",
+      "result": "ok"
+    },
+    {
+      "name": "restore_never_removes_newer_content_lock",
+      "result": "ok"
+    },
+    {
+      "name": "active_use_retirement_keeps_checkpoint_and_originals",
+      "result": "ok"
+    },
+    {
+      "name": "unauthorised_history_retirement_skips_locked_content",
+      "result": "ok"
+    },
+    {
+      "name": "stale_edits_and_view_toggles_never_mutate_source",
+      "result": "ok"
+    },
+    {
+      "name": "source_ink_is_lossless_after_reopen_transform_erase_and_history_retirement",
+      "result": "ok"
+    }
+  ],
+  "backend_accepted": false,
+  "finished_utc": "2026-10-21T23:50:45.654380+00:00",
+  "totals": {
+    "passed": 53,
+    "failed": 0,
+    "ignored": 0
+  }
+}
