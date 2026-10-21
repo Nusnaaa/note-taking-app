@@ -82,11 +82,15 @@ impl NativeDocument {
             return Err(Error::ResourceLimit);
         }
         let mut entities = BTreeMap::new();
+        // Imports remap all durable identifiers through one table. Reject cross-kind
+        // aliases before remapping, as well as duplicates inside each collection.
+        let mut durable_ids = BTreeSet::new();
         for e in &self.entities {
             if e.purged
                 || e.trashed
                 || e.title.len() > 4096
                 || e.revision > i64::MAX as u64
+                || !durable_ids.insert(e.id)
                 || entities.insert(e.id, e).is_some()
             {
                 return Err(Error::Invalid("native entity"));
@@ -120,6 +124,7 @@ impl NativeDocument {
             let b = &n.current;
             b.validate()?;
             if b.revision > i64::MAX as u64
+                || !durable_ids.insert(b.id)
                 || !block_ids.insert(b.id)
                 || !entities.get(&b.entity).is_some_and(|e| e.kind.is_surface())
             {
@@ -131,7 +136,7 @@ impl NativeDocument {
             }
             for s in &n.strokes {
                 s.validate()?;
-                if !stroke_ids.insert(s.id) {
+                if !stroke_ids.insert(s.id) || !durable_ids.insert(s.id) {
                     return Err(Error::Invalid("native duplicate stroke"));
                 }
             }
@@ -153,6 +158,7 @@ impl NativeDocument {
         let mut links = BTreeSet::new();
         for l in &self.links {
             if !links.insert(l.id)
+                || !durable_ids.insert(l.id)
                 || !entities.contains_key(&l.origin)
                 || !entities.contains_key(&l.target)
                 || l.anchor.is_some_and(|a| {

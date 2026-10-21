@@ -246,6 +246,10 @@ impl Manager {
             return Err(Error::Denied);
         }
         let entry = self.entries.get_mut(id).ok_or(Error::EngineUnavailable)?;
+        // Re-verification starts fail-closed. A failed resource check cannot leave
+        // stale Ready state from a previous activation. Updates will later stage
+        // separate old/new entries; this operation revalidates this exact entry.
+        entry.readiness = Readiness::Failed;
         if let Some(expected) = &entry.descriptor.resource_sha256 {
             if resource.is_none_or(|r| digest(r) != *expected) {
                 return Err(Error::Integrity);
@@ -254,7 +258,11 @@ impl Manager {
             return Err(Error::Invalid("unexpected model data"));
         }
         let result = match &entry.adapter {
-            Adapter::Recogniser(r) => r.probe(),
+            Adapter::Recogniser(r) => {
+                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| r.probe()))
+                    .map_err(|_| Error::WorkerFailed)
+                    .and_then(|result| result)
+            }
             Adapter::Converter(_) => Ok(()),
         };
         entry.readiness = if result.is_ok() {

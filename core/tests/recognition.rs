@@ -68,6 +68,57 @@ fn manager() -> Manager {
     m.select(Task::Prose, "fake").unwrap();
     m
 }
+
+#[test]
+fn failed_resource_reverification_clears_previous_readiness() {
+    use sha2::{Digest, Sha256};
+    let mut m = Manager::new();
+    let mut d = descriptor("resource");
+    d.resource_sha256 = Some(format!("{:x}", Sha256::digest(b"synthetic model bytes")));
+    m.register_recogniser(
+        d,
+        Box::new(Fake {
+            text: "test".into(),
+            cancel: false,
+            panic: false,
+        }),
+    )
+    .unwrap();
+    m.activate_local("resource", Some(b"synthetic model bytes"), true)
+        .unwrap();
+    assert_eq!(m.readiness("resource"), Readiness::Ready);
+    assert!(matches!(
+        m.activate_local("resource", Some(b"changed resource"), true),
+        Err(Error::Integrity)
+    ));
+    assert_eq!(m.readiness("resource"), Readiness::Failed);
+    assert!(m.select(Task::Prose, "resource").is_err());
+}
+
+#[test]
+fn panicking_model_probe_becomes_failed_readiness_without_disabling_notes() {
+    struct ProbePanic;
+    impl Recogniser for ProbePanic {
+        fn probe(&self) -> Result<()> {
+            panic!("synthetic probe failure")
+        }
+        fn recognise(&self, _: &InkSnapshot, _: Task, _: &JobControl) -> Result<RecognitionOutput> {
+            unreachable!()
+        }
+    }
+    let mut m = Manager::new();
+    m.register_recogniser(descriptor("probe"), Box::new(ProbePanic))
+        .unwrap();
+    assert!(matches!(
+        m.activate_local("probe", None, true),
+        Err(Error::WorkerFailed)
+    ));
+    assert_eq!(m.readiness("probe"), Readiness::Failed);
+    let mut s = Store::memory().unwrap();
+    let a = Access::public();
+    let n = s.create(Kind::Note, None, "still writable", &a).unwrap();
+    assert!(s.append_ink(n.id, vec![stroke(0)], &a).is_ok());
+}
 fn request(m: &Manager, s: &Store, id: stem_core::Id, a: &Access) -> CompletedRecognition {
     m.recognise(
         s.ink_snapshot(id, a).unwrap(),
@@ -260,7 +311,7 @@ fn readiness_requires_consent_integrity_and_actual_probe() {
     )
     .unwrap();
     assert!(m.activate_local("hash", Some(b"data"), true).is_err());
-    assert_eq!(m.readiness("hash"), Readiness::Missing);
+    assert_eq!(m.readiness("hash"), Readiness::Failed);
 }
 #[test]
 fn locked_ink_and_proposals_cannot_be_sent_or_reviewed_without_access() {

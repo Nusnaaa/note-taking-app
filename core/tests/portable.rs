@@ -11,6 +11,49 @@ use stem_core::{
 const PASSWORD: &str = "Synthetic test passphrase 2026!";
 
 #[test]
+fn hostile_cross_kind_identifier_aliases_are_rejected_before_import() {
+    use sha2::{Digest, Sha256};
+    let mut s = Store::memory().unwrap();
+    let a = Access::public();
+    let n = s.create(Kind::Note, None, "healthy", &a).unwrap();
+    let b = s.append_ink(n.id, vec![stroke(0)], &a).unwrap();
+    let plan = s.prepare_native_export(&[n.id], true, &a).unwrap();
+    let exported = s
+        .finish_native_export(
+            plan,
+            ExportProtection::Plaintext {
+                acknowledge_protected: false,
+            },
+            &mut TestAuth(false),
+            true,
+        )
+        .unwrap();
+    let original = NativeDocument::decode(&exported.bytes).unwrap();
+    for kind in ["block", "stroke"] {
+        let mut doc = original.clone();
+        if kind == "block" {
+            doc.blocks[0].current.id = n.id;
+            for h in &mut doc.blocks[0].history {
+                h.block.id = n.id;
+            }
+        } else {
+            doc.blocks[0].strokes[0].id = n.id;
+            doc.blocks[0].current.source_ids[0] = n.id;
+            doc.blocks[0].current.visible_strokes[0] = n.id;
+            for h in &mut doc.blocks[0].history {
+                h.block.source_ids[0] = n.id;
+                h.block.visible_strokes[0] = n.id;
+            }
+        }
+        let payload = serde_json::to_string(&doc).unwrap();
+        let hostile = serde_json::to_vec(&serde_json::json!({"sha256":format!("{:x}",Sha256::digest(payload.as_bytes())),"payload":payload})).unwrap();
+        assert!(s.import_native(&hostile, &a).is_err(), "{kind}");
+        assert_eq!(s.block(b.id, &a).unwrap(), b);
+        assert_eq!(s.list(None, Order::Name, None, None, &a).unwrap().len(), 1);
+    }
+}
+
+#[test]
 fn encrypted_package_opens_with_password_or_independent_recovery_key() {
     let plain = b"private document title and original source ink";
     let encrypted = crypto::encrypt(plain, PASSWORD).unwrap();

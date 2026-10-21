@@ -74,6 +74,7 @@ impl InkSnapshot {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct HistoryEntry {
     pub revision: u64,
     pub active_ms: u64,
