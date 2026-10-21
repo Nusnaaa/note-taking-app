@@ -3,6 +3,7 @@
 //! not guarantees about uncommitted events or faulty storage hardware.
 mod organisation;
 mod writing;
+mod proposals;
 
 use crate::{Error, Id, Result, security::{Access, Scope}};
 use rusqlite::{Connection, OptionalExtension, TransactionBehavior};
@@ -127,3 +128,4 @@ impl Store {
 
 pub use organisation::{DeletionReview, Link, LinkState, Order};
 pub use writing::{Block, Display, HistoryEntry, InkSnapshot};
+pub use proposals::{Proposal, ProposalState};

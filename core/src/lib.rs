@@ -4,6 +4,8 @@
 
 pub mod content;
 pub mod ink;
+pub mod processing;
+pub mod sources;
 pub mod security;
 pub mod store;
 
@@ -39,6 +41,7 @@ pub enum Error {
     #[error("operation cancelled")] Cancelled,
     #[error("operation timed out")] Timeout,
     #[error("engine unavailable or incompatible")] EngineUnavailable,
+    #[error("worker failed; original content is unchanged")] WorkerFailed,
     #[error("resource limit reached")] ResourceLimit,
     #[error("integrity or credential verification failed")] Integrity,
     #[error("injected interruption")] Interrupted,
