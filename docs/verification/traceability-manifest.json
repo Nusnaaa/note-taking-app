@@ -1,0 +1,27 @@
+{
+  "baseline_sha256": "68612d4dc4d0e69c61f0018fbcf67bf779559bcbb120bcd0f6c3f9333f27b7b3",
+  "canonical_rows": 94,
+  "inherited_rows": 103,
+  "candidate_rows": 158,
+  "fixture_families": [
+    "capture",
+    "editable",
+    "exercises",
+    "export",
+    "governance",
+    "later-m1",
+    "later-m2",
+    "model-lifecycle",
+    "modes",
+    "offline",
+    "organisation",
+    "pdf-sources",
+    "post-hi",
+    "recognition",
+    "recovery",
+    "rich-objects",
+    "security",
+    "source-ink"
+  ],
+  "note": "Rows and fixture families are not executed-test totals. Check validation.json for observed test execution."
+}

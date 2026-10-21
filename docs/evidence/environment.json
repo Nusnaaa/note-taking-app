@@ -1,0 +1,102 @@
+{
+  "captured_utc": "2026-10-21T23:49:16.241388+00:00",
+  "platform": {
+    "command": [
+      "uname",
+      "-srm"
+    ],
+    "exit_code": 0,
+    "output": "Linux 6.18.55 x86_64"
+  },
+  "branch": {
+    "command": [
+      "git",
+      "branch",
+      "--show-current"
+    ],
+    "exit_code": 0,
+    "output": "phase-a/backend"
+  },
+  "remotes": {
+    "command": [
+      "git",
+      "remote",
+      "-v"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  "tools": [
+    {
+      "command": [
+        "git",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "git version 2.51.1"
+    },
+    {
+      "command": [
+        "python3",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "Python 3.12.14"
+    },
+    {
+      "command": [
+        "/root/.cargo/bin/rustc",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "rustc 1.90.0 (1159e78c4 2025-09-14)"
+    },
+    {
+      "command": [
+        "/root/.cargo/bin/cargo",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "cargo 1.90.0 (840b83a10 2025-07-30)"
+    },
+    {
+      "command": [
+        "/root/.cargo/bin/cargo",
+        "clippy",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "clippy 0.1.90 (1159e78c47 2025-09-14)"
+    },
+    {
+      "command": [
+        "gcc",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0\nCopyright (C) 2023 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
+    },
+    {
+      "command": [
+        "java",
+        "-version"
+      ],
+      "exit_code": 0,
+      "output": "openjdk version \"17.0.20\" 2026-07-21\nOpenJDK Runtime Environment (build 17.0.20+8-1-24.04-Ubuntu)\nOpenJDK 64-Bit Server VM (build 17.0.20+8-1-24.04-Ubuntu, mixed mode, sharing)"
+    }
+  ],
+  "host_tools": {
+    "javac": null,
+    "kotlinc": null,
+    "gradle": null,
+    "sdkmanager": null,
+    "adb": null,
+    "clang": null
+  },
+  "notes": [
+    "Rust was absent initially and installed from official rustup distribution; pinned toolchain now available.",
+    "Java runtime exists; no JDK compiler, Kotlin compiler, Gradle, Android SDK/adb/NDK toolchain configured. Android ABI/build/device execution has not happened.",
+    "No existing project repository was present. Created isolated local repository and phase-a/backend branch; no remote selected.",
+    "No original handwriting samples requested, received or sent. Synthetic vectors only."
+  ]
+}
