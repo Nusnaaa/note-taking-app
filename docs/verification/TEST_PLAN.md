@@ -25,6 +25,7 @@ multiply the number of distinct tests merely because several IDs cite that fixtu
 | Source revocation | ST5B-I1-08; CF-10/SV-08/SV-25/S4C-025 later-context variants | I1 policy test does not certify M1 catalogue/overlay propagation |
 | Protected portable export | ST5E-T-21, ST5B-I1-07, ST5E-T-12 | Shared auth/export fixtures; do not drop recognition access or other-scope assertions |
 | Native recovery | ST5B-I1-05, ST5E-T-22, ST5E-T-20 | Existing subset roundtrip cannot satisfy comprehensive backup or Android OS-backup exclusion |
+| Shared exercises and membership | CF-25, CF-28, S4C-002, S4C-026 | Exercise fixtures cover shared revisions/status, heading stability, explicit reassignment/undo, independent copies and v2 subset migration; general history, host navigation and positions remain open |
 | Post-build quality and pen use | CF-29/CF-30, ST5E-T-26/ST5E-T-27 | Separate deferred owner-private checks; synthetic adapters never substitute |
 
 The candidate ledger records all other fixture families and all unabridged expected
@@ -37,6 +38,11 @@ outcomes. Mixed-phase aliases remain separate; generic repeated wording such as
 `writing::search_matches_literal_accepted_content_never_raw_or_locked_data`.
 It covers literal accepted content, titles, raw-ink exclusion and access checks.
 Diagram labels/headings, new entity paths and scale remain unfinished.
+
+Exercise tests additionally cover title non-disclosure from protected headings,
+protection through master/history/inference/links/export, and failed shared saves.
+V2 migration tests seed actual v2 source observations and history before upgrading;
+an empty-schema upgrade alone is not treated as preservation evidence.
 
 `NB-SUP-002` now points explicitly to
 `converters::offline_help_covers_recovery_and_unsearchable_ink_without_remote_dependency`.

@@ -37,7 +37,7 @@ python3 tools/traceability.py --check
 
 | Path | Responsibility |
 | --- | --- |
-| `core/src/store/`, `core/migrations/` | Transactional organisation, source ink, editable blocks, history and proposals |
+| `core/src/store/`, `core/migrations/` | Transactional organisation, shared exercises, source ink, editable blocks, history and proposals |
 | `core/src/content.rs`, `ink.rs` | Editable presentation structure and original vector observations |
 | `core/src/processing.rs`, `converters.rs` | Shared manager with separate typed local recogniser/converter contracts |
 | `core/src/security.rs`, `sources.rs` | Scoped access and local PDF source/retention policy |
@@ -51,10 +51,17 @@ No real recogniser is installed. Synthetic adapters live in tests and make no
 handwriting-accuracy claim. No handwriting uploads, raster recognition requirement,
 remote inference, LLM, telemetry or production H.I. have been introduced.
 
-The next implementation work is shared master/exercise views, rich technical
-objects, durable processing lifecycle, full portability, PDF host integration and
-Android core bindings. See `docs/verification/backend-gaps.json` for gate-blocking
-work and `docs/verification/TEST_PLAN.md` for verification responsibilities.
+Shared exercise membership, revision-safe edits, hiding, locks, explicit reversible
+reassignment and independent copies are implemented in the core. Native subset v2
+preserves exercise relationships, heading rules and effective modes and reads v1.
+The same Store shares local save status between master and exercise views; transient
+status is not shared across separate Store instances. This is not a complete host
+integration or full backup. See `docs/decisions/ADR-003-shared-exercises.md`.
+
+Remaining work includes rich technical objects, native capture scheduling, durable
+processing lifecycle, full portability, PDF host integration and Android core
+bindings. See `docs/verification/backend-gaps.json` for gate-blocking work and
+`docs/verification/TEST_PLAN.md` for verification responsibilities.
 
 ## Repository and future host
 

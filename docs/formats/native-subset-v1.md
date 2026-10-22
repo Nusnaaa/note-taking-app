@@ -1,5 +1,9 @@
 # Native subset v1 and portable encryption envelope v1
 
+Historical payload description. The current payload encoder is v2; see
+`native-subset-v2.md` for extensions and v1 read compatibility. The encryption
+envelope described below remains version 1.
+
 This is an implementation format for the current core subset, **not the full
 approved native format or a comprehensive backup**. The decoder rejects a future
 version. Migrations to the complete native format must preserve these files.
