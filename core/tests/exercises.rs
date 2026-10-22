@@ -519,7 +519,7 @@ fn current_native_preserves_exercise_identity_relationships_locks_modes_and_head
     s.set_mode(n.id, WritingMode::InkOnly, &a).unwrap();
     let file = export(&s, n.id, &auth);
     let doc = NativeDocument::decode(&file).unwrap();
-    assert_eq!(doc.version, 3);
+    assert_eq!(doc.version, 4);
     assert_eq!(doc.memberships.len(), 2);
     let new = s.import_native(&file, &a).unwrap()[0];
     assert!(s.exercises(new, true, &a).unwrap().is_empty());
@@ -613,4 +613,31 @@ fn master_trash_restore_and_purge_preserve_then_remove_exercise_state() {
     s.purge(n.id, &a).unwrap();
     assert!(s.exercise(e.id, &a).is_err());
     s.check_integrity().unwrap();
+}
+
+#[test]
+fn flat_and_search_views_follow_visibility_and_permissions_without_copying_content() {
+    let mut s = Store::memory().unwrap();
+    let a = Access::public();
+    let n = s.create(Kind::Note, None, "master", &a).unwrap();
+    let e = s.create_exercise(n.id, "Exercise target", &[], &a).unwrap();
+    let b = s
+        .append_content_to(
+            WritingTarget::Exercise(e.id),
+            Content::Text("needle".into()),
+            &a,
+        )
+        .unwrap();
+    assert_eq!(s.flat_exercises(&a).unwrap().len(), 1);
+    let hit = s.search_views("needle", &a).unwrap().remove(0);
+    assert_eq!(hit.master, n.id);
+    assert_eq!(hit.block, Some(b.id));
+    assert_eq!(hit.exercise, Some(e.id));
+    s.set_exercise_visible(e.id, e.revision, false, &a).unwrap();
+    assert!(s.flat_exercises(&a).unwrap().is_empty());
+    assert_eq!(s.search_views("needle", &a).unwrap()[0].exercise, None);
+    let e = s.exercise(e.id, &a).unwrap();
+    let auth = access([Scope::Exercise(e.id)]);
+    s.set_exercise_lock(e.id, e.revision, true, &auth).unwrap();
+    assert!(s.search_views("needle", &a).unwrap().is_empty());
 }

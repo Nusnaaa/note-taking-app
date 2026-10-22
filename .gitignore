@@ -18,3 +18,7 @@ local.properties
 .gradle/
 __pycache__/
 .DS_Store
+
+android/**/build/
+/target/android-jni/
+android/.kotlin/

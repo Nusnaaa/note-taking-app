@@ -36,6 +36,7 @@ pub struct DerivativePlan {
     generation: String,
     scopes: BTreeSet<Scope>,
     bundle: ExportBundle,
+    render_contents: Vec<Content>,
     pub selected_blocks: usize,
     pub warnings: Vec<String>,
     pub includes_original_ink: bool,
@@ -86,10 +87,11 @@ pub fn technical_svg(content: &Content, bounds: Rect) -> Result<String> {
                     ),
                 };
 
-                body += &format!(
-                    "<g fill=\"none\" stroke=\"black\"><title>{}</title>{shape}</g>",
-                    xml(&p.label)
-                );
+                let (x, y) = match &p.shape {
+                    Shape::Polyline(points) => (points[0].x, points[0].y),
+                    Shape::Rectangle(r) | Shape::Ellipse(r) => (r.x, r.y),
+                };
+                body += &format!("<g fill=\"none\" stroke=\"black\">{shape}</g><text x=\"{x}\" y=\"{}\" font-size=\"5\">{}</text>",y+5.,xml(&p.label));
             }
         }
 
@@ -112,7 +114,8 @@ pub fn technical_svg(content: &Content, bounds: Rect) -> Result<String> {
                 )
             };
 
-            body += &format!("<title>{}; {}</title>", xml(&g.x.label), xml(&g.y.label));
+            let font = (bounds.width.min(bounds.height) * 0.04).max(1.);
+            body += &format!("<path d=\"M{} {}V{}H{}\" fill=\"none\" stroke=\"black\"/><text x=\"{}\" y=\"{}\" font-size=\"{font}\">{} {}</text><text x=\"{}\" y=\"{}\" font-size=\"{font}\">{} {}</text>",bounds.x,bounds.y,bounds.y+bounds.height,bounds.x+bounds.width,bounds.x+bounds.width*0.35,bounds.y+bounds.height-font,xml(&g.x.label),xml(g.x.unit.as_deref().unwrap_or("")),bounds.x+font,bounds.y+font,xml(&g.y.label),xml(g.y.unit.as_deref().unwrap_or("")));
 
             for s in &g.series {
                 body+=&format!("<polyline fill=\"none\" stroke=\"black\" points=\"{}\"><title>{}</title></polyline>",s.points.iter().map(project).collect::<Vec<_>>().join(" "),xml(&s.label));
@@ -268,6 +271,14 @@ impl Store {
                 continue;
             }
 
+            for region in &b.regions {
+                if let Some(content) = &region.content {
+                    let converted = TextConverter.convert(content, Format::Markdown, &control)?;
+                    markdown += &converted.text;
+                    markdown += "\n\n";
+                    warnings.extend(converted.fidelity.unsupported);
+                }
+            }
             match &b.content {
                 Content::Ink => {
                     warnings.push("Unconverted handwriting omitted from converted text.".into())
@@ -443,6 +454,14 @@ impl Store {
             return Err(Error::Conflict);
         }
 
+        let mut render_contents = Vec::new();
+        for block in &blocks {
+            if !block.visible {
+                continue;
+            }
+            render_contents.push(block.content.clone());
+            render_contents.extend(block.regions.iter().filter_map(|r| r.content.clone()));
+        }
         let bundle = ExportBundle {
             markdown,
             assets,
@@ -455,10 +474,46 @@ impl Store {
             generation,
             scopes,
             bundle,
+            render_contents,
             selected_blocks: blocks.len(),
             warnings,
             includes_original_ink: included,
         })
+    }
+
+    /// PDF export uses the same reviewed scope and fresh authentication as all
+    /// derivative exports. This entry point is converted-only; unsupported image
+    /// or embedded-view fidelity is an error, never a silent omission.
+    pub fn finish_pdf_export(
+        &self,
+        plan: DerivativePlan,
+        font: &[u8],
+        page: Page,
+        auth: &mut dyn Authenticator,
+        confirmed: bool,
+    ) -> Result<crate::render::PdfOutput> {
+        if plan.includes_original_ink {
+            return Err(Error::Unsupported);
+        }
+        if !confirmed {
+            return Err(Error::ReviewRequired);
+        }
+        if Self::setting(&self.db, "library_id")? != plan.library
+            || Self::setting(&self.db, "generation")? != plan.generation
+        {
+            return Err(Error::Conflict);
+        }
+        if !plan.scopes.is_empty() && !auth.verify(Id::new(), &plan.scopes) {
+            return Err(Error::Denied);
+        }
+        let mut output = crate::render::render_pdf(&plan.render_contents, font, page)?;
+        if Self::setting(&self.db, "generation")? != plan.generation {
+            return Err(Error::Conflict);
+        }
+        output.warnings.extend(plan.warnings);
+        output.warnings.sort();
+        output.warnings.dedup();
+        Ok(output)
     }
 
     pub fn finish_derivative(

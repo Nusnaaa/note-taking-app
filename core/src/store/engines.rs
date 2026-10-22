@@ -52,12 +52,14 @@ impl Store {
 
         Manager::validate(&descriptor)?;
 
-        if descriptor.family != crate::processing::Family::Recogniser
-            || descriptor.input != crate::processing::InputContract::OrderedStrokesV1
-            || descriptor.internals != crate::processing::Internals::StrokeOnlyVerified
-            || descriptor.tasks.is_empty()
-        {
-            return Err(Error::EngineUnavailable);
+        match descriptor.family {
+            crate::processing::Family::Recogniser
+                if descriptor.input == crate::processing::InputContract::OrderedStrokesV1
+                    && descriptor.internals == crate::processing::Internals::StrokeOnlyVerified
+                    && !descriptor.tasks.is_empty() => {}
+            crate::processing::Family::Converter
+                if descriptor.input == crate::processing::InputContract::EditableV1 => {}
+            _ => return Err(Error::EngineUnavailable),
         }
 
         if descriptor.resource_sha256.is_some() != resource.is_some() {
@@ -261,6 +263,78 @@ impl Store {
         // Infallible swap follows successful durable commit. The old adapter remains
         // usable throughout failed verification, probe, or transaction rollback.
         manager.commit_replacement(prepared);
+
+        Ok(())
+    }
+
+    pub fn activate_converter(
+        &mut self,
+        id: Id,
+        manager: &mut Manager,
+        adapter: Box<dyn crate::processing::Converter>,
+        max_load_bytes: u64,
+        access: &Access,
+    ) -> Result<()> {
+        let generation = Self::setting(&self.db, "generation")?;
+        let mut v = self.engine_version(id, access)?;
+
+        if v.state == Installation::Removed {
+            return Err(Error::Unavailable);
+        }
+
+        let resource = if let Some(path) = &v.local_resource {
+            let file = std::fs::File::open(path)?;
+
+            if file.metadata()?.len() > max_load_bytes {
+                return Err(Error::ResourceLimit);
+            }
+
+            let mut bytes = Vec::new();
+
+            file.take(max_load_bytes.saturating_add(1))
+                .read_to_end(&mut bytes)?;
+
+            if bytes.len() as u64 > max_load_bytes
+                || Some(digest(&bytes)) != v.descriptor.resource_sha256
+            {
+                return Err(Error::Integrity);
+            }
+
+            Some(zeroize::Zeroizing::new(bytes))
+        } else {
+            None
+        };
+
+        let prepared = Manager::prepare_converter(
+            v.descriptor.clone(),
+            adapter,
+            resource.as_ref().map(|b| b.as_slice()),
+        )?;
+
+        v.state = Installation::Installed;
+
+        v.installed_ms = Some(now_ms());
+
+        self.write(|db| {
+            Self::require_app(db, access)?;
+            if Self::setting(db, "generation")? != generation {
+                return Err(Error::Conflict);
+            }
+            db.execute(
+                "UPDATE engine_versions SET payload=?1 WHERE id=?2",
+                rusqlite::params![serde_json::to_string(&v)?, id.to_string()],
+            )?;
+            db.execute(
+                "INSERT INTO engine_active VALUES(?1,?2) ON CONFLICT(engine) DO UPDATE SET \
+                version=excluded.version",
+                rusqlite::params![v.descriptor.id, id.to_string()],
+            )?;
+            Ok(())
+        })?;
+
+        // Infallible swap follows successful durable commit. The old adapter remains
+        // usable throughout failed verification, probe, or transaction rollback.
+        manager.commit_converter(prepared);
 
         Ok(())
     }

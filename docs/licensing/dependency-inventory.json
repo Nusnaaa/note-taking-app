@@ -2,6 +2,20 @@
   "scope": "All resolved Cargo targets, including build/dev and inactive platform dependencies; not a shipped-binary component claim",
   "packages": [
     {
+      "name": "adler2",
+      "version": "2.0.1",
+      "declared_spdx": "0BSD OR MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/oyvindln/adler2",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-0BSD": "861399f8c21c042b110517e76dc6b63a2b334276c8cf17412fc3c8908ca8dc17",
+        "LICENSE-APACHE": "8ada45cd9f843acf64e4722ae262c622a2b3b3007c7310ef36ac1061a30f6adb",
+        "LICENSE-MIT": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
       "name": "aead",
       "version": "0.5.2",
       "declared_spdx": "MIT OR Apache-2.0",
@@ -41,6 +55,57 @@
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
     {
+      "name": "arrayref",
+      "version": "0.3.9",
+      "declared_spdx": "BSD-2-Clause",
+      "selected_permitted_route": "BSD-2-Clause",
+      "repository": "https://github.com/droundy/arrayref",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE": "1bc7e6f475b3ec99b7e2643411950ae2368c250dd4c5c325f80f9811362a94a1"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "arrayvec",
+      "version": "0.7.8",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/bluss/arrayvec",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+        "LICENSE-MIT": "4da95ec4ecb65b738d470b7d762894ad9c97da93e6cbfb18b570fc2c96f4b871"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "autocfg",
+      "version": "1.5.1",
+      "declared_spdx": "Apache-2.0 OR MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/cuviper/autocfg",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+        "LICENSE-MIT": "27995d58ad5c1145c1a8cd86244ce844886958a35eb2b78c6b772748669999ac"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "base64",
+      "version": "0.22.1",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/marshallpierce/rust-base64",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+        "LICENSE-MIT": "0dd882e53de11566d50f8e8e2d5a651bcf3fabee4987d70f306233cf39094ba7"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
       "name": "base64ct",
       "version": "1.8.3",
       "declared_spdx": "Apache-2.0 OR MIT",
@@ -50,6 +115,19 @@
       "licence_files_sha256": {
         "LICENSE-APACHE": "a9040321c3712d8fd0b09cf52b17445de04a23a10165049ae187cd39e5c86be5",
         "LICENSE-MIT": "2d1c57bff28344b9e698f51063bc8509799cc4c99a4e0cf2aa3f7e7c3e1f9a9d"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "bitflags",
+      "version": "1.3.2",
+      "declared_spdx": "MIT/Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/bitflags/bitflags",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+        "LICENSE-MIT": "6485b8ed310d3f0340bf1ad1f47645069ce4069dcc6bb46c7d5c6faf41de1fdb"
       },
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
@@ -106,6 +184,59 @@
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
     {
+      "name": "bytemuck",
+      "version": "1.25.2",
+      "declared_spdx": "Zlib OR Apache-2.0 OR MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/Lokathor/bytemuck",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "e3ba223bb1423f0aad8c3dfce0fe3148db48926d41e6fbc3afbbf5ff9e1c89cb",
+        "LICENSE-MIT": "9df9ba60a11af705f2e451b53762686e615d86f76b169cf075c3237730dbd7e2",
+        "LICENSE-ZLIB": "84b34dd7608f7fb9b17bd588a6bf392bf7de504e2716f024a77d89f1b145a151"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "bytemuck_derive",
+      "version": "1.12.1",
+      "declared_spdx": "Zlib OR Apache-2.0 OR MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/Lokathor/bytemuck",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "e3ba223bb1423f0aad8c3dfce0fe3148db48926d41e6fbc3afbbf5ff9e1c89cb",
+        "LICENSE-MIT": "9df9ba60a11af705f2e451b53762686e615d86f76b169cf075c3237730dbd7e2",
+        "LICENSE-ZLIB": "84b34dd7608f7fb9b17bd588a6bf392bf7de504e2716f024a77d89f1b145a151"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "byteorder-lite",
+      "version": "0.1.0",
+      "declared_spdx": "Unlicense OR MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/image-rs/byteorder-lite",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-MIT": "0f96a83840e146e43c0ec96a22ec1f392e0680e6c1226e6f3ba87e0740af850f",
+        "UNLICENSE": "7e12e5df4bae12cb21581ba157ced20e1986a0508dd10d0e8a4ab9a4cf94e85c"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "bytes",
+      "version": "1.12.1",
+      "declared_spdx": "MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/tokio-rs/bytes",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE": "45f522cacecb1023856e46df79ca625dfc550c94910078bd8aec6e02880b3d42"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
       "name": "cc",
       "version": "1.9.0",
       "declared_spdx": "MIT OR Apache-2.0",
@@ -117,6 +248,17 @@
         "LICENSE-MIT": "378f5840b258e2779c39418f3f2d7b2ba96f1c7917dd6be0713f88305dbda397"
       },
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "cesu8",
+      "version": "1.1.0",
+      "declared_spdx": "Apache-2.0/MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/emk/cesu8-rs",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {},
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here.",
+      "review_note": "Declaration found in Cargo metadata/README; no top-level licence text in fetched crate. Preserve as a release-review item, not a completed notice audit."
     },
     {
       "name": "cfg-if",
@@ -171,6 +313,42 @@
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
     {
+      "name": "color_quant",
+      "version": "1.1.0",
+      "declared_spdx": "MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/image-rs/color_quant.git",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE": "592dc80f1a865d20d61a2006a2d29ce34a2bc28cd7e868ab300fdeed6da154ca"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "combine",
+      "version": "4.6.9",
+      "declared_spdx": "MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/Marwes/combine",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE": "9bbc1b3dc4674a9ebb12c2a62f54fe3c08672539717f8d05828f684b6cc419a3"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "core_maths",
+      "version": "0.1.1",
+      "declared_spdx": "MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/robertbastian/core_maths",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE": "9ebf8c4cc0b735ca13a766451f7b8097db3185975ceb2ba94b5abf439156a91f"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
       "name": "cpufeatures",
       "version": "0.2.17",
       "declared_spdx": "MIT OR Apache-2.0",
@@ -180,6 +358,19 @@
       "licence_files_sha256": {
         "LICENSE-APACHE": "a9040321c3712d8fd0b09cf52b17445de04a23a10165049ae187cd39e5c86be5",
         "LICENSE-MIT": "ae9baa7beea910273c2f384c2a6b721fb7bd02bda3436074a1072e4ee689f985"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "crc32fast",
+      "version": "1.5.3",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/srijs/rust-crc32fast",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08",
+        "LICENSE-MIT": "61d383b05b87d78f94d2937e2580cce47226d17823c0430fbcad09596537efcf"
       },
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
@@ -197,6 +388,19 @@
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
     {
+      "name": "data-url",
+      "version": "0.3.2",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/servo/rust-url",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+        "LICENSE-MIT": "b38f11f6096706e6de553dabe2a7ed142d59b6fa8c97e290c67496154745cdd5"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
       "name": "digest",
       "version": "0.10.7",
       "declared_spdx": "MIT OR Apache-2.0",
@@ -210,6 +414,19 @@
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
     {
+      "name": "equivalent",
+      "version": "1.0.3",
+      "declared_spdx": "Apache-2.0 OR MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/indexmap-rs/equivalent",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+        "LICENSE-MIT": "7365cc8878a1d7ce155a58c4ca09c3d7a6be413efa5334a80ea842912b669349"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
       "name": "errno",
       "version": "0.3.14",
       "declared_spdx": "MIT OR Apache-2.0",
@@ -219,6 +436,19 @@
       "licence_files_sha256": {
         "LICENSE-APACHE": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
         "LICENSE-MIT": "8764a597675778ddfd4e25f81b08a05dbcf089ac05662df7613fe67f150e3aa2"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "euclid",
+      "version": "0.22.14",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/servo/euclid",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+        "LICENSE-MIT": "62065228e42caebca7e7d7db1204cbb867033de5982ca4009928915e4095f3a3"
       },
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
@@ -262,6 +492,19 @@
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
     {
+      "name": "fdeflate",
+      "version": "0.3.7",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/image-rs/fdeflate",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+        "LICENSE-MIT": "c77a4cf9da729987d0fe7ccd811e3bd27393914ddf3d23467c18cc22954513b3"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
       "name": "find-msvc-tools",
       "version": "0.1.15",
       "declared_spdx": "MIT OR Apache-2.0",
@@ -271,6 +514,68 @@
       "licence_files_sha256": {
         "LICENSE-APACHE": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
         "LICENSE-MIT": "378f5840b258e2779c39418f3f2d7b2ba96f1c7917dd6be0713f88305dbda397"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "flate2",
+      "version": "1.1.10",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/rust-lang/flate2-rs",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+        "LICENSE-MIT": "025436edff4cfcdde17a5811fdea78892d8482efd1abdec5a17872d07a4f2112"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "float-cmp",
+      "version": "0.9.0",
+      "declared_spdx": "MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/mikedilger/float-cmp",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE": "40be1e77825d7e49485a2e43d89bed29dfff29f8f529e71d3c683656021f0d08"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "font-types",
+      "version": "0.11.3",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/googlefonts/fontations",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "a14f7d685a79c0f4fb64aee305527a6d5fa55f2401f4e6d688d7b1301868e6c0",
+        "LICENSE-MIT": "8a62fa27ffdccc3df19dce90f8bb3d572e27aecffc1a383d0c2601834dcec434"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "fontconfig-parser",
+      "version": "0.5.8",
+      "declared_spdx": "MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/Riey/fontconfig-parser",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE": "1f90908c18012716ff9965086920050b7d31ad2a9da41e3473a6a5a46e9c908f"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "fontdb",
+      "version": "0.23.0",
+      "declared_spdx": "MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/RazrFalcon/fontdb",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE": "59a1fdac3bd550043599bd159fd70f09a1108c2b09e3751d39b11e1ff8e51f00"
       },
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
@@ -352,8 +657,47 @@
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
     {
+      "name": "gif",
+      "version": "0.13.3",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/image-rs/image-gif",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "769f80b5bcb42ed0af4e4d2fd74e1ac9bf843cb80c5a29219d1ef3544428a6bb",
+        "LICENSE-MIT": "77257f3d2181236b1aee78920238062ae64efe13c5d858b2db126e79c9e1b14f"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "gif",
+      "version": "0.14.2",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/image-rs/image-gif",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "769f80b5bcb42ed0af4e4d2fd74e1ac9bf843cb80c5a29219d1ef3544428a6bb",
+        "LICENSE-MIT": "77257f3d2181236b1aee78920238062ae64efe13c5d858b2db126e79c9e1b14f"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
       "name": "hashbrown",
       "version": "0.14.5",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/rust-lang/hashbrown",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+        "LICENSE-MIT": "ff8f68cb076caf8cefe7a6430d4ac086ce6af2ca8ce2c4e5a2004d4552ef52a2"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "hashbrown",
+      "version": "0.17.1",
       "declared_spdx": "MIT OR Apache-2.0",
       "selected_permitted_route": "MIT",
       "repository": "https://github.com/rust-lang/hashbrown",
@@ -374,6 +718,57 @@
       "licence_files_sha256": {
         "LICENSE-APACHE": "c144680885b29e4719e2a51f0aab5439a1e02d980692b5aaf086cae12727f28b",
         "LICENSE-MIT": "e915669a595b11a200873df8286561881b0e04932f6412a585db6297ba0bc97c"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "image",
+      "version": "0.25.10",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/image-rs/image",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+        "LICENSE-MIT": "c77a4cf9da729987d0fe7ccd811e3bd27393914ddf3d23467c18cc22954513b3"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "image-webp",
+      "version": "0.2.4",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/image-rs/image-webp",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+        "LICENSE-MIT": "c77a4cf9da729987d0fe7ccd811e3bd27393914ddf3d23467c18cc22954513b3"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "imagesize",
+      "version": "0.13.0",
+      "declared_spdx": "MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/Roughsketch/imagesize",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE": "436637bd4909fde7e14c899e9ff2cdd440b5968df12d431f1651f11db19bc2ef"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "indexmap",
+      "version": "2.14.2",
+      "declared_spdx": "Apache-2.0 OR MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/indexmap-rs/indexmap",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+        "LICENSE-MIT": "ecc269ef87fd38a1d98e30bfac9ba964a9dbd9315c3770fed98d4d7cb5882055"
       },
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
@@ -404,6 +799,56 @@
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
     {
+      "name": "jni",
+      "version": "0.21.1",
+      "declared_spdx": "MIT/Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/jni-rs/jni-rs",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+        "LICENSE-MIT": "fea1d5bf3dd71605ce5d7d2ff695c1837e914c77195e523a86b5391716477960"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "jni-sys",
+      "version": "0.3.1",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/jni-rs/jni-sys",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08",
+        "LICENSE-MIT": "1d85bd754b04ceec93e98e890edd1fa3c6a22e81bcb32135806beeccefa51cd1"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "jni-sys",
+      "version": "0.4.1",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/jni-rs/jni-sys",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08",
+        "LICENSE-MIT": "1d85bd754b04ceec93e98e890edd1fa3c6a22e81bcb32135806beeccefa51cd1"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "jni-sys-macros",
+      "version": "0.4.1",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/jni-rs/jni-sys",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {},
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here.",
+      "review_note": "Declaration found in Cargo metadata/README; no top-level licence text in fetched crate. Preserve as a release-review item, not a completed notice audit."
+    },
+    {
       "name": "js-sys",
       "version": "0.3.106",
       "declared_spdx": "MIT OR Apache-2.0",
@@ -417,6 +862,32 @@
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
     {
+      "name": "kurbo",
+      "version": "0.11.3",
+      "declared_spdx": "Apache-2.0 OR MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/linebender/kurbo",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+        "LICENSE-MIT": "23c23145f6eac25c28cdcc03d38506a5712a9a8cffb5bd5301457f6173ea696e"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "kurbo",
+      "version": "0.13.1",
+      "declared_spdx": "Apache-2.0 OR MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/linebender/kurbo",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+        "LICENSE-MIT": "23c23145f6eac25c28cdcc03d38506a5712a9a8cffb5bd5301457f6173ea696e"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
       "name": "libc",
       "version": "0.2.191",
       "declared_spdx": "MIT OR Apache-2.0",
@@ -426,6 +897,18 @@
       "licence_files_sha256": {
         "LICENSE-APACHE": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
         "LICENSE-MIT": "123a331b5dbf04c30097fa43b8f858bc85df671fe776de498d01f3d6b7c1f69e"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "libm",
+      "version": "0.2.16",
+      "declared_spdx": "MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/rust-lang/compiler-builtins",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE.txt": "3823dda7cf046602f4b4e77ec8e227863dc4736037cc85bb33d9f19febe16bb7"
       },
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
@@ -463,6 +946,19 @@
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
     {
+      "name": "log",
+      "version": "0.4.34",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/rust-lang/log",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+        "LICENSE-MIT": "6485b8ed310d3f0340bf1ad1f47645069ce4069dcc6bb46c7d5c6faf41de1fdb"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
       "name": "memchr",
       "version": "2.8.3",
       "declared_spdx": "Unlicense OR MIT",
@@ -473,6 +969,75 @@
         "COPYING": "01c266bced4a434da0051174d6bee16a4c82cf634e2679b6155d40d75012390f",
         "LICENSE-MIT": "0f96a83840e146e43c0ec96a22ec1f392e0680e6c1226e6f3ba87e0740af850f",
         "UNLICENSE": "7e12e5df4bae12cb21581ba157ced20e1986a0508dd10d0e8a4ab9a4cf94e85c"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "memmap2",
+      "version": "0.9.12",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/RazrFalcon/memmap2-rs",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "04ea4849dba9dcae07113850c6f1b1a69052c625210639914eee352023f750ad",
+        "LICENSE-MIT": "0d25d03b5ab49576178ad0cae7a2648d12c17ad0452fe49c07e55e4b59aa5257"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "miniz_oxide",
+      "version": "0.8.9",
+      "declared_spdx": "MIT OR Zlib OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/Frommi/miniz_oxide/tree/master/miniz_oxide",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE": "4108245a1f2df9d4e94df8abed5b4ba0759bb2f9b40a6b939f1be141077ae50b",
+        "LICENSE-APACHE.md": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+        "LICENSE-MIT.md": "799e9ca9d179295ef372f25d3769cdda7d25bb2668add6a6a1e22d1e4c678b8d",
+        "LICENSE-ZLIB.md": "0a54e647fe54104658b5e563c04c6f9edf251710e47bce692e0bd990a4ddaa39"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "miniz_oxide",
+      "version": "0.9.1",
+      "declared_spdx": "MIT OR Zlib OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/Frommi/miniz_oxide/tree/master/miniz_oxide",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE": "4108245a1f2df9d4e94df8abed5b4ba0759bb2f9b40a6b939f1be141077ae50b",
+        "LICENSE-APACHE.md": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+        "LICENSE-MIT.md": "799e9ca9d179295ef372f25d3769cdda7d25bb2668add6a6a1e22d1e4c678b8d",
+        "LICENSE-ZLIB.md": "0a54e647fe54104658b5e563c04c6f9edf251710e47bce692e0bd990a4ddaa39"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "moxcms",
+      "version": "0.8.1",
+      "declared_spdx": "BSD-3-Clause OR Apache-2.0",
+      "selected_permitted_route": "BSD-3-Clause",
+      "repository": "https://github.com/awxkee/moxcms.git",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE.md": "90bf2d659c43045111b65c733ab2a6d4cbcb422a098368c8c58a9ba3db4ed0c5",
+        "LICENSE.md": "2aa92cada6431e75615e3fe6cb1a9082c98f777d48ae1c087c0da0e37f7b8bff"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "num-traits",
+      "version": "0.2.19",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/rust-num/num-traits",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+        "LICENSE-MIT": "6485b8ed310d3f0340bf1ad1f47645069ce4069dcc6bb46c7d5c6faf41de1fdb"
       },
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
@@ -516,6 +1081,31 @@
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
     {
+      "name": "pdf-writer",
+      "version": "0.12.1",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/typst/pdf-writer",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+        "LICENSE-MIT": "508a77d2e7b51d98adeed32648ad124b7b30241a8e70b2e72c99f92d8e5874d1"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "pico-args",
+      "version": "0.5.0",
+      "declared_spdx": "MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/RazrFalcon/pico-args",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE": "f71452d91682fdae0ca948b18cfed53a953d1237740dd80371c76a5c1c7bbe91"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
       "name": "pin-project-lite",
       "version": "0.2.17",
       "declared_spdx": "Apache-2.0 OR MIT",
@@ -542,6 +1132,32 @@
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
     {
+      "name": "png",
+      "version": "0.17.16",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/image-rs/image-png",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+        "LICENSE-MIT": "eaf40297c75da471f7cda1f3458e8d91b4b2ec866e609527a13acfa93b638652"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "png",
+      "version": "0.18.1",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/image-rs/image-png",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+        "LICENSE-MIT": "eaf40297c75da471f7cda1f3458e8d91b4b2ec866e609527a13acfa93b638652"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
       "name": "poly1305",
       "version": "0.8.0",
       "declared_spdx": "Apache-2.0 OR MIT",
@@ -551,6 +1167,19 @@
       "licence_files_sha256": {
         "LICENSE-APACHE": "a9040321c3712d8fd0b09cf52b17445de04a23a10165049ae187cd39e5c86be5",
         "LICENSE-MIT": "6d99fffea918d1f7dfe567029c7bd21d6fcaf310ad28c44e6511a0e1f68c79ea"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "polycool",
+      "version": "0.4.0",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/linebender/kurbo",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+        "LICENSE-MIT": "23c23145f6eac25c28cdcc03d38506a5712a9a8cffb5bd5301457f6173ea696e"
       },
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
@@ -577,6 +1206,32 @@
       "licence_files_sha256": {
         "LICENSE-APACHE": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
         "LICENSE-MIT": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "pxfm",
+      "version": "0.1.30",
+      "declared_spdx": "BSD-3-Clause OR Apache-2.0",
+      "selected_permitted_route": "BSD-3-Clause",
+      "repository": "https://github.com/awxkee/pxfm",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE.md": "90bf2d659c43045111b65c733ab2a6d4cbcb422a098368c8c58a9ba3db4ed0c5",
+        "LICENSE.md": "2aa92cada6431e75615e3fe6cb1a9082c98f777d48ae1c087c0da0e37f7b8bff"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "quick-error",
+      "version": "2.0.1",
+      "declared_spdx": "MIT/Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "http://github.com/tailhook/quick-error",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08",
+        "LICENSE-MIT": "058f01fe181608d027fcde7e528fc03ea3cf90f30903c407644b0a9bbc54f500"
       },
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
@@ -644,6 +1299,57 @@
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
     {
+      "name": "read-fonts",
+      "version": "0.39.2",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/googlefonts/fontations",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "a14f7d685a79c0f4fb64aee305527a6d5fa55f2401f4e6d688d7b1301868e6c0",
+        "LICENSE-MIT": "8a62fa27ffdccc3df19dce90f8bb3d572e27aecffc1a383d0c2601834dcec434"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "resvg",
+      "version": "0.45.1",
+      "declared_spdx": "Apache-2.0 OR MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/linebender/resvg",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "a6cba85bc92e0cff7a450b1d873c0eaa2e9fc96bf472df0247a26bec77bf3ff9",
+        "LICENSE-MIT": "f5d934dc281b44e0003ee461ac740b18b6629a454decd872c774d34e4ee0b21d"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "rgb",
+      "version": "0.8.53",
+      "declared_spdx": "MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/kornelski/rust-rgb",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE": "457b464bc0fba8a3d67d2458569104f5611869f0c1563a1a12d9c51a0bca9261"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "roxmltree",
+      "version": "0.20.0",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/RazrFalcon/roxmltree",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+        "LICENSE-MIT": "fffe218c1e349e1d482a05677f2ce850502f88298174d77f6ac7c04821db7899"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
       "name": "rusqlite",
       "version": "0.32.1",
       "declared_spdx": "MIT",
@@ -652,6 +1358,19 @@
       "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
       "licence_files_sha256": {
         "LICENSE": "f59ba65550f2a5adff98ec6478d783402c8e0a3eb515025c0b3438f3d30dc39e"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "rustc-hash",
+      "version": "2.1.3",
+      "declared_spdx": "Apache-2.0 OR MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/rust-lang/rustc-hash",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "95bd3988beee069fa2848f648dab43cc6e0b2add2ad6bcb17360caf749802bcc",
+        "LICENSE-MIT": "30fefc3a7d6a0041541858293bcbea2dde4caa4c0a5802f996a7f7e8c0085652"
       },
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
@@ -679,6 +1398,45 @@
       "licence_files_sha256": {
         "LICENSE-APACHE": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
         "LICENSE-MIT": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "rustybuzz",
+      "version": "0.20.1",
+      "declared_spdx": "MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/harfbuzz/rustybuzz",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE": "3a7c3f0b887abb7c638faf022d29257418458614c6724b120ceeffb279f9c7d2"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "ryu",
+      "version": "1.0.23",
+      "declared_spdx": "Apache-2.0 OR BSL-1.0",
+      "selected_permitted_route": "Apache-2.0",
+      "repository": "https://github.com/dtolnay/ryu",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+        "LICENSE-BOOST": "c9bff75738922193e67fa726fa225535870d2aa1059f91452c411736284ad566"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "same-file",
+      "version": "1.0.6",
+      "declared_spdx": "Unlicense/MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/BurntSushi/same-file",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "COPYING": "01c266bced4a434da0051174d6bee16a4c82cf634e2679b6155d40d75012390f",
+        "LICENSE-MIT": "cb3c929a05e6cbc9de9ab06a4c57eeb60ca8c724bef6c138c87d3a577e27aa14",
+        "UNLICENSE": "7e12e5df4bae12cb21581ba157ced20e1986a0508dd10d0e8a4ab9a4cf94e85c"
       },
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
@@ -761,6 +1519,58 @@
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
     {
+      "name": "simd-adler32",
+      "version": "0.3.10",
+      "declared_spdx": "MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/mcountryman/simd-adler32",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE.md": "42a35170233e83e18856792e748de4c1ce4a63b2afce9a370c89ef3fe23f9f2d"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "simplecss",
+      "version": "0.2.2",
+      "declared_spdx": "Apache-2.0 OR MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/linebender/simplecss",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+        "LICENSE-MIT": "0b5f24524360e15bcf9fb79bca875f5aa62f01f94f2988e23238c7ec0e6e8784"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "siphasher",
+      "version": "1.0.4",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/jedisct1/rust-siphash",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "COPYING": "c962ee4d1d05ddc138b202b2540219ebc57893fcf97b364852094a9a94ce1365",
+        "LICENSE-APACHE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+        "LICENSE-MIT": "f9c4c77baa3828004ee54b8a4f2db2e88ed44a6237a493965bf551fac0fcb62d"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "skrifa",
+      "version": "0.42.1",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/googlefonts/fontations",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "a14f7d685a79c0f4fb64aee305527a6d5fa55f2401f4e6d688d7b1301868e6c0",
+        "LICENSE-MIT": "8a62fa27ffdccc3df19dce90f8bb3d572e27aecffc1a383d0c2601834dcec434"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
       "name": "slab",
       "version": "0.4.12",
       "declared_spdx": "MIT",
@@ -769,6 +1579,18 @@
       "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
       "licence_files_sha256": {
         "LICENSE": "8ce0830173fdac609dfb4ea603fdc002c2f4af0dc9b1a005653f5da9cf534b18"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "slotmap",
+      "version": "1.1.1",
+      "declared_spdx": "Zlib",
+      "selected_permitted_route": "Zlib",
+      "repository": "https://github.com/orlp/slotmap",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE": "6cec81441b2ab2b5090954c1fb5d0bcca81b86487b5849061fa8952d20ef67d4"
       },
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
@@ -786,6 +1608,31 @@
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
     {
+      "name": "strict-num",
+      "version": "0.1.1",
+      "declared_spdx": "MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/RazrFalcon/strict-num",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE": "3085885678bb161f6c472bbd331f66a2550b555eb76128f7f8247779128199c0"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "subsetter",
+      "version": "0.2.6",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/typst/subsetter",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+        "LICENSE-MIT": "508a77d2e7b51d98adeed32648ad124b7b30241a8e70b2e72c99f92d8e5874d1"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
       "name": "subtle",
       "version": "2.6.1",
       "declared_spdx": "BSD-3-Clause",
@@ -794,6 +1641,32 @@
       "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
       "licence_files_sha256": {
         "LICENSE": "d1fc1bc0d155df60b2e7705b6b2ae02a05c96f948e1cec6e2fb86360b09f346b"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "svg2pdf",
+      "version": "0.13.0",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/typst/svg2pdf",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+        "LICENSE-MIT": "508a77d2e7b51d98adeed32648ad124b7b30241a8e70b2e72c99f92d8e5874d1"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "svgtypes",
+      "version": "0.15.3",
+      "declared_spdx": "Apache-2.0 OR MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/linebender/svgtypes",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+        "LICENSE-MIT": "f3c9fe731c701ed77fd5fbaac573872af04dc5869385eb9bd5e3c73c42713814"
       },
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
@@ -838,7 +1711,33 @@
     },
     {
       "name": "thiserror",
+      "version": "1.0.69",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/dtolnay/thiserror",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+        "LICENSE-MIT": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "thiserror",
       "version": "2.0.21",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/dtolnay/thiserror",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+        "LICENSE-MIT": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "thiserror-impl",
+      "version": "1.0.69",
       "declared_spdx": "MIT OR Apache-2.0",
       "selected_permitted_route": "MIT",
       "repository": "https://github.com/dtolnay/thiserror",
@@ -863,6 +1762,57 @@
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
     {
+      "name": "tiny-skia",
+      "version": "0.11.4",
+      "declared_spdx": "BSD-3-Clause",
+      "selected_permitted_route": "BSD-3-Clause",
+      "repository": "https://github.com/RazrFalcon/tiny-skia",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE": "6d41e05f1d54fe726997cb0334ec539f1dff50600b1d5d90462ec2b392770ced"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "tiny-skia-path",
+      "version": "0.11.4",
+      "declared_spdx": "BSD-3-Clause",
+      "selected_permitted_route": "BSD-3-Clause",
+      "repository": "https://github.com/RazrFalcon/tiny-skia/tree/master/path",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE": "6d41e05f1d54fe726997cb0334ec539f1dff50600b1d5d90462ec2b392770ced"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "tinyvec",
+      "version": "1.13.3",
+      "declared_spdx": "Zlib OR Apache-2.0 OR MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/Lokathor/tinyvec",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE.md": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+        "LICENSE-MIT.md": "fd80a26fbb3f644af1fa994134446702932968519797227e07a1368dea80f0bc",
+        "LICENSE-ZLIB.md": "84b34dd7608f7fb9b17bd588a6bf392bf7de504e2716f024a77d89f1b145a151"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "ttf-parser",
+      "version": "0.25.1",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/harfbuzz/ttf-parser",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+        "LICENSE-MIT": "f3c9fe731c701ed77fd5fbaac573872af04dc5869385eb9bd5e3c73c42713814"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
       "name": "typenum",
       "version": "1.20.1",
       "declared_spdx": "MIT OR Apache-2.0",
@@ -873,6 +1823,45 @@
         "LICENSE": "db11fec9946737df39ca3898d9cd8c10ec6f6c3a884a6802b0ad0b81b4e8f23a",
         "LICENSE-APACHE": "516b24e051bf5630880ebbd55c40a25ce9552ebaf8970a53e8976eb70e522406",
         "LICENSE-MIT": "a825bd853ab71619a4923d7b4311221427848070ff44d990da39b0b274c1683f"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "unicode-bidi",
+      "version": "0.3.18",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/servo/unicode-bidi",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+        "LICENSE-MIT": "7b63ecd5f1902af1b63729947373683c32745c16a10e8e6292e2e2dcd7e90ae0"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "unicode-bidi-mirroring",
+      "version": "0.4.0",
+      "declared_spdx": "MIT/Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/RazrFalcon/unicode-bidi-mirroring",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+        "LICENSE-MIT": "59a1fdac3bd550043599bd159fd70f09a1108c2b09e3751d39b11e1ff8e51f00"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "unicode-ccc",
+      "version": "0.4.0",
+      "declared_spdx": "MIT/Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/RazrFalcon/unicode-ccc",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+        "LICENSE-MIT": "59a1fdac3bd550043599bd159fd70f09a1108c2b09e3751d39b11e1ff8e51f00"
       },
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
@@ -891,6 +1880,45 @@
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
     {
+      "name": "unicode-properties",
+      "version": "0.1.4",
+      "declared_spdx": "MIT/Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/unicode-rs/unicode-properties",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+        "LICENSE-MIT": "7b63ecd5f1902af1b63729947373683c32745c16a10e8e6292e2e2dcd7e90ae0"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "unicode-script",
+      "version": "0.5.8",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/unicode-rs/unicode-script",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "7cbb56d1b5d83d735056b363ab20958524120afafc4ad8206e6be98cdec5d737",
+        "LICENSE-MIT": "7ad3ea8ca3caf894db98c3f31d5d4949173ffa93c883ef19a9e529ad48960f8c"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "unicode-vo",
+      "version": "0.1.0",
+      "declared_spdx": "MIT/Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/RazrFalcon/unicode-vo",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+        "LICENSE-MIT": "0b5f24524360e15bcf9fb79bca875f5aa62f01f94f2988e23238c7ec0e6e8784"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
       "name": "universal-hash",
       "version": "0.5.1",
       "declared_spdx": "MIT OR Apache-2.0",
@@ -900,6 +1928,19 @@
       "licence_files_sha256": {
         "LICENSE-APACHE": "a9040321c3712d8fd0b09cf52b17445de04a23a10165049ae187cd39e5c86be5",
         "LICENSE-MIT": "6b50510a0400c72172355cc5d2ba0f2c5c2eb33149b8f96539dc345fdc484920"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "usvg",
+      "version": "0.45.1",
+      "declared_spdx": "Apache-2.0 OR MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/linebender/resvg",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "a6cba85bc92e0cff7a450b1d873c0eaa2e9fc96bf472df0247a26bec77bf3ff9",
+        "LICENSE-MIT": "f5d934dc281b44e0003ee461ac740b18b6629a454decd872c774d34e4ee0b21d"
       },
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
@@ -939,6 +1980,20 @@
       "licence_files_sha256": {
         "LICENSE-APACHE": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
         "LICENSE-MIT": "b7e650f3fce5c53249d1cdc608b54df156a97edd636cf9d23498d0cfe7aec63e"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "walkdir",
+      "version": "2.5.0",
+      "declared_spdx": "Unlicense/MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/BurntSushi/walkdir",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "COPYING": "01c266bced4a434da0051174d6bee16a4c82cf634e2679b6155d40d75012390f",
+        "LICENSE-MIT": "0f96a83840e146e43c0ec96a22ec1f392e0680e6c1226e6f3ba87e0740af850f",
+        "UNLICENSE": "7e12e5df4bae12cb21581ba157ced20e1986a0508dd10d0e8a4ab9a4cf94e85c"
       },
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
@@ -1009,8 +2064,48 @@
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
     {
+      "name": "weezl",
+      "version": "0.1.12",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/image-rs/weezl",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "769f80b5bcb42ed0af4e4d2fd74e1ac9bf843cb80c5a29219d1ef3544428a6bb",
+        "LICENSE-MIT": "573f5227db835cd30bbdd3aed3f82615f80119a4d5c82b4daf642dbfe2b6afde"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "winapi-util",
+      "version": "0.1.11",
+      "declared_spdx": "Unlicense OR MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/BurntSushi/winapi-util",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "COPYING": "01c266bced4a434da0051174d6bee16a4c82cf634e2679b6155d40d75012390f",
+        "LICENSE-MIT": "cb3c929a05e6cbc9de9ab06a4c57eeb60ca8c724bef6c138c87d3a577e27aa14",
+        "UNLICENSE": "7e12e5df4bae12cb21581ba157ced20e1986a0508dd10d0e8a4ab9a4cf94e85c"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
       "name": "windows-link",
       "version": "0.2.1",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/microsoft/windows-rs",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "license-apache-2.0": "c16f8dcf1a368b83be78d826ea23de4079fe1b4469a0ab9ee20563f37ff3d44b",
+        "license-mit": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "windows-sys",
+      "version": "0.45.0",
       "declared_spdx": "MIT OR Apache-2.0",
       "selected_permitted_route": "MIT",
       "repository": "https://github.com/microsoft/windows-rs",
@@ -1031,6 +2126,135 @@
       "licence_files_sha256": {
         "license-apache-2.0": "c16f8dcf1a368b83be78d826ea23de4079fe1b4469a0ab9ee20563f37ff3d44b",
         "license-mit": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "windows-targets",
+      "version": "0.42.2",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/microsoft/windows-rs",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "license-apache-2.0": "c16f8dcf1a368b83be78d826ea23de4079fe1b4469a0ab9ee20563f37ff3d44b",
+        "license-mit": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "windows_aarch64_gnullvm",
+      "version": "0.42.2",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/microsoft/windows-rs",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "license-apache-2.0": "c16f8dcf1a368b83be78d826ea23de4079fe1b4469a0ab9ee20563f37ff3d44b",
+        "license-mit": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "windows_aarch64_msvc",
+      "version": "0.42.2",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/microsoft/windows-rs",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "license-apache-2.0": "c16f8dcf1a368b83be78d826ea23de4079fe1b4469a0ab9ee20563f37ff3d44b",
+        "license-mit": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "windows_i686_gnu",
+      "version": "0.42.2",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/microsoft/windows-rs",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "license-apache-2.0": "c16f8dcf1a368b83be78d826ea23de4079fe1b4469a0ab9ee20563f37ff3d44b",
+        "license-mit": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "windows_i686_msvc",
+      "version": "0.42.2",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/microsoft/windows-rs",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "license-apache-2.0": "c16f8dcf1a368b83be78d826ea23de4079fe1b4469a0ab9ee20563f37ff3d44b",
+        "license-mit": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "windows_x86_64_gnu",
+      "version": "0.42.2",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/microsoft/windows-rs",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "license-apache-2.0": "c16f8dcf1a368b83be78d826ea23de4079fe1b4469a0ab9ee20563f37ff3d44b",
+        "license-mit": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "windows_x86_64_gnullvm",
+      "version": "0.42.2",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/microsoft/windows-rs",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "license-apache-2.0": "c16f8dcf1a368b83be78d826ea23de4079fe1b4469a0ab9ee20563f37ff3d44b",
+        "license-mit": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "windows_x86_64_msvc",
+      "version": "0.42.2",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/microsoft/windows-rs",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "license-apache-2.0": "c16f8dcf1a368b83be78d826ea23de4079fe1b4469a0ab9ee20563f37ff3d44b",
+        "license-mit": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "write-fonts",
+      "version": "0.48.1",
+      "declared_spdx": "MIT OR Apache-2.0",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/googlefonts/fontations",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "a14f7d685a79c0f4fb64aee305527a6d5fa55f2401f4e6d688d7b1301868e6c0",
+        "LICENSE-MIT": "8a62fa27ffdccc3df19dce90f8bb3d572e27aecffc1a383d0c2601834dcec434"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "xmlwriter",
+      "version": "0.1.0",
+      "declared_spdx": "MIT",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/RazrFalcon/xmlwriter",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE": "2cdce1ff4ca8f455ef169691ea493407e23c32ecdea5fd9b3a6fc82be5b49b5a"
       },
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
@@ -1076,6 +2300,18 @@
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     },
     {
+      "name": "zlib-rs",
+      "version": "0.6.8",
+      "declared_spdx": "Zlib",
+      "selected_permitted_route": "Zlib",
+      "repository": "https://github.com/trifectatechfoundation/zlib-rs",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE": "e72111c52b7d96ebe25348dee19f0744f444d3c95ae6b1ecb6ccaecc5bce05ba"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
       "name": "zmij",
       "version": "1.0.23",
       "declared_spdx": "MIT",
@@ -1084,6 +2320,56 @@
       "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
       "licence_files_sha256": {
         "LICENSE-MIT": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "zune-core",
+      "version": "0.4.12",
+      "declared_spdx": "MIT OR Apache-2.0 OR Zlib",
+      "selected_permitted_route": "MIT",
+      "repository": null,
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {},
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here.",
+      "review_note": "Declaration found in Cargo metadata/README; no top-level licence text in fetched crate. Preserve as a release-review item, not a completed notice audit."
+    },
+    {
+      "name": "zune-core",
+      "version": "0.5.3",
+      "declared_spdx": "MIT OR Apache-2.0 OR Zlib",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/etemesi254/zune-image",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+        "LICENSE-MIT": "d30047bca3b516639339a3c279bb84c3483124fb5a9dafe3c75056a85090e745",
+        "LICENSE-ZLIB": "d201d14804d3bcd3b944147173175e4abfbd838b7c8069b6bd3452496bf13e6c"
+      },
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
+    },
+    {
+      "name": "zune-jpeg",
+      "version": "0.4.21",
+      "declared_spdx": "MIT OR Apache-2.0 OR Zlib",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/etemesi254/zune-image/tree/dev/crates/zune-jpeg",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {},
+      "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here.",
+      "review_note": "Declaration found in Cargo metadata/README; no top-level licence text in fetched crate. Preserve as a release-review item, not a completed notice audit."
+    },
+    {
+      "name": "zune-jpeg",
+      "version": "0.5.15",
+      "declared_spdx": "MIT OR Apache-2.0 OR Zlib",
+      "selected_permitted_route": "MIT",
+      "repository": "https://github.com/etemesi254/zune-image/tree/dev/crates/zune-jpeg",
+      "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+      "licence_files_sha256": {
+        "LICENSE-APACHE": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+        "LICENSE-MIT": "d30047bca3b516639339a3c279bb84c3483124fb5a9dafe3c75056a85090e745",
+        "LICENSE-ZLIB": "d201d14804d3bcd3b944147173175e4abfbd838b7c8069b6bd3452496bf13e6c"
       },
       "binary_redistribution": "Target-specific notices and bundled components must be assembled/reviewed before a binary release; no binary distributed here."
     }

@@ -427,3 +427,49 @@ fn rich_library_restores_objects_views_anchors_proposals_profiles_and_capture_re
     );
     restored.check_integrity().unwrap();
 }
+
+#[test]
+fn schema8_logical_backup_upgrades_without_inventing_old_undo_actions() {
+    use stem_core::crypto::{self, Credential};
+    let mut s = Store::memory().unwrap();
+    let a = Access::public();
+    let n = s.create(Kind::Note, None, "old library", &a).unwrap();
+    let b = s
+        .append_content(n.id, Content::Text("schema-eight content".into()), &a)
+        .unwrap();
+    let plan = s
+        .prepare_backup(
+            BackupOptions {
+                include_original_ink: true,
+                include_authorised_source_assets: false,
+            },
+            &a,
+        )
+        .unwrap();
+    let encrypted = s
+        .finish_backup(plan, PASSWORD, &mut TestAuth(true), true)
+        .unwrap();
+    let plain = crypto::decrypt(&encrypted.bytes, Credential::Password(PASSWORD)).unwrap();
+    let mut doc: serde_json::Value = serde_json::from_slice(&plain).unwrap();
+    doc["schema"] = 8.into();
+    doc["tables"]
+        .as_object_mut()
+        .unwrap()
+        .remove("edit_operations");
+    doc["tables"]
+        .as_object_mut()
+        .unwrap()
+        .remove("edit_changes");
+    doc["tables"]["settings"]
+        .as_array_mut()
+        .unwrap()
+        .retain(|row| row[0]["value"] != "edit_operation");
+    let old = crypto::encrypt(&serde_json::to_vec(&doc).unwrap(), PASSWORD).unwrap();
+    let restored = Store::restore_backup_password(&old.bytes, PASSWORD).unwrap();
+    assert_eq!(restored.schema_version().unwrap(), 9);
+    assert_eq!(
+        restored.block(b.id, &a).unwrap().content.literal(),
+        "schema-eight content"
+    );
+    assert_eq!(restored.edit_history_depth(n.id, &a).unwrap(), (0, 0));
+}

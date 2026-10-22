@@ -19,3 +19,12 @@ zeroize.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true
+
+[dependencies.svg2pdf]
+version = "=0.13.0"
+
+[dependencies.pdf-writer]
+version = "=0.12.1"
+
+[dependencies.rustybuzz]
+version = "=0.20.1"

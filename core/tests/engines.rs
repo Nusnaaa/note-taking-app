@@ -276,3 +276,58 @@ fn batch_acceptance_is_selected_and_atomic_on_stale_members() {
         Content::Text("owner correction".into())
     );
 }
+
+#[test]
+fn converters_have_durable_staged_lifecycle_and_failed_probe_preserves_previous() {
+    let dir = tempfile::tempdir().unwrap();
+    let a = Access::public();
+    let mut s = Store::memory().unwrap();
+    let mut m = Manager::new();
+    let mut d = descriptor("converter-1");
+    d.family = Family::Converter;
+    d.input = InputContract::EditableV1;
+    d.tasks.clear();
+    let first = s
+        .stage_engine(d.clone(), None, dir.path(), 0, true, &a)
+        .unwrap();
+    s.activate_converter(
+        first.id,
+        &mut m,
+        Box::new(stem_core::converters::TextConverter),
+        0,
+        &a,
+    )
+    .unwrap();
+    struct Broken;
+    impl Converter for Broken {
+        fn probe(&self) -> Result<()> {
+            Err(Error::WorkerFailed)
+        }
+        fn formats(&self) -> Vec<Format> {
+            vec![Format::PlainText]
+        }
+        fn convert(&self, _: &Content, _: Format, _: &JobControl) -> Result<Converted> {
+            Err(Error::WorkerFailed)
+        }
+    }
+    d.version = "converter-2".into();
+    let second = s.stage_engine(d, None, dir.path(), 0, true, &a).unwrap();
+    assert!(s
+        .activate_converter(second.id, &mut m, Box::new(Broken), 0, &a)
+        .is_err());
+    assert_eq!(
+        s.active_engine("synthetic", &a).unwrap().unwrap().id,
+        first.id
+    );
+    assert_eq!(
+        m.convert(
+            "synthetic",
+            &Content::Text("λ".into()),
+            Format::PlainText,
+            &JobControl::new(Duration::from_secs(1)).unwrap()
+        )
+        .unwrap()
+        .text,
+        "λ"
+    );
+}

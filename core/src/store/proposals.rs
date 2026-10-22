@@ -23,6 +23,8 @@ pub struct Proposal {
     pub output: RecognitionOutput,
     pub correction: Option<Content>,
     pub state: ProposalState,
+    #[serde(default)]
+    pub region: Option<Id>,
 }
 
 impl Store {
@@ -40,12 +42,13 @@ impl Store {
             output: completed.output,
             correction: None,
             state: ProposalState::Pending,
+            region: completed.snapshot.region,
         };
 
         let master = Self::read_block(&self.db, p.block, access)?.entity;
 
         self.write_for(master, |db| {
-            let current = Self::make_snapshot(db, p.block, access)?;
+            let current = Self::make_region_snapshot(db, p.block, p.region, access)?;
 
             if current.fingerprint != p.fingerprint || current.revision != p.revision {
                 return Err(Error::Conflict);
@@ -151,7 +154,7 @@ impl Store {
                 return Err(Error::Conflict);
             }
 
-            let snapshot = Self::make_snapshot(db, p.block, access)?;
+            let snapshot = Self::make_region_snapshot(db, p.block, p.region, access)?;
 
             if snapshot.revision != p.revision || snapshot.fingerprint != p.fingerprint {
                 return Err(Error::Conflict);
@@ -167,7 +170,7 @@ impl Store {
 
             let mut b = Self::read_block(db, p.block, access)?;
 
-            b.content = content;
+            Self::apply_region_content(&mut b, p.region, content)?;
 
             b.display = Display::Editable;
 
@@ -225,7 +228,7 @@ impl Store {
                     return Err(Error::Conflict);
                 }
 
-                let snapshot = Self::make_snapshot(db, p.block, access)?;
+                let snapshot = Self::make_region_snapshot(db, p.block, p.region, access)?;
 
                 if snapshot.revision != p.revision || snapshot.fingerprint != p.fingerprint {
                     return Err(Error::Conflict);
@@ -233,12 +236,13 @@ impl Store {
 
                 let mut b = Self::read_block(db, p.block, access)?;
 
-                b.content = p
+                let content = p
                     .correction
                     .clone()
                     .or_else(|| p.output.candidates.get(candidate).cloned())
                     .ok_or(Error::Invalid("candidate selection"))?;
 
+                Self::apply_region_content(&mut b, p.region, content)?;
                 b.display = Display::Editable;
 
                 b.manually_corrected = p.correction.is_some();

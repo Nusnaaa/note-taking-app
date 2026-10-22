@@ -1,11 +1,14 @@
 //! Single-writer SQLite authority with optimistic revision checks for every edit.
 //! FULL synchronous WAL commits are acknowledgements of SQLite's durable boundary,
 //! not guarantees about uncommitted events or faulty storage hardware.
+mod editing;
 mod engines;
 mod exercises;
+mod navigation;
 mod objects;
 mod organisation;
 mod proposals;
+mod regions;
 mod writing;
 
 use crate::{
@@ -90,6 +93,7 @@ const V4: &str = include_str!("../migrations/004.sql");
 const V5: &str = include_str!("../migrations/005.sql");
 const V6: &str = include_str!("../migrations/006.sql");
 const V7: &str = include_str!("../migrations/007.sql");
+const V9: &str = include_str!("../migrations/009.sql");
 const V8: &str = include_str!("../migrations/008.sql");
 
 impl Store {
@@ -106,7 +110,7 @@ impl Store {
                 PRAGMA trusted_schema=OFF;",
         )?;
         let version: i64 = db.pragma_query_value(None, "user_version", |r| r.get(0))?;
-        if !(0..=8).contains(&version) {
+        if !(0..=9).contains(&version) {
             return Err(Error::Unsupported);
         }
         let tx = db.transaction_with_behavior(TransactionBehavior::Immediate)?;
@@ -133,6 +137,9 @@ impl Store {
         }
         if version < 8 {
             tx.execute_batch(V8)?;
+        }
+        if version < 9 {
+            tx.execute_batch(V9)?;
         }
         tx.commit()?;
         Ok(Self {
@@ -181,7 +188,20 @@ impl Store {
         f: impl FnOnce(&Connection) -> Result<T>,
     ) -> Result<T> {
         self.document_save_states.insert(entity, SaveState::Saving);
-        let result = self.write(f);
+        let result = self.write(|db| {
+            db.execute("INSERT INTO edit_operations(entity,active_ms) VALUES(?1,CAST((SELECT value FROM settings WHERE key='active_ms') AS INTEGER))", [entity.to_string()])?;
+            let operation = db.last_insert_rowid();
+            db.execute("UPDATE settings SET value=?1 WHERE key='edit_operation'", [operation.to_string()])?;
+            let value = f(db)?;
+            db.execute("UPDATE settings SET value='' WHERE key='edit_operation'", [])?;
+            let changed = db.prepare("SELECT 1 FROM edit_changes WHERE operation=?1")?.exists([operation])?;
+            if changed {
+                db.execute("DELETE FROM edit_operations WHERE entity=?1 AND undone=1 AND id<>?2", rusqlite::params![entity.to_string(), operation])?;
+            } else {
+                db.execute("DELETE FROM edit_operations WHERE id=?1", [operation])?;
+            }
+            Ok(value)
+        });
         self.document_save_states.insert(
             entity,
             if result.is_ok() {
@@ -299,10 +319,11 @@ pub use exercises::{
     Exercise, ExtractionCandidate, ExtractionPlan, MembershipChange, MembershipOperation,
     MembershipPlan, WritingTarget,
 };
+pub use navigation::SearchHit;
 pub use objects::{Camera, Embed, Layout, MasterLocation, ObjectGroup, SurfaceItem, ViewSettings};
 pub use organisation::{DeletionReview, Link, LinkState, Order};
 pub use proposals::{Proposal, ProposalState};
-pub use writing::{Block, Display, HistoryEntry, InkSnapshot};
+pub use writing::{Block, Display, HistoryEntry, InkSnapshot, Region};
 
 #[cfg(test)]
 mod storage_tests {

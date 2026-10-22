@@ -131,6 +131,9 @@ pub struct Converted {
     pub fidelity: Fidelity,
 }
 pub trait Converter: Send + Sync {
+    fn probe(&self) -> Result<()> {
+        Ok(())
+    }
     fn formats(&self) -> Vec<Format>;
     fn convert(&self, content: &Content, target: Format, control: &JobControl)
         -> Result<Converted>;
@@ -264,7 +267,11 @@ impl Manager {
                     .map_err(|_| Error::WorkerFailed)
                     .and_then(|result| result)
             }
-            Adapter::Converter(_) => Ok(()),
+            Adapter::Converter(c) => {
+                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| c.probe()))
+                    .map_err(|_| Error::WorkerFailed)
+                    .and_then(|r| r)
+            }
         };
         entry.readiness = if result.is_ok() {
             Readiness::Ready
@@ -421,6 +428,46 @@ impl Manager {
             Entry {
                 descriptor: ready.descriptor,
                 adapter: Adapter::Recogniser(ready.adapter),
+                readiness: Readiness::Ready,
+            },
+        );
+    }
+}
+
+pub(crate) struct PreparedConverter {
+    descriptor: Descriptor,
+    adapter: Box<dyn Converter>,
+}
+impl Manager {
+    pub(crate) fn prepare_converter(
+        descriptor: Descriptor,
+        adapter: Box<dyn Converter>,
+        resource: Option<&[u8]>,
+    ) -> Result<PreparedConverter> {
+        let mut candidate = Self::new();
+        let id = descriptor.id.clone();
+        candidate.register_converter(descriptor, adapter)?;
+        candidate.activate_local(&id, resource, true)?;
+        let entry = candidate
+            .entries
+            .remove(&id)
+            .ok_or(Error::EngineUnavailable)?;
+        let Adapter::Converter(adapter) = entry.adapter else {
+            return Err(Error::EngineUnavailable);
+        };
+        Ok(PreparedConverter {
+            descriptor: entry.descriptor,
+            adapter,
+        })
+    }
+    pub(crate) fn commit_converter(&mut self, ready: PreparedConverter) {
+        let id = ready.descriptor.id.clone();
+        self.defaults.retain(|_, value| value != &id);
+        self.entries.insert(
+            id,
+            Entry {
+                descriptor: ready.descriptor,
+                adapter: Adapter::Converter(ready.adapter),
                 readiness: Readiness::Ready,
             },
         );

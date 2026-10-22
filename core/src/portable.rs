@@ -107,7 +107,15 @@ impl NativeDocument {
         })?)
     }
     pub fn validate(&self) -> Result<()> {
-        if !matches!(self.version, 1..=3) {
+        if !matches!(self.version, 1..=4) {
+            return Err(Error::Unsupported);
+        }
+        if self.version < 4
+            && self.blocks.iter().any(|b| {
+                !b.current.regions.is_empty()
+                    || b.history.iter().any(|h| !h.block.regions.is_empty())
+            })
+        {
             return Err(Error::Unsupported);
         }
         if self.version < 3 && self.attachments != crate::attachments::Attachments::default() {
@@ -279,6 +287,20 @@ impl NativeDocument {
                 })
             {
                 return Err(Error::Invalid("native link"));
+            }
+        }
+        let mut region_owners = BTreeMap::new();
+        for b in &self.blocks {
+            for block in std::iter::once(&b.current).chain(b.history.iter().map(|h| &h.block)) {
+                for r in &block.regions {
+                    if durable_ids.contains(&r.id)
+                        || region_owners
+                            .insert(r.id, b.current.id)
+                            .is_some_and(|owner| owner != b.current.id)
+                    {
+                        return Err(Error::Invalid("region identity"));
+                    }
+                }
             }
         }
         Ok(())
@@ -495,7 +517,7 @@ impl Store {
             entities.push(e);
         }
         let mut document = NativeDocument {
-            version: 3,
+            version: 4,
             created_ms: now_ms(),
             entities,
             blocks,
@@ -603,6 +625,11 @@ impl Store {
         }
         for b in &doc.blocks {
             ids.insert(b.current.id, Id::new());
+            for block in std::iter::once(&b.current).chain(b.history.iter().map(|h| &h.block)) {
+                for region in &block.regions {
+                    ids.entry(region.id).or_default();
+                }
+            }
             for s in &b.strokes {
                 ids.insert(s.id, Id::new());
             }
@@ -622,6 +649,10 @@ impl Store {
             b.id = ids[&b.id];
             b.entity = ids[&b.entity];
             b.source_ids = b.source_ids.iter().map(|i| ids[i]).collect();
+            for region in &mut b.regions {
+                region.id = ids[&region.id];
+                region.strokes = region.strokes.iter().map(|id| ids[id]).collect();
+            }
             b.visible_strokes = b.visible_strokes.iter().map(|i| ids[i]).collect();
             if let crate::content::Content::Image(image) = &mut b.content {
                 image.asset = ids[&image.asset];

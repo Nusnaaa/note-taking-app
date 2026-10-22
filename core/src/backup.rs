@@ -54,6 +54,8 @@ const TABLES: &[(&str, usize)] = &[
     ("engine_active", 2),
     ("engine_defaults", 2),
     ("pdf_anchors", 4),
+    ("edit_operations", 4),
+    ("edit_changes", 5),
 ];
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -166,7 +168,7 @@ impl Store {
 
         let mut snapshot = Snapshot {
             format: "STEM-LIBRARY-1".into(),
-            schema: 8,
+            schema: 9,
             tables: BTreeMap::new(),
             omissions: vec![],
         };
@@ -322,9 +324,22 @@ impl Store {
             return Err(Error::ResourceLimit);
         }
 
-        let snapshot: Snapshot = serde_json::from_slice(bytes)?;
+        let mut snapshot: Snapshot = serde_json::from_slice(bytes)?;
+        if snapshot.schema == 8 {
+            snapshot.tables.insert("edit_operations".into(), vec![]);
+            snapshot.tables.insert("edit_changes".into(), vec![]);
+            snapshot
+                .tables
+                .get_mut("settings")
+                .ok_or(Error::Integrity)?
+                .push(vec![
+                    Cell::Text("edit_operation".into()),
+                    Cell::Text(String::new()),
+                ]);
+            snapshot.schema = 9;
+        }
 
-        if snapshot.format != "STEM-LIBRARY-1" || snapshot.schema != 8 {
+        if snapshot.format != "STEM-LIBRARY-1" || snapshot.schema != 9 {
             return Err(Error::Unsupported);
         }
 
@@ -336,6 +351,18 @@ impl Store {
             return Err(Error::Invalid("backup table set"));
         }
 
+        if snapshot
+            .tables
+            .get("settings")
+            .ok_or(Error::Integrity)?
+            .iter()
+            .any(|r| {
+                r.first().and_then(|c| c.text().ok()) == Some("edit_operation")
+                    && r.get(1).and_then(|c| c.text().ok()) != Some("")
+            })
+        {
+            return Err(Error::Integrity);
+        }
         let mut destination = Store::memory()?;
 
         let tx = destination.db.transaction()?;
@@ -520,7 +547,7 @@ impl Store {
         };
 
         let mut doc = NativeDocument {
-            version: 3,
+            version: 4,
             created_ms: 0,
             entities: vec![],
             blocks: vec![],

@@ -14,6 +14,15 @@ pub enum Display {
     Editable,
 }
 
+/// A selected set of source strokes within one block. Splitting never moves or
+/// duplicates original observations; each region can be recognised independently.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Region {
+    pub id: Id,
+    pub strokes: Vec<Id>,
+    pub content: Option<Content>,
+}
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Block {
@@ -30,10 +39,40 @@ pub struct Block {
     pub visible: bool,
     pub locked: bool,
     pub manually_corrected: bool,
+    #[serde(default)]
+    pub regions: Vec<Region>,
 }
 impl Block {
     pub fn validate(&self) -> Result<()> {
         self.content.validate()?;
+        if self.regions.len() > 4096 {
+            return Err(Error::ResourceLimit);
+        }
+        let mut region_ids = BTreeSet::new();
+        let mut assigned = BTreeSet::new();
+        for region in &self.regions {
+            if !region_ids.insert(region.id)
+                || region.strokes.is_empty()
+                || region
+                    .strokes
+                    .iter()
+                    .any(|s| !self.source_ids.contains(s) || !assigned.insert(*s))
+            {
+                return Err(Error::Invalid("region membership"));
+            }
+            if let Some(content) = &region.content {
+                if !matches!(
+                    content,
+                    Content::Text(_)
+                        | Content::Numeric(_)
+                        | Content::Code { .. }
+                        | Content::Maths(_)
+                ) {
+                    return Err(Error::Invalid("region modality"));
+                }
+                content.validate()?;
+            }
+        }
         self.transform.validate()?;
         let all: BTreeSet<_> = self.source_ids.iter().copied().collect();
         let visible: BTreeSet<_> = self.visible_strokes.iter().copied().collect();
@@ -54,6 +93,7 @@ pub struct InkSnapshot {
     pub(crate) fingerprint: String,
     pub(crate) strokes: Vec<Stroke>,
     pub(crate) transform: Transform,
+    pub(crate) region: Option<Id>,
 }
 impl InkSnapshot {
     pub fn block(&self) -> Id {
@@ -281,6 +321,7 @@ impl Store {
             visible: true,
             locked: false,
             manually_corrected: false,
+            regions: vec![],
         };
         self.write_for(entity, |db| {
             if let Some((ticket, fingerprint)) = &receipt {
@@ -369,6 +410,9 @@ impl Store {
     ) -> Result<Block> {
         content.validate()?;
         self.edit_block(id, revision, access, |b| {
+            if !b.regions.is_empty() {
+                return Err(Error::ReviewRequired);
+            }
             b.content = content;
             b.manually_corrected = true;
             b.display = Display::Editable;
@@ -402,7 +446,10 @@ impl Store {
         access: &Access,
     ) -> Result<Block> {
         self.edit_block(id, revision, access, |b| {
-            if display == Display::Editable && matches!(b.content, Content::Ink) {
+            if display == Display::Editable
+                && matches!(b.content, Content::Ink)
+                && b.regions.iter().all(|r| r.content.is_none())
+            {
                 return Err(Error::Invalid("no editable conversion"));
             }
             b.display = display;
@@ -504,6 +551,7 @@ impl Store {
             fingerprint,
             strokes,
             transform: b.transform,
+            region: None,
         })
     }
     pub fn ink_snapshot(&self, id: Id, access: &Access) -> Result<InkSnapshot> {
@@ -608,6 +656,40 @@ impl Store {
                 .parse()
                 .map_err(|_| Error::Integrity)?;
             let cutoff = active.saturating_sub((hours * 3_600_000.) as i64);
+            let operation_owners = {
+                let mut q =
+                    db.prepare("SELECT DISTINCT entity FROM edit_operations WHERE active_ms<?1")?;
+                let rows = q
+                    .query_map([cutoff], |r| r.get::<_, String>(0))?
+                    .collect::<std::result::Result<Vec<_>, _>>()?;
+                rows
+            };
+            for owner in operation_owners {
+                let owner_id = Id::parse(&owner)?;
+                if Self::authorise(db, owner_id, access, false).is_err() {
+                    continue;
+                }
+                let blocks = {
+                    let mut q = db.prepare("SELECT id FROM blocks WHERE entity=?1")?;
+                    let ids = q
+                        .query_map([&owner], |r| r.get::<_, String>(0))?
+                        .collect::<std::result::Result<Vec<_>, _>>()?;
+                    ids
+                };
+                let mut authorised = true;
+                for id in blocks {
+                    if Self::read_block(db, Id::parse(&id)?, access).is_err() {
+                        authorised = false;
+                        break;
+                    }
+                }
+                if authorised {
+                    db.execute(
+                        "DELETE FROM edit_operations WHERE entity=?1 AND active_ms<?2",
+                        rusqlite::params![owner, cutoff],
+                    )?;
+                }
+            }
             // The newest pre-cutoff full snapshot is the retained recovery checkpoint.
             // Immutable strokes live in another table and are never pruned here.
             let mut stmt = db.prepare("SELECT id FROM blocks")?;
@@ -659,7 +741,13 @@ impl Store {
                     Err(Error::Denied) => continue,
                     Err(e) => return Err(e),
                 };
-                if b.visible && b.content.literal().contains(query) {
+                if b.visible
+                    && (b.content.literal().contains(query)
+                        || b.regions
+                            .iter()
+                            .filter_map(|r| r.content.as_ref())
+                            .any(|c| c.literal().contains(query)))
+                {
                     out.push((id, Some(b.id)));
                 }
             }

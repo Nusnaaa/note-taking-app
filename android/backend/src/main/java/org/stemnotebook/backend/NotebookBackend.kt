@@ -1,0 +1,56 @@
+package org.stemnotebook.backend
+
+import android.content.Context
+import android.os.StatFs
+import java.io.Closeable
+import java.io.File
+import java.io.RandomAccessFile
+import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
+
+/** Owns native lifetime and serialises requests away from the Android main thread. */
+class NotebookBackend(context: Context) : Closeable {
+    private val directory = File(context.noBackupFilesDir, "notebook").apply { mkdirs() }
+    private val executor = ThreadPoolExecutor(1, 1, 0, TimeUnit.MILLISECONDS, ArrayBlockingQueue(64), ThreadPoolExecutor.AbortPolicy())
+    private val handle = CompletableFuture.supplyAsync({ NativeBridge.open(File(directory, "library.db").absolutePath) }, executor)
+    private var closed = false
+    private val reserve = File(directory, "emergency.reserve")
+
+    /** Completion with ok=true is the only commit acknowledgement. Queue rejection
+     * leaves the caller responsible for retaining and retrying the same capture ticket. */
+    @Synchronized fun request(json: String): CompletableFuture<String> {
+        check(!closed)
+        return CompletableFuture.supplyAsync({
+            if (StatFs(directory.path).availableBytes < 8L * 1024 * 1024) reserve.delete()
+            NativeBridge.request(handle.join(), json)
+        }, executor)
+    }
+
+    @Synchronized fun authenticate(scopesJson: String, proof: NativeBridge.Verification): CompletableFuture<Void> {
+        check(!closed)
+        return CompletableFuture.runAsync({ NativeBridge.authenticate(handle.join(), scopesJson, proof) }, executor)
+    }
+
+    fun allocateReserve(bytes: Long = 4L * 1024 * 1024): CompletableFuture<Void> = CompletableFuture.runAsync({
+        require(bytes in 1..64L * 1024 * 1024)
+        if (!reserve.exists()) RandomAccessFile(reserve, "rw").use { out ->
+            val buffer = ByteArray(65536)
+            var remaining = bytes
+            while (remaining > 0) { val count = minOf(remaining, buffer.size.toLong()).toInt(); out.write(buffer, 0, count); remaining -= count }
+            out.fd.sync()
+        }
+    }, executor)
+
+    @Synchronized override fun close() {
+        if (closed) return
+        closed = true
+        // Flush accepted requests in order. A separate closer avoids blocking the H.I.
+        Thread({
+            executor.shutdown()
+            while (!executor.awaitTermination(1, TimeUnit.SECONDS)) { /* wait for durable replies */ }
+            if (!handle.isCompletedExceptionally) NativeBridge.close(handle.join())
+        }, "stem-close").start()
+    }
+}

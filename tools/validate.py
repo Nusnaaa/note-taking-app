@@ -39,10 +39,13 @@ def main():
     tracked = git("ls-files").splitlines()
     # Evidence is excluded from its own fingerprint; all implementation/test inputs remain.
     hashes = {p: hashlib.sha256((ROOT / p).read_bytes()).hexdigest() for p in tracked if not p.startswith("docs/evidence/")}
+    os.environ["CARGO_INCREMENTAL"] = "0"
+    os.environ["CARGO_BUILD_JOBS"] = "2"
     report = {
         "started_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         "source_commit": revision,
         "working_tree_before": git("status", "--porcelain"),
+        "build_environment": {"CARGO_INCREMENTAL": "0", "CARGO_BUILD_JOBS": "2"},
         "platform": os.uname().sysname + " " + os.uname().machine,
         "cargo": subprocess.check_output([cargo, "--version"], text=True).strip(),
         "source_sha256": hashes,

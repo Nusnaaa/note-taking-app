@@ -6,7 +6,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, serde::Serialize, serde::Deserialize)]
 pub enum Scope {
     App,
     Entity(Id),
