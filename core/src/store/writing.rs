@@ -116,6 +116,7 @@ impl Store {
     }
     pub(crate) fn persist_block(db: &Connection, b: &Block) -> Result<()> {
         b.validate()?;
+        Self::validate_asset_references(db, b.entity, &b.content)?;
         let payload = serde_json::to_string(b)?;
         db.execute(
             "UPDATE blocks SET payload=?1 WHERE id=?2",
@@ -201,7 +202,7 @@ impl Store {
                 return Err(Error::Invalid("stroke sequence"));
             }
         }
-        self.append_block(target, Content::Ink, strokes, access)
+        self.append_block(target, Content::Ink, strokes, None, access)
     }
     pub fn append_content(
         &mut self,
@@ -218,13 +219,47 @@ impl Store {
         access: &Access,
     ) -> Result<Block> {
         content.validate()?;
-        self.append_block(target, content, vec![], access)
+        self.append_block(target, content, vec![], None, access)
+    }
+    /// A receipt is committed in the same transaction as source ink. Retrying an
+    /// acknowledged or ambiguous delivery cannot duplicate a stroke.
+    pub fn append_capture(
+        &mut self,
+        ticket: Id,
+        target: WritingTarget,
+        strokes: Vec<Stroke>,
+        access: &Access,
+    ) -> Result<Block> {
+        if strokes.is_empty() || strokes.len() > 1000 {
+            return Err(Error::Invalid("capture batch"));
+        }
+        let mut seen = BTreeSet::new();
+        let mut sequence = std::collections::BTreeMap::new();
+        for s in &strokes {
+            s.validate()?;
+            if !seen.insert(s.id)
+                || sequence
+                    .insert(s.capture_session, s.sequence)
+                    .is_some_and(|previous| s.sequence <= previous)
+            {
+                return Err(Error::Invalid("capture order"));
+            }
+        }
+        let fingerprint = digest(&serde_json::to_vec(&(format!("{target:?}"), &strokes))?);
+        self.append_block(
+            target,
+            Content::Ink,
+            strokes,
+            Some((ticket, fingerprint)),
+            access,
+        )
     }
     fn append_block(
         &mut self,
         target: WritingTarget,
         content: Content,
         strokes: Vec<Stroke>,
+        receipt: Option<(Id, String)>,
         access: &Access,
     ) -> Result<Block> {
         let entity = Self::writing_owner(&self.db, target, access)?;
@@ -248,21 +283,47 @@ impl Store {
             manually_corrected: false,
         };
         self.write_for(entity, |db| {
-            if Self::writing_owner(db, target, access)? != entity { return Err(Error::Conflict); }
+            if let Some((ticket, fingerprint)) = &receipt {
+                let old: Option<(String, String)> = db
+                    .query_row(
+                        "SELECT block,fingerprint FROM capture_receipts WHERE ticket=?1",
+                        [ticket.to_string()],
+                        |r| Ok((r.get(0)?, r.get(1)?)),
+                    )
+                    .optional()?;
+                if let Some((block, hash)) = old {
+                    if &hash != fingerprint {
+                        return Err(Error::Conflict);
+                    }
+                    return Self::read_block(db, Id::parse(&block)?, access);
+                }
+            }
+            if Self::writing_owner(db, target, access)? != entity {
+                return Err(Error::Conflict);
+            }
             let e = Self::authorise(db, entity, access, false)?;
             if !e.kind.is_surface() {
                 return Err(Error::Invalid("writing destination"));
             }
+            Self::validate_asset_references(db, entity, &b.content)?;
             let mut ordinal: i64 = db.query_row(
                 "SELECT COALESCE(MAX(ordinal),-1)+1 FROM blocks WHERE entity=?1",
                 [entity.to_string()],
                 |r| r.get(0),
             )?;
             if let WritingTarget::Exercise(exercise) = target {
-                let last: Option<i64> = db.query_row("SELECT MAX(b.ordinal) FROM blocks b JOIN exercise_members m ON m.block=b.id WHERE m.exercise=?1", [exercise.to_string()], |r|r.get(0))?;
+                let last: Option<i64> = db.query_row(
+                    "SELECT MAX(b.ordinal) FROM blocks b JOIN exercise_members m ON m.block=b.id \
+                WHERE m.exercise=?1",
+                    [exercise.to_string()],
+                    |r| r.get(0),
+                )?;
                 if let Some(last) = last {
                     ordinal = last + 1;
-                    db.execute("UPDATE blocks SET ordinal=ordinal+1 WHERE entity=?1 AND ordinal>=?2",rusqlite::params![entity.to_string(),ordinal])?;
+                    db.execute(
+                        "UPDATE blocks SET ordinal=ordinal+1 WHERE entity=?1 AND ordinal>=?2",
+                        rusqlite::params![entity.to_string(), ordinal],
+                    )?;
                 }
             }
             db.execute(
@@ -290,6 +351,12 @@ impl Store {
                 )?;
             }
             Self::persist_block(db, &b)?;
+            if let Some((ticket, hash)) = &receipt {
+                db.execute(
+                    "INSERT INTO capture_receipts VALUES(?1,?2,?3)",
+                    rusqlite::params![ticket.to_string(), b.id.to_string(), hash],
+                )?;
+            }
             Ok(b.clone())
         })
     }
@@ -532,23 +599,33 @@ impl Store {
         })
     }
     pub fn prune_history(&mut self, access: &Access) -> Result<usize> {
-        self.write(|db|{
-            Self::require_app(db,access)?;
-            let active:i64=Self::setting(db,"active_ms")?.parse().map_err(|_|Error::Integrity)?;
-            let hours:f64=Self::setting(db,"history_hours")?.parse().map_err(|_|Error::Integrity)?;
-            let cutoff=active.saturating_sub((hours*3_600_000.) as i64);
+        self.write(|db| {
+            Self::require_app(db, access)?;
+            let active: i64 = Self::setting(db, "active_ms")?
+                .parse()
+                .map_err(|_| Error::Integrity)?;
+            let hours: f64 = Self::setting(db, "history_hours")?
+                .parse()
+                .map_err(|_| Error::Integrity)?;
+            let cutoff = active.saturating_sub((hours * 3_600_000.) as i64);
             // The newest pre-cutoff full snapshot is the retained recovery checkpoint.
             // Immutable strokes live in another table and are never pruned here.
             let mut stmt = db.prepare("SELECT id FROM blocks")?;
-            let ids = stmt.query_map([], |r| r.get::<_, String>(0))?.collect::<std::result::Result<Vec<_>, _>>()?;
+            let ids = stmt
+                .query_map([], |r| r.get::<_, String>(0))?
+                .collect::<std::result::Result<Vec<_>, _>>()?;
             let mut deleted = 0;
             for id in ids {
                 match Self::read_block(db, Id::parse(&id)?, access) {
-                    Ok(_) => {},
+                    Ok(_) => {}
                     Err(Error::Denied | Error::Unavailable) => continue,
                     Err(e) => return Err(e),
                 }
-                deleted += db.execute("DELETE FROM history WHERE block=?1 AND revision < (SELECT MAX(h.revision) FROM history h WHERE h.block=?1 AND h.active_ms<=?2)", rusqlite::params![id, cutoff])?;
+                deleted += db.execute(
+                    "DELETE FROM history WHERE block=?1 AND revision < (SELECT MAX(h.revision) \
+                FROM history h WHERE h.block=?1 AND h.active_ms<=?2)",
+                    rusqlite::params![id, cutoff],
+                )?;
             }
             Ok(deleted)
         })

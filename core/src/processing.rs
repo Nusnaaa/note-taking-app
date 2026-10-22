@@ -162,7 +162,7 @@ impl Manager {
     pub fn new() -> Self {
         Self::default()
     }
-    fn validate(d: &Descriptor) -> Result<()> {
+    pub(crate) fn validate(d: &Descriptor) -> Result<()> {
         if d.id.is_empty()
             || d.id.len() > 256
             || d.version.is_empty()
@@ -195,6 +195,7 @@ impl Manager {
         if descriptor.family != Family::Recogniser
             || descriptor.input != InputContract::OrderedStrokesV1
             || descriptor.tasks.is_empty()
+            || descriptor.internals != Internals::StrokeOnlyVerified
         {
             return Err(Error::EngineUnavailable);
         }
@@ -380,5 +381,48 @@ impl Manager {
         .map_err(|_| Error::WorkerFailed)??;
         control.check()?;
         Ok(result)
+    }
+}
+
+/// A prepared replacement has passed compatibility, local integrity and a real
+/// adapter probe. It cannot be constructed by notebook data or a model output.
+pub(crate) struct PreparedRecogniser {
+    descriptor: Descriptor,
+    adapter: Box<dyn Recogniser>,
+}
+impl Manager {
+    pub(crate) fn prepare_replacement(
+        descriptor: Descriptor,
+        adapter: Box<dyn Recogniser>,
+        resource: Option<&[u8]>,
+    ) -> Result<PreparedRecogniser> {
+        let mut candidate = Self::new();
+        let id = descriptor.id.clone();
+        candidate.register_recogniser(descriptor, adapter)?;
+        candidate.activate_local(&id, resource, true)?;
+        let entry = candidate
+            .entries
+            .remove(&id)
+            .ok_or(Error::EngineUnavailable)?;
+        let Adapter::Recogniser(adapter) = entry.adapter else {
+            return Err(Error::EngineUnavailable);
+        };
+        Ok(PreparedRecogniser {
+            descriptor: entry.descriptor,
+            adapter,
+        })
+    }
+    pub(crate) fn commit_replacement(&mut self, ready: PreparedRecogniser) {
+        let id = ready.descriptor.id.clone();
+        self.defaults
+            .retain(|task, value| value != &id || ready.descriptor.tasks.contains(task));
+        self.entries.insert(
+            id,
+            Entry {
+                descriptor: ready.descriptor,
+                adapter: Adapter::Recogniser(ready.adapter),
+                readiness: Readiness::Ready,
+            },
+        );
     }
 }

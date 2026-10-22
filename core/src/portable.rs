@@ -1,4 +1,4 @@
-//! Native JSON v2 (with v1 read compatibility) for the implemented core subset.
+//! Native JSON v3 (with v1/v2 read compatibility) for the implemented core subset.
 //! It is NOT yet the complete v0.5.8 interchange contract (see status).
 use crate::{
     crypto, digest,
@@ -21,6 +21,8 @@ pub struct NativeBlock {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct NativeDocument {
+    #[serde(default)]
+    pub attachments: crate::attachments::Attachments,
     pub version: u32,
     pub created_ms: i64,
     pub entities: Vec<Entity>,
@@ -65,6 +67,7 @@ struct Checked {
 }
 
 pub struct ExportPlan {
+    library: String,
     generation: String,
     document: NativeDocument,
     scopes: BTreeSet<Scope>,
@@ -104,9 +107,13 @@ impl NativeDocument {
         })?)
     }
     pub fn validate(&self) -> Result<()> {
-        if !matches!(self.version, 1 | 2) {
+        if !matches!(self.version, 1..=3) {
             return Err(Error::Unsupported);
         }
+        if self.version < 3 && self.attachments != crate::attachments::Attachments::default() {
+            return Err(Error::Invalid("native v3 extensions"));
+        }
+        self.attachments.validate(self)?;
         if self.version == 1
             && (!self.exercises.is_empty()
                 || !self.memberships.is_empty()
@@ -279,7 +286,11 @@ impl NativeDocument {
 }
 
 impl Store {
-    fn protection_scopes(&self, entity: Id, block: Option<Id>) -> Result<BTreeSet<Scope>> {
+    pub(crate) fn protection_scopes(
+        &self,
+        entity: Id,
+        block: Option<Id>,
+    ) -> Result<BTreeSet<Scope>> {
         let mut scopes = BTreeSet::new();
         if Self::setting(&self.db, "app_locked")? == "true" {
             scopes.insert(Scope::App);
@@ -483,8 +494,8 @@ impl Store {
             }
             entities.push(e);
         }
-        let document = NativeDocument {
-            version: 2,
+        let mut document = NativeDocument {
+            version: 3,
             created_ms: now_ms(),
             entities,
             blocks,
@@ -495,19 +506,22 @@ impl Store {
             headings,
             rules,
             modes,
+            attachments: Default::default(),
         };
+        document.attachments = self.export_attachments(&mut document, exercise, access)?;
         document.validate()?;
         if Self::setting(&self.db, "generation")? != generation {
             return Err(Error::Conflict);
         }
         Ok(ExportPlan {
+            library: Self::setting(&self.db, "library_id")?,
             generation,
             selected_entities: document.entities.len(),
             selected_blocks: document.blocks.len(),
             includes_raw_ink: has_ink,
+            omissions: document.omissions.clone(),
             document,
             scopes,
-            omissions,
         })
     }
     pub fn finish_native_export(
@@ -517,7 +531,9 @@ impl Store {
         auth: &mut dyn Authenticator,
         acknowledge_omissions: bool,
     ) -> Result<Exported> {
-        if Self::setting(&self.db, "generation")? != plan.generation {
+        if Self::setting(&self.db, "library_id")? != plan.library
+            || Self::setting(&self.db, "generation")? != plan.generation
+        {
             return Err(Error::Conflict);
         }
         if !plan.omissions.is_empty() && !acknowledge_omissions {
@@ -549,7 +565,9 @@ impl Store {
         };
         // Authentication/encryption may be slow. Recheck after both before releasing
         // any bytes; a second connection may have changed locks or revoked sources.
-        if Self::setting(&self.db, "generation")? != plan.generation {
+        if Self::setting(&self.db, "library_id")? != plan.library
+            || Self::setting(&self.db, "generation")? != plan.generation
+        {
             return Err(Error::Conflict);
         }
         Ok(exported)
@@ -592,6 +610,7 @@ impl Store {
         for e in &doc.exercises {
             ids.insert(e.id, Id::new());
         }
+        doc.attachments.add_ids(&mut ids);
         for e in &mut doc.entities {
             e.id = ids[&e.id];
             e.parent = e.parent.map(|p| ids[&p]);
@@ -604,6 +623,9 @@ impl Store {
             b.entity = ids[&b.entity];
             b.source_ids = b.source_ids.iter().map(|i| ids[i]).collect();
             b.visible_strokes = b.visible_strokes.iter().map(|i| ids[i]).collect();
+            if let crate::content::Content::Image(image) = &mut b.content {
+                image.asset = ids[&image.asset];
+            }
         };
         for b in &mut doc.blocks {
             remap_block(&mut b.current);
@@ -638,6 +660,7 @@ impl Store {
         for m in &mut doc.modes {
             m.entity = ids[&m.entity];
         }
+        doc.attachments.remap(&ids);
         doc.validate()?;
         self.write(|db| {
             Self::require_app(db, access)?;
@@ -654,6 +677,7 @@ impl Store {
             for e in &doc.entities {
                 Self::save_entity(db, e)?;
             }
+            Self::import_assets(db, &doc.attachments)?;
             for (ordinal, b) in doc.blocks.iter().enumerate() {
                 db.execute(
                     "INSERT INTO blocks VALUES(?1,?2,?3,?4)",
@@ -724,6 +748,7 @@ impl Store {
                     rusqlite::params![m.entity.to_string(), serde_json::to_string(&m.mode)?],
                 )?;
             }
+            Self::import_attachment_relations(db, &doc.attachments)?;
             for l in &doc.links {
                 db.execute(
                     "INSERT INTO links VALUES(?1,?2,?3,?4,'{}')",

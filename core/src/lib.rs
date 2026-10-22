@@ -2,11 +2,16 @@
 //! Models receive immutable snapshots, never the database connection.
 #![forbid(unsafe_code)]
 
+pub mod attachments;
+pub mod backup;
+pub mod capture;
 pub mod content;
 pub mod converters;
 pub mod crypto;
+pub mod export;
 pub mod help;
 pub mod ink;
+pub mod objects;
 pub mod portable;
 pub mod processing;
 pub mod security;
@@ -54,6 +59,8 @@ pub enum Error {
     Conflict,
     #[error("dependency review required")]
     ReviewRequired,
+    #[error("local file operation failed")]
+    Io(#[from] std::io::Error),
     #[error("storage operation failed")]
     Storage(#[from] rusqlite::Error),
     #[error("invalid structured payload")]

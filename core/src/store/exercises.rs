@@ -90,7 +90,16 @@ impl Store {
         if e.title.is_empty() || e.title.len() > 4096 {
             return Err(Error::Invalid("exercise title"));
         }
-        db.execute("INSERT INTO exercises VALUES(?1,?2,?3,?4) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload,heading=excluded.heading",rusqlite::params![e.id.to_string(),e.master.to_string(),e.heading.map(|h|h.to_string()),serde_json::to_string(e)?])?;
+        db.execute(
+            "INSERT INTO exercises VALUES(?1,?2,?3,?4) ON CONFLICT(id) DO UPDATE SET \
+                payload=excluded.payload,heading=excluded.heading",
+            rusqlite::params![
+                e.id.to_string(),
+                e.master.to_string(),
+                e.heading.map(|h| h.to_string()),
+                serde_json::to_string(e)?
+            ],
+        )?;
         Ok(())
     }
     pub(crate) fn block_exercise(db: &Connection, block: Id) -> Result<Option<Id>> {
@@ -124,10 +133,14 @@ impl Store {
                 rusqlite::params![block.to_string(), id.to_string()],
             )?;
         }
-        db.execute("INSERT INTO membership_versions VALUES(?1,1) ON CONFLICT(block) DO UPDATE SET revision=revision+1",[block.to_string()])?;
+        db.execute(
+            "INSERT INTO membership_versions VALUES(?1,1) ON CONFLICT(block) DO UPDATE \
+                SET revision=revision+1",
+            [block.to_string()],
+        )?;
         Ok(())
     }
-    fn touch_master(db: &Connection, master: Id) -> Result<()> {
+    pub(crate) fn touch_master(db: &Connection, master: Id) -> Result<()> {
         let mut e = Self::raw_entity(db, master)?;
         e.revision += 1;
         e.modified_ms = now_ms();
@@ -190,7 +203,10 @@ impl Store {
         if limit > 512 {
             return Err(Error::ResourceLimit);
         }
-        let mut query=self.db.prepare("SELECT b.id FROM blocks b JOIN exercise_members m ON m.block=b.id WHERE m.exercise=?1 ORDER BY b.ordinal,b.id LIMIT ?2 OFFSET ?3")?;
+        let mut query = self.db.prepare(
+            "SELECT b.id FROM blocks b JOIN exercise_members m ON m.block=b.id WHERE \
+                m.exercise=?1 ORDER BY b.ordinal,b.id LIMIT ?2 OFFSET ?3",
+        )?;
         let mut result = Vec::new();
         for id in query.query_map(rusqlite::params![id.to_string(), limit, offset], |r| {
             r.get::<_, String>(0)
@@ -343,7 +359,15 @@ impl Store {
         if keyword.trim().is_empty() || keyword.len() > 256 {
             return Err(Error::Invalid("exercise keyword"));
         }
-        self.write_for(master,|db|{Self::authorise(db,master,access,false)?;db.execute("INSERT INTO exercise_rules VALUES(?1,?2) ON CONFLICT(master) DO UPDATE SET keyword=excluded.keyword",rusqlite::params![master.to_string(),keyword])?;Ok(())})
+        self.write_for(master, |db| {
+            Self::authorise(db, master, access, false)?;
+            db.execute(
+                "INSERT INTO exercise_rules VALUES(?1,?2) ON CONFLICT(master) DO UPDATE SET \
+                keyword=excluded.keyword",
+                rusqlite::params![master.to_string(), keyword],
+            )?;
+            Ok(())
+        })
     }
     pub fn plan_extraction(&self, master: Id, access: &Access) -> Result<ExtractionPlan> {
         let generation = Self::setting(&self.db, "generation")?;
@@ -359,7 +383,10 @@ impl Store {
             )
             .optional()?
             .unwrap_or_else(|| "Exercise".into());
-        let mut query=self.db.prepare("SELECT b.id,h.block IS NOT NULL FROM blocks b LEFT JOIN confirmed_headings h ON h.block=b.id WHERE b.entity=?1 ORDER BY b.ordinal,b.id LIMIT 10001")?;
+        let mut query = self.db.prepare(
+            "SELECT b.id,h.block IS NOT NULL FROM blocks b LEFT JOIN confirmed_headings \
+                h ON h.block=b.id WHERE b.entity=?1 ORDER BY b.ordinal,b.id LIMIT 10001",
+        )?;
         let rows = query
             .query_map([master.to_string()], |r| {
                 Ok((r.get::<_, String>(0)?, r.get::<_, bool>(1)?))

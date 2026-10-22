@@ -29,7 +29,8 @@ fn main() {
     db.execute_batch("PRAGMA synchronous=FULL; BEGIN IMMEDIATE;")
         .unwrap();
     db.execute(
-        "UPDATE entities SET payload=json_set(payload,'$.title','uncommitted change') WHERE id=?1",
+        "UPDATE entities SET payload=json_set(payload,'$.title','uncommitted \
+                change') WHERE id=?1",
         [id.to_string()],
     )
     .unwrap();

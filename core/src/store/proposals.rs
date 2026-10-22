@@ -1,4 +1,5 @@
 use super::*;
+
 use crate::{
     content::Content,
     processing::{CompletedRecognition, Descriptor, RecognitionOutput},
@@ -10,6 +11,7 @@ pub enum ProposalState {
     Accepted,
     Rejected,
 }
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Proposal {
@@ -22,6 +24,7 @@ pub struct Proposal {
     pub correction: Option<Content>,
     pub state: ProposalState,
 }
+
 impl Store {
     pub fn propose(
         &mut self,
@@ -38,12 +41,16 @@ impl Store {
             correction: None,
             state: ProposalState::Pending,
         };
+
         let master = Self::read_block(&self.db, p.block, access)?.entity;
+
         self.write_for(master, |db| {
             let current = Self::make_snapshot(db, p.block, access)?;
+
             if current.fingerprint != p.fingerprint || current.revision != p.revision {
                 return Err(Error::Conflict);
             }
+
             db.execute(
                 "INSERT INTO proposals VALUES(?1,?2,?3,'pending')",
                 rusqlite::params![
@@ -52,9 +59,11 @@ impl Store {
                     serde_json::to_string(&p)?
                 ],
             )?;
+
             Ok(p.clone())
         })
     }
+
     fn read_proposal(db: &Connection, id: Id, access: &Access) -> Result<Proposal> {
         let payload: String = db
             .query_row(
@@ -64,10 +73,14 @@ impl Store {
             )
             .optional()?
             .ok_or(Error::Unavailable)?;
+
         let p: Proposal = serde_json::from_str(&payload)?;
+
         Self::read_block(db, p.block, access)?;
+
         Ok(p)
     }
+
     fn save_proposal(db: &Connection, p: &Proposal) -> Result<()> {
         db.execute(
             "UPDATE proposals SET payload=?1,status=?2 WHERE id=?3",
@@ -77,11 +90,14 @@ impl Store {
                 p.id.to_string()
             ],
         )?;
+
         Ok(())
     }
+
     pub fn proposal(&self, id: Id, access: &Access) -> Result<Proposal> {
         Self::read_proposal(&self.db, id, access)
     }
+
     pub fn correct_proposal(
         &mut self,
         id: Id,
@@ -89,56 +105,169 @@ impl Store {
         access: &Access,
     ) -> Result<Proposal> {
         correction.validate()?;
+
         let master = Self::read_block(&self.db, self.proposal(id, access)?.block, access)?.entity;
+
         self.write_for(master, |db| {
             let mut p = Self::read_proposal(db, id, access)?;
+
             if p.state != ProposalState::Pending {
                 return Err(Error::Conflict);
             }
+
             p.correction = Some(correction);
+
             Self::save_proposal(db, &p)?;
+
             Ok(p)
         })
     }
+
     pub fn reject_proposal(&mut self, id: Id, access: &Access) -> Result<()> {
         let master = Self::read_block(&self.db, self.proposal(id, access)?.block, access)?.entity;
+
         self.write_for(master, |db| {
             let mut p = Self::read_proposal(db, id, access)?;
+
             if p.state != ProposalState::Pending {
                 return Err(Error::Conflict);
             }
+
             p.state = ProposalState::Rejected;
+
             Self::save_proposal(db, &p)
         })
     }
+
     /// Explicit acceptance is the ONLY operation committing recogniser output.
     /// The host may offer Copy afterwards, but this operation cannot write clipboard.
     pub fn accept_proposal(&mut self, id: Id, candidate: usize, access: &Access) -> Result<Block> {
         let master = Self::read_block(&self.db, self.proposal(id, access)?.block, access)?.entity;
+
         self.write_for(master, |db| {
             let mut p = Self::read_proposal(db, id, access)?;
+
             if p.state != ProposalState::Pending {
                 return Err(Error::Conflict);
             }
+
             let snapshot = Self::make_snapshot(db, p.block, access)?;
+
             if snapshot.revision != p.revision || snapshot.fingerprint != p.fingerprint {
                 return Err(Error::Conflict);
             }
+
             let content = p
                 .correction
                 .clone()
                 .or_else(|| p.output.candidates.get(candidate).cloned())
                 .ok_or(Error::Invalid("candidate selection"))?;
+
             content.validate()?;
+
             let mut b = Self::read_block(db, p.block, access)?;
+
             b.content = content;
+
             b.display = Display::Editable;
+
             b.manually_corrected = p.correction.is_some();
+
             b.revision += 1;
+
             Self::persist_block(db, &b)?;
+
             p.state = ProposalState::Accepted;
+
             Self::save_proposal(db, &p)?;
+
             Ok(b)
         })
+    }
+
+    /// Accept only explicit selections. Other pending proposals remain unchanged.
+    /// A stale selection rolls back the entire batch, including earlier members.
+    pub fn accept_proposals(
+        &mut self,
+        selections: &[(Id, usize)],
+        confirmed: bool,
+        access: &Access,
+    ) -> Result<Vec<Block>> {
+        if !confirmed {
+            return Err(Error::ReviewRequired);
+        }
+
+        if selections.is_empty() || selections.len() > 512 {
+            return Err(Error::Invalid("proposal batch"));
+        }
+
+        let owners = selections
+            .iter()
+            .map(|(id, _)| {
+                self.proposal(*id, access)
+                    .and_then(|p| self.block(p.block, access).map(|b| b.entity))
+            })
+            .collect::<Result<std::collections::BTreeSet<_>>>()?;
+
+        for &owner in &owners {
+            self.document_save_states.insert(owner, SaveState::Saving);
+        }
+
+        let result = self.write(|db| {
+            let mut seen = std::collections::BTreeSet::new();
+
+            let mut result = Vec::new();
+
+            for &(id, candidate) in selections {
+                let mut p = Self::read_proposal(db, id, access)?;
+
+                if p.state != ProposalState::Pending || !seen.insert(p.block) {
+                    return Err(Error::Conflict);
+                }
+
+                let snapshot = Self::make_snapshot(db, p.block, access)?;
+
+                if snapshot.revision != p.revision || snapshot.fingerprint != p.fingerprint {
+                    return Err(Error::Conflict);
+                }
+
+                let mut b = Self::read_block(db, p.block, access)?;
+
+                b.content = p
+                    .correction
+                    .clone()
+                    .or_else(|| p.output.candidates.get(candidate).cloned())
+                    .ok_or(Error::Invalid("candidate selection"))?;
+
+                b.display = Display::Editable;
+
+                b.manually_corrected = p.correction.is_some();
+
+                b.revision += 1;
+
+                Self::persist_block(db, &b)?;
+
+                p.state = ProposalState::Accepted;
+
+                Self::save_proposal(db, &p)?;
+
+                result.push(b);
+            }
+
+            Ok(result)
+        });
+
+        for owner in owners {
+            self.document_save_states.insert(
+                owner,
+                if result.is_ok() {
+                    SaveState::SavedLocally
+                } else {
+                    SaveState::NeedsAttention
+                },
+            );
+        }
+
+        result
     }
 }

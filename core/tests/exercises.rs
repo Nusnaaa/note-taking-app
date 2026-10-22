@@ -505,7 +505,7 @@ fn selected_exercise_export_excludes_unrelated_master_content_and_roundtrips() {
     assert_eq!(s.blocks(copied, 0, 50, &a).unwrap().len(), 1);
 }
 #[test]
-fn native_v2_preserves_exercise_identity_relationships_locks_modes_and_heading_rules() {
+fn current_native_preserves_exercise_identity_relationships_locks_modes_and_heading_rules() {
     let mut s = Store::memory().unwrap();
     let a = Access::public();
     let n = s.create(Kind::Note, None, "master", &a).unwrap();
@@ -519,7 +519,7 @@ fn native_v2_preserves_exercise_identity_relationships_locks_modes_and_heading_r
     s.set_mode(n.id, WritingMode::InkOnly, &a).unwrap();
     let file = export(&s, n.id, &auth);
     let doc = NativeDocument::decode(&file).unwrap();
-    assert_eq!(doc.version, 2);
+    assert_eq!(doc.version, 3);
     assert_eq!(doc.memberships.len(), 2);
     let new = s.import_native(&file, &a).unwrap()[0];
     assert!(s.exercises(new, true, &a).unwrap().is_empty());

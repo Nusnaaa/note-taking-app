@@ -160,11 +160,19 @@ pub enum Content {
         language: Option<String>,
     },
     Maths(MathNode),
+    Table(crate::objects::Table),
+    Diagram(crate::objects::Diagram),
+    Graph(crate::objects::Graph),
+    Image(crate::objects::Image),
 }
 impl Content {
     pub fn validate(&self) -> Result<()> {
         match self {
             Self::Maths(n) => n.validate(),
+            Self::Table(t) => t.validate(),
+            Self::Diagram(d) => d.validate(),
+            Self::Graph(g) => g.validate(),
+            Self::Image(i) => i.validate(),
             Self::Code { text, .. } | Self::Text(text) | Self::Numeric(text)
                 if text.len() > 4_000_000 =>
             {
@@ -178,6 +186,24 @@ impl Content {
             Self::Ink => String::new(),
             Self::Text(t) | Self::Numeric(t) | Self::Code { text: t, .. } => t.clone(),
             Self::Maths(n) => n.literal(),
+            Self::Table(t) => t.literal(),
+            Self::Diagram(d) => d
+                .parts
+                .iter()
+                .map(|p| p.label.clone())
+                .collect::<Vec<_>>()
+                .join(" "),
+            Self::Graph(g) => format!(
+                "{} {} {}",
+                g.x.label,
+                g.y.label,
+                g.series
+                    .iter()
+                    .map(|s| s.label.clone())
+                    .collect::<Vec<_>>()
+                    .join(" ")
+            ),
+            Self::Image(i) => i.caption.clone(),
         }
     }
 }

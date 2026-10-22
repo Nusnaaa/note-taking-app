@@ -2,7 +2,9 @@
 //! supplies bytes after a deliberate document-provider grant. Authorised snapshots
 //! are distinct from disposable live-source caches (owner Q383).
 use crate::{digest, now_ms, security::Access, store::Store, Error, Id, Result};
+
 use rusqlite::{Connection, OptionalExtension};
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -11,11 +13,13 @@ pub enum Availability {
     Missing,
     Revoked,
 }
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Acquisition {
     ExternalLink,
     ManagedCopy,
 }
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct PdfView {
@@ -25,6 +29,7 @@ pub struct PdfView {
     pub pan_y: f64,
     pub divider: f64,
 }
+
 impl Default for PdfView {
     fn default() -> Self {
         Self {
@@ -36,8 +41,9 @@ impl Default for PdfView {
         }
     }
 }
+
 impl PdfView {
-    fn validate(&self) -> Result<()> {
+    pub(crate) fn validate(&self) -> Result<()> {
         if !self.zoom.is_finite()
             || self.zoom <= 0.
             || !self.pan_x.is_finite()
@@ -48,6 +54,7 @@ impl PdfView {
         {
             return Err(Error::Invalid("PDF view"));
         }
+
         Ok(())
     }
 }
@@ -64,12 +71,14 @@ pub struct Source {
     pub previous_revisions: Vec<String>,
     pub view: PdfView,
 }
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum AssetClass {
     LiveCache,
     ManagedCopy,
     HistoricalSnapshot,
 }
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Retention {
@@ -79,6 +88,7 @@ pub struct Retention {
     pub authority: String,
     pub export_allowed: bool,
 }
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct SourceBytes {
     pub bytes: Vec<u8>,
@@ -105,23 +115,31 @@ impl Store {
             )
             .optional()?
             .ok_or(Error::Unavailable)?;
+
         Ok(serde_json::from_str(&json)?)
     }
+
     pub(crate) fn read_source(db: &Connection, id: Id, access: &Access) -> Result<Source> {
         let s = Self::raw_source(db, id)?;
+
         Self::authorise(db, s.context, access, false)?;
+
         Ok(s)
     }
-    fn save_source(db: &Connection, s: &Source) -> Result<()> {
+
+    pub(crate) fn save_source(db: &Connection, s: &Source) -> Result<()> {
         db.execute(
             "UPDATE sources SET payload=?1 WHERE id=?2",
             rusqlite::params![serde_json::to_string(s)?, s.id.to_string()],
         )?;
+
         Ok(())
     }
+
     pub fn source(&self, id: Id, access: &Access) -> Result<Source> {
         Self::read_source(&self.db, id, access)
     }
+
     pub fn link_pdf(
         &mut self,
         context: Id,
@@ -135,9 +153,11 @@ impl Store {
         {
             return Err(Error::Invalid("local PDF locator"));
         }
+
         if revision.len() != 64 || !revision.bytes().all(|c| c.is_ascii_hexdigit()) {
             return Err(Error::Invalid("source digest"));
         }
+
         let s = Source {
             id: Id::new(),
             context,
@@ -148,8 +168,10 @@ impl Store {
             previous_revisions: vec![],
             view: PdfView::default(),
         };
+
         self.write(|db| {
             Self::authorise(db, context, access, false)?;
+
             db.execute(
                 "INSERT INTO sources VALUES(?1,?2,?3)",
                 rusqlite::params![
@@ -158,27 +180,37 @@ impl Store {
                     serde_json::to_string(&s)?
                 ],
             )?;
+
             Ok(s.clone())
         })
     }
+
     pub fn set_pdf_view(&mut self, id: Id, view: PdfView, access: &Access) -> Result<()> {
         view.validate()?;
+
         self.write(|db| {
             let mut s = Self::read_source(db, id, access)?;
+
             s.view = view;
+
             Self::save_source(db, &s)
         })
     }
+
     pub fn mark_source_missing(&mut self, id: Id, access: &Access) -> Result<()> {
         self.write(|db| {
             let mut s = Self::read_source(db, id, access)?;
+
             if s.availability == Availability::Revoked {
                 return Err(Error::Denied);
             }
+
             s.availability = Availability::Missing;
+
             Self::save_source(db, &s)
         })
     }
+
     pub fn relink_pdf(
         &mut self,
         id: Id,
@@ -190,22 +222,30 @@ impl Store {
         if !confirmed {
             return Err(Error::ReviewRequired);
         }
+
         if !locator.starts_with("content://") && !locator.starts_with("file://") {
             return Err(Error::Invalid("local PDF locator"));
         }
+
         self.write(|db| {
             let mut s = Self::read_source(db, id, access)?;
+
             if s.availability == Availability::Revoked {
                 return Err(Error::Denied);
             }
+
             if revision != s.revision {
                 return Err(Error::ReviewRequired);
             }
+
             s.locator = locator.into();
+
             s.availability = Availability::Available;
+
             Self::save_source(db, &s)
         })
     }
+
     pub fn retain_source_bytes(
         &mut self,
         id: Id,
@@ -219,36 +259,47 @@ impl Store {
             export_allowed,
             consented,
         } = choice;
+
         if !consented {
             return Err(Error::Denied);
         }
+
         if bytes.len() > 64 * 1024 * 1024 {
             return Err(Error::ResourceLimit);
         }
+
         if class == AssetClass::HistoricalSnapshot && authority.is_none_or(str::is_empty) {
             return Err(Error::Denied);
         }
+
         self.write(|db| {
             let mut s = Self::read_source(db, id, access)?;
+
             if s.availability != Availability::Available {
                 return Err(Error::Denied);
             }
+
             if class == AssetClass::ManagedCopy && digest(bytes) != s.revision {
                 return Err(Error::Integrity);
             }
+
             if class == AssetClass::ManagedCopy && !bytes.starts_with(b"%PDF-") {
                 return Err(Error::Invalid("PDF signature"));
             }
+
             let retention = authority.filter(|v| !v.is_empty()).map(|a| Retention {
                 source_revision: s.revision.clone(),
                 captured_ms: now_ms(),
                 authority: a.into(),
                 export_allowed,
             });
+
             if class == AssetClass::LiveCache && retention.is_some() {
                 return Err(Error::Invalid("cache retention exception"));
             }
+
             let asset = Id::new();
+
             db.execute(
                 "INSERT INTO source_assets VALUES(?1,?2,?3,?4,?5,?6)",
                 rusqlite::params![
@@ -260,25 +311,34 @@ impl Store {
                     digest(bytes)
                 ],
             )?;
+
             if class == AssetClass::ManagedCopy {
                 s.acquisition = Acquisition::ManagedCopy;
+
                 Self::save_source(db, &s)?;
             }
+
             Ok(asset)
         })
     }
+
     pub fn revoke_source(&mut self, id: Id, access: &Access) -> Result<()> {
         self.write(|db| {
             let mut s = Self::read_source(db, id, access)?;
+
             s.availability = Availability::Revoked;
+
             Self::save_source(db, &s)?;
+
             db.execute(
                 "DELETE FROM source_assets WHERE source=?1 AND authority IS NULL",
                 [id.to_string()],
             )?;
+
             Ok(())
         })
     }
+
     pub fn revoke_retention(&mut self, asset: Id, access: &Access) -> Result<()> {
         self.write(|db| {
             let source: String = db
@@ -289,11 +349,15 @@ impl Store {
                 )
                 .optional()?
                 .ok_or(Error::Unavailable)?;
+
             Self::read_source(db, Id::parse(&source)?, access)?;
+
             db.execute("DELETE FROM source_assets WHERE id=?1", [asset.to_string()])?;
+
             Ok(())
         })
     }
+
     pub fn source_bytes(
         &self,
         asset: Id,
@@ -309,23 +373,345 @@ impl Store {
             )
             .optional()?
             .ok_or(Error::Unavailable)?;
+
         let s = Self::read_source(&self.db, Id::parse(&source)?, access)?;
+
         let retention: Option<Retention> =
             authority.as_deref().map(serde_json::from_str).transpose()?;
+
         if s.availability == Availability::Revoked && retention.is_none() {
             return Err(Error::Denied);
         }
+
         if for_export && retention.as_ref().is_none_or(|r| !r.export_allowed) {
             return Err(Error::Denied);
         }
+
         if digest(&bytes) != hash {
             return Err(Error::Integrity);
         }
+
         Ok(SourceBytes {
             bytes,
             historical: retention.is_some(),
             availability: s.availability,
             source_revision: retention.map(|r| r.source_revision).unwrap_or(s.revision),
+        })
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum AnchorHealth {
+    Current,
+    NeedsReview,
+    Historical,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PdfAnchor {
+    pub id: Id,
+    pub source: Id,
+    pub block: Id,
+    pub source_revision: String,
+    pub page: u32,
+    pub bounds: crate::objects::Rect,
+    pub pinned: bool,
+    pub health: AnchorHealth,
+}
+
+pub struct RevisionReview {
+    generation: String,
+    source: Id,
+    old_revision: String,
+    new_revision: String,
+    locator: String,
+    pub affected_anchors: usize,
+}
+
+impl Store {
+    pub fn anchor_pdf(
+        &mut self,
+        source: Id,
+        block: Id,
+        page: u32,
+        bounds: crate::objects::Rect,
+        pinned: bool,
+        access: &Access,
+    ) -> Result<PdfAnchor> {
+        bounds.validate()?;
+
+        if bounds.x < 0.
+            || bounds.y < 0.
+            || bounds.x + bounds.width > 1.
+            || bounds.y + bounds.height > 1.
+        {
+            return Err(Error::Invalid("normalised PDF anchor"));
+        }
+
+        let context = self.source(source, access)?.context;
+
+        self.write_for(context, |db| {
+            let s = Self::read_source(db, source, access)?;
+
+            if s.availability != Availability::Available {
+                return Err(Error::Denied);
+            }
+
+            if Self::read_block(db, block, access)?.entity != s.context {
+                return Err(Error::Invalid("annotation context"));
+            }
+
+            let a = PdfAnchor {
+                id: Id::new(),
+                source,
+                block,
+                source_revision: s.revision,
+                page,
+                bounds,
+                pinned,
+                health: AnchorHealth::Current,
+            };
+
+            db.execute(
+                "INSERT INTO pdf_anchors VALUES(?1,?2,?3,?4)",
+                rusqlite::params![
+                    a.id.to_string(),
+                    source.to_string(),
+                    block.to_string(),
+                    serde_json::to_string(&a)?
+                ],
+            )?;
+
+            Ok(a)
+        })
+    }
+
+    pub fn pdf_anchor(&self, id: Id, access: &Access) -> Result<PdfAnchor> {
+        let json: String = self
+            .db
+            .query_row(
+                "SELECT payload FROM pdf_anchors WHERE id=?1",
+                [id.to_string()],
+                |r| r.get(0),
+            )
+            .optional()?
+            .ok_or(Error::Unavailable)?;
+
+        let a: PdfAnchor = serde_json::from_str(&json)?;
+
+        Self::read_source(&self.db, a.source, access)?;
+
+        Self::read_block(&self.db, a.block, access)?;
+
+        Ok(a)
+    }
+
+    pub fn review_pdf_revision(
+        &self,
+        id: Id,
+        locator: &str,
+        new_revision: &str,
+        access: &Access,
+    ) -> Result<RevisionReview> {
+        if (!locator.starts_with("content://") && !locator.starts_with("file://"))
+            || locator.len() > 4096
+            || new_revision.len() != 64
+            || !new_revision.bytes().all(|c| c.is_ascii_hexdigit())
+        {
+            return Err(Error::Invalid("PDF revision"));
+        }
+
+        let generation = Self::setting(&self.db, "generation")?;
+
+        let s = self.source(id, access)?;
+
+        if s.availability == Availability::Revoked {
+            return Err(Error::Denied);
+        }
+
+        if new_revision.eq_ignore_ascii_case(&s.revision) {
+            return Err(Error::Invalid("unchanged revision"));
+        }
+
+        let count = self.db.query_row(
+            "SELECT COUNT(*) FROM pdf_anchors WHERE source=?1",
+            [id.to_string()],
+            |r| r.get::<_, usize>(0),
+        )?;
+
+        if Self::setting(&self.db, "generation")? != generation {
+            return Err(Error::Conflict);
+        }
+
+        Ok(RevisionReview {
+            generation,
+            source: id,
+            old_revision: s.revision,
+            new_revision: new_revision.to_ascii_lowercase(),
+            locator: locator.into(),
+            affected_anchors: count,
+        })
+    }
+
+    pub fn replace_pdf_revision(
+        &mut self,
+        review: RevisionReview,
+        confirmed: bool,
+        access: &Access,
+    ) -> Result<()> {
+        if !confirmed {
+            return Err(Error::ReviewRequired);
+        }
+
+        let context = self.source(review.source, access)?.context;
+
+        self.write_for(context, |db| {
+            if Self::setting(db, "generation")? != review.generation {
+                return Err(Error::Conflict);
+            }
+
+            let mut s = Self::read_source(db, review.source, access)?;
+
+            if s.revision != review.old_revision || s.availability == Availability::Revoked {
+                return Err(Error::Conflict);
+            }
+
+            let mut q = db.prepare("SELECT payload FROM pdf_anchors WHERE source=?1")?;
+
+            let rows = q
+                .query_map([s.id.to_string()], |r| r.get::<_, String>(0))?
+                .collect::<std::result::Result<Vec<_>, _>>()?;
+
+            for row in rows {
+                let mut a: PdfAnchor = serde_json::from_str(&row)?;
+
+                Self::read_block(db, a.block, access)?;
+
+                a.health = if a.pinned {
+                    AnchorHealth::Historical
+                } else {
+                    AnchorHealth::NeedsReview
+                };
+
+                db.execute(
+                    "UPDATE pdf_anchors SET payload=?1 WHERE id=?2",
+                    rusqlite::params![serde_json::to_string(&a)?, a.id.to_string()],
+                )?;
+            }
+
+            s.previous_revisions.push(s.revision.clone());
+
+            s.revision = review.new_revision;
+
+            s.locator = review.locator;
+
+            s.availability = Availability::Available;
+
+            s.acquisition = Acquisition::ExternalLink;
+
+            // Disposable prior-revision bytes cannot masquerade as the new source.
+            db.execute(
+                "DELETE FROM source_assets WHERE source=?1 AND authority IS NULL",
+                [s.id.to_string()],
+            )?;
+
+            Self::save_source(db, &s)
+        })
+    }
+
+    pub fn reconnect_pdf_anchor(
+        &mut self,
+        id: Id,
+        page: u32,
+        bounds: crate::objects::Rect,
+        confirmed: bool,
+        access: &Access,
+    ) -> Result<PdfAnchor> {
+        if !confirmed {
+            return Err(Error::ReviewRequired);
+        }
+
+        bounds.validate()?;
+
+        if bounds.x < 0.
+            || bounds.y < 0.
+            || bounds.x + bounds.width > 1.
+            || bounds.y + bounds.height > 1.
+        {
+            return Err(Error::Invalid("normalised PDF anchor"));
+        }
+
+        let a = self.pdf_anchor(id, access)?;
+
+        let context = self.source(a.source, access)?.context;
+
+        self.write_for(context, |db| {
+            let json: String = db.query_row(
+                "SELECT payload FROM pdf_anchors WHERE id=?1",
+                [id.to_string()],
+                |r| r.get(0),
+            )?;
+
+            let mut a: PdfAnchor = serde_json::from_str(&json)?;
+
+            let source = Self::read_source(db, a.source, access)?;
+
+            Self::read_block(db, a.block, access)?;
+
+            if source.availability != Availability::Available {
+                return Err(Error::Denied);
+            }
+
+            a.source_revision = source.revision;
+
+            a.page = page;
+
+            a.bounds = bounds;
+
+            a.health = AnchorHealth::Current;
+
+            db.execute(
+                "UPDATE pdf_anchors SET payload=?1 WHERE id=?2",
+                rusqlite::params![serde_json::to_string(&a)?, id.to_string()],
+            )?;
+
+            Ok(a)
+        })
+    }
+
+    pub fn reacquire_pdf(
+        &mut self,
+        id: Id,
+        locator: &str,
+        revision: &str,
+        new_platform_grant: bool,
+        access: &Access,
+    ) -> Result<()> {
+        if !new_platform_grant {
+            return Err(Error::Denied);
+        }
+
+        if (!locator.starts_with("content://") && !locator.starts_with("file://"))
+            || locator.len() > 4096
+        {
+            return Err(Error::Invalid("PDF locator"));
+        }
+
+        let context = self.source(id, access)?.context;
+
+        self.write_for(context, |db| {
+            let mut s = Self::read_source(db, id, access)?;
+
+            if s.revision != revision {
+                return Err(Error::ReviewRequired);
+            }
+
+            s.locator = locator.into();
+
+            s.availability = Availability::Available;
+
+            Self::save_source(db, &s)
         })
     }
 }

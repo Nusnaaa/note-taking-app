@@ -69,7 +69,11 @@ impl Store {
         Ok(())
     }
     pub(crate) fn subtree(db: &Connection, id: Id) -> Result<Vec<Id>> {
-        let mut stmt=db.prepare("WITH RECURSIVE tree(id) AS (SELECT id FROM entities WHERE id=?1 UNION SELECT e.id FROM entities e JOIN tree t ON e.parent=t.id) SELECT id FROM tree")?;
+        let mut stmt = db.prepare(
+            "WITH RECURSIVE tree(id) AS (SELECT id FROM entities WHERE id=?1 UNION \
+                SELECT e.id FROM entities e JOIN tree t ON e.parent=t.id) SELECT id FROM \
+                tree",
+        )?;
         let strings = stmt
             .query_map([id.to_string()], |r| r.get::<_, String>(0))?
             .collect::<std::result::Result<Vec<_>, _>>()?;
@@ -358,9 +362,10 @@ impl Store {
                 [target.to_string()],
                 |r| r.get::<_, bool>(0),
             )?;
-            let mut stmt = self
-                .db
-                .prepare("SELECT origin FROM links WHERE target=?1")?;
+            let mut stmt = self.db.prepare(
+                "SELECT origin FROM links WHERE target=?1 UNION SELECT host FROM embeds \
+                WHERE source=?1",
+            )?;
             for o in stmt.query_map([target.to_string()], |r| r.get::<_, String>(0))? {
                 has_dependencies = true;
                 let origin = Id::parse(&o?)?;
@@ -421,9 +426,17 @@ impl Store {
             for i in Self::subtree(db,id)? {
                 let mut item=Self::authorise(db,i,access,true)?;
                 Self::require_content_access(db,i,access)?;
-                db.execute("DELETE FROM exercise_members WHERE exercise IN(SELECT id FROM exercises WHERE master=?1)",[i.to_string()])?;
-                db.execute("DELETE FROM membership_versions WHERE block IN(SELECT id FROM blocks WHERE entity=?1)",[i.to_string()])?;
-                db.execute("DELETE FROM confirmed_headings WHERE block IN(SELECT id FROM blocks WHERE entity=?1)",[i.to_string()])?;
+                db.execute("DELETE FROM pdf_anchors WHERE block IN(SELECT id FROM blocks WHERE entity=?1)",[i.to_string()])?;
+                db.execute("DELETE FROM capture_receipts WHERE block IN(SELECT id FROM blocks WHERE entity=?1)",[i.to_string()])?;
+                db.execute("DELETE FROM layouts WHERE block IN(SELECT id FROM blocks WHERE entity=?1)",[i.to_string()])?;
+                for table in ["image_assets","object_groups","view_settings"]{db.execute(&format!("DELETE FROM {table} WHERE entity=?1"),[i.to_string()])?;}
+                db.execute("DELETE FROM embeds WHERE host=?1",[i.to_string()])?;
+                db.execute("DELETE FROM exercise_members WHERE exercise IN(SELECT id FROM exercises \
+                WHERE master=?1)",[i.to_string()])?;
+                db.execute("DELETE FROM membership_versions WHERE block IN(SELECT id FROM blocks WHERE \
+                entity=?1)",[i.to_string()])?;
+                db.execute("DELETE FROM confirmed_headings WHERE block IN(SELECT id FROM blocks WHERE \
+                entity=?1)",[i.to_string()])?;
                 db.execute("DELETE FROM membership_operations WHERE master=?1",[i.to_string()])?;
                 db.execute("DELETE FROM exercise_rules WHERE master=?1",[i.to_string()])?;
                 db.execute("DELETE FROM exercises WHERE master=?1",[i.to_string()])?;
@@ -453,7 +466,15 @@ impl Store {
         })
     }
     pub fn set_mode(&mut self, id: Id, mode: WritingMode, access: &Access) -> Result<()> {
-        self.write_for(id, |db|{Self::authorise(db,id,access,false)?;db.execute("INSERT INTO modes VALUES(?1,?2) ON CONFLICT(entity) DO UPDATE SET mode=excluded.mode",rusqlite::params![id.to_string(),serde_json::to_string(&mode)?])?;Ok(())})
+        self.write_for(id, |db| {
+            Self::authorise(db, id, access, false)?;
+            db.execute(
+                "INSERT INTO modes VALUES(?1,?2) ON CONFLICT(entity) DO UPDATE SET \
+                mode=excluded.mode",
+                rusqlite::params![id.to_string(), serde_json::to_string(&mode)?],
+            )?;
+            Ok(())
+        })
     }
     pub fn mode(&self, id: Id, access: &Access) -> Result<WritingMode> {
         Self::authorise(&self.db, id, access, false)?;

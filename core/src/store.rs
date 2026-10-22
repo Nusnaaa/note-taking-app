@@ -1,7 +1,9 @@
 //! Single-writer SQLite authority with optimistic revision checks for every edit.
 //! FULL synchronous WAL commits are acknowledgements of SQLite's durable boundary,
 //! not guarantees about uncommitted events or faulty storage hardware.
+mod engines;
 mod exercises;
+mod objects;
 mod organisation;
 mod proposals;
 mod writing;
@@ -84,6 +86,11 @@ pub struct Store {
 const V1: &str = include_str!("../migrations/001.sql");
 const V2: &str = include_str!("../migrations/002.sql");
 const V3: &str = include_str!("../migrations/003.sql");
+const V4: &str = include_str!("../migrations/004.sql");
+const V5: &str = include_str!("../migrations/005.sql");
+const V6: &str = include_str!("../migrations/006.sql");
+const V7: &str = include_str!("../migrations/007.sql");
+const V8: &str = include_str!("../migrations/008.sql");
 
 impl Store {
     pub fn open(path: impl AsRef<Path>) -> Result<Self> {
@@ -94,9 +101,12 @@ impl Store {
     }
     fn from_connection(mut db: Connection) -> Result<Self> {
         db.busy_timeout(Duration::from_millis(250))?;
-        db.execute_batch("PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; PRAGMA trusted_schema=OFF;")?;
+        db.execute_batch(
+            "PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; \
+                PRAGMA trusted_schema=OFF;",
+        )?;
         let version: i64 = db.pragma_query_value(None, "user_version", |r| r.get(0))?;
-        if !(0..=3).contains(&version) {
+        if !(0..=8).contains(&version) {
             return Err(Error::Unsupported);
         }
         let tx = db.transaction_with_behavior(TransactionBehavior::Immediate)?;
@@ -108,6 +118,21 @@ impl Store {
         }
         if version < 3 {
             tx.execute_batch(V3)?;
+        }
+        if version < 4 {
+            tx.execute_batch(V4)?;
+        }
+        if version < 5 {
+            tx.execute_batch(V5)?;
+        }
+        if version < 6 {
+            tx.execute_batch(V6)?;
+        }
+        if version < 7 {
+            tx.execute_batch(V7)?;
+        }
+        if version < 8 {
+            tx.execute_batch(V8)?;
         }
         tx.commit()?;
         Ok(Self {
@@ -210,8 +235,15 @@ impl Store {
         serde_json::from_str(&json.ok_or(Error::Unavailable)?).map_err(Into::into)
     }
     pub(crate) fn save_entity(db: &Connection, e: &Entity) -> Result<()> {
-        db.execute("INSERT INTO entities(id,parent,payload) VALUES(?1,?2,?3) ON CONFLICT(id) DO UPDATE SET parent=excluded.parent,payload=excluded.payload",
-            rusqlite::params![e.id.to_string(),e.parent.map(|p|p.to_string()),serde_json::to_string(e)?])?;
+        db.execute(
+            "INSERT INTO entities(id,parent,payload) VALUES(?1,?2,?3) ON CONFLICT(id) DO \
+                UPDATE SET parent=excluded.parent,payload=excluded.payload",
+            rusqlite::params![
+                e.id.to_string(),
+                e.parent.map(|p| p.to_string()),
+                serde_json::to_string(e)?
+            ],
+        )?;
         Ok(())
     }
     pub(crate) fn authorise(
@@ -262,10 +294,12 @@ impl Store {
     }
 }
 
+pub use engines::{EngineVersion, Installation};
 pub use exercises::{
     Exercise, ExtractionCandidate, ExtractionPlan, MembershipChange, MembershipOperation,
     MembershipPlan, WritingTarget,
 };
+pub use objects::{Camera, Embed, Layout, MasterLocation, ObjectGroup, SurfaceItem, ViewSettings};
 pub use organisation::{DeletionReview, Link, LinkState, Order};
 pub use proposals::{Proposal, ProposalState};
 pub use writing::{Block, Display, HistoryEntry, InkSnapshot};
