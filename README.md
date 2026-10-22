@@ -38,10 +38,13 @@ python3 tools/traceability.py --check
 | Path | Responsibility |
 | --- | --- |
 | `core/src/store/`, `core/migrations/` | Transactional organisation, shared exercises, source ink, editable blocks, history and proposals |
-| `core/src/content.rs`, `ink.rs` | Editable presentation structure and original vector observations |
-| `core/src/processing.rs`, `converters.rs` | Shared manager with separate typed local recogniser/converter contracts |
+| `core/src/content.rs`, `objects.rs`, `ink.rs` | Editable text/maths/code, technical objects and original vector observations |
+| `core/src/capture.rs` | Observed pen routing, bounded persistence admission, retry receipts and cooperative priority |
+| `core/src/processing.rs`, `store/engines.rs`, `converters.rs` | Typed processing, durable local recogniser profiles and verified activation |
 | `core/src/security.rs`, `sources.rs` | Scoped access and local PDF source/retention policy |
-| `core/src/portable.rs`, `crypto.rs` | Explicitly limited native subset and portable encrypted envelope |
+| `core/src/portable.rs`, `attachments.rs` | Native v3 subset with rich attachments and independent identity remapping |
+| `core/src/backup.rs`, `crypto.rs` | Encrypted whole-library snapshot and separate-library recovery |
+| `core/src/export.rs` | Scoped converted-only Markdown/SVG and indivisible-object pagination |
 | `core/tests/` | Synthetic unit/integration, negative, migration and recovery tests |
 | `core/src/bin/recovery_probe.rs` | Developer-only abrupt-process-exit test helper |
 | `docs/verification/` | Current requirement mapping, deferred manual checks and open acceptance work |
@@ -51,17 +54,27 @@ No real recogniser is installed. Synthetic adapters live in tests and make no
 handwriting-accuracy claim. No handwriting uploads, raster recognition requirement,
 remote inference, LLM, telemetry or production H.I. have been introduced.
 
-Shared exercise membership, revision-safe edits, hiding, locks, explicit reversible
-reassignment and independent copies are implemented in the core. Native subset v2
-preserves exercise relationships, heading rules and effective modes and reads v1.
-The same Store shares local save status between master and exercise views; transient
-status is not shared across separate Store instances. This is not a complete host
-integration or full backup. See `docs/decisions/ADR-003-shared-exercises.md`.
+The core now stores shared exercise views, structured tables, diagrams, graph data,
+image assets, groups, layouts and linked canvas cameras. Observed-input routing,
+bounded capture queues with durable retry receipts, cooperative priority and a
+physical reserve-file primitive are implemented. Local recogniser staging records
+consent and provenance; resource integrity and a real adapter probe precede activation.
+Failed updates preserve the previous adapter. No production recogniser is bundled.
 
-Remaining work includes rich technical objects, native capture scheduling, durable
-processing lifecycle, full portability, PDF host integration and Android core
-bindings. See `docs/verification/backend-gaps.json` for gate-blocking work and
-`docs/verification/TEST_PLAN.md` for verification responsibilities.
+PDF source revisions require review, preserve authored work and mark old anchors for
+reconnection. Native subset v3 includes rich assets and view relationships and reads
+v1/v2. The separate encrypted whole-library backup includes retained history, Trash,
+settings, proposals and authorised source snapshots. Restore creates a new library,
+preserves object identities within it, clears provider availability and excludes model
+files. Converted-only derivative exports do not obtain original strokes unless
+explicitly requested. See the format documents and ADR-004 for exact boundaries.
+
+Remaining work includes Android backend bindings/security/input/provider integration,
+a complete processing lifecycle, region split/merge, general undo/redo, full rendering
+and paginated PDF export, larger-library backup handling and acceptance coverage.
+The new primitives still require host orchestration. These are implemented/tested
+core components, not a runnable app or complete backend acceptance.
+See `docs/verification/backend-gaps.json` and `docs/evidence/Backend_Progress_Report.md`.
 
 ## Repository and future host
 

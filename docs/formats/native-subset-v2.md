@@ -1,6 +1,7 @@
 # Native subset v2: exercise relationships and modes
 
-The current encoder emits payload version `2`; the decoder accepts `1` and `2`.
+This document describes payload version `2`. The current encoder emits version `3`;
+see `native-subset-v3.md`. The current decoder retains v1/v2 compatibility.
 This remains a subset export, not the complete native format or full backup.
 The wrapper, source samples, editable content and encrypted envelope are unchanged
 from `native-subset-v1.md`. Unknown future versions fail closed. Legacy v1 files

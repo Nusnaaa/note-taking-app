@@ -24,8 +24,8 @@ multiply the number of distinct tests merely because several IDs cite that fixtu
 | Missing/failed model readiness | CF-24, SV-09, SV-26, S4C-024, ST5E-T-10 | Share manager setup; actual installed-model/offline host path is still pending |
 | Source revocation | ST5B-I1-08; CF-10/SV-08/SV-25/S4C-025 later-context variants | I1 policy test does not certify M1 catalogue/overlay propagation |
 | Protected portable export | ST5E-T-21, ST5B-I1-07, ST5E-T-12 | Shared auth/export fixtures; do not drop recognition access or other-scope assertions |
-| Native recovery | ST5B-I1-05, ST5E-T-22, ST5E-T-20 | Existing subset roundtrip cannot satisfy comprehensive backup or Android OS-backup exclusion |
-| Shared exercises and membership | CF-25, CF-28, S4C-002, S4C-026 | Exercise fixtures cover shared revisions/status, heading stability, explicit reassignment/undo, independent copies and v2 subset migration; general history, host navigation and positions remain open |
+| Native recovery | ST5B-I1-05, ST5E-T-22, ST5E-T-20 | Subset and whole-library recovery have separate tests; neither certifies Android OS-backup exclusion |
+| Shared exercises and membership | CF-25, CF-28, S4C-002, S4C-026 | Exercise fixtures cover shared revisions/status, heading stability, explicit reassignment/undo, independent copies and native v3 attachments and persisted view anchors; general history, flat search and host subscriptions remain open |
 | Post-build quality and pen use | CF-29/CF-30, ST5E-T-26/ST5E-T-27 | Separate deferred owner-private checks; synthetic adapters never substitute |
 
 The candidate ledger records all other fixture families and all unabridged expected
@@ -68,5 +68,24 @@ and H.I. tests separate. None of the 16 proposed numerical SLOs is approved here
 The existing process-exit test ends without Rust destructors; it is stronger than a
 normal close/reopen test but is not a physical power-loss test. SQLite-full testing
 uses SQLite's actual page limit to produce a real SQLITE_FULL transaction failure;
-it does not establish emergency-reserve behaviour. Cargo `--offline` is dependency
+separate reserve tests allocate and release real files, but do not establish Android low-space orchestration. Cargo `--offline` is dependency
 offline mode, not an OS network-egress audit of a future native SDK.
+
+## Current increment boundaries
+
+Capture fixtures exercise classified observed events, cancellation, bounded admission,
+failed-save retry, durable idempotency and cooperative scheduler leases. They do not
+exercise Android event delivery or establish a latency SLO. Object fixtures exercise
+editable data, grouping, camera independence, protection and native v3 copies. Image
+fixtures are signature-level byte fixtures, not successful image decoder tests.
+
+Engine fixtures use compiled synthetic adapters and local bytes; they exercise hash
+verification, consent, probe/transaction failure, rollback, defaults and concurrent
+change. They establish no recogniser accuracy or sandbox isolation. PDF fixtures
+exercise source/anchor metadata and cache policy, not PDF parsing or rendering.
+
+Backup fixtures exercise password/recovery restoration, Trash/history/membership
+undo, rich object/view/anchor/profile/proposal/capture state, authorised source assets,
+malformed authenticated data, stale scope and refusal to overwrite an existing file.
+Derivative fixtures cover scope/authentication, raw-ink exclusion, vector escaping,
+hidden-point rejection and pagination geometry. No PDF writer is implemented.

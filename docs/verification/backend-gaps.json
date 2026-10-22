@@ -7,7 +7,7 @@
       "NB-DOC-004",
       "NB-DATA-008"
     ],
-    "work": "Core membership, shared block edits/status, explicit extraction, reversible reassignment, hiding, locks and independent copies implemented and tested. Remaining: protected placeholder/navigation/search projections, persisted working positions, host queue/subscriptions, complete operation history/retirement and future rich-object copying. Transient status is shared only within one authoritative Store."
+    "work": "Shared membership/edits/status, extraction, reversible reassignment, hiding, protection, independent rich-object copies, protected surface placeholders, open-in-master locations and persisted working/tool views are implemented. Remaining: flat exercise/search projections, caret/selection positions, host subscriptions, complete operation history/retirement. Transient save state is local to one Store."
   },
   {
     "id": "A2-CAPTURE-HOST",
@@ -18,7 +18,7 @@
       "NB-PEN-005",
       "NB-DATA-002"
     ],
-    "work": "Native event routing/cancellation contract, bounded persistence queue and capture priority, low-space reserve, persistent view/tool settings and measured host scheduling."
+    "work": "Portable observed-event routing/cancellation, bounded non-dropping persistence queue, atomic retry receipts, cooperative capture-priority scheduling and physically allocated emergency reserve are implemented. Remaining: Android native event adapter, asynchronous writer integration, free-space monitoring/emergency flush orchestration, measured device scheduling and interruption/resource coverage. No latency or zero-loss guarantee."
   },
   {
     "id": "A3-RICH-OBJECTS",
@@ -32,7 +32,7 @@
       "NB-REC-002",
       "NB-REC-007"
     ],
-    "work": "Structured tables, geometry, editable graph components, image assets, grouping/anchors, linked canvas cameras, layout, region split/merge and batch/partial acceptance beyond individual blocks."
+    "work": "Structured table cells, diagram geometry, graph axes/series, local image assets, atomic groups/transforms, layouts, linked canvas cameras, pinning/duplication, native copying and selected batch proposal acceptance are implemented. Remaining: region split/merge and component-level proposal acceptance, anchored flow/reflow, embed overlays/follow-object behaviour, layers, full graph/diagram rendering, complete rich-object undo and boundary coverage. Image import validates signature and integrity, not full image decoding."
   },
   {
     "id": "A4-LIFECYCLE",
@@ -41,7 +41,7 @@
       "NB-REC-012",
       "NB-SUP-003"
     ],
-    "work": "Durable model profiles and transactional install/upgrade staging, resource leases, priority admission and Android worker isolation. Current manager is in-memory and validates trusted local adapters only."
+    "work": "Durable consented local staging, bounded resource reads/hash verification, probed activation, failed-update rollback, previous-version reactivation, task defaults and removal are implemented. Scheduler leases retain reservations until workers release them. Remaining: actual eligible recogniser adapter, resumable installation, resource-file cleanup with model leases, durable converter lifecycle, hard Android worker/process isolation and host scheduling. Stored installation is never treated as current runtime readiness."
   },
   {
     "id": "A5-PDF-INTEGRATION",
@@ -52,7 +52,7 @@
       "NB-REF-001",
       "NB-REF-003"
     ],
-    "work": "Android PDF/provider adapter, safe reviewed revision replacement, required annotation/anchor pathways, source permission reacquisition and cache invalidation in host."
+    "work": "Source-linked annotations, normalised anchors, pinned historical anchors, reviewed revision replacement, cache invalidation, explicit reconnection and new-grant same-revision permission reacquisition are implemented. Remaining: actual Android PDF/provider adapter, parser/rendering, host permission lifecycle and complete annotation/navigation workflows. The core never fetches remote source bytes."
   },
   {
     "id": "A6-FULL-PORTABILITY",
@@ -66,7 +66,7 @@
       "NB-EXP-003",
       "NB-EXP-004"
     ],
-    "work": "Native v2 now preserves exercise relationships, heading rules and effective modes, with v1 read compatibility. Remaining: complete proposal/settings/source/view/asset/operation-history roundtrip, comprehensive encrypted backup including Trash and external inclusion controls, import provenance/ID mapping, global undo/redo, scoped converted-only export and paginated PDF/SVG assets. Current native subset refuses source-linked documents and omits reassignment undo history."
+    "work": "Native subset v3 preserves rich content, local image assets, groups/layouts/embeds/views and exercises, reads v1/v2 and remaps independent identities. Encrypted schema-8 whole-library backup restores retained history, Trash, sources, authorised snapshots, settings, profiles, proposals, membership undo and capture receipts into a separate library. Converted-only scoped Markdown/SVG bundles and indivisible-object pagination are implemented. Remaining: actual paginated PDF/Unicode/maths rendering, static embedded-view export, clipped image/canvas fidelity, scalable/chunked and cross-version whole-backup migration, full import lineage and general undo/redo. Native subset still refuses PDF-linked documents; source grants and model resource files are not portable."
   },
   {
     "id": "A7-ANDROID-BOUNDARY",
@@ -78,7 +78,7 @@
       "NB-OPS-001",
       "NB-OPS-004"
     ],
-    "work": "Generated Kotlin bindings, Android build/ABI tests, real platform authentication, OS cloud-backup and device-transfer exclusions, privacy-safe diagnostics, scoped host access and process isolation."
+    "work": "Generated Kotlin bindings, Android build/ABI tests, real platform authentication, OS cloud-backup and device-transfer exclusions, privacy-safe diagnostics, scoped host access and process isolation remain unimplemented. Production H.I. remains gated on complete backend acceptance."
   },
   {
     "id": "A7-COVERAGE",
@@ -89,6 +89,6 @@
       "NB-SUP-001",
       "NB-SUP-002"
     ],
-    "work": "Finish semantic closure of all applicable 94 canonical requirements, 103 inherited clauses and retained per-candidate assertions; scalability/fuzz/interrupt/resource testing of remaining paths. Numeric SLOs remain unapproved."
+    "work": "Close all applicable 94 canonical requirements, 103 inherited clauses and retained per-candidate assertions with executed evidence; remaining scalable/fuzz/interrupt/resource tests and Android automated integration are open. Existing related tests verify subsets only. Numeric SLOs remain unapproved; owner-private pen/model/manual validation stays deferred until a runnable app."
   }
 ]
