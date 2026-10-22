@@ -1,0 +1,4 @@
+Executable: target/debug/notebook_cli ABSOLUTE_DATABASE_PATH
+Synthetic protocol-v1 Create/List; exit 0; reopen/List; exit 0.
+PASS: streamed requests and durable cross-process reopen.
+No owner data, authentication bypass or production H.I.

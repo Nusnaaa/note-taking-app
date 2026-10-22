@@ -1,0 +1,3 @@
+$ /tmp/stem-jdk/bin/javac -d /workspace/scratch/98dc4bf95b81/stem-notebook/target/jvm-test android/backend/src/main/java/org/stemnotebook/backend/NativeBridge.java bridge/tests/java/BoundarySmoke.java
+exit_code=0
+

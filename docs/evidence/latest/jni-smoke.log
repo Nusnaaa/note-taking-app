@@ -1,0 +1,4 @@
+$ /tmp/stem-jdk/bin/java -Xcheck:jni -Djava.library.path=target/debug -cp /workspace/scratch/98dc4bf95b81/stem-notebook/target/jvm-test BoundarySmoke
+exit_code=0
+
+PASS: JNI Unicode, platform-verifier callback, relock, restart, malformed input and closed-handle checks (6)
