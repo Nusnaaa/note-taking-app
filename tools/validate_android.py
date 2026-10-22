@@ -70,7 +70,12 @@ def main():
     manifest=ET.parse(ROOT/'android/backend/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml').getroot()
     ns='{http://schemas.android.com/apk/res/android}';app=manifest.find('application')
     assert app is not None and app.get(ns+'allowBackup')=='false'
-    assert not any(node.get(ns+'name')=='android.permission.INTERNET' for node in manifest.findall('uses-permission'))
+    # AAR manifests deliberately retain tools merge markers. A removal directive
+    # is not a grant; this checks the library contract, not a future APK manifest.
+    permissions=manifest.findall('uses-permission')
+    internet=[node for node in permissions if node.get(ns+'name')=='android.permission.INTERNET']
+    assert internet and all(node.get('{http://schemas.android.com/tools}node')=='remove' for node in internet)
+    assert app.get(ns+'usesCleartextTraffic')=='false'
     services=app.findall('service');assert any(s.get(ns+'isolatedProcess')=='true' and s.get(ns+'exported')=='false' for s in services)
     aar=ROOT/'android/backend/build/outputs/aar/backend-debug.aar'
     with zipfile.ZipFile(aar) as bundle:
@@ -79,6 +84,7 @@ def main():
     report['aar_sha256']=hashlib.sha256(aar.read_bytes()).hexdigest()
     report['packaged_arm64_library_bytes']=len(packaged)
     report['android_tests']=totals;report['jni_assertions']=6;report['merged_manifest_policy']='PASS';report['native_sha256']=hashlib.sha256(native.read_bytes()).hexdigest()
+    report['manifest_scope']='AAR merge contract only: INTERNET removal marker, no backup/transfer, no cleartext, isolated non-exported PDF service. Final APK/device enforcement NOT RUN.'
     report['finished_utc']=datetime.datetime.now(datetime.timezone.utc).isoformat();save();print(json.dumps(totals))
     return 0
 

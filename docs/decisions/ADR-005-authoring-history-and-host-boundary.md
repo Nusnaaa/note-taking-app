@@ -30,6 +30,9 @@ untrusted engines need the outstanding process-isolation integration.
 Android is a backend library module in the same repository, with no Activity, Compose screen
 or production H.I. The manifest excludes cloud backup and device transfer and removes
 INTERNET permission. Final application manifest/device enforcement still needs verification.
+The AAR retains its `tools:node="remove"` marker. This is checked as a removal
+directive, not misreported as a permission grant. The final app merge remains a
+separate gate ([Android manifest-merger documentation](https://developer.android.com/build/manage-manifests)).
 MotionEvent integration consumes observed historical/current coordinates, explicitly handles
 cancellation and ignores fingers in pen mode. Missing channels remain null. Android may
 normalise values before exposing them; losslessness begins at the actual observed API.
