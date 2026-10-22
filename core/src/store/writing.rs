@@ -95,10 +95,24 @@ impl Store {
     pub(crate) fn read_block(db: &Connection, id: Id, access: &Access) -> Result<Block> {
         let b = Self::raw_block(db, id)?;
         Self::authorise(db, b.entity, access, false)?;
-        if b.locked && !access.permits(&Scope::Block(id)) {
+        Self::authorise_block_protection(db, &b, access)?;
+        Ok(b)
+    }
+    pub(crate) fn authorise_block_protection(
+        db: &Connection,
+        b: &Block,
+        access: &Access,
+    ) -> Result<()> {
+        if b.locked && !access.permits(&Scope::Block(b.id)) {
             return Err(Error::Denied);
         }
-        Ok(b)
+        if let Some(exercise) = Self::block_exercise(db, b.id)? {
+            let e = Self::raw_exercise(db, exercise)?;
+            if e.locked && !access.permits(&Scope::Exercise(e.id)) {
+                return Err(Error::Denied);
+            }
+        }
+        Ok(())
     }
     pub(crate) fn persist_block(db: &Connection, b: &Block) -> Result<()> {
         b.validate()?;
@@ -158,6 +172,14 @@ impl Store {
         strokes: Vec<Stroke>,
         access: &Access,
     ) -> Result<Block> {
+        self.append_ink_to(WritingTarget::Entity(entity), strokes, access)
+    }
+    pub fn append_ink_to(
+        &mut self,
+        target: WritingTarget,
+        strokes: Vec<Stroke>,
+        access: &Access,
+    ) -> Result<Block> {
         if strokes.is_empty() || strokes.len() > 4096 {
             return Err(Error::Invalid("stroke batch"));
         }
@@ -179,7 +201,7 @@ impl Store {
                 return Err(Error::Invalid("stroke sequence"));
             }
         }
-        self.append_block(entity, Content::Ink, strokes, access)
+        self.append_block(target, Content::Ink, strokes, access)
     }
     pub fn append_content(
         &mut self,
@@ -187,16 +209,25 @@ impl Store {
         content: Content,
         access: &Access,
     ) -> Result<Block> {
+        self.append_content_to(WritingTarget::Entity(entity), content, access)
+    }
+    pub fn append_content_to(
+        &mut self,
+        target: WritingTarget,
+        content: Content,
+        access: &Access,
+    ) -> Result<Block> {
         content.validate()?;
-        self.append_block(entity, content, vec![], access)
+        self.append_block(target, content, vec![], access)
     }
     fn append_block(
         &mut self,
-        entity: Id,
+        target: WritingTarget,
         content: Content,
         strokes: Vec<Stroke>,
         access: &Access,
     ) -> Result<Block> {
+        let entity = Self::writing_owner(&self.db, target, access)?;
         let ids: Vec<_> = strokes.iter().map(|s| s.id).collect();
         let display = if matches!(content, Content::Ink) {
             Display::Original
@@ -216,16 +247,24 @@ impl Store {
             locked: false,
             manually_corrected: false,
         };
-        self.write(|db| {
+        self.write_for(entity, |db| {
+            if Self::writing_owner(db, target, access)? != entity { return Err(Error::Conflict); }
             let e = Self::authorise(db, entity, access, false)?;
             if !e.kind.is_surface() {
                 return Err(Error::Invalid("writing destination"));
             }
-            let ordinal: i64 = db.query_row(
+            let mut ordinal: i64 = db.query_row(
                 "SELECT COALESCE(MAX(ordinal),-1)+1 FROM blocks WHERE entity=?1",
                 [entity.to_string()],
                 |r| r.get(0),
             )?;
+            if let WritingTarget::Exercise(exercise) = target {
+                let last: Option<i64> = db.query_row("SELECT MAX(b.ordinal) FROM blocks b JOIN exercise_members m ON m.block=b.id WHERE m.exercise=?1", [exercise.to_string()], |r|r.get(0))?;
+                if let Some(last) = last {
+                    ordinal = last + 1;
+                    db.execute("UPDATE blocks SET ordinal=ordinal+1 WHERE entity=?1 AND ordinal>=?2",rusqlite::params![entity.to_string(),ordinal])?;
+                }
+            }
             db.execute(
                 "INSERT INTO blocks VALUES(?1,?2,?3,?4)",
                 rusqlite::params![
@@ -235,6 +274,9 @@ impl Store {
                     serde_json::to_string(&b)?
                 ],
             )?;
+            if let WritingTarget::Exercise(exercise) = target {
+                Self::set_membership(db, b.id, Some(exercise))?;
+            }
             for s in &strokes {
                 let payload = serde_json::to_string(s)?;
                 db.execute(
@@ -273,7 +315,8 @@ impl Store {
         access: &Access,
         edit: impl FnOnce(&mut Block) -> Result<()>,
     ) -> Result<Block> {
-        self.write(|db| {
+        let entity = Self::read_block(&self.db, id, access)?.entity;
+        self.write_for(entity, |db| {
             let mut b = Self::read_block(db, id, access)?;
             if b.revision != revision {
                 return Err(Error::Conflict);
@@ -430,7 +473,8 @@ impl Store {
         old_revision: u64,
         access: &Access,
     ) -> Result<Block> {
-        self.write(|db| {
+        let master = Self::read_block(&self.db, id, access)?.entity;
+        self.write_for(master, |db| {
             let current = Self::read_block(db, id, access)?;
             if current.revision != current_revision {
                 return Err(Error::Conflict);

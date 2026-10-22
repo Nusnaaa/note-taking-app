@@ -29,7 +29,7 @@ fn process_exit_before_and_after_commit_preserves_correct_durable_boundary() {
     }
 }
 #[test]
-fn v1_to_v2_migration_preserves_entities_and_is_repeatable() {
+fn v1_to_current_migration_preserves_entities_and_is_repeatable() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("old.db");
     let db = rusqlite::Connection::open(&path).unwrap();
@@ -44,7 +44,7 @@ fn v1_to_v2_migration_preserves_entities_and_is_repeatable() {
     .unwrap();
     drop(db);
     let s = Store::open(&path).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 2);
+    assert_eq!(s.schema_version().unwrap(), 3);
     assert_eq!(s.entity(id, &Access::public()).unwrap().created_ms, 1);
     drop(s);
     let s = Store::open(path).unwrap();

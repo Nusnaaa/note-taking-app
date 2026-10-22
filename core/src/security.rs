@@ -11,6 +11,7 @@ pub enum Scope {
     App,
     Entity(Id),
     Block(Id),
+    Exercise(Id),
 }
 
 /// The host must verify a fresh platform authentication against this challenge.

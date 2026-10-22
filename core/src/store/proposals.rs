@@ -38,7 +38,8 @@ impl Store {
             correction: None,
             state: ProposalState::Pending,
         };
-        self.write(|db| {
+        let master = Self::read_block(&self.db, p.block, access)?.entity;
+        self.write_for(master, |db| {
             let current = Self::make_snapshot(db, p.block, access)?;
             if current.fingerprint != p.fingerprint || current.revision != p.revision {
                 return Err(Error::Conflict);
@@ -88,7 +89,8 @@ impl Store {
         access: &Access,
     ) -> Result<Proposal> {
         correction.validate()?;
-        self.write(|db| {
+        let master = Self::read_block(&self.db, self.proposal(id, access)?.block, access)?.entity;
+        self.write_for(master, |db| {
             let mut p = Self::read_proposal(db, id, access)?;
             if p.state != ProposalState::Pending {
                 return Err(Error::Conflict);
@@ -99,7 +101,8 @@ impl Store {
         })
     }
     pub fn reject_proposal(&mut self, id: Id, access: &Access) -> Result<()> {
-        self.write(|db| {
+        let master = Self::read_block(&self.db, self.proposal(id, access)?.block, access)?.entity;
+        self.write_for(master, |db| {
             let mut p = Self::read_proposal(db, id, access)?;
             if p.state != ProposalState::Pending {
                 return Err(Error::Conflict);
@@ -111,7 +114,8 @@ impl Store {
     /// Explicit acceptance is the ONLY operation committing recogniser output.
     /// The host may offer Copy afterwards, but this operation cannot write clipboard.
     pub fn accept_proposal(&mut self, id: Id, candidate: usize, access: &Access) -> Result<Block> {
-        self.write(|db| {
+        let master = Self::read_block(&self.db, self.proposal(id, access)?.block, access)?.entity;
+        self.write_for(master, |db| {
             let mut p = Self::read_proposal(db, id, access)?;
             if p.state != ProposalState::Pending {
                 return Err(Error::Conflict);

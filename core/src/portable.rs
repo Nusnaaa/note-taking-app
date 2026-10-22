@@ -1,11 +1,11 @@
-//! Native JSON v1 for the currently implemented core subset. Unknown fields fail
-//! closed. It is NOT yet the complete v0.5.8 interchange contract (see status).
+//! Native JSON v2 (with v1 read compatibility) for the implemented core subset.
+//! It is NOT yet the complete v0.5.8 interchange contract (see status).
 use crate::{
     crypto, digest,
     ink::Stroke,
     now_ms,
     security::{Access, Authenticator, Scope},
-    store::{Block, Entity, HistoryEntry, Link, Store},
+    store::{Block, Entity, Exercise, HistoryEntry, Link, Store, WritingMode},
     Error, Id, Result,
 };
 use serde::{Deserialize, Serialize};
@@ -27,6 +27,35 @@ pub struct NativeDocument {
     pub blocks: Vec<NativeBlock>,
     pub links: Vec<Link>,
     pub omissions: Vec<String>,
+    #[serde(default)]
+    pub exercises: Vec<Exercise>,
+    #[serde(default)]
+    pub memberships: Vec<NativeMembership>,
+    #[serde(default)]
+    pub headings: Vec<Id>,
+    #[serde(default)]
+    pub rules: Vec<NativeRule>,
+    #[serde(default)]
+    pub modes: Vec<NativeMode>,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct NativeMembership {
+    pub block: Id,
+    pub exercise: Id,
+    pub version: u64,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct NativeRule {
+    pub master: Id,
+    pub keyword: String,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct NativeMode {
+    pub entity: Id,
+    pub mode: WritingMode,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -75,8 +104,17 @@ impl NativeDocument {
         })?)
     }
     pub fn validate(&self) -> Result<()> {
-        if self.version != 1 {
+        if !matches!(self.version, 1 | 2) {
             return Err(Error::Unsupported);
+        }
+        if self.version == 1
+            && (!self.exercises.is_empty()
+                || !self.memberships.is_empty()
+                || !self.headings.is_empty()
+                || !self.rules.is_empty()
+                || !self.modes.is_empty())
+        {
+            return Err(Error::Invalid("v1 extension"));
         }
         if self.entities.len() > 10_000 || self.blocks.len() > 100_000 {
             return Err(Error::ResourceLimit);
@@ -156,6 +194,71 @@ impl NativeDocument {
             }
         }
         let mut links = BTreeSet::new();
+        let block_map: BTreeMap<_, _> = self
+            .blocks
+            .iter()
+            .map(|b| (b.current.id, &b.current))
+            .collect();
+        let mut exercise_map = BTreeMap::new();
+        let mut exercise_headings = BTreeSet::new();
+        if self.exercises.len() > 10000 || self.memberships.len() > self.blocks.len() {
+            return Err(Error::ResourceLimit);
+        }
+        for e in &self.exercises {
+            if !durable_ids.insert(e.id)
+                || exercise_map.insert(e.id, e).is_some()
+                || !entities
+                    .get(&e.master)
+                    .is_some_and(|m| m.kind == crate::store::Kind::Note)
+                || e.title.is_empty()
+                || e.title.len() > 4096
+                || e.revision > i64::MAX as u64
+            {
+                return Err(Error::Invalid("native exercise"));
+            }
+            if let Some(h) = e.heading {
+                if !exercise_headings.insert(h)
+                    || block_map.get(&h).is_none_or(|b| b.entity != e.master)
+                {
+                    return Err(Error::Invalid("native exercise heading"));
+                }
+            }
+        }
+        let mut members = BTreeSet::new();
+        for m in &self.memberships {
+            if !members.insert(m.block)
+                || m.version == 0
+                || m.version > i64::MAX as u64
+                || block_map
+                    .get(&m.block)
+                    .zip(exercise_map.get(&m.exercise))
+                    .is_none_or(|(b, e)| b.entity != e.master)
+            {
+                return Err(Error::Invalid("native membership"));
+            }
+        }
+        let mut headings = BTreeSet::new();
+        for h in &self.headings {
+            if !headings.insert(h) || !block_map.contains_key(h) {
+                return Err(Error::Invalid("native confirmed heading"));
+            }
+        }
+        let mut rules = BTreeSet::new();
+        for r in &self.rules {
+            if !rules.insert(r.master)
+                || !entities.contains_key(&r.master)
+                || r.keyword.trim().is_empty()
+                || r.keyword.len() > 256
+            {
+                return Err(Error::Invalid("native exercise rule"));
+            }
+        }
+        let mut modes = BTreeSet::new();
+        for m in &self.modes {
+            if !modes.insert(m.entity) || !entities.contains_key(&m.entity) {
+                return Err(Error::Invalid("native mode"));
+            }
+        }
         for l in &self.links {
             if !links.insert(l.id)
                 || !durable_ids.insert(l.id)
@@ -193,6 +296,11 @@ impl Store {
             if Self::raw_block(&self.db, id)?.locked {
                 scopes.insert(Scope::Block(id));
             }
+            if let Some(exercise) = Self::block_exercise(&self.db, id)? {
+                if Self::raw_exercise(&self.db, exercise)?.locked {
+                    scopes.insert(Scope::Exercise(exercise));
+                }
+            }
         }
         Ok(scopes)
     }
@@ -202,6 +310,28 @@ impl Store {
     pub fn prepare_native_export(
         &self,
         ids: &[Id],
+        include_original_ink: bool,
+        access: &Access,
+    ) -> Result<ExportPlan> {
+        self.prepare_native_selection(ids, None, include_original_ink, access)
+    }
+    /// Selecting a linked exercise never adds unselected master blocks to output.
+    pub fn prepare_exercise_export(
+        &self,
+        exercise: Id,
+        include_original_ink: bool,
+        access: &Access,
+    ) -> Result<ExportPlan> {
+        let e = self.exercise(exercise, access)?;
+        if !e.visible {
+            return Err(Error::Unavailable);
+        }
+        self.prepare_native_selection(&[e.master], Some(e.id), include_original_ink, access)
+    }
+    fn prepare_native_selection(
+        &self,
+        ids: &[Id],
+        exercise: Option<Id>,
         include_original_ink: bool,
         access: &Access,
     ) -> Result<ExportPlan> {
@@ -218,10 +348,66 @@ impl Store {
         let mut links = Vec::new();
         let mut omissions = Vec::new();
         let mut scopes = BTreeSet::new();
+        let mut exercises = Vec::new();
+        let mut memberships = Vec::new();
+        let mut headings = Vec::new();
+        let mut rules = Vec::new();
+        let mut modes = Vec::new();
         let mut has_ink = false;
         for &id in ids {
             let mut e = Self::authorise(&self.db, id, access, false)?;
             scopes.extend(self.protection_scopes(id, None)?);
+            modes.push(NativeMode {
+                entity: id,
+                mode: self.mode(id, access)?,
+            });
+            if let Some(view) = exercise {
+                let view = Self::read_exercise(&self.db, view, access)?;
+                if !view.visible {
+                    return Err(Error::Unavailable);
+                }
+                e.title = view.title;
+                if view.locked {
+                    scopes.insert(Scope::Exercise(view.id));
+                    e.locked = true;
+                }
+            } else {
+                let mut query = self
+                    .db
+                    .prepare("SELECT id FROM exercises WHERE master=?1")?;
+                for row in query.query_map([id.to_string()], |r| r.get::<_, String>(0))? {
+                    let view = Self::read_exercise(&self.db, Id::parse(&row?)?, access)?;
+                    if view.locked {
+                        scopes.insert(Scope::Exercise(view.id));
+                    }
+                    exercises.push(view);
+                }
+                use rusqlite::OptionalExtension;
+                let keyword: Option<String> = self
+                    .db
+                    .query_row(
+                        "SELECT keyword FROM exercise_rules WHERE master=?1",
+                        [id.to_string()],
+                        |r| r.get(0),
+                    )
+                    .optional()?;
+                if let Some(keyword) = keyword {
+                    rules.push(NativeRule {
+                        master: id,
+                        keyword,
+                    });
+                }
+            }
+            if self
+                .db
+                .prepare("SELECT 1 FROM membership_operations WHERE master=?1")?
+                .exists([id.to_string()])?
+            {
+                omissions.push(
+                    "Exercise reassignment undo history is not included in native subset v2."
+                        .into(),
+                );
+            }
             // Refuse unsupported source packaging instead of silently losing PDF state.
             if self
                 .db
@@ -245,6 +431,10 @@ impl Store {
                 .collect::<std::result::Result<Vec<_>, _>>()?;
             for bid in block_ids {
                 let bid = Id::parse(&bid)?;
+                let membership = Self::block_exercise(&self.db, bid)?;
+                if exercise.is_some() && membership != exercise {
+                    continue;
+                }
                 let b = Self::read_block(&self.db, bid, access)?;
                 scopes.extend(self.protection_scopes(id, Some(bid))?);
                 has_ink |= !b.source_ids.is_empty();
@@ -256,8 +446,35 @@ impl Store {
                     history: self.history(bid, access)?,
                     current: b,
                 });
+                if exercise.is_none() {
+                    if let Some(owner) = membership {
+                        let version = self.db.query_row(
+                            "SELECT revision FROM membership_versions WHERE block=?1",
+                            [bid.to_string()],
+                            |r| r.get(0),
+                        )?;
+                        memberships.push(NativeMembership {
+                            block: bid,
+                            exercise: owner,
+                            version,
+                        });
+                    }
+                }
+                if self
+                    .db
+                    .prepare("SELECT 1 FROM confirmed_headings WHERE block=?1")?
+                    .exists([bid.to_string()])?
+                {
+                    headings.push(bid);
+                }
             }
             for l in self.links(id, false, access)? {
+                if exercise.is_some()
+                    && l.anchor
+                        .is_none_or(|a| !blocks.iter().any(|b| b.current.id == a))
+                {
+                    continue;
+                }
                 if selected.contains(&l.target) {
                     links.push(l)
                 } else {
@@ -267,12 +484,17 @@ impl Store {
             entities.push(e);
         }
         let document = NativeDocument {
-            version: 1,
+            version: 2,
             created_ms: now_ms(),
             entities,
             blocks,
             links,
             omissions: omissions.clone(),
+            exercises,
+            memberships,
+            headings,
+            rules,
+            modes,
         };
         document.validate()?;
         if Self::setting(&self.db, "generation")? != generation {
@@ -335,7 +557,28 @@ impl Store {
     /// Restore to independent IDs by default. Never upsert into an existing object.
     /// Protection stays set; destination platform credentials are established later.
     pub fn import_native(&mut self, bytes: &[u8], access: &Access) -> Result<Vec<Id>> {
-        let mut doc = NativeDocument::decode(bytes)?;
+        self.import_document(NativeDocument::decode(bytes)?, access, None, true)
+    }
+    /// Local independent copy: current/source representations keep their values,
+    /// while every durable owner/block/stroke/view ID becomes independent.
+    pub fn copy_exercise_independent(&mut self, exercise: Id, access: &Access) -> Result<Id> {
+        let plan = self.prepare_exercise_export(exercise, true, access)?;
+        let mut doc = plan.document;
+        doc.entities[0].title.push_str(" (independent copy)");
+        doc.entities[0].created_ms = now_ms();
+        doc.entities[0].modified_ms = now_ms();
+        let ids =
+            self.import_document(doc, access, Some((&plan.generation, &plan.scopes)), false)?;
+        Ok(ids[0])
+    }
+    fn import_document(
+        &mut self,
+        mut doc: NativeDocument,
+        access: &Access,
+        copy_guard: Option<(&str, &BTreeSet<Scope>)>,
+        recovered: bool,
+    ) -> Result<Vec<Id>> {
+        doc.validate()?;
         let mut ids = BTreeMap::new();
         for e in &doc.entities {
             ids.insert(e.id, Id::new());
@@ -346,10 +589,15 @@ impl Store {
                 ids.insert(s.id, Id::new());
             }
         }
+        for e in &doc.exercises {
+            ids.insert(e.id, Id::new());
+        }
         for e in &mut doc.entities {
             e.id = ids[&e.id];
             e.parent = e.parent.map(|p| ids[&p]);
-            e.title = format!("{} (recovered)", e.title);
+            if recovered {
+                e.title = format!("{} (recovered)", e.title);
+            }
         }
         let remap_block = |b: &mut Block| {
             b.id = ids[&b.id];
@@ -372,9 +620,35 @@ impl Store {
             l.target = ids[&l.target];
             l.anchor = l.anchor.map(|a| ids[&a]);
         }
+        for e in &mut doc.exercises {
+            e.id = ids[&e.id];
+            e.master = ids[&e.master];
+            e.heading = e.heading.map(|h| ids[&h]);
+        }
+        for m in &mut doc.memberships {
+            m.block = ids[&m.block];
+            m.exercise = ids[&m.exercise];
+        }
+        for h in &mut doc.headings {
+            *h = ids[h];
+        }
+        for r in &mut doc.rules {
+            r.master = ids[&r.master];
+        }
+        for m in &mut doc.modes {
+            m.entity = ids[&m.entity];
+        }
         doc.validate()?;
         self.write(|db| {
             Self::require_app(db, access)?;
+            if let Some((expected, scopes)) = copy_guard {
+                if Self::setting(db, "generation")? != expected {
+                    return Err(Error::Conflict);
+                }
+                if scopes.iter().any(|scope| !access.permits(scope)) {
+                    return Err(Error::Denied);
+                }
+            }
             // Parent insertion order is not trusted. Defer FK checks until commit.
             db.execute_batch("PRAGMA defer_foreign_keys=ON;")?;
             for e in &doc.entities {
@@ -421,6 +695,34 @@ impl Store {
                         ],
                     )?;
                 }
+            }
+            for e in &doc.exercises {
+                Self::save_exercise(db, e)?;
+            }
+            for m in &doc.memberships {
+                db.execute(
+                    "INSERT INTO exercise_members VALUES(?1,?2)",
+                    rusqlite::params![m.block.to_string(), m.exercise.to_string()],
+                )?;
+                db.execute(
+                    "INSERT INTO membership_versions VALUES(?1,?2)",
+                    rusqlite::params![m.block.to_string(), m.version],
+                )?;
+            }
+            for h in &doc.headings {
+                db.execute("INSERT INTO confirmed_headings VALUES(?1)", [h.to_string()])?;
+            }
+            for r in &doc.rules {
+                db.execute(
+                    "INSERT INTO exercise_rules VALUES(?1,?2)",
+                    rusqlite::params![r.master.to_string(), r.keyword],
+                )?;
+            }
+            for m in &doc.modes {
+                db.execute(
+                    "INSERT INTO modes VALUES(?1,?2)",
+                    rusqlite::params![m.entity.to_string(), serde_json::to_string(&m.mode)?],
+                )?;
             }
             for l in &doc.links {
                 db.execute(

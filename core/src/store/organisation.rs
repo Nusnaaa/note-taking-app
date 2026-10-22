@@ -124,7 +124,7 @@ impl Store {
         if title.len() > 4096 {
             return Err(Error::ResourceLimit);
         }
-        self.write(|db| {
+        self.write_for(id, |db| {
             let mut e = Self::authorise(db, id, access, false)?;
             if e.revision != revision {
                 return Err(Error::Conflict);
@@ -143,7 +143,7 @@ impl Store {
         parent: Option<Id>,
         access: &Access,
     ) -> Result<Entity> {
-        self.write(|db| {
+        self.write_for(id, |db| {
             let mut e = Self::authorise(db, id, access, false)?;
             if e.revision != revision {
                 return Err(Error::Conflict);
@@ -175,7 +175,7 @@ impl Store {
         if !access.permits(&Scope::Entity(id)) {
             return Err(Error::Denied);
         }
-        self.write(|db| {
+        self.write_for(id, |db| {
             let mut e = Self::authorise(db, id, access, false)?;
             if e.revision != revision {
                 return Err(Error::Conflict);
@@ -295,6 +295,13 @@ impl Store {
             if incoming && Self::authorise(&self.db, origin, access, false).is_err() {
                 continue;
             }
+            if let Some(anchor) = &a {
+                match Self::read_block(&self.db, Id::parse(anchor)?, access) {
+                    Ok(_) => {}
+                    Err(Error::Denied | Error::Unavailable) => continue,
+                    Err(e) => return Err(e),
+                }
+            }
             links.push(Link {
                 id: Id::parse(&l)?,
                 origin,
@@ -305,16 +312,19 @@ impl Store {
         Ok(links)
     }
     pub fn follow_link(&self, link: Id, access: &Access) -> Result<LinkState> {
-        let (origin, target): (String, String) = self
+        let (origin, target, anchor): (String, String, Option<String>) = self
             .db
             .query_row(
-                "SELECT origin,target FROM links WHERE id=?1",
+                "SELECT origin,target,anchor FROM links WHERE id=?1",
                 [link.to_string()],
-                |r| Ok((r.get(0)?, r.get(1)?)),
+                |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)),
             )
             .optional()?
             .ok_or(Error::Unavailable)?;
         Self::authorise(&self.db, Id::parse(&origin)?, access, false)?;
+        if let Some(anchor) = anchor {
+            Self::read_block(&self.db, Id::parse(&anchor)?, access)?;
+        }
         match Self::authorise(&self.db, Id::parse(&target)?, access, false) {
             Ok(e) => Ok(LinkState::Available(e)),
             Err(Error::Denied | Error::Unavailable) => Ok(LinkState::Unavailable),
@@ -342,6 +352,12 @@ impl Store {
         let mut visible = BTreeSet::new();
         for target in Self::subtree(&self.db, id)? {
             Self::authorise(&self.db, target, access, false)?;
+            Self::require_content_access(&self.db, target, access)?;
+            has_dependencies |= self.db.query_row(
+                "SELECT EXISTS(SELECT 1 FROM exercises WHERE master=?1)",
+                [target.to_string()],
+                |r| r.get::<_, bool>(0),
+            )?;
             let mut stmt = self
                 .db
                 .prepare("SELECT origin FROM links WHERE target=?1")?;
@@ -373,6 +389,11 @@ impl Store {
             if review.has_dependencies && !acknowledged {
                 return Err(Error::ReviewRequired);
             }
+            // Authentication can expire after review without changing generation.
+            for target in Self::subtree(db, review.target)? {
+                Self::authorise(db, target, access, false)?;
+                Self::require_content_access(db, target, access)?;
+            }
             let mut e = Self::authorise(db, review.target, access, false)?;
             e.trashed = true;
             e.revision += 1;
@@ -399,6 +420,13 @@ impl Store {
             if !e.trashed{return Err(Error::Invalid("permanent deletion requires Trash"));}
             for i in Self::subtree(db,id)? {
                 let mut item=Self::authorise(db,i,access,true)?;
+                Self::require_content_access(db,i,access)?;
+                db.execute("DELETE FROM exercise_members WHERE exercise IN(SELECT id FROM exercises WHERE master=?1)",[i.to_string()])?;
+                db.execute("DELETE FROM membership_versions WHERE block IN(SELECT id FROM blocks WHERE entity=?1)",[i.to_string()])?;
+                db.execute("DELETE FROM confirmed_headings WHERE block IN(SELECT id FROM blocks WHERE entity=?1)",[i.to_string()])?;
+                db.execute("DELETE FROM membership_operations WHERE master=?1",[i.to_string()])?;
+                db.execute("DELETE FROM exercise_rules WHERE master=?1",[i.to_string()])?;
+                db.execute("DELETE FROM exercises WHERE master=?1",[i.to_string()])?;
                 // Keep tombstone identities for honest broken references; purge payloads.
                 for table in ["strokes","history","proposals"] {
                     db.execute(&format!("DELETE FROM {table} WHERE block IN(SELECT id FROM blocks WHERE entity=?1)"),[i.to_string()])?;
@@ -425,7 +453,7 @@ impl Store {
         })
     }
     pub fn set_mode(&mut self, id: Id, mode: WritingMode, access: &Access) -> Result<()> {
-        self.write(|db|{Self::authorise(db,id,access,false)?;db.execute("INSERT INTO modes VALUES(?1,?2) ON CONFLICT(entity) DO UPDATE SET mode=excluded.mode",rusqlite::params![id.to_string(),serde_json::to_string(&mode)?])?;Ok(())})
+        self.write_for(id, |db|{Self::authorise(db,id,access,false)?;db.execute("INSERT INTO modes VALUES(?1,?2) ON CONFLICT(entity) DO UPDATE SET mode=excluded.mode",rusqlite::params![id.to_string(),serde_json::to_string(&mode)?])?;Ok(())})
     }
     pub fn mode(&self, id: Id, access: &Access) -> Result<WritingMode> {
         Self::authorise(&self.db, id, access, false)?;

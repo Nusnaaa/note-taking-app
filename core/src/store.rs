@@ -1,6 +1,7 @@
 //! Single-writer SQLite authority with optimistic revision checks for every edit.
 //! FULL synchronous WAL commits are acknowledgements of SQLite's durable boundary,
 //! not guarantees about uncommitted events or faulty storage hardware.
+mod exercises;
 mod organisation;
 mod proposals;
 mod writing;
@@ -76,10 +77,13 @@ pub struct Store {
     pub(crate) db: Connection,
     failure: FailurePoint,
     save_state: SaveState,
+    // One authoritative Store is shared by the host's master/exercise panes.
+    document_save_states: std::collections::BTreeMap<Id, SaveState>,
 }
 
 const V1: &str = include_str!("../migrations/001.sql");
 const V2: &str = include_str!("../migrations/002.sql");
+const V3: &str = include_str!("../migrations/003.sql");
 
 impl Store {
     pub fn open(path: impl AsRef<Path>) -> Result<Self> {
@@ -92,7 +96,7 @@ impl Store {
         db.busy_timeout(Duration::from_millis(250))?;
         db.execute_batch("PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; PRAGMA trusted_schema=OFF;")?;
         let version: i64 = db.pragma_query_value(None, "user_version", |r| r.get(0))?;
-        if !(0..=2).contains(&version) {
+        if !(0..=3).contains(&version) {
             return Err(Error::Unsupported);
         }
         let tx = db.transaction_with_behavior(TransactionBehavior::Immediate)?;
@@ -102,11 +106,15 @@ impl Store {
         if version < 2 {
             tx.execute_batch(V2)?;
         }
+        if version < 3 {
+            tx.execute_batch(V3)?;
+        }
         tx.commit()?;
         Ok(Self {
             db,
             failure: FailurePoint::None,
             save_state: SaveState::SavedLocally,
+            document_save_states: Default::default(),
         })
     }
     pub fn schema_version(&self) -> Result<i64> {
@@ -133,6 +141,31 @@ impl Store {
     }
     pub fn save_state(&self) -> SaveState {
         self.save_state
+    }
+    pub fn document_save_state(&self, entity: Id, access: &Access) -> Result<SaveState> {
+        Self::authorise(&self.db, entity, access, false)?;
+        Ok(self
+            .document_save_states
+            .get(&entity)
+            .copied()
+            .unwrap_or(SaveState::SavedLocally))
+    }
+    pub(crate) fn write_for<T>(
+        &mut self,
+        entity: Id,
+        f: impl FnOnce(&Connection) -> Result<T>,
+    ) -> Result<T> {
+        self.document_save_states.insert(entity, SaveState::Saving);
+        let result = self.write(f);
+        self.document_save_states.insert(
+            entity,
+            if result.is_ok() {
+                SaveState::SavedLocally
+            } else {
+                SaveState::NeedsAttention
+            },
+        );
+        result
     }
     pub(crate) fn write<T>(&mut self, f: impl FnOnce(&Connection) -> Result<T>) -> Result<T> {
         self.save_state = SaveState::Saving;
@@ -229,6 +262,10 @@ impl Store {
     }
 }
 
+pub use exercises::{
+    Exercise, ExtractionCandidate, ExtractionPlan, MembershipChange, MembershipOperation,
+    MembershipPlan, WritingTarget,
+};
 pub use organisation::{DeletionReview, Link, LinkState, Order};
 pub use proposals::{Proposal, ProposalState};
 pub use writing::{Block, Display, HistoryEntry, InkSnapshot};
