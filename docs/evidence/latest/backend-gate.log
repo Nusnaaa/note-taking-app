@@ -1,5 +1,6 @@
-Command: python3 tools/backend_gate.py
-Exit code: 2
+$ python3 tools/backend_gate.py
+exit_code=2
+
 {
   "backend_accepted": false,
   "production_hi_allowed": false,
