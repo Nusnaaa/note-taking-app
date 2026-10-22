@@ -31,6 +31,86 @@ fn comparable(mut value: Value) -> Value {
 }
 
 impl Store {
+    /// Backup rows are untrusted even after envelope authentication. Check both
+    /// SQL identity columns and the embedded historical payload before replay.
+    pub(crate) fn validate_edit_journal(&self) -> Result<()> {
+        let mut q = self.db.prepare("SELECT o.entity,c.table_name,c.item,c.before_row,c.after_row FROM edit_changes c JOIN edit_operations o ON o.id=c.operation")?;
+        for record in q.query_map([], |r| {
+            Ok((
+                r.get::<_, String>(0)?,
+                r.get::<_, String>(1)?,
+                r.get::<_, String>(2)?,
+                r.get::<_, Option<String>>(3)?,
+                r.get::<_, Option<String>>(4)?,
+            ))
+        })? {
+            let (entity, table, item, before, after) = record?;
+            let owner = Id::parse(&entity)?;
+            let id = Id::parse(&item)?;
+            if before.is_none() && after.is_none() {
+                return Err(Error::Integrity);
+            }
+            for value in [before, after].into_iter().flatten() {
+                let fields: Vec<Value> = serde_json::from_str(&value)?;
+                let width = match table.as_str() {
+                    "blocks" | "embeds" => 4,
+                    "object_groups" => 3,
+                    "layouts" => 2,
+                    _ => return Err(Error::Integrity),
+                };
+                if fields.len() != width || string(&fields, 0)? != item {
+                    return Err(Error::Integrity);
+                }
+                match table.as_str() {
+                    "blocks" => {
+                        let b: Block = serde_json::from_value(payload(&fields)?)?;
+                        b.validate()?;
+                        if b.id != id
+                            || b.entity != owner
+                            || string(&fields, 1)? != entity
+                            || fields[2].as_i64().is_none_or(|n| n < 0)
+                        {
+                            return Err(Error::Integrity);
+                        }
+                    }
+                    "object_groups" => {
+                        let g: ObjectGroup = serde_json::from_value(payload(&fields)?)?;
+                        if g.id != id
+                            || g.entity != owner
+                            || string(&fields, 1)? != entity
+                            || g.members.is_empty()
+                            || g.members.len() > 4096
+                            || g.members
+                                .iter()
+                                .collect::<std::collections::BTreeSet<_>>()
+                                .len()
+                                != g.members.len()
+                        {
+                            return Err(Error::Integrity);
+                        }
+                    }
+                    "embeds" => {
+                        let e: Embed = serde_json::from_value(payload(&fields)?)?;
+                        e.camera.validate()?;
+                        e.frame.validate()?;
+                        if e.id != id
+                            || e.host != owner
+                            || string(&fields, 1)? != entity
+                            || string(&fields, 2)? != e.source.to_string()
+                        {
+                            return Err(Error::Integrity);
+                        }
+                    }
+                    "layouts" => {
+                        let layout: Layout = serde_json::from_value(payload(&fields)?)?;
+                        layout.bounds.validate()?;
+                    }
+                    _ => return Err(Error::Integrity),
+                }
+            }
+        }
+        Ok(())
+    }
     pub fn undo(&mut self, entity: Id, access: &Access) -> Result<i64> {
         self.replay_edit(entity, false, access)
     }

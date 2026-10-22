@@ -16,6 +16,7 @@ import subprocess
 import sys
 import urllib.parse
 import xml.etree.ElementTree as ET
+import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -38,6 +39,9 @@ def main():
     git=lambda *a:subprocess.check_output(['git',*a],cwd=ROOT,text=True).strip()
     paths=git('ls-files').splitlines()
     report={'source_commit':git('rev-parse','HEAD'),'working_tree_before':git('status','--porcelain'),'source_sha256':{v:hashlib.sha256((ROOT/v).read_bytes()).hexdigest() for v in paths if not v.startswith('docs/evidence/')},'started_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'checks':[],'device_tests':'NOT RUN; Robolectric simulates API 35; JNI runs on desktop JVM','environment':{k:env[k] for k in ['ANDROID_HOME','JAVA_HOME','CARGO_INCREMENTAL','CARGO_BUILD_JOBS','CARGO_PROFILE_RELEASE_CODEGEN_UNITS','CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER','CC_aarch64_linux_android','AR_aarch64_linux_android']}}
+    report['working_tree_before']=subprocess.check_output(['git','status','--porcelain'],cwd=ROOT,text=True).rstrip()
+    report['full_working_tree_before']=report['working_tree_before']
+    report['working_tree_before']='\n'.join(line for line in report['working_tree_before'].splitlines() if not line[3:].startswith('docs/evidence/'))
     def save(): (dest/'android-validation.json').write_text(json.dumps(report,indent=2)+'\n')
     def run(name,command):
         result=subprocess.run(command,cwd=ROOT,env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
@@ -62,12 +66,18 @@ def main():
     run('android-gradle',gradle)
     suites=[ET.parse(path).getroot() for path in (ROOT/'android/backend/build/test-results/testDebugUnitTest').glob('TEST-*.xml')]
     totals={key:sum(int(s.get(key,'0')) for s in suites) for key in ['tests','failures','errors','skipped']}
-    if totals['tests']<6 or any(totals[k] for k in ['failures','errors','skipped']): raise RuntimeError('Missing, failed or skipped Android unit checks')
+    if totals['tests']<10 or any(totals[k] for k in ['failures','errors','skipped']): raise RuntimeError('Missing, failed or skipped Android unit checks')
     manifest=ET.parse(ROOT/'android/backend/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml').getroot()
     ns='{http://schemas.android.com/apk/res/android}';app=manifest.find('application')
     assert app is not None and app.get(ns+'allowBackup')=='false'
     assert not any(node.get(ns+'name')=='android.permission.INTERNET' for node in manifest.findall('uses-permission'))
     services=app.findall('service');assert any(s.get(ns+'isolatedProcess')=='true' and s.get(ns+'exported')=='false' for s in services)
+    aar=ROOT/'android/backend/build/outputs/aar/backend-debug.aar'
+    with zipfile.ZipFile(aar) as bundle:
+        packaged=bundle.read('jni/arm64-v8a/libstem_bridge.so')
+        assert packaged[:6]==b'\x7fELF\x02\x01' and int.from_bytes(packaged[18:20],'little')==183
+    report['aar_sha256']=hashlib.sha256(aar.read_bytes()).hexdigest()
+    report['packaged_arm64_library_bytes']=len(packaged)
     report['android_tests']=totals;report['jni_assertions']=6;report['merged_manifest_policy']='PASS';report['native_sha256']=hashlib.sha256(native.read_bytes()).hexdigest()
     report['finished_utc']=datetime.datetime.now(datetime.timezone.utc).isoformat();save();print(json.dumps(totals))
     return 0

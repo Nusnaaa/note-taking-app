@@ -16,7 +16,7 @@ pub struct Exercise {
     pub visible: bool,
     pub created_ms: i64,
 }
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum WritingTarget {
     Entity(Id),
     Exercise(Id),

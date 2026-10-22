@@ -50,3 +50,13 @@ a full malformed-input security audit. Cross-version migrations, chunked/large-l
 backups, Android publication/filesystem behaviour and broader crash/fuzz coverage
 remain open. Password/recovery roundtrips and new-path publication are automated
 Linux tests; no Android or physical power-loss result is claimed.
+
+## Schema 9 implementation update — 22 October 2026
+
+New writers emit schema 9 (28 allow-listed tables), including `edit_operations` and
+`edit_changes`. The transaction-local `edit_operation` marker must be empty in a backup.
+Restoration validates historical journal row widths, identities and content before exposing
+the store. Permanent deletion also retires the entity's detailed undo payloads.
+Schema-8 input upgrades with empty authoring journals; historical actions are not invented.
+All other limits above remain, including the 64 MiB payload and in-memory restore.
+Schemas other than 8 and 9 are rejected. This supersedes the earlier schema-8-only limit.

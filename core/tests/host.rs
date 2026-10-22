@@ -20,6 +20,95 @@ fn request(h: &Host, c: Command) -> Value {
     r.data.unwrap()
 }
 #[test]
+fn host_exercise_edits_share_identity_with_master_and_layout_undo_survives_restart() {
+    use stem_core::{
+        content::Content,
+        objects::Rect,
+        store::{Kind, WritingTarget},
+        Id,
+    };
+    let d = tempfile::tempdir().unwrap();
+    let path = d.path().join("library.db");
+    let h = Host::open(path.clone(), 8).unwrap();
+    let note = request(
+        &h,
+        Command::Create {
+            kind: Kind::Note,
+            parent: None,
+            title: "master".into(),
+        },
+    );
+    let master = Id::parse(note["id"].as_str().unwrap()).unwrap();
+    let exercise = request(
+        &h,
+        Command::CreateExercise {
+            master,
+            title: "exercise".into(),
+            blocks: vec![],
+        },
+    );
+    let exercise = Id::parse(exercise["id"].as_str().unwrap()).unwrap();
+    let b = request(
+        &h,
+        Command::AppendTo {
+            target: WritingTarget::Exercise(exercise),
+            content: Content::Text("same working".into()),
+        },
+    );
+    let block = Id::parse(b["id"].as_str().unwrap()).unwrap();
+    assert_eq!(
+        request(
+            &h,
+            Command::Blocks {
+                entity: master,
+                offset: 0,
+                limit: 10
+            }
+        )[0],
+        b
+    );
+    assert_eq!(
+        request(
+            &h,
+            Command::OpenInMaster {
+                exercise,
+                block: Some(block)
+            }
+        )["block"],
+        b["id"]
+    );
+    request(
+        &h,
+        Command::SetLayout {
+            block,
+            expected: None,
+            bounds: Rect {
+                x: 1.,
+                y: 2.,
+                width: 3.,
+                height: 4.,
+            },
+            z: 5,
+        },
+    );
+    drop(h);
+    let h = Host::open(path, 8).unwrap();
+    assert_eq!(request(&h, Command::Layout { block })["z"], 5);
+    request(&h, Command::Undo { entity: master });
+    assert!(request(&h, Command::Layout { block }).is_null());
+    assert_eq!(
+        request(
+            &h,
+            Command::ExerciseBlocks {
+                exercise,
+                offset: 0,
+                limit: 10
+            }
+        )[0],
+        b
+    );
+}
+#[test]
 fn threaded_host_commits_reopens_and_rejects_unknown_version_and_fields() {
     let d = tempfile::tempdir().unwrap();
     let p = d.path().join("host.db");

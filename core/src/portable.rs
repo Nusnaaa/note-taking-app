@@ -289,6 +289,10 @@ impl NativeDocument {
                 return Err(Error::Invalid("native link"));
             }
         }
+        durable_ids.extend(self.attachments.assets.iter().map(|a| a.id));
+        durable_ids.extend(self.attachments.groups.iter().map(|g| g.id));
+        durable_ids.extend(self.attachments.embeds.iter().map(|e| e.id));
+        durable_ids.extend(self.attachments.views.iter().map(|v| v.id));
         let mut region_owners = BTreeMap::new();
         for b in &self.blocks {
             for block in std::iter::once(&b.current).chain(b.history.iter().map(|h| &h.block)) {

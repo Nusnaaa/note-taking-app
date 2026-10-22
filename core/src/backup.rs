@@ -507,6 +507,7 @@ impl Store {
     }
 
     fn validate_backup_state(&self) -> Result<()> {
+        self.validate_edit_journal()?;
         self.check_integrity()?;
 
         let db = &self.db;

@@ -28,9 +28,24 @@ try:
     tracked = subprocess.check_output(["git", "ls-files"], cwd=root, text=True).splitlines()
     new_sources = [p for p in tracked if not p.startswith("docs/evidence/") and p not in evidence["source_sha256"]]
     reasons += ["UNTESTED_INPUT:" + p for p in new_sources]
+    platform = json.loads((root / "docs/evidence/latest/android-validation.json").read_text())
+    platform_checks = {c["name"]: c for c in platform["checks"]}
+    if any(platform_checks.get(name, {}).get("result") != "PASS" for name in ("android-native", "android-elf", "jni-library", "jni-compile", "jni-smoke", "android-gradle")):
+        reasons.append("ANDROID_AUTOMATED_CHECKS_INCOMPLETE")
+    if platform.get("working_tree_before") or not platform.get("finished_utc") or platform.get("merged_manifest_policy") != "PASS":
+        reasons.append("ANDROID_RUN_INCOMPLETE_OR_UNCOMMITTED")
+    if platform.get("source_sha256") != evidence["source_sha256"]:
+        reasons.append("ANDROID_SOURCE_REVISION_MISMATCH")
+    totals = platform.get("android_tests", {})
+    if totals.get("tests", 0) < 10 or any(totals.get(k, 0) for k in ("failures", "errors", "skipped")) or not platform.get("packaged_arm64_library_bytes"):
+        reasons.append("ANDROID_TEST_RESULTS_INCOMPLETE")
     requirements = list(csv.DictReader((root / "docs/verification/requirements-current.csv").open()))
     if len(requirements) != 94 or any(r["initial_release"] == "YES" and r["backend_state"] not in ("COMPLETE", "POST_HI") for r in requirements):
         reasons.append("REQUIREMENT_COVERAGE_INCOMPLETE")
+    initial = {r["requirement_id"] for r in requirements if r["initial_release"] == "YES" and r["backend_state"] != "POST_HI"}
+    inherited = list(csv.DictReader((root / "docs/verification/inherited-current.csv").open()))
+    if len(inherited) != 103 or any(r["current_semantic_requirement"] in initial and r["semantic_closure"] != "PASS" for r in inherited):
+        reasons.append("INHERITED_CLAUSE_COVERAGE_INCOMPLETE")
 except (OSError, ValueError, KeyError, subprocess.CalledProcessError) as error:
     reasons.append("MISSING_OR_INVALID_EVIDENCE:" + type(error).__name__)
 

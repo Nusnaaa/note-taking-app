@@ -18,6 +18,50 @@ fn options() -> BackupOptions {
 }
 const PASSWORD: &str = "Local recovery example passphrase";
 #[test]
+fn purge_retires_detailed_undo_payloads_and_backup_rejects_forged_journal_rows() {
+    let mut s = Store::memory().unwrap();
+    let a = Access::public();
+    let n = s.create(Kind::Note, None, "n", &a).unwrap();
+    s.append_content(n.id, Content::Text("retire-this-payload".into()), &a)
+        .unwrap();
+    let encrypted = s
+        .finish_backup(
+            s.prepare_backup(options(), &a).unwrap(),
+            PASSWORD,
+            &mut TestAuth(true),
+            true,
+        )
+        .unwrap();
+    let plain = crypto::decrypt(&encrypted.bytes, crypto::Credential::Password(PASSWORD)).unwrap();
+    let mut doc: serde_json::Value = serde_json::from_slice(&plain).unwrap();
+    let row = &mut doc["tables"]["edit_changes"][0][4]["value"];
+    let mut fields: serde_json::Value = serde_json::from_str(row.as_str().unwrap()).unwrap();
+    fields[1] = stem_core::Id::new().to_string().into();
+    *row = serde_json::to_string(&fields).unwrap().into();
+    let malformed = crypto::encrypt(&serde_json::to_vec(&doc).unwrap(), PASSWORD).unwrap();
+    assert!(matches!(
+        Store::restore_backup_password(&malformed.bytes, PASSWORD),
+        Err(Error::Integrity)
+    ));
+    let review = s.review_deletion(n.id, &a).unwrap();
+    s.trash(review, true, &a).unwrap();
+    s.purge(n.id, &a).unwrap();
+    let encrypted = s
+        .finish_backup(
+            s.prepare_backup(options(), &a).unwrap(),
+            PASSWORD,
+            &mut TestAuth(true),
+            true,
+        )
+        .unwrap();
+    let plain = crypto::decrypt(&encrypted.bytes, crypto::Credential::Password(PASSWORD)).unwrap();
+    let doc: serde_json::Value = serde_json::from_slice(&plain).unwrap();
+    assert!(doc["tables"]["edit_changes"].as_array().unwrap().is_empty());
+    assert!(!String::from_utf8(plain.to_vec())
+        .unwrap()
+        .contains("retire-this-payload"));
+}
+#[test]
 fn whole_library_backup_retains_trash_history_membership_undo_and_source_metadata() {
     let a = Access::public();
     let mut s = Store::memory().unwrap();

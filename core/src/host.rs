@@ -3,9 +3,10 @@
 //! only a successful response acknowledges a committed edit. Never call on UI thread.
 use crate::{
     content::Content,
-    ink::Stroke,
+    ink::{Stroke, Transform},
+    objects::{CellValue, DiagramPart, Rect},
     security::{Access, Authenticator, Scope},
-    store::{Kind, Order, Store, WritingTarget},
+    store::{Camera, Display, Kind, Order, Store, ViewSettings, WritingMode, WritingTarget},
     Error, Id, Result,
 };
 use serde::{Deserialize, Serialize};
@@ -15,6 +16,159 @@ use std::{collections::BTreeSet, path::PathBuf, sync::mpsc, thread};
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "op", deny_unknown_fields)]
 pub enum Command {
+    Block {
+        block: Id,
+    },
+    SetMode {
+        entity: Id,
+        mode: WritingMode,
+    },
+    Mode {
+        entity: Id,
+    },
+    AppendTo {
+        target: WritingTarget,
+        content: Content,
+    },
+    CaptureTo {
+        ticket: Id,
+        target: WritingTarget,
+        strokes: Vec<Stroke>,
+    },
+    CreateExercise {
+        master: Id,
+        title: String,
+        blocks: Vec<Id>,
+    },
+    RenameExercise {
+        exercise: Id,
+        revision: u64,
+        title: String,
+    },
+    ExerciseVisibility {
+        exercise: Id,
+        revision: u64,
+        visible: bool,
+    },
+    ExerciseLock {
+        exercise: Id,
+        revision: u64,
+        locked: bool,
+    },
+    SetHeading {
+        block: Id,
+        revision: u64,
+        confirmed: bool,
+    },
+    OpenInMaster {
+        exercise: Id,
+        block: Option<Id>,
+    },
+    SetVisible {
+        block: Id,
+        revision: u64,
+        visible: bool,
+    },
+    SetBlockLock {
+        block: Id,
+        revision: u64,
+        locked: bool,
+    },
+    SetDisplay {
+        block: Id,
+        revision: u64,
+        display: Display,
+    },
+    TransformSelection {
+        selected: Vec<(Id, u64)>,
+        transform: Transform,
+    },
+    EraseStrokes {
+        block: Id,
+        revision: u64,
+        strokes: Vec<Id>,
+    },
+    RestoreRevision {
+        block: Id,
+        revision: u64,
+        old_revision: u64,
+    },
+    Layout {
+        block: Id,
+    },
+    SetLayout {
+        block: Id,
+        expected: Option<u64>,
+        bounds: Rect,
+        z: i32,
+    },
+    EditCell {
+        block: Id,
+        revision: u64,
+        cell: Id,
+        value: CellValue,
+    },
+    EditDiagramPart {
+        block: Id,
+        revision: u64,
+        part: DiagramPart,
+    },
+    CreateGroup {
+        entity: Id,
+        members: Vec<Id>,
+    },
+    Group {
+        group: Id,
+    },
+    TransformGroup {
+        group: Id,
+        revision: u64,
+        transform: Transform,
+    },
+    Ungroup {
+        group: Id,
+        revision: u64,
+    },
+    Embed {
+        embed: Id,
+    },
+    CreateEmbed {
+        host: Id,
+        source: Id,
+        frame: Rect,
+    },
+    EditEmbed {
+        embed: Id,
+        revision: u64,
+        camera: Camera,
+        frame: Rect,
+        pinned: bool,
+    },
+    DuplicateEmbed {
+        embed: Id,
+    },
+    RemoveEmbed {
+        embed: Id,
+    },
+    View {
+        view: Id,
+    },
+    SaveView {
+        view: ViewSettings,
+        expected: Option<u64>,
+    },
+    AddLink {
+        origin: Id,
+        target: Id,
+        anchor: Option<Id>,
+    },
+    Links {
+        entity: Id,
+        incoming: bool,
+    },
+    RemoveLink {
+        link: Id,
+    },
     List {
         parent: Option<Id>,
     },
@@ -244,6 +398,147 @@ fn execute(s: &mut Store, a: &mut Access, r: Request) -> Response {
     }
     let result = (|| -> Result<Value> {
         Ok(match r.command {
+            Command::Block { block } => serde_json::to_value(s.block(block, a)?)?,
+            Command::SetMode { entity, mode } => {
+                s.set_mode(entity, mode, a)?;
+                Value::Null
+            }
+            Command::Mode { entity } => serde_json::to_value(s.mode(entity, a)?)?,
+            Command::AppendTo { target, content } => {
+                serde_json::to_value(s.append_content_to(target, content, a)?)?
+            }
+            Command::CaptureTo {
+                ticket,
+                target,
+                strokes,
+            } => serde_json::to_value(s.append_capture(ticket, target, strokes, a)?)?,
+            Command::CreateExercise {
+                master,
+                title,
+                blocks,
+            } => serde_json::to_value(s.create_exercise(master, &title, &blocks, a)?)?,
+            Command::RenameExercise {
+                exercise,
+                revision,
+                title,
+            } => serde_json::to_value(s.rename_exercise(exercise, revision, &title, a)?)?,
+            Command::ExerciseVisibility {
+                exercise,
+                revision,
+                visible,
+            } => serde_json::to_value(s.set_exercise_visible(exercise, revision, visible, a)?)?,
+            Command::ExerciseLock {
+                exercise,
+                revision,
+                locked,
+            } => serde_json::to_value(s.set_exercise_lock(exercise, revision, locked, a)?)?,
+            Command::SetHeading {
+                block,
+                revision,
+                confirmed,
+            } => serde_json::to_value(s.set_heading(block, revision, confirmed, a)?)?,
+            Command::OpenInMaster { exercise, block } => {
+                let location = s.open_in_master(exercise, block, a)?;
+                json!({"master": location.master, "block": location.block})
+            }
+            Command::SetVisible {
+                block,
+                revision,
+                visible,
+            } => serde_json::to_value(s.set_visible(block, revision, visible, a)?)?,
+            Command::SetBlockLock {
+                block,
+                revision,
+                locked,
+            } => serde_json::to_value(s.set_block_lock(block, revision, locked, a)?)?,
+            Command::SetDisplay {
+                block,
+                revision,
+                display,
+            } => serde_json::to_value(s.set_display(block, revision, display, a)?)?,
+            Command::TransformSelection {
+                selected,
+                transform,
+            } => serde_json::to_value(s.transform_selection(&selected, transform, a)?)?,
+            Command::EraseStrokes {
+                block,
+                revision,
+                strokes,
+            } => serde_json::to_value(s.erase_strokes(block, revision, &strokes, a)?)?,
+            Command::RestoreRevision {
+                block,
+                revision,
+                old_revision,
+            } => {
+                serde_json::to_value(s.restore_block_revision(block, revision, old_revision, a)?)?
+            }
+            Command::Layout { block } => serde_json::to_value(s.layout(block, a)?)?,
+            Command::SetLayout {
+                block,
+                expected,
+                bounds,
+                z,
+            } => serde_json::to_value(s.set_layout(block, expected, bounds, z, a)?)?,
+            Command::EditCell {
+                block,
+                revision,
+                cell,
+                value,
+            } => serde_json::to_value(s.edit_cell(block, revision, cell, value, a)?)?,
+            Command::EditDiagramPart {
+                block,
+                revision,
+                part,
+            } => serde_json::to_value(s.edit_diagram_part(block, revision, part, a)?)?,
+            Command::CreateGroup { entity, members } => {
+                serde_json::to_value(s.create_group(entity, &members, a)?)?
+            }
+            Command::Group { group } => serde_json::to_value(s.group(group, a)?)?,
+            Command::TransformGroup {
+                group,
+                revision,
+                transform,
+            } => serde_json::to_value(s.transform_group(group, revision, transform, a)?)?,
+            Command::Ungroup { group, revision } => {
+                s.ungroup(group, revision, a)?;
+                Value::Null
+            }
+            Command::Embed { embed } => serde_json::to_value(s.embed(embed, a)?)?,
+            Command::CreateEmbed {
+                host,
+                source,
+                frame,
+            } => serde_json::to_value(s.create_embed(host, source, frame, a)?)?,
+            Command::EditEmbed {
+                embed,
+                revision,
+                camera,
+                frame,
+                pinned,
+            } => serde_json::to_value(s.edit_embed(embed, revision, camera, frame, pinned, a)?)?,
+            Command::DuplicateEmbed { embed } => {
+                serde_json::to_value(s.duplicate_embed(embed, a)?)?
+            }
+            Command::RemoveEmbed { embed } => {
+                s.remove_embed(embed, a)?;
+                Value::Null
+            }
+            Command::View { view } => serde_json::to_value(s.view(view, a)?)?,
+            Command::SaveView { view, expected } => {
+                serde_json::to_value(s.save_view(view, expected, a)?)?
+            }
+            Command::AddLink {
+                origin,
+                target,
+                anchor,
+            } => serde_json::to_value(s.add_link(origin, target, anchor, a)?)?,
+            Command::Links { entity, incoming } => {
+                serde_json::to_value(s.links(entity, incoming, a)?)?
+            }
+            Command::RemoveLink { link } => {
+                s.remove_link(link, a)?;
+                Value::Null
+            }
             Command::List { parent } => {
                 serde_json::to_value(s.list(parent, Order::Modified, None, None, a)?)?
             }

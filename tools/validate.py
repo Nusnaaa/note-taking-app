@@ -36,6 +36,8 @@ def main():
     ]
     git = lambda *a: subprocess.check_output(["git", *a], cwd=ROOT, text=True).strip()
     revision = git("rev-parse", "HEAD")
+    full_status = subprocess.check_output(["git", "status", "--porcelain"], cwd=ROOT, text=True).rstrip()
+    source_status = "\n".join(line for line in full_status.splitlines() if not line[3:].startswith("docs/evidence/"))
     tracked = git("ls-files").splitlines()
     # Evidence is excluded from its own fingerprint; all implementation/test inputs remain.
     hashes = {p: hashlib.sha256((ROOT / p).read_bytes()).hexdigest() for p in tracked if not p.startswith("docs/evidence/")}
@@ -44,7 +46,8 @@ def main():
     report = {
         "started_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         "source_commit": revision,
-        "working_tree_before": git("status", "--porcelain"),
+        "working_tree_before": source_status,
+        "full_working_tree_before": full_status,
         "build_environment": {"CARGO_INCREMENTAL": "0", "CARGO_BUILD_JOBS": "2"},
         "platform": os.uname().sysname + " " + os.uname().machine,
         "cargo": subprocess.check_output([cargo, "--version"], text=True).strip(),

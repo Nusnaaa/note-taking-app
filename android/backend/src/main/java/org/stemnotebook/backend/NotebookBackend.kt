@@ -9,6 +9,8 @@ import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
+import java.util.UUID
+import org.json.JSONObject
 
 /** Owns native lifetime and serialises requests away from the Android main thread. */
 class NotebookBackend(context: Context) : Closeable {
@@ -17,13 +19,47 @@ class NotebookBackend(context: Context) : Closeable {
     private val handle = CompletableFuture.supplyAsync({ NativeBridge.open(File(directory, "library.db").absolutePath) }, executor)
     private var closed = false
     private val reserve = File(directory, "emergency.reserve")
+    private val outbox = CompletableFuture.supplyAsync({ CaptureOutbox(File(directory, "capture-recovery")) }, executor)
+
+    /** The caller chooses and retains this ticket before submission. Rejection
+     * before admission leaves that caller's observations authoritative. After
+     * admission, unsuccessful JNI replies remain in the durable recovery journal. */
+    @Synchronized fun capture(ticket: UUID, entity: UUID, coordinateSpace: String, strokes: List<CompletedStroke>): CompletableFuture<Int> {
+        check(!closed)
+        require(strokes.size in 1..1000 && strokes.sumOf { it.points.size.toLong() } <= 100_000)
+        // Snapshot mutable caller collections before crossing the thread boundary.
+        val snapshots = strokes.map { it.copy(points = it.points.toList()) }
+        return CompletableFuture.supplyAsync({
+            releaseReserveIfNeeded()
+            outbox.join().enqueue(ticket, CaptureRequest.encode(ticket, entity, coordinateSpace, snapshots))
+            replayCaptures()
+        }, executor)
+    }
+
+    /** Call after opening/unlocking and after a recoverable storage failure. A
+     * failed first capture stops replay without deleting it or later records. */
+    @Synchronized fun retryCaptures(): CompletableFuture<Int> {
+        check(!closed)
+        return CompletableFuture.supplyAsync({ releaseReserveIfNeeded(); replayCaptures() }, executor)
+    }
+    @Synchronized fun pendingCaptures(): CompletableFuture<Int> {
+        check(!closed)
+        return CompletableFuture.supplyAsync({ outbox.join().pendingCount() }, executor)
+    }
+    private fun replayCaptures(): Int = outbox.join().replay {
+        val reply = JSONObject(NativeBridge.request(handle.join(), it))
+        reply.getInt("version") == 1 && reply.getBoolean("ok")
+    }
+    private fun releaseReserveIfNeeded() {
+        if (StatFs(directory.path).availableBytes < 8L * 1024 * 1024 && reserve.exists()) check(reserve.delete())
+    }
 
     /** Completion with ok=true is the only commit acknowledgement. Queue rejection
      * leaves the caller responsible for retaining and retrying the same capture ticket. */
     @Synchronized fun request(json: String): CompletableFuture<String> {
         check(!closed)
         return CompletableFuture.supplyAsync({
-            if (StatFs(directory.path).availableBytes < 8L * 1024 * 1024) reserve.delete()
+            releaseReserveIfNeeded()
             NativeBridge.request(handle.join(), json)
         }, executor)
     }
@@ -33,15 +69,19 @@ class NotebookBackend(context: Context) : Closeable {
         return CompletableFuture.runAsync({ NativeBridge.authenticate(handle.join(), scopesJson, proof) }, executor)
     }
 
-    fun allocateReserve(bytes: Long = 4L * 1024 * 1024): CompletableFuture<Void> = CompletableFuture.runAsync({
+    @Synchronized fun allocateReserve(bytes: Long = 4L * 1024 * 1024): CompletableFuture<Void> {
+        check(!closed)
+        return CompletableFuture.runAsync({
         require(bytes in 1..64L * 1024 * 1024)
-        if (!reserve.exists()) RandomAccessFile(reserve, "rw").use { out ->
+        if (reserve.length() != bytes) RandomAccessFile(reserve, "rw").use { out ->
+            out.setLength(0)
             val buffer = ByteArray(65536)
             var remaining = bytes
             while (remaining > 0) { val count = minOf(remaining, buffer.size.toLong()).toInt(); out.write(buffer, 0, count); remaining -= count }
             out.fd.sync()
         }
-    }, executor)
+        }, executor)
+    }
 
     @Synchronized override fun close() {
         if (closed) return
