@@ -193,8 +193,28 @@ consume/retire the transfer. `ReleaseRetention` is idempotent. Staging has one
 on the next host operation, and never writes a partial asset to the library or
 backup. These are engineering bounds, not measured tablet limits. A failed save
 has no success receipt; after an ambiguous outcome reauthenticate and inspect
-`Assets` rather than blindly creating another copy. A typed Android acquisition
-adapter for these retention choices remains to be connected to the picker workflow.
+`Assets` rather than blindly creating another copy. `NotebookBackend.retainPdf(source, decision, confirmed, timeout)` is the explicit
+Android step after accepting a picker link/regrant. `ManagedCopy` defaults to no
+independent authority/export; `HistoricalSnapshot` requires a separately recorded
+nonblank authority. Both reject export permission without independent authority.
+Unconfirmed calls do no provider/native work. Link acceptance and retention have
+separate receipts: a failed copy preserves the accepted link and requires an
+explicit retry; there is no silent fallback or automatic local duplication.
+
+The adapter shares the selection worker/admission slot. It preflights a native read
+lease, freezes/hash-checks provider bytes into a private `noBackupFilesDir` cache,
+streams native chunks, unlinks the frozen cache, reopens read-only permission and
+validates native policy before submitting the final commit. Large known descriptor
+sizes are rejected before copying; unknown-length streams are counted as read.
+The copy limit is 64 MiB with bounded buffers and an 8 MiB temporary free-space
+guard. Read validity is conservatively anchored before the native request so
+response delay cannot extend authentication. Cancellation/deadlines retire pending
+work and hold admission until late resources finish. Once final submission begins,
+the adapter awaits the actual receipt/error rather than inventing a cancellation
+or timeout for a potentially committed save. No provider call occurs on the native
+writer and retention obtains no additional platform persistable permission. Failed
+disposable-cache removal closes acquisition instead of admitting more copies;
+authored notebook operations remain independent.
 
 `Assets {source}` lists checked metadata (maximum 256 rows per source; excess
 fails closed). `PrepareAssetRead {asset}` returns a private read lease and metadata.

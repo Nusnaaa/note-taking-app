@@ -101,8 +101,15 @@ independent authority. Actual JNI Android fixtures render managed copies after
 provider loss, historical snapshots after live revocation, reject tampered/dropped/
 misaddressed/out-of-range chunks before parsing, and retire frames during retention
 revocation/final validation. Provider opens are asserted absent on retained reads.
-Typed picker-to-retention acquisition and complete external platform lifecycle
-acceptance remain open.
+Typed retention fixtures now follow actual JNI picker link/regrant acceptance with
+explicit managed/historical acquisition. They exercise default-link/no-copy behavior,
+independent authority/export validation, multi-chunk freezing, final provider recheck,
+changed bytes, low storage/oversize, cancellation after staging, blocked-provider
+backpressure while notes remain writable, relock and temporary/native stage cleanup.
+Synthetic native seams cover final-submission receipt delivery past cancellation/
+timeout and conservative expiry after delayed replies. A cache-disposal fault
+closes acquisition without disabling authored-note operations. These do not substitute for
+actual Binder/provider/device permission or complete external lifecycle acceptance.
 
 Backup fixtures exercise password/recovery restoration, Trash/history/membership
 undo, rich object/view/anchor/profile/proposal/capture state, authorised source assets,

@@ -36,6 +36,8 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
             val result = JSONObject(request(JSONObject().put("version", 1).put("command", command).toString()).join())
             if (!result.getBoolean("ok")) throw java.io.IOException("PDF selection context unavailable")
         },
+        retentionDirectory = File(context.noBackupFilesDir, "pdf-retention-cache"),
+        nativePdf = { command -> JSONObject(request(JSONObject().put("version", 1).put("command", JSONObject().put("op", "Pdf").put("command", command)).toString()).join()) },
     )
     private val outbox = CompletableFuture.supplyAsync({ CaptureOutbox(File(directory, "capture-recovery")) }, executor)
 
@@ -120,6 +122,10 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
     @Synchronized fun acceptPdfSelection(review: PdfSelectionManager.Review, timeoutMillis: Long = 30_000): PdfSelectionManager.Pending<PdfSelectionManager.Receipt> {
         check(!closed)
         return selections.accept(review, timeoutMillis)
+    }
+    @Synchronized fun retainPdf(source: UUID, decision: PdfSelectionManager.RetentionDecision, confirmed: Boolean, timeoutMillis: Long = 30_000): PdfSelectionManager.Pending<PdfSelectionManager.RetentionReceipt> {
+        check(!closed)
+        return selections.retain(source, decision, confirmed, timeoutMillis)
     }
     @Synchronized private fun prepareSelectionNative(target: String, locator: String, revision: String, proof: NativeBridge.PdfGrant): CompletableFuture<JSONObject> {
         check(!closed)
