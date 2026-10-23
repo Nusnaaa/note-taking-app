@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.PdfRetentionTest" tests="13" skipped="0" failures="1" errors="0" timestamp="2026-10-23T20:41:02" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="10.26">
+  <properties/>
+  <testcase name="changedBytesPermissionLossAndLowStorageLeaveNoRetainedAssetOrTemporaryCopy" classname="org.stemnotebook.backend.PdfRetentionTest" time="0.18"/>
+  <testcase name="independentHistoricalChoiceRecordsSeparateAuthorityAndSurvivesLiveRevocation" classname="org.stemnotebook.backend.PdfRetentionTest" time="0.573"/>
+  <testcase name="startupRetiresOnlyDisposableRetentionCrashFiles" classname="org.stemnotebook.backend.PdfRetentionTest" time="0.037"/>
+  <testcase name="delayedNativeReadPlanCannotExtendAuthenticationLifetime" classname="org.stemnotebook.backend.PdfRetentionTest" time="0.045"/>
+  <testcase name="failedDisposableCacheRemovalClosesAcquisitionInsteadOfAdmittingMoreCopies" classname="org.stemnotebook.backend.PdfRetentionTest" time="0.14"/>
+  <testcase name="cancellationAfterStagingBeforeFinalReopenCannotPublishAnAssetAndReleasesCapacity" classname="org.stemnotebook.backend.PdfRetentionTest" time="0.469"/>
+  <testcase name="relockDuringRetentionDiscardsPendingBytesAndPreservesAcceptedLink" classname="org.stemnotebook.backend.PdfRetentionTest" time="0.134"/>
+  <testcase name="retentionFinalSubmissionWaitsForActualReceiptAcrossCancellationAndDeadline" classname="org.stemnotebook.backend.PdfRetentionTest" time="1.169"/>
+  <testcase name="unconfirmedOrInvalidRetentionChoicesDoNotReadOrMutateSource" classname="org.stemnotebook.backend.PdfRetentionTest" time="0.625"/>
+  <testcase name="lostPermissionAtFinalReopenReleasesNativeStageAndAllowsAnExplicitRetry" classname="org.stemnotebook.backend.PdfRetentionTest" time="5.056">
+    <failure message="java.util.concurrent.TimeoutException" type="java.util.concurrent.TimeoutException">java.util.concurrent.TimeoutException
+	at java.base/java.util.concurrent.CompletableFuture.timedGet(CompletableFuture.java:1960)
+	at java.base/java.util.concurrent.CompletableFuture.get(CompletableFuture.java:2095)
+	at org.stemnotebook.backend.PdfRetentionTest.command(PdfRetentionTest.kt:33)
+	at org.stemnotebook.backend.PdfRetentionTest.fixture(PdfRetentionTest.kt:64)
+	at org.stemnotebook.backend.PdfRetentionTest.lostPermissionAtFinalReopenReleasesNativeStageAndAllowsAnExplicitRetry(PdfRetentionTest.kt:127)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:56)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.robolectric.internal.TimeLimitedStatement.evaluate(TimeLimitedStatement.java:38)
+	at org.junit.rules.ExternalResource$1.evaluate(ExternalResource.java:54)
+	at org.junit.runners.ParentRunner$3.evaluate(ParentRunner.java:306)
+	at org.robolectric.RobolectricTestRunner$HelperTestRunner$1.evaluate(RobolectricTestRunner.java:502)
+	at org.robolectric.internal.SandboxTestRunner$2.lambda$evaluate$2(SandboxTestRunner.java:285)
+	at org.robolectric.internal.bytecode.Sandbox.lambda$runOnMainThread$0(Sandbox.java:104)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+</failure>
+  </testcase>
+  <testcase name="blockedProviderTimeoutRetainsAdmissionWhileNotesRemainWritable" classname="org.stemnotebook.backend.PdfRetentionTest" time="1.259"/>
+  <testcase name="defaultLinkHasNoCopyAndConfirmedManagedAcquisitionUsesFrozenChunks" classname="org.stemnotebook.backend.PdfRetentionTest" time="0.399"/>
+  <testcase name="oversizedPdfCannotEnterRetentionStagingOrLeaveAReadCache" classname="org.stemnotebook.backend.PdfRetentionTest" time="0.171"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

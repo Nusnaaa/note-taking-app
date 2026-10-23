@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.PdfRetentionTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-23T20:43:21" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="7.652">
+  <properties/>
+  <testcase name="lostPermissionAtFinalReopenReleasesNativeStageAndAllowsAnExplicitRetry" classname="org.stemnotebook.backend.PdfRetentionTest" time="7.652"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

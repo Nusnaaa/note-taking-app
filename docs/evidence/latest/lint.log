@@ -5,4 +5,4 @@ exit_code=0
     Checking jni-sys v0.3.1
     Checking jni v0.21.1
     Checking stem-bridge v0.1.0 (/home/linus/Projects/software/note-taking-app/repo/bridge)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 16.45s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 17.40s

@@ -1,9 +1,9 @@
 $ /tmp/stem-cargo/bin/cargo test --workspace --locked --offline
 exit_code=0
 
-   Compiling stem-core v0.1.0 (/home/linus/Projects/software/note-taking-app/repo/core)
    Compiling stem-bridge v0.1.0 (/home/linus/Projects/software/note-taking-app/repo/bridge)
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 33.69s
+   Compiling stem-core v0.1.0 (/home/linus/Projects/software/note-taking-app/repo/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 32.66s
      Running unittests src/lib.rs (target/debug/deps/stem_bridge-a052d9211bbfea79)
 
 running 0 tests
@@ -16,10 +16,10 @@ running 5 tests
 test sources::selection_tests::retained_pdf_commit_failure_does_not_publish_asset_or_change_acquisition ... ok
 test sources::selection_tests::selected_revision_transaction_rolls_back_and_preserves_independent_evidence ... ok
 test host::deletion::tests::expired_and_capacity_bounded_reviews_never_delete_content ... ok
-test store::storage_tests::sqlite_full_reports_failure_and_preserves_committed_work ... ok
 test host::ownership::tests::sqlite_managed_ownership_survives_commits_and_failed_duplicate_connections ... ok
+test store::storage_tests::sqlite_full_reports_failure_and_preserves_committed_work ... ok
 
-test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.69s
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
 
      Running unittests src/bin/notebook_cli.rs (target/debug/deps/notebook_cli-45635f09fa7e998d)
 
@@ -43,16 +43,16 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 
 running 9 tests
 test backup_plan_cannot_cross_library_or_survive_a_write ... ok
-test backup_requires_deliberate_ink_scope_and_fresh_protected_authentication ... ok
 test rich_library_restores_objects_views_anchors_proposals_profiles_and_capture_receipts ... ok
-test malformed_authenticated_backup_is_rejected_before_exposing_restored_store ... ok
+test backup_requires_deliberate_ink_scope_and_fresh_protected_authentication ... ok
+test whole_library_backup_retains_trash_history_membership_undo_and_source_metadata ... ok
 test external_asset_backup_is_explicit_authorised_and_revocation_safe ... ok
 test restore_publication_never_overwrites_live_database_and_reopens ... ok
-test whole_library_backup_retains_trash_history_membership_undo_and_source_metadata ... ok
+test malformed_authenticated_backup_is_rejected_before_exposing_restored_store ... ok
 test schema8_logical_backup_upgrades_without_inventing_old_undo_actions ... ok
 test purge_retires_detailed_undo_payloads_and_backup_rejects_forged_journal_rows ... ok
 
-test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 25.76s
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 26.39s
 
      Running tests/capture.rs (target/debug/deps/capture-00abcf1f2027bae9)
 
@@ -61,12 +61,23 @@ test capture_cancels_background_work_without_faking_resource_release ... ok
 test observed_samples_are_exact_and_invalid_events_leave_capture_recoverable ... ok
 test palm_navigation_and_stylus_cancellation_do_not_commit_accidental_ink ... ok
 test scheduler_leases_work_across_threads_and_unwind ... ok
+test emergency_reserve_is_written_released_and_never_overwrites_existing_file ... ok
 test capture_receipt_probe_checks_current_scope_target_and_original_stroke ... ok
 test full_queue_retains_old_work_and_failed_persistence_can_retry ... ok
-test emergency_reserve_is_written_released_and_never_overwrites_existing_file ... ok
 test capture_receipt_survives_restart_and_rejects_changed_retry ... ok
 
-test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests/capture_privacy.rs (target/debug/deps/capture_privacy-d9f6c6b57246ab5f)
+
+running 5 tests
+test naming_a_public_destination_does_not_bypass_the_receipts_actual_owner_lock ... ok
+test protected_receipt_denies_matching_changed_payload_and_changed_target_before_comparison ... ok
+test receipt_uses_current_exercise_protection_even_when_original_target_was_master ... ok
+test protected_corrupt_payload_is_not_deserialised_to_answer_a_receipt_query ... ok
+test ordinary_block_reads_reject_a_payload_spliced_into_a_different_public_owner ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
 
      Running tests/capture_recovery.rs (target/debug/deps/capture_recovery-7715b895044eadb6)
 
@@ -75,14 +86,14 @@ test retired_capture_evidence_requires_target_authority_and_cannot_reopen_docume
 test subtree_purge_preflight_and_commit_failure_do_not_partially_erase_protected_ink ... ok
 test recovery_authority_preserves_inherited_and_app_locks_across_purge_and_reopen ... ok
 
-test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
 
      Running tests/converters.rs (target/debug/deps/converters-8402f42f39159eb4)
 
 running 4 tests
-test converter_preserves_deliberately_wrong_math_without_solving ... ok
-test offline_help_covers_recovery_and_unsearchable_ink_without_remote_dependency ... ok
 test code_plaintext_is_exact_and_markdown_fence_cannot_be_closed_by_content ... ok
+test offline_help_covers_recovery_and_unsearchable_ink_without_remote_dependency ... ok
+test converter_preserves_deliberately_wrong_math_without_solving ... ok
 test unsupported_maths_is_reported_and_xml_is_escaped ... ok
 
 test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
@@ -94,33 +105,33 @@ test trash_pages_count_only_authorised_entries_and_restore_requires_current_revi
 test permanent_review_is_kind_generation_confirmation_and_transaction_bound ... ok
 test container_retirement_handles_independently_trashed_and_already_purged_descendants ... ok
 
-test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
 
      Running tests/editing.rs (target/debug/deps/editing-3ddb72231003485e)
 
 running 7 tests
-test undo_creation_preserves_original_observations_and_redo_restores_visibility ... ok
-test pruning_without_protected_block_access_keeps_its_undo_history ... ok
 test undo_requires_current_locks_and_cannot_remove_protection ... ok
+test pruning_without_protected_block_access_keeps_its_undo_history ... ok
+test undo_creation_preserves_original_observations_and_redo_restores_visibility ... ok
 test editing_after_undo_discards_redo_branch_but_keeps_source_history ... ok
 test lasso_action_undo_is_atomic_and_stale_or_interrupted_actions_leave_no_history ... ok
 test undo_redo_survives_reopen_and_never_rewinds_revisions ... ok
 test whole_backup_restores_undo_and_redo_without_touching_live_library ... ok
 
-test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.98s
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.53s
 
      Running tests/engines.rs (target/debug/deps/engines-829eef634c25f690)
 
 running 7 tests
 test converters_have_durable_staged_lifecycle_and_failed_probe_preserves_previous ... ok
-test staged_probe_or_commit_failure_keeps_previous_verified_engine ... ok
 test resource_installation_requires_consent_digest_and_bounded_streaming ... ok
+test staged_probe_or_commit_failure_keeps_previous_verified_engine ... ok
 test removing_engine_preserves_notebooks_strokes_and_accepted_work ... ok
-test another_connection_changing_state_during_probe_prevents_stale_activation ... ok
 test installed_provenance_and_profiles_reopen_without_fabricated_runtime_readiness ... ok
 test batch_acceptance_is_selected_and_atomic_on_stale_members ... ok
+test another_connection_changing_state_during_probe_prevents_stale_activation ... ok
 
-test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
 
      Running tests/exercise_migrations.rs (target/debug/deps/exercise_migrations-d231d4d4a157fb3f)
 
@@ -128,31 +139,31 @@ running 2 tests
 test failed_v3_migration_rolls_back_all_new_tables_and_version ... ok
 test v2_upgrade_keeps_existing_content_and_enables_exercises ... ok
 
-test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
 
      Running tests/exercises.rs (target/debug/deps/exercises-253fe38d028ef32e)
 
 running 18 tests
 test flat_and_search_views_follow_visibility_and_permissions_without_copying_content ... ok
-test protected_reassignment_carries_lock_even_when_unassigned ... ok
 test removing_view_preserves_master_ink_membership_and_protection ... ok
-test failed_extraction_and_reassignment_roll_back_every_membership ... ok
-test extracting_a_protected_heading_does_not_disclose_its_title ... ok
-test independent_copy_preserves_ink_but_has_separate_ids_edits_modes_and_status ... ok
+test protected_reassignment_carries_lock_even_when_unassigned ... ok
 test linked_append_is_atomic_and_keeps_master_order_and_shared_save_state ... ok
 test legacy_v1_native_remains_readable_and_malformed_v2_membership_is_rejected ... ok
-test reassignment_rejects_stale_review_cross_master_and_aba_history ... ok
+test extracting_a_protected_heading_does_not_disclose_its_title ... ok
+test failed_extraction_and_reassignment_roll_back_every_membership ... ok
 test duplicate_titles_keep_distinct_identity_and_metadata_failures_share_status ... ok
-test master_trash_restore_and_purge_preserve_then_remove_exercise_state ... ok
+test reassignment_rejects_stale_review_cross_master_and_aba_history ... ok
 test exercise_locks_cover_master_search_history_inference_links_export_and_deletion ... ok
+test independent_copy_preserves_ink_but_has_separate_ids_edits_modes_and_status ... ok
+test master_trash_restore_and_purge_preserve_then_remove_exercise_state ... ok
 test only_confirmed_matching_headings_extract_previously_unassigned_work ... ok
-test existing_membership_survives_heading_confirmation_removal_rename_and_reopen ... ok
-test reassignment_requires_preview_confirmation_and_undo_preserves_new_content ... ok
 test selected_exercise_export_excludes_unrelated_master_content_and_roundtrips ... ok
+test reassignment_requires_preview_confirmation_and_undo_preserves_new_content ... ok
+test existing_membership_survives_heading_confirmation_removal_rename_and_reopen ... ok
 test current_native_preserves_exercise_identity_relationships_locks_modes_and_heading_rules ... ok
 test shared_edits_use_one_revision_and_stale_second_connection_cannot_overwrite ... ok
 
-test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.38s
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.40s
 
      Running tests/export.rs (target/debug/deps/export-b1c1dd44a2ac2813)
 
@@ -171,21 +182,21 @@ running 16 tests
 test failed_host_initialisation_releases_ownership_before_returning ... ok
 test byte_budgets_are_independent_and_rejection_does_not_acknowledge_a_save ... ok
 test verifier_panic_fails_closed_without_killing_the_writer_or_retaining_access ... ok
+test host_restores_revision_bound_selection_without_silently_rebinding_after_edit ... ok
 test asynchronous_writer_retry_tickets_and_lock_scopes_are_enforced ... ok
 test query_saturation_reserves_edit_admission_and_preserves_edit_undo_order ... ok
-test host_restores_revision_bound_selection_without_silently_rebinding_after_edit ... ok
-test reentrant_close_from_verifier_fails_without_self_join_or_retained_access ... ok
 test concurrent_host_calls_return_distinct_committed_content ... ok
+test host_workspace_discovers_last_view_after_reopen_without_serializing_locked_targets ... ok
 test recovery_identity_is_stable_but_never_grants_content_or_receipt_access ... ok
+test reentrant_close_from_verifier_fails_without_self_join_or_retained_access ... ok
 test threaded_host_commits_reopens_and_rejects_unknown_version_and_fields ... ok
 test active_call_and_shutdown_drain_hold_ownership_until_original_ink_is_committed ... ok
-test host_workspace_discovers_last_view_after_reopen_without_serializing_locked_targets ... ok
 test host_ownership_is_cross_process_and_abrupt_exit_recovers_original_ink ... ok
-test host_exercise_edits_share_identity_with_master_and_layout_undo_survives_restart ... ok
 test dropped_receipts_still_drain_on_close_and_observers_see_final_closed_state ... ok
+test host_exercise_edits_share_identity_with_master_and_layout_undo_survives_restart ... ok
 test library_host_ownership_rejects_duplicate_aliases_without_truncating_and_allows_other_libraries ... ok
 
-test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.37s
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.39s
 
      Running tests/host_deletion.rs (target/debug/deps/host_deletion-1a75c14671ef43f4)
 
@@ -202,8 +213,8 @@ running 18 tests
 test ordinary_json_cannot_supply_a_review_plan_or_platform_grant ... ok
 test new_link_selection_does_not_create_source_until_explicit_acceptance_and_uses_preallocated_identity ... ok
 test rejecting_a_prepared_revision_consumes_it_without_changing_the_source ... ok
-test selection_requires_fresh_verification_on_acceptance_and_rejection_is_single_use ... ok
 test relock_scope_changes_and_failed_authentication_retire_old_capabilities ... ok
+test selection_requires_fresh_verification_on_acceptance_and_rejection_is_single_use ... ok
 test selection_reviews_are_stale_safe_scope_checked_and_cleared_on_relock ... ok
 test revocation_and_missing_sources_retire_reads_without_touching_authored_work ... ok
 test changed_revision_can_be_reacquired_from_revoked_state_without_silent_anchor_relocation ... ok
@@ -214,11 +225,11 @@ test read_and_revision_tokens_are_bounded_private_and_revision_checked ... ok
 test trusted_selection_is_reviewed_and_same_revision_regrant_preserves_source_identity ... ok
 test staged_retention_cannot_survive_relock_replay_or_wrong_pdf_bytes ... ok
 test retained_pdf_lock_applies_to_metadata_chunks_and_staging_even_with_independent_authority ... ok
-test retained_pdf_lease_shares_capacity_and_preserves_old_revision_under_new_source_edition ... ok
 test retained_pdf_streaming_is_explicit_atomic_bounded_and_content_checked ... ok
+test retained_pdf_lease_shares_capacity_and_preserves_old_revision_under_new_source_edition ... ok
 test independent_pdf_retention_survives_source_revoke_but_not_its_own_revoke_or_locks ... ok
 
-test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.57s
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.58s
 
      Running tests/interrupted_capture.rs (target/debug/deps/interrupted_capture-26e509e3cfd08eb1)
 
@@ -230,7 +241,7 @@ test schema9_upgrade_preserves_original_payload_hash_and_capture_receipt_byte_fo
 test legacy_schema9_backup_defaults_to_completed_without_rewriting_source_or_receipt ... ok
 test encrypted_schema10_retains_interruption_and_old_schema_cannot_claim_it ... ok
 
-test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 22.51s
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 21.67s
 
      Running tests/layer_capture.rs (target/debug/deps/layer_capture-928fdeb7a4e3accc)
 
@@ -239,21 +250,21 @@ test missing_layer_never_falls_back_and_identical_committed_receipt_does_not_reb
 test layer_capture_checks_owner_protection_and_rolls_back_source_and_destination_on_failure ... ok
 test capture_and_layer_membership_commit_undo_redo_and_reopen_together_without_rewriting_ink ... ok
 
-test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
 
      Running tests/layers.rs (target/debug/deps/layers-a0feeb09b6f065fc)
 
 running 8 tests
 test malformed_membership_aliases_and_fresh_protection_cannot_leak_or_change_layers ... ok
+test scene_orders_layers_then_z_and_paginates_without_dropping_nested_reference_placeholders ... ok
 test legacy_canvas_migrates_to_an_implicit_base_without_rewriting_original_payloads ... ok
 test defaults_and_independent_embed_overrides_preserve_source_and_report_missing_layers ... ok
-test scene_orders_layers_then_z_and_paginates_without_dropping_nested_reference_placeholders ... ok
-test layer_undo_redo_and_failure_are_atomic_and_revisions_never_reset_to_zero ... ok
 test native_copy_remaps_layer_and_embed_overrides_and_derivatives_respect_default_visibility ... ok
+test layer_undo_redo_and_failure_are_atomic_and_revisions_never_reset_to_zero ... ok
 test scene_byte_pages_have_explicit_continuations_and_never_load_denied_payloads_into_results ... ok
 test encrypted_backup_preserves_layer_undo_and_rejects_downgraded_current_and_historical_extensions ... ok
 
-test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 38.47s
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 40.06s
 
      Running tests/objects.rs (target/debug/deps/objects-c1c6d243403ce84f)
 
@@ -261,28 +272,28 @@ running 8 tests
 test invalid_objects_reject_duplicate_ids_ragged_cells_and_nonfinite_axes ... ok
 test canvas_embeds_keep_independent_pinned_cameras_and_reject_cycles ... ok
 test images_cannot_bypass_locks_even_after_replacing_visible_content ... ok
-test table_cell_edit_preserves_identity_neighbours_and_source_ink ... ok
 test protected_canvas_cannot_leak_through_embed_or_group ... ok
+test table_cell_edit_preserves_identity_neighbours_and_source_ink ... ok
 test grouped_transform_is_atomic_and_never_changes_original_points ... ok
-test native_v3_roundtrip_preserves_assets_layout_groups_and_embeds_with_new_ids ... ok
 test view_settings_and_protected_placeholders_reopen_without_secret_text ... ok
+test native_v3_roundtrip_preserves_assets_layout_groups_and_embeds_with_new_ids ... ok
 
-test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
 
      Running tests/organisation.rs (target/debug/deps/organisation-3077de281d497099)
 
 running 9 tests
-test trash_dependency_review_restore_and_permanent_broken_link ... ok
-test app_lock_and_inherited_protection_do_not_grant_via_link_or_move ... ok
-test delete_review_is_invalidated_by_new_dependency ... ok
-test stale_edit_and_interrupted_move_do_not_change_saved_state ... ok
-test module_moves_check_descendants_cycles_and_depth_atomically ... ok
 test chronology_filters_by_actual_creation_without_journals ... ok
+test delete_review_is_invalidated_by_new_dependency ... ok
 test locked_dependencies_disclose_presence_without_name_or_id ... ok
+test module_moves_check_descendants_cycles_and_depth_atomically ... ok
+test trash_dependency_review_restore_and_permanent_broken_link ... ok
+test stale_edit_and_interrupted_move_do_not_change_saved_state ... ok
+test app_lock_and_inherited_protection_do_not_grant_via_link_or_move ... ok
 test unfiled_move_and_reopen_preserve_identity_creation_and_backlinks ... ok
 test complete_parent_matrix_and_no_phantom_containers ... ok
 
-test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.44s
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.41s
 
      Running tests/pdf_revisions.rs (target/debug/deps/pdf_revisions-c1521cbb594a3ad0)
 
@@ -297,9 +308,9 @@ test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 
 running 10 tests
 test both_protected_export_paths_require_fresh_authentication ... ok
-test export_plan_cannot_survive_later_lock_or_source_change ... ok
 test corrupt_native_import_and_interruption_do_not_touch_existing_documents ... ok
 test hostile_native_relationships_rejected_even_with_recomputed_checksum ... ok
+test export_plan_cannot_survive_later_lock_or_source_change ... ok
 test hostile_cross_kind_identifier_aliases_are_rejected_before_import ... ok
 test raw_ink_requires_deliberate_inclusion_and_subset_export_never_follows_links ... ok
 test concurrent_change_during_export_authentication_invalidates_output ... ok
@@ -307,23 +318,23 @@ test encrypted_header_payload_truncation_and_weak_credentials_fail_closed ... ok
 test encrypted_native_roundtrip_creates_independent_copy_and_keeps_current_work ... ok
 test encrypted_package_opens_with_password_or_independent_recovery_key ... ok
 
-test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 14.59s
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 13.69s
 
      Running tests/positions.rs (target/debug/deps/positions-8365ece5bfab7b82)
 
 running 10 tests
 test structured_math_and_component_offsets_validate_without_interpreting_or_repairing_content ... ok
-test exercise_membership_and_current_block_protection_gate_bookmark_metadata_and_replacement ... ok
 test view_discovery_separates_master_and_exercise_and_rechecks_app_lock ... ok
 test rich_labels_and_multiblock_ranges_preserve_content_and_reject_foreign_owners ... ok
+test exercise_membership_and_current_block_protection_gate_bookmark_metadata_and_replacement ... ok
+test observed_ink_region_bookmarks_copy_global_ids_and_old_format_tags_cannot_hide_them ... ok
 test view_restore_and_discovery_reject_misbound_persistent_identity ... ok
 test view_discovery_reopens_saved_positions_and_filters_fresh_block_protection ... ok
 test unicode_selection_reopens_and_changed_content_requires_explicit_fresh_bookmark ... ok
-test observed_ink_region_bookmarks_copy_global_ids_and_old_format_tags_cannot_hide_them ... ok
 test schema10_upgrade_keeps_legacy_view_payload_byte_for_byte_and_absent_bookmark_is_not_invented ... ok
 test encrypted_backup_retains_stale_bookmarks_and_schema10_defaults_without_rewriting_views ... ok
 
-test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 39.00s
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 35.76s
 
      Running tests/provisioning.rs (target/debug/deps/provisioning-e0a8c4c01f56f53a)
 
@@ -333,20 +344,20 @@ test incomplete_hash_mismatch_and_no_consent_do_not_activate_resources ... ok
 test local_install_resume_retry_and_integrity_precede_publication ... ok
 test resume_discards_only_unacknowledged_tail_after_simulated_interruption ... ok
 
-test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
 
      Running tests/recognition.rs (target/debug/deps/recognition-52d99c75a7a4042e)
 
 running 10 tests
-test incompatible_raster_egress_and_unreviewed_licence_are_rejected ... ok
 test failed_resource_reverification_clears_previous_readiness ... ok
+test incompatible_raster_egress_and_unreviewed_licence_are_rejected ... ok
 test readiness_requires_consent_integrity_and_actual_probe ... ok
-test locked_ink_and_proposals_cannot_be_sent_or_reviewed_without_access ... ok
-test cancel_timeout_and_worker_panic_discard_results ... ok
 test panicking_model_probe_becomes_failed_readiness_without_disabling_notes ... ok
+test cancel_timeout_and_worker_panic_discard_results ... ok
 test stale_inference_and_stale_proposal_cannot_overwrite_corrections ... ok
-test rejection_and_failed_atomic_accept_leave_ink_untouched ... ok
+test locked_ink_and_proposals_cannot_be_sent_or_reviewed_without_access ... ok
 test model_switch_and_remove_leave_accepted_content_and_raw_strokes ... ok
+test rejection_and_failed_atomic_accept_leave_ink_untouched ... ok
 test proposal_review_acceptance_and_source_survive_reopen ... ok
 
 test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
@@ -359,17 +370,17 @@ test process_exit_before_and_after_commit_preserves_correct_durable_boundary ...
 test failed_migration_rolls_back_and_newer_schema_is_not_downgraded ... ok
 test v1_to_current_migration_preserves_entities_and_is_repeatable ... ok
 
-test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s
 
      Running tests/regions.rs (target/debug/deps/regions-d5c9ec8a1b2fa55f)
 
 running 4 tests
-test invalid_partition_and_overlapping_split_are_atomic ... ok
 test regions_split_merge_without_replacing_observations_and_undo_restores_partition ... ok
+test invalid_partition_and_overlapping_split_are_atomic ... ok
 test selected_region_receives_only_selected_vector_strokes_and_commits_only_it ... ok
 test region_exports_remap_ids_and_keep_accepted_text ... ok
 
-test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
 
      Running tests/render.rs (target/debug/deps/render-63b943f5bca2e9f5)
 
@@ -378,17 +389,17 @@ test invalid_font_missing_glyph_and_impossible_page_fail_without_partial_output 
 test protected_pdf_requires_fresh_auth_and_stale_plan_cannot_disclose_new_state ... ok
 test unicode_maths_and_paginated_text_produce_real_pdf_with_embedded_fonts ... ok
 
-test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 11.11s
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.93s
 
      Running tests/sources.rs (target/debug/deps/sources-df6a9ab1838904f1)
 
 running 4 tests
 test link_default_managed_copy_requires_consent_and_matching_bytes ... ok
-test q383_revocation_removes_caches_preserves_authored_work_and_independent_snapshot ... ok
 test source_link_never_bypasses_note_lock_or_creates_network_action ... ok
+test q383_revocation_removes_caches_preserves_authored_work_and_independent_snapshot ... ok
 test missing_pdf_view_reopens_and_relink_never_matches_by_filename ... ok
 
-test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
 
      Running tests/stroke_style.rs (target/debug/deps/stroke_style-a863f5e9e0974eae)
 
@@ -399,7 +410,7 @@ test legacy_source_payload_hash_and_receipt_are_not_rewritten_by_schema13_upgrad
 test source_style_and_receipt_survive_edits_reopen_native_copy_and_legacy_format_validation ... ok
 test encrypted_style_backup_retains_exact_metadata_and_cannot_be_disguised_as_schema12 ... ok
 
-test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 35.15s
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 32.35s
 
      Running tests/workspace.rs (target/debug/deps/workspace-4c8b90d3701ec260)
 
@@ -412,24 +423,24 @@ test schema11_upgrade_creates_an_empty_workspace_without_rewriting_saved_view_pa
 test trash_restore_and_purge_preserve_slots_but_retire_private_target_references_atomically ... ok
 test encrypted_workspace_restore_revokes_pdf_readiness_and_rejects_malformed_or_downgraded_rows ... ok
 
-test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 55.23s
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 44.60s
 
      Running tests/writing.rs (target/debug/deps/writing-117a61e0371ccd33)
 
 running 11 tests
 test math_subtree_edit_preserves_incomplete_fence_and_neighbours ... ok
-test active_use_retirement_keeps_checkpoint_and_originals ... ok
-test restore_never_removes_newer_content_lock ... ok
-test bad_samples_duplicate_ids_and_unordered_strokes_are_rejected ... ok
 test mode_defaults_and_inheritance_do_not_convert_existing_ink ... ok
+test bad_samples_duplicate_ids_and_unordered_strokes_are_rejected ... ok
+test restore_never_removes_newer_content_lock ... ok
+test active_use_retirement_keeps_checkpoint_and_originals ... ok
+test unauthorised_history_retirement_skips_locked_content ... ok
 test interrupted_capture_rolls_back_block_strokes_and_document_revision ... ok
 test exact_code_and_incorrect_math_survive_edits_and_restore_as_new_revision ... ok
-test unauthorised_history_retirement_skips_locked_content ... ok
 test stale_edits_and_view_toggles_never_mutate_source ... ok
 test search_matches_literal_accepted_content_never_raw_or_locked_data ... ok
 test source_ink_is_lossless_after_reopen_transform_erase_and_history_retirement ... ok
 
-test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.26s
 
    Doc-tests stem_bridge
 

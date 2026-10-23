@@ -1,0 +1,3 @@
+The named timed-out case passed independently on unchanged source 1bff36f.
+Command: JAVA_HOME=/tmp/stem-build-tools/jdk-17.0.21+9 GRADLE_USER_HOME=/tmp/stem-gradle-cache ANDROID_HOME=/tmp/stem-android-sdk ANDROID_USER_HOME=/tmp/stem-android-user JAVA_TOOL_OPTIONS=-Duser.home=/tmp/stem-android-user /tmp/stem-build-tools/gradle-8.9/bin/gradle --no-daemon -p android :backend:testDebugUnitTest --tests org.stemnotebook.backend.PdfRetentionTest.lostPermissionAtFinalReopenReleasesNativeStageAndAllowsAnExplicitRetry --console=plain --offline
+Observed exit 0; one test, zero failures/errors/skips. XML is retained. This alone does not establish the original setup-timeout cause or whole-suite success.

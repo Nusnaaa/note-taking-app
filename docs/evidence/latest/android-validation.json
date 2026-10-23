@@ -1,5 +1,5 @@
 {
-  "source_commit": "f7d56749d2e2e9adf2f004d09e13b32fd3e7bccb",
+  "source_commit": "1bff36f64e103b0c8c12705a4760a21f885b830f",
   "working_tree_before": "",
   "source_sha256": {
     ".gitignore": "47df1768ba52b16ac4fd14a3042d10ecc149fe248e1ddeb2b100a177d279f9f9",
@@ -31,7 +31,7 @@
     "android/backend/src/main/res/xml/backup_rules.xml": "9dc73ebd39e95acff8a4c69fe70c054e82a1148459cfc684a8252678c83ffa91",
     "android/backend/src/main/res/xml/data_extraction_rules.xml": "ac3e390093eeb9ee64b598412c4b5baf2033972647f4d8354d19fb0e85ffea98",
     "android/backend/src/test/java/org/stemnotebook/backend/ActiveCaptureJournalTest.kt": "3e0e5af8b43c34235d3fae62ee139fd2f3c57b0a69797288cbe454adb173bcd2",
-    "android/backend/src/test/java/org/stemnotebook/backend/BackendAdmissionIntegrationTest.kt": "6619bcc5b36d51ec658f2d46d1a88c6fa5667366442485a31647109be32cfd0b",
+    "android/backend/src/test/java/org/stemnotebook/backend/BackendAdmissionIntegrationTest.kt": "48527b72aaabf1936aab998240fc1c4f5875d193b5cb2a8fe8b338f68a2addaa",
     "android/backend/src/test/java/org/stemnotebook/backend/BackendOwnershipTest.kt": "ea9243a72af948a4887ea97deb464813b41cbda23b2d277834a846e4544d9bc2",
     "android/backend/src/test/java/org/stemnotebook/backend/BackendWriterTest.kt": "14f6c8c5bd1c6ca8a7c565b9d1ff63304de6529f178438e4692ae5137511604c",
     "android/backend/src/test/java/org/stemnotebook/backend/CaptureOutboxTest.kt": "ee9bd2ac5c457bcb5cad70b544aae1eb25c03107be28ca1e74542a8120aad725",
@@ -108,9 +108,10 @@
     "core/src/store/proposals.rs": "2d73ff55ba9e79d0029bd4a70cc7909047d007a848da71d7bd654dc610a2c79f",
     "core/src/store/regions.rs": "ef657c642542176573dfe72977e4bcaca575dbbdca9235f4444d7d7a06b63d16",
     "core/src/store/workspace.rs": "9a69cffa6c09565c8fa96855f17eec723167954aa66b26acde45040dfd624a26",
-    "core/src/store/writing.rs": "fa0e592a2998d31357f951b04638d17d2c17705004f6905bee41fec805142c78",
+    "core/src/store/writing.rs": "70211c7fd1696b30c97bb2ec54ce86ce979bd102de6bd7f617e961f555789ad9",
     "core/tests/backup.rs": "402566660c30aba0edf7d32cc1275d965de033bf1741e6a98c2db9edc92d3030",
     "core/tests/capture.rs": "07ff499ab18ead9a03e15cb31f292e5a8d39d1ae4dd25a7eb2cdbc6aef7a7dff",
+    "core/tests/capture_privacy.rs": "fac1b3f429f467ec4f51aaa2920b62456926aa1aa35e5a99b0358ac003901648",
     "core/tests/capture_recovery.rs": "118d36ea5db4bb769856679f778f937e8f72acc8949bec687da8a2e9b1173a4b",
     "core/tests/common/mod.rs": "4257fc12f3f78d69ac8da4a7586ae2984216936feb53ace2836c01b013ee1a58",
     "core/tests/converters.rs": "804296aa85a721207230cd5f710b41eb851904a3de3bd73bf6b4de46a8379a91",
@@ -180,21 +181,21 @@
     "docs/licensing/dependency-inventory.json": "c86a26e424db68595a545e056ad6726307d9167b564590ea565bba3e08c05c32",
     "docs/spec/approved-v0.5.8.md": "68612d4dc4d0e69c61f0018fbcf67bf779559bcbb120bcd0f6c3f9333f27b7b3",
     "docs/verification/DEFERRED_MANUAL.md": "c694b9fe185c216204dfd72aa6c55d1f8d21e06c431bb50b126bce1a6b514e1c",
-    "docs/verification/HOST_INTEGRATION.md": "df0e78de116b1162c9e5c9294194916de2ab3986ae5dd5ea391b83745a18c53a",
-    "docs/verification/TEST_PLAN.md": "e6f204a174dd7e231adc050eb2271b9c213a80b8628d4f6f3cb779cf1f35c735",
-    "docs/verification/backend-gaps.json": "90fab61b6f7ba6728708d5a431f2c821fca2e0f6f1cef03e8c2025b170dea552",
-    "docs/verification/candidates-current.csv": "ea863c46ab9fb254b5d8ad060cfc005211b3910902377a2fcbde2aefc535dc38",
-    "docs/verification/inherited-current.csv": "15088592b1ecce9b45f6cd277d1fd55e8504d9f9b359002320e38186374cea5d",
-    "docs/verification/requirements-current.csv": "d44ef9b3509a98fe93fb3a00dcfe8a489cbc92348731e1e3aaaa6ccd9749db20",
+    "docs/verification/HOST_INTEGRATION.md": "5e42a5bf7429ec31629ae5e70807ae7a164ac75b607622e953a4fb75e8e381c2",
+    "docs/verification/TEST_PLAN.md": "ebff042f2019d5b2afdda9eaa76deff4efcd5483bdeba10308ae6ca219a50b62",
+    "docs/verification/backend-gaps.json": "9dc814fdb6fc94ef9518be0548b40c2c48cb61fc8b6c0f54cacb2188850d4a73",
+    "docs/verification/candidates-current.csv": "e1b61fe38d25c1f38de49ff90c714f4fdfba1e73746e581ce7a2621cda186221",
+    "docs/verification/inherited-current.csv": "c539a22c071d351532f1e4fdb7d2902f8f1af624f4f9fd10f27bc60c762bc9e2",
+    "docs/verification/requirements-current.csv": "a627de39c579ee5f41358c00e90acc980233a773f3e114f651b3faa3371f214e",
     "docs/verification/traceability-manifest.json": "15d09e00b540a512b8e0b6afd98b06824e93d743d80317963ebe18d91d3adb22",
     "rust-toolchain.toml": "c33d1f0b1b8fda448bea32d7dc867aa64947c87169fd9de7122ffccad1dd80f9",
     "tools/backend_gate.py": "f2e695b770631ef9dcff18125b737665b3153be72f0bb8992007f151fc1e762d",
     "tools/dependency_inventory.py": "51dc9dcd28cab69c8af36b976d65aa67557d6afe8827be162a431d1854232315",
-    "tools/traceability.py": "d463041ba7c6e1c0cc32768261f50830a6e16e9e68526dce232a4c94616e5e39",
+    "tools/traceability.py": "0228b2ab8ea850bc633c2649fe4b0a3a229b56112879f85871365cada4f6b170",
     "tools/validate.py": "2a25d3f4c6d487754f7b73bc0f415809cdf9e8416fe9f651f0302522a373711a",
     "tools/validate_android.py": "54269646d3c5eefaba3b410e5727ecef2eb49b26d18fc86291ea90ccdc4b79d5"
   },
-  "started_utc": "2026-10-23T20:17:18.137998+00:00",
+  "started_utc": "2026-10-23T20:44:28.928651+00:00",
   "checks": [
     {
       "name": "android-native",
@@ -289,18 +290,18 @@
     "CC_aarch64_linux_android": "/tmp/stem-android-sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android30-clang",
     "AR_aarch64_linux_android": "/tmp/stem-android-sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar"
   },
-  "full_working_tree_before": "",
-  "aar_sha256": "fb256511cbca7e5dc94f386257eb22d975ffe0bb78bfefccf7217d224dd36e0b",
-  "packaged_arm64_library_bytes": 4751800,
+  "full_working_tree_before": " M docs/evidence/latest/android-elf.log\n M docs/evidence/latest/android-gradle.log\n M docs/evidence/latest/android-native.log\n M docs/evidence/latest/android-validation.json\n M docs/evidence/latest/jni-library.log\n?? docs/evidence/continuation-2026-10-23/capture-privacy/",
+  "aar_sha256": "c179ba7c9a1e1dfdbc889e1aee5783ac7fd9dcb4411adc996dfc25af9ad3e82c",
+  "packaged_arm64_library_bytes": 4752936,
   "android_tests": {
-    "tests": 113,
+    "tests": 114,
     "failures": 0,
     "errors": 0,
     "skipped": 0
   },
   "jni_assertions": 10,
   "merged_manifest_policy": "PASS",
-  "native_sha256": "e7766d1be644c11aec379f80402edbb9a2dbc432c27e6d904bef3be00276b577",
+  "native_sha256": "407cc8ca86b8236c55a43bb9afec5ea3b2927a53ac45036c8d74015c34fec9a0",
   "manifest_scope": "AAR merge contract only: INTERNET removal marker, no backup/transfer, no cleartext, isolated non-exported PDF service. Final APK/device enforcement NOT RUN.",
-  "finished_utc": "2026-10-23T20:22:24.136803+00:00"
+  "finished_utc": "2026-10-23T20:46:35.872268+00:00"
 }
