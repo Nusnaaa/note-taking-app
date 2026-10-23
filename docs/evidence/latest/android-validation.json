@@ -1,5 +1,5 @@
 {
-  "source_commit": "303d1dbaad4634016025401785635ed52d155062",
+  "source_commit": "af80108bbe408e5531a50366bd41cb04a849ddd9",
   "working_tree_before": "",
   "source_sha256": {
     ".gitignore": "47df1768ba52b16ac4fd14a3042d10ecc149fe248e1ddeb2b100a177d279f9f9",
@@ -94,7 +94,7 @@
     "core/src/objects.rs": "071a855f967d86b13f2549667538bf8e90d49003f503d95feed766a52d60440b",
     "core/src/portable.rs": "59d85f6a8c7f2312396c6bc92e08d199c08e4a7dbf08b60d417679ebc53463a1",
     "core/src/processing.rs": "445db89b3382614cc74ef5f0c789a63136a519dfedfb48001f3d1fd1af26b0f3",
-    "core/src/provisioning.rs": "79939df42ac8e3f020124c742164cc11b1e307f80c36671d06e588d437a34745",
+    "core/src/provisioning.rs": "d372e0dc3e3bdd2ecf620843e61a723d77cfdf80d0ea927bba7d442c91eb2e25",
     "core/src/render.rs": "49efca3a4d906df3c25036e1ab664e089f584b4aca8ff54f0de73a4f2e167cf0",
     "core/src/security.rs": "e890170726ecf8a7cd2bf2bf34774e386e16b22e53cf244f35d51e630923770a",
     "core/src/sources.rs": "54574b289cdb178e0cae3cb6b730a55bbe6689434675b3e79f2f53bef3a48a0d",
@@ -137,7 +137,7 @@
     "core/tests/pdf_revisions.rs": "a50c148003a6a8ff896331a70e4879eb58dae39f02bbb7a5fe0b433bf5813455",
     "core/tests/portable.rs": "204225c15c8cdb1c6171002b14c1fd526ef02e4c0abc3996fb71e48990996ffe",
     "core/tests/positions.rs": "991d62fbb00652e7913660ba19af277b7814f12606af557265df5ac53e4e2b93",
-    "core/tests/provisioning.rs": "a4b199bc7e8a07a869de371a8117f79d703dc9dbfba1b8e7c1152a3f2439e23c",
+    "core/tests/provisioning.rs": "93a934dd4e6301fc12d5ea5e15f1282f2d17fc5911b0b9cc72aa34d1946fb0cd",
     "core/tests/recognition.rs": "bd1551ba19e5dc87f9323d3aab5e9cfeb31abf21cab2fca994ea8f091545a3c3",
     "core/tests/recovery.rs": "2b61ad4f8dc3d335c2251845263725b9d59504449d2dd87e0837ce6d1153f2c2",
     "core/tests/regions.rs": "a49f05d5b3e1d425abcd0fccb15dea283951d6a391306dc702582de4109091b3",
@@ -187,21 +187,21 @@
     "docs/licensing/dependency-inventory.json": "c86a26e424db68595a545e056ad6726307d9167b564590ea565bba3e08c05c32",
     "docs/spec/approved-v0.5.8.md": "68612d4dc4d0e69c61f0018fbcf67bf779559bcbb120bcd0f6c3f9333f27b7b3",
     "docs/verification/DEFERRED_MANUAL.md": "c694b9fe185c216204dfd72aa6c55d1f8d21e06c431bb50b126bce1a6b514e1c",
-    "docs/verification/HOST_INTEGRATION.md": "5b7b91347f8a248c110a6d6629d204dd7260de394ba7b9b3971c4a535dcdbb2a",
+    "docs/verification/HOST_INTEGRATION.md": "3feb86ca76c98fc64b0b9cf066459a3aead24884bab059a72aa67a802a22fd85",
     "docs/verification/TEST_PLAN.md": "b87eb3dba1b3074e9d8ab4b38ab9ac0323aa7d1c09dc01b800aa007893c511d9",
-    "docs/verification/backend-gaps.json": "8e891f19b0d2308e6f8a69ec28802b7f373f0544e620d956a65e36158ae988a3",
-    "docs/verification/candidates-current.csv": "bc85b1c2a09649631724983701ee2b7a536112adc51e341c4ac10f1c080ed040",
-    "docs/verification/inherited-current.csv": "7daa98063a3829d4dbe89ff9c81acd70c6c32a3570a875e145260f4d1d679656",
-    "docs/verification/requirements-current.csv": "dd5195478499cc662bc23d7e4b438cf6463b5f0faa05610a5a11e60e6472d2f7",
+    "docs/verification/backend-gaps.json": "1d6dcf7b2836c3d03c715f34a96d1dfb452d91bc25c6566b1b1fcb384bcf44b8",
+    "docs/verification/candidates-current.csv": "3307516ef15e0d78ccc7e4af02db251fa80ae225af97e0ef6d50f656ed5c30f2",
+    "docs/verification/inherited-current.csv": "29eebb7b659db1c6884a1c779b4e987886158be5e7116e1cbf1c9fa87f967a03",
+    "docs/verification/requirements-current.csv": "afa1f5b940c7d577ae4339073f4847a6600ed5eb506c9a01e73db26b060a268a",
     "docs/verification/traceability-manifest.json": "15d09e00b540a512b8e0b6afd98b06824e93d743d80317963ebe18d91d3adb22",
     "rust-toolchain.toml": "c33d1f0b1b8fda448bea32d7dc867aa64947c87169fd9de7122ffccad1dd80f9",
     "tools/backend_gate.py": "f2e695b770631ef9dcff18125b737665b3153be72f0bb8992007f151fc1e762d",
     "tools/dependency_inventory.py": "51dc9dcd28cab69c8af36b976d65aa67557d6afe8827be162a431d1854232315",
-    "tools/traceability.py": "877a779a9e91ad9d3d8be6592e5308442d43392f53f5d13eee9c372d7e1002c2",
+    "tools/traceability.py": "2ffe46eb5e829b9d707df5f6b05fab9d78b3fe39d9e5c20a3a854008d82ddc5a",
     "tools/validate.py": "2a25d3f4c6d487754f7b73bc0f415809cdf9e8416fe9f651f0302522a373711a",
     "tools/validate_android.py": "54269646d3c5eefaba3b410e5727ecef2eb49b26d18fc86291ea90ccdc4b79d5"
   },
-  "started_utc": "2026-10-23T22:06:18.011467+00:00",
+  "started_utc": "2026-10-23T22:13:20.216426+00:00",
   "checks": [
     {
       "name": "android-native",
@@ -296,9 +296,9 @@
     "CC_aarch64_linux_android": "/tmp/stem-android-sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android30-clang",
     "AR_aarch64_linux_android": "/tmp/stem-android-sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar"
   },
-  "full_working_tree_before": " M docs/evidence/latest/android-gradle.log\n M docs/evidence/latest/android-native.log\n M docs/evidence/latest/android-validation.json\n M docs/evidence/latest/jni-library.log\n?? docs/evidence/Capture_Retarget_2026-10-23.md\n?? docs/evidence/continuation-2026-10-23/capture-retarget/",
-  "aar_sha256": "2cde5e32a04f616b6940695fb80a03ce42d8fa4cf9d93aa25093958dc29e0828",
-  "packaged_arm64_library_bytes": 4865728,
+  "full_working_tree_before": "?? docs/evidence/continuation-2026-10-23/resource-handles/",
+  "aar_sha256": "224f726ee7b5a7d08eba763b06685fc0477580d461ea0e10579f0bc78602acc9",
+  "packaged_arm64_library_bytes": 4865872,
   "android_tests": {
     "tests": 129,
     "failures": 0,
@@ -307,7 +307,7 @@
   },
   "jni_assertions": 10,
   "merged_manifest_policy": "PASS",
-  "native_sha256": "41654d939d445d57be20ebd5a9bc043cd0211c2685709b881318da0126863e59",
+  "native_sha256": "cf319c3f9c353c66ad80f52701261bd9dc57d1b1a99be1ffdde2406486b9a29f",
   "manifest_scope": "AAR merge contract only: INTERNET removal marker, no backup/transfer, no cleartext, isolated non-exported PDF service. Final APK/device enforcement NOT RUN.",
-  "finished_utc": "2026-10-23T22:08:47.080452+00:00"
+  "finished_utc": "2026-10-23T22:18:57.273126+00:00"
 }

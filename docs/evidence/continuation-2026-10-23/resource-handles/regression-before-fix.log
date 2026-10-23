@@ -1,0 +1,25 @@
+$ cargo test -p stem-core --test provisioning worker_file_clone_keeps_resource_reserved_after_owner_is_dropped --locked --offline
+exit_code=101
+
+   Compiling stem-core v0.1.0 (/home/linus/Projects/software/note-taking-app/repo/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.30s
+     Running tests/provisioning.rs (target/debug/deps/provisioning-e0a8c4c01f56f53a)
+
+running 1 test
+test worker_file_clone_keeps_resource_reserved_after_owner_is_dropped ... FAILED
+
+failures:
+
+---- worker_file_clone_keeps_resource_reserved_after_owner_is_dropped stdout ----
+
+thread 'worker_file_clone_keeps_resource_reserved_after_owner_is_dropped' panicked at core/tests/provisioning.rs:100:5:
+assertion failed: matches!(pool.remove(&path), Err(Error::Conflict))
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    worker_file_clone_keeps_resource_reserved_after_owner_is_dropped
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p stem-core --test provisioning`
