@@ -1,10 +1,10 @@
 # Phase A progress — authoring, Android boundary and backend testing
 
 > Current continuation status — 23 October 2026: backend acceptance remains NOT MET
-> and production H.I. is not authorised. The latest validated source is `32ad19e`;
-> see [ownership and shutdown evidence](Library_Ownership_2026-10-23.md) and
-> [continuation provenance](Backend_Continuation_2026-10-23.md). Its 164 Rust tests,
-> 70 Android tests, nine JNI groups and matching exact-source validation passed.
+> and production H.I. is not authorised. The latest validated source is `1f0e03c`;
+> see [interrupted-capture evidence](Interrupted_Capture_2026-10-23.md) and
+> [continuation provenance](Backend_Continuation_2026-10-23.md). Its 170 Rust tests,
+> 74 Android tests, nine JNI groups and matching exact-source validation passed.
 > The 22 October report below is historical; its original `latest/` artifacts are
 > recoverable at `83b80b7`. The current `latest/` directory records the newer run.
 

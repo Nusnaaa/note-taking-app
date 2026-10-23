@@ -1,4 +1,6 @@
 $ /tmp/stem-cargo/bin/cargo build -p stem-bridge --target aarch64-linux-android --release --locked --offline
 exit_code=0
 
-    Finished `release` profile [optimized] target(s) in 0.16s
+   Compiling stem-core v0.1.0 (/home/linus/Projects/software/note-taking-app/repo/core)
+   Compiling stem-bridge v0.1.0 (/home/linus/Projects/software/note-taking-app/repo/bridge)
+    Finished `release` profile [optimized] target(s) in 2m 24s
