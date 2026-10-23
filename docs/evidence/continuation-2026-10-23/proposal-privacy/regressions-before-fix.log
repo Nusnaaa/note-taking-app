@@ -1,0 +1,41 @@
+$ cargo test -p stem-core --test recognition stored_proposal_ --locked --offline
+exit_code=101
+
+   Compiling stem-core v0.1.0 (/home/linus/Projects/software/note-taking-app/repo/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.66s
+     Running tests/recognition.rs (target/debug/deps/recognition-52d99c75a7a4042e)
+
+running 3 tests
+test stored_proposal_identity_mismatch_cannot_acknowledge_a_correction ... FAILED
+test stored_proposal_protection_precedes_malformed_payload_parsing ... FAILED
+test stored_proposal_cannot_rebind_protected_output_to_a_public_block ... FAILED
+
+failures:
+
+---- stored_proposal_identity_mismatch_cannot_acknowledge_a_correction stdout ----
+
+thread 'stored_proposal_identity_mismatch_cannot_acknowledge_a_correction' panicked at core/tests/recognition.rs:383:5:
+assertion failed: matches!(store.correct_proposal(proposal.id,
+    Content::Text("explicit correction".into()), &public),
+    Err(Error::Integrity))
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- stored_proposal_protection_precedes_malformed_payload_parsing stdout ----
+
+thread 'stored_proposal_protection_precedes_malformed_payload_parsing' panicked at core/tests/recognition.rs:365:5:
+assertion failed: matches!(store.proposal(proposal.id, &public), Err(Error::Denied))
+
+---- stored_proposal_cannot_rebind_protected_output_to_a_public_block stdout ----
+
+thread 'stored_proposal_cannot_rebind_protected_output_to_a_public_block' panicked at core/tests/recognition.rs:347:5:
+assertion failed: matches!(store.proposal(proposal.id, &public), Err(Error::Denied))
+
+
+failures:
+    stored_proposal_cannot_rebind_protected_output_to_a_public_block
+    stored_proposal_identity_mismatch_cannot_acknowledge_a_correction
+    stored_proposal_protection_precedes_malformed_payload_parsing
+
+test result: FAILED. 0 passed; 3 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.08s
+
+error: test failed, to rerun pass `-p stem-core --test recognition`
