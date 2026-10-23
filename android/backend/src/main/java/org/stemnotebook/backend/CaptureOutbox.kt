@@ -80,8 +80,9 @@ class CaptureOutbox(private val directory: File, private val maximumBytes: Long 
 
 object CaptureRequest {
     /** Double.toString preserves a measured negative zero and avoids float casts. */
-    fun encode(ticket: UUID, entity: UUID, coordinateSpace: String, strokes: List<CompletedStroke>): String {
-        require(coordinateSpace.isNotEmpty() && coordinateSpace.toByteArray().size <= 256 && strokes.isNotEmpty())
+    fun encode(ticket: UUID, entity: UUID, coordinateSpace: String, strokes: List<CompletedStroke>, layer: CaptureLayer? = null): String {
+        val encodedSpace = Charsets.UTF_8.newEncoder().onMalformedInput(java.nio.charset.CodingErrorAction.REPORT).onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT).encode(java.nio.CharBuffer.wrap(coordinateSpace))
+        require(coordinateSpace.isNotEmpty() && encodedSpace.remaining() <= 256 && strokes.isNotEmpty())
         fun quote(value: String): String = buildString {
             append('"')
             for (c in value) when (c) {
@@ -109,6 +110,10 @@ object CaptureRequest {
             "{\"id\":${quote(stroke.id)},\"capture_session\":${quote(stroke.session)},\"sequence\":${stroke.sequence},\"pointer_id\":${stroke.pointer},\"coordinate_space\":${quote(coordinateSpace)},\"tool\":\"${if (stroke.eraser) "Eraser" else "Pen"}\",\"points\":[$points]$ending$style}"
         }.joinToString(",")
         require(strokes.map { it.id }.toSet().size == strokes.size)
+        if (layer != null) {
+            val target = org.json.JSONObject().put("CanvasLayer", org.json.JSONObject().put("canvas", entity.toString()).put("layer", layer.wire()))
+            return "{\"version\":1,\"command\":{\"op\":\"CaptureTo\",\"ticket\":\"$ticket\",\"target\":$target,\"strokes\":[$encoded]}}"
+        }
         return "{\"version\":1,\"command\":{\"op\":\"Capture\",\"ticket\":\"$ticket\",\"entity\":\"$entity\",\"strokes\":[$encoded]}}"
     }
 }

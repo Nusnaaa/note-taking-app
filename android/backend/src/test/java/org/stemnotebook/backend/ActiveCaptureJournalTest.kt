@@ -22,8 +22,26 @@ class ActiveCaptureJournalTest {
         val journal = ActiveCaptureJournal(root, legacyLibrary); val before = journal.read(ticket); assertNull(before.stroke.style)
         assertEquals((-0.0).toRawBits(), before.stroke.points.single().x.toRawBits()); assertEquals(0.0, before.stroke.points.single().pressure!!, 0.0)
         journal.recoverActive(); assertNull(journal.read(ticket).stroke.style); assertEquals(before.stroke.points, journal.read(ticket).stroke.points)
-        assertEquals("STEMAC02", String(file.readBytes().copyOfRange(0, 8), Charsets.US_ASCII))
+        assertEquals("STEMAC03", String(file.readBytes().copyOfRange(0, 8), Charsets.US_ASCII))
         assertEquals(0, journal.drain { error("Recovered prefix requires review") })
+    }
+    @Test fun versionTwoGoldenRecordPreservesStyleWithoutInventingADestination() {
+        val root = temporary.newFolder(); val legacyLibrary = UUID(0, 1); val ticket = UUID(0, 3)
+        File(root, "0000000000000000000-$ticket.prefix").writeBytes(java.util.Base64.getDecoder().decode("U1RFTUFDMDIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAABwAAAAABEYD/QD/jMzMzMzMzAAAAC2ZpeGVkLXNwYWNlAAAAAYAAAAAAAAAAP/QAAAAAAAAAAAAAAAAACgEAAAAAAAAAAPjd+K3N+C37gfeypj9fNmJ6X5oi3zh8uKlj6iJtFwIj"))
+        val journal = ActiveCaptureJournal(root, legacyLibrary)
+        assertEquals(StrokeStyle(17, 128, 255, 64, 0.6), journal.read(ticket).stroke.style); assertNull(journal.read(ticket).layer)
+        journal.recoverActive(); assertNull(journal.read(ticket).layer)
+        assertEquals(StrokeStyle(17, 128, 255, 64, 0.6), journal.read(ticket).stroke.style)
+    }
+    @Test fun layerDestinationIsDurableAndCannotBeReboundByLaterCheckpointsOrRecovery() {
+        val root = temporary.newFolder(); val source = stroke(); val ticket = UUID.fromString(source.id); val layer = CaptureLayer.Custom(UUID.randomUUID())
+        val journal = ActiveCaptureJournal(root, library); journal.checkpoint(entity, "fixed-space", 0, source, layer = layer)
+        assertThrows(IllegalArgumentException::class.java) { journal.checkpoint(entity, "fixed-space", 1, source, layer = CaptureLayer.Base) }
+        val reopened = ActiveCaptureJournal(root, library); reopened.recoverActive(); assertEquals(layer, reopened.read(ticket).layer)
+        val entry = reopened.read(ticket); assertEquals(source.points, entry.stroke.points)
+        reopened.approve(ticket, reopened.checksum(ticket)); assertEquals(1, reopened.drain { assertEquals(layer, it.layer); true })
+        val base = stroke(); reopened.checkpoint(entity, "fixed-space", 0, base, layer = CaptureLayer.Base)
+        assertEquals(CaptureLayer.Base, reopened.read(UUID.fromString(base.id)).layer)
     }
     @Test fun styleSurvivesBinaryRecoveryAndCannotBeReboundByAChangedCheckpointHeader() {
         val root = temporary.newFolder(); val chosen = StrokeStyle(17, 128, 255, 64, 0.12345678901234567); val source = stroke().copy(style = chosen); val ticket = UUID.fromString(source.id)

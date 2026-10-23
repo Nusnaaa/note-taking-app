@@ -6,7 +6,7 @@ import java.util.concurrent.CompletableFuture
 
 /** Owns input identity and stale-frame admission. Rejection returns the caller's
  * immutable observations; checkpointed is distinct from a SQLite commit. */
-class JournaledCaptureSession internal constructor(internal val backend: NotebookBackend, internal val entity: UUID, internal val space: String, style: StrokeStyle? = null) {
+class JournaledCaptureSession internal constructor(internal val backend: NotebookBackend, internal val entity: UUID, internal val space: String, style: StrokeStyle? = null, val layer: CaptureLayer? = null) {
     val id: UUID = UUID.randomUUID()
     private val motion = MotionCapture(InkAccumulator(sessionId = id)).apply { setStyle(style) }
     private var revision = 0L

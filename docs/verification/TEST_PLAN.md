@@ -246,3 +246,10 @@ and current Trash permissions/pagination. Android actual-JNI tests now execute r
 Trash/restore/permanent deletion, preserve negative-zero source samples through
 restore and retire source on purge; retired-target recovery setup also uses the real
 host commands rather than synthetic persisted flags.
+
+Layer-target capture fixtures check atomic source/membership undo/redo/reopen, exact
+receipt retry after layer removal, rejection of new missing/wrong-kind/protected
+destinations and rollback. Android fixtures freeze STEMAC01/02 golden records,
+preserve destination through recovery, reject destination rebinding and exercise
+real JNI fixed-layer capture/retry/missing-layer restart/review/discard. Legacy
+request tests reject unpaired UTF-16 without changing valid vector encoding.

@@ -49,6 +49,9 @@ class CaptureOutboxTest {
         val point = ObservedPoint(-0.0, 3.125, 2, null, 0.0, null, null)
         val stroke = CompletedStroke(UUID.randomUUID().toString(), UUID.randomUUID().toString(), 0, 1, false, listOf(point))
         val json = CaptureRequest.encode(UUID.randomUUID(), UUID.randomUUID(), "page\"\\\n", listOf(stroke))
+        assertThrows(java.nio.charset.CharacterCodingException::class.java) {
+            CaptureRequest.encode(UUID.randomUUID(), UUID.randomUUID(), 0xD800.toChar().toString(), listOf(stroke))
+        }
         assertTrue(json.contains("\"x\":-0.0"))
         assertTrue(json.contains("\"pressure\":null"))
         assertTrue(json.contains("\"tilt_rad\":0.0"))

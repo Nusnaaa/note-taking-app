@@ -418,6 +418,9 @@ impl Store {
             if let WritingTarget::Exercise(exercise) = target {
                 Self::set_membership(db, b.id, Some(exercise))?;
             }
+            if let WritingTarget::CanvasLayer { canvas, layer } = target {
+                Self::attach_new_block_to_layer(db, canvas, layer, b.id, access)?;
+            }
             for s in &strokes {
                 let payload = serde_json::to_string(s)?;
                 db.execute(

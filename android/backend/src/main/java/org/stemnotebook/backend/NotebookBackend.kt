@@ -64,7 +64,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
                     if (legacy.pendingCount() != 0) recoveryAttention = true
                 } catch (_: Exception) { recoveryAttention = true }
                 journal.drain { entry ->
-                    try { JSONObject(NativeBridge.request(nativeHandle, CaptureRequest.encode(entry.ticket, entry.entity, entry.space, listOf(entry.stroke)))).getBoolean("ok") }
+                    try { JSONObject(NativeBridge.request(nativeHandle, CaptureRequest.encode(entry.ticket, entry.entity, entry.space, listOf(entry.stroke), entry.layer))).getBoolean("ok") }
                     catch (_: Exception) { recoveryAttention = true; false }
                 }
                 recoveryAttention = recoveryAttention || journal.pendingCount() != 0 || journal.incompleteCount() != 0
@@ -104,12 +104,12 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
     private fun strokeBytes(strokes: List<CapturedStroke>, space: String): Long = inputBytes(space) + strokes.sumOf { 512L + inputBytes(it.id, it.session) + it.points.size.toLong() * 128 }
     fun writerStatus(): BackendAdmissionStatus = executor.snapshot()
     fun observeWriterStatus(): BackendStatusSubscription = executor.subscribe()
-    @Synchronized fun openCaptureSession(entity: UUID, coordinateSpace: String, style: StrokeStyle? = null): JournaledCaptureSession {
+    @Synchronized fun openCaptureSession(entity: UUID, coordinateSpace: String, style: StrokeStyle? = null, layer: CaptureLayer? = null): JournaledCaptureSession {
         check(!closed)
         val encoded = Charsets.UTF_8.newEncoder().onMalformedInput(java.nio.charset.CodingErrorAction.REPORT).onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT).encode(java.nio.CharBuffer.wrap(coordinateSpace))
         require(coordinateSpace.isNotEmpty() && encoded.remaining() <= 256)
         check(captureSessions.size < 16)
-        return JournaledCaptureSession(this, entity, coordinateSpace, style).also { captureSessions += it }
+        return JournaledCaptureSession(this, entity, coordinateSpace, style, layer).also { captureSessions += it }
     }
     @Synchronized internal fun retireCaptureSession(session: JournaledCaptureSession) { captureSessions.remove(session) }
     @Synchronized internal fun checkpointCapture(session: JournaledCaptureSession, stroke: CapturedStroke, revision: Long, cancelled: Boolean): CompletableFuture<JournaledCaptureSession.Receipt> {
@@ -125,7 +125,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
     private fun captureWasCommitted(ticket: UUID, entity: UUID): Boolean = nativeCaptureCommand(JSONObject().put("op", "CaptureReceipt").put("ticket", ticket.toString()).put("entity", entity.toString())).getBoolean("committed")
     private fun sendCheckpoint(entry: ActiveCaptureJournal.Entry): Boolean {
         val ok = try {
-            val reply = JSONObject(NativeBridge.request(handle.join(), CaptureRequest.encode(entry.ticket, entry.entity, entry.space, listOf(entry.stroke))))
+            val reply = JSONObject(NativeBridge.request(handle.join(), CaptureRequest.encode(entry.ticket, entry.entity, entry.space, listOf(entry.stroke), entry.layer)))
             reply.getInt("version") == 1 && reply.getBoolean("ok")
         } catch (_: Exception) { false }
         if (!ok) { recoveryAttention = true; executor.markAttention() }
@@ -139,7 +139,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
             if (!journal.contains(ticket) && ticket !in session.seen) {
                 if (captureWasCommitted(ticket, session.entity)) {
                     require(!cancelled && stroke.end != StrokeEnd.InProgress)
-                    val already = ActiveCaptureJournal.Entry(0, UUID.fromString(NativeBridge.captureLibraryIdentity(handle.join())), session.entity, session.space, revision, stroke)
+                    val already = ActiveCaptureJournal.Entry(0, UUID.fromString(NativeBridge.captureLibraryIdentity(handle.join())), session.entity, session.space, revision, stroke, layer = session.layer)
                     check(sendCheckpoint(already))
                     return JournaledCaptureSession.Receipt(ticket, revision, true, true)
                 }
@@ -149,7 +149,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
                 session.latestSequence = stroke.sequence
             }
             session.seen[ticket] = revision
-            journal.checkpoint(session.entity, session.space, revision, stroke, cancelled)
+            journal.checkpoint(session.entity, session.space, revision, stroke, cancelled, session.layer)
             journal.drain(::sendCheckpoint)
             val remains = journal.contains(ticket)
             if (!remains) session.seen.remove(ticket)
@@ -162,8 +162,16 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
         return submitAdmitted({ val journal = activeJournal.join(); CaptureRecoveryState(outbox.join().pendingCount() + journal.pendingCount(), journal.incompleteCount(), recoveryAttention || journal.incompleteCount() != 0 || journal.reviewCount() != 0) }, executor, authoring = false)
     }
     enum class CaptureTargetState { Active, Trashed, Purged }
-    class CaptureRecoveryReview internal constructor(internal val owner: NotebookBackend, val ticket: UUID, val entity: UUID, val coordinateSpace: String, val stroke: CapturedStroke, val targetState: CaptureTargetState, internal val checksum: String)
+    class CaptureRecoveryReview internal constructor(internal val owner: NotebookBackend, val ticket: UUID, val entity: UUID, val coordinateSpace: String, val stroke: CapturedStroke, val targetState: CaptureTargetState, val layer: CaptureLayer?, val layerAvailable: Boolean?, internal val checksum: String)
     private fun recoveryAccess(entity: UUID): CaptureTargetState = CaptureTargetState.valueOf(nativeCaptureCommand(JSONObject().put("op", "CaptureRecoveryAccess").put("entity", entity.toString())).getString("state"))
+    private fun recoveryLayerAvailable(entry: ActiveCaptureJournal.Entry, state: CaptureTargetState): Boolean? {
+        if (state != CaptureTargetState.Active) return false
+        val layer = entry.layer ?: return true
+        return try {
+            val layers = nativeCaptureCommand(JSONObject().put("op", "CanvasLayers").put("canvas", entry.entity.toString())).getJSONArray("layers")
+            layer == CaptureLayer.Base || (0 until layers.length()).any { layers.getJSONObject(it).getString("id") == (layer as CaptureLayer.Custom).id.toString() }
+        } catch (_: java.io.IOException) { null } // Unknown metadata never blocks review of independently authored evidence.
+    }
     @Synchronized fun interruptedCaptureTickets(): CompletableFuture<List<UUID>> {
         check(!closed)
         return submitAdmitted({
@@ -178,7 +186,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
         return submitAdmitted({
             val journal = activeJournal.join(); val entry = journal.read(ticket); require(entry.stroke.end != StrokeEnd.InProgress && !entry.cancelled)
             val state = recoveryAccess(entry.entity)
-            CaptureRecoveryReview(this, ticket, entry.entity, entry.space, entry.stroke, state, journal.checksum(ticket))
+            CaptureRecoveryReview(this, ticket, entry.entity, entry.space, entry.stroke, state, entry.layer, recoveryLayerAvailable(entry, state), journal.checksum(ticket))
         }, executor, authoring = false)
     }
     @Synchronized fun acceptInterruptedCapture(review: CaptureRecoveryReview, confirmed: Boolean): CompletableFuture<Int> {
@@ -187,6 +195,8 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
         return submitAdmitted({
             val journal = activeJournal.join()
             nativeCaptureCommand(JSONObject().put("op", "Read").put("id", entity.toString()))
+            val entry = journal.read(ticket)
+            require(recoveryLayerAvailable(entry, CaptureTargetState.Active) == true) { "Capture layer requires review" }
             journal.approve(ticket, checksum)
             replayCaptures()
         }, executor, bytes = inputBytes(checksum))

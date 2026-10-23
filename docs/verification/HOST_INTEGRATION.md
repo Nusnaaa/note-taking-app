@@ -654,3 +654,39 @@ Private pending capture drafts are separate recovery evidence. Deletion never si
 discards or retargets them; the scoped review/discard path above remains available.
 A combined deletion preview showing pending-draft disposition is still open, as are
 complete all-operation history, recovery and device privacy acceptance.
+
+## Fixed canvas-layer capture destinations
+
+`AppendTo`/`CaptureTo` accept `target: {"CanvasLayer":{"canvas":ID,"layer":"Base"}}`
+or a Custom layer object in place of Base (`{"Custom":ID}`). Existing Entity and
+Exercise targets keep their encoded receipt identity. New blocks and custom-layer
+membership commit in the same transaction/undo operation. Membership advances the
+layer revision, without changing stroke coordinates, ending, style or ownership.
+Current canvas and whole-source protection apply; layer visibility grants no access.
+A hidden explicit destination stays that destination. Missing custom IDs require
+review and never fall back to base or another layer.
+
+Exact committed ticket retries validate current owner/block access before returning
+the existing receipt, even if the original layer was subsequently removed. They do
+not recreate membership or append again. Changing a target with the same ticket
+conflicts. A new ticket for a missing custom layer rejects atomically.
+
+Android `openCaptureSession(entity, coordinateSpace, style, layer)` accepts optional
+CaptureLayer.Base/Custom. The default null retains legacy Entity routing. A session's
+destination is immutable: interrupt it and open a new session when selecting a
+different layer, preserving all old submissions/retries at their original destination.
+Journal format STEMAC03 stores the destination independently of the immutable stroke
+header. It reads STEMAC01/02 as legacy Entity destinations without inventing a layer.
+Startup replay, normal checkpoint, retry and graceful close all use that fixed value.
+Legacy valid request bytes remain unchanged; malformed UTF-16 coordinate spaces now
+reject before UTF-8 replacement can corrupt their identity.
+
+Recovery reviews expose the recorded layer and its current availability under fresh
+source authority (true/false, or null when current layer metadata cannot be read).
+Unknown layer metadata does not prevent reviewing independently authored draft ink
+under its own context locks, and never authorises acceptance. Missing destinations remain reviewable and explicitly discardable,
+and acceptance checks current availability before approval. Restoring the same layer
+identity can make the original destination available again; there is no automatic
+retargeting or invented source sample. Deliberate retargeting to a different layer
+requires a future reviewed workflow and is not exposed here. Existing capacity,
+resource/lifecycle and production-H.I. gates still apply.

@@ -18,7 +18,7 @@ internal class ActiveCaptureJournal(
     private val maximumRecords: Int = 256,
     private val fault: (String) -> Unit = {},
 ) {
-    internal data class Entry(val ordinal: Long, val library: UUID, val entity: UUID, val space: String, val revision: Long, val stroke: CapturedStroke, val cancelled: Boolean = false, val review: Boolean = false) {
+    internal data class Entry(val ordinal: Long, val library: UUID, val entity: UUID, val space: String, val revision: Long, val stroke: CapturedStroke, val cancelled: Boolean = false, val review: Boolean = false, val layer: CaptureLayer? = null) {
         val ticket: UUID get() = UUID.fromString(stroke.id)
     }
     private var failed = false
@@ -41,11 +41,11 @@ internal class ActiveCaptureJournal(
     fun incompleteCount(): Int = ownFiles().count { it.name.endsWith(".incomplete") }
     fun read(ticket: UUID): Entry = decode(readBytes(fileFor(ticket) ?: throw IOException("Capture checkpoint unavailable"))).also { require(it.library == library) }
     fun checksum(ticket: UUID): String = MessageDigest.getInstance("SHA-256").digest(readBytes(checkNotNull(fileFor(ticket)))).joinToString("") { "%02x".format(it.toInt() and 255) }
-    fun checkpoint(entity: UUID, space: String, revision: Long, stroke: CapturedStroke, cancelled: Boolean = false): Entry {
+    fun checkpoint(entity: UUID, space: String, revision: Long, stroke: CapturedStroke, cancelled: Boolean = false, layer: CaptureLayer? = null): Entry {
         check(!failed)
         val ticket = UUID.fromString(stroke.id); val existing = fileFor(ticket)?.let { decode(readBytes(it)) }
         val ordinal = existing?.ordinal ?: records().lastOrNull()?.name?.substringBefore('-')?.toLong()?.let { check(it < Long.MAX_VALUE); it + 1 } ?: 0L
-        val proposed = Entry(ordinal, library, entity, space, revision, stroke, cancelled, stroke.end == StrokeEnd.Interrupted(StrokeInterruption.Recovery))
+        val proposed = Entry(ordinal, library, entity, space, revision, stroke, cancelled, stroke.end == StrokeEnd.Interrupted(StrokeInterruption.Recovery), layer)
         validate(proposed)
         if (existing != null) validateExtension(existing, proposed)
         publish(proposed)
@@ -90,7 +90,7 @@ internal class ActiveCaptureJournal(
         return committed
     }
     private fun validateExtension(old: Entry, next: Entry) {
-        require(old.ordinal == next.ordinal && old.library == next.library && old.entity == next.entity && old.space == next.space)
+        require(old.ordinal == next.ordinal && old.library == next.library && old.entity == next.entity && old.space == next.space && old.layer == next.layer)
         require(old.stroke.copy(points = emptyList(), end = StrokeEnd.InProgress) == next.stroke.copy(points = emptyList(), end = StrokeEnd.InProgress))
         require(next.revision >= old.revision)
         if (next.revision == old.revision) { require(old == next); return }
@@ -155,7 +155,8 @@ internal class ActiveCaptureJournal(
     companion object {
         private const val MAX_RECORD = 6L * 1024 * 1024
         private val LEGACY_MAGIC = "STEMAC01".toByteArray(Charsets.US_ASCII)
-        private val MAGIC = "STEMAC02".toByteArray(Charsets.US_ASCII)
+        private val STYLE_MAGIC = "STEMAC02".toByteArray(Charsets.US_ASCII)
+        private val MAGIC = "STEMAC03".toByteArray(Charsets.US_ASCII)
         private fun validate(entry: Entry) {
             require(entry.ordinal >= 0 && entry.revision >= 0 && entry.stroke.sequence >= 0 && entry.stroke.pointer >= 0)
             UUID.fromString(entry.stroke.id); UUID.fromString(entry.stroke.session)
@@ -179,6 +180,11 @@ internal class ActiveCaptureJournal(
                 out.writeBoolean(entry.cancelled); out.writeBoolean(entry.review)
                 out.writeBoolean(s.style != null)
                 s.style?.let { out.writeByte(it.red); out.writeByte(it.green); out.writeByte(it.blue); out.writeByte(it.alpha); out.writeLong(it.width.toRawBits()) }
+                when (val layer = entry.layer) {
+                    null -> out.writeByte(0)
+                    CaptureLayer.Base -> out.writeByte(1)
+                    is CaptureLayer.Custom -> { out.writeByte(2); uuid(layer.id) }
+                }
                 val space = entry.space.toByteArray(Charsets.UTF_8); out.writeInt(space.size); out.write(space); out.writeInt(s.points.size)
                 for (p in s.points) {
                     out.writeLong(p.x.toRawBits()); out.writeLong(p.y.toRawBits()); out.writeLong(p.timeUs)
@@ -194,11 +200,14 @@ internal class ActiveCaptureJournal(
             val input = DataInputStream(ByteArrayInputStream(payload))
             fun uuid() = UUID(input.readLong(), input.readLong())
             fun flag(): Boolean { val value = input.readUnsignedByte(); require(value in 0..1); return value == 1 }
-            val magic = ByteArray(8).also { input.readFully(it) }; require(magic.contentEquals(MAGIC) || magic.contentEquals(LEGACY_MAGIC))
+            val magic = ByteArray(8).also { input.readFully(it) }; require(magic.contentEquals(MAGIC) || magic.contentEquals(STYLE_MAGIC) || magic.contentEquals(LEGACY_MAGIC))
             val ordinal = input.readLong(); val library = uuid(); val entity = uuid(); val revision = input.readLong(); val id = uuid(); val session = uuid(); val sequence = input.readLong(); val pointer = input.readInt(); val eraser = flag()
             val end = when (input.readUnsignedByte()) { 0 -> StrokeEnd.InProgress; 1 -> StrokeEnd.Completed; 2 -> StrokeEnd.Interrupted(StrokeInterruption.Lifecycle); 3 -> StrokeEnd.Interrupted(StrokeInterruption.Recovery); else -> throw IOException("Capture checkpoint state invalid") }
             val cancelled = flag(); val review = flag()
-            val style = if (magic.contentEquals(MAGIC) && flag()) StrokeStyle(input.readUnsignedByte(), input.readUnsignedByte(), input.readUnsignedByte(), input.readUnsignedByte(), Double.fromBits(input.readLong())) else null
+            val style = if (!magic.contentEquals(LEGACY_MAGIC) && flag()) StrokeStyle(input.readUnsignedByte(), input.readUnsignedByte(), input.readUnsignedByte(), input.readUnsignedByte(), Double.fromBits(input.readLong())) else null
+            val layer = if (magic.contentEquals(MAGIC)) when (input.readUnsignedByte()) {
+                0 -> null; 1 -> CaptureLayer.Base; 2 -> CaptureLayer.Custom(uuid()); else -> throw IOException("Capture destination invalid")
+            } else null
             val length = input.readInt(); require(length in 1..256)
             val encoded = ByteArray(length).also { input.readFully(it) }; val space = Charsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT).onUnmappableCharacter(CodingErrorAction.REPORT).decode(java.nio.ByteBuffer.wrap(encoded)).toString()
             val count = input.readInt(); require(count in 1..100_000)
@@ -207,7 +216,7 @@ internal class ActiveCaptureJournal(
                 ObservedPoint(x, y, time, if (flags and 1 != 0) Double.fromBits(input.readLong()) else null, if (flags and 2 != 0) Double.fromBits(input.readLong()) else null, if (flags and 4 != 0) Double.fromBits(input.readLong()) else null, if (flags and 8 != 0) input.readInt() else null)
             }
             require(input.available() == 0)
-            return Entry(ordinal, library, entity, space, revision, CapturedStroke(id.toString(), session.toString(), sequence, pointer, eraser, points, end, style), cancelled, review).also { validate(it) }
+            return Entry(ordinal, library, entity, space, revision, CapturedStroke(id.toString(), session.toString(), sequence, pointer, eraser, points, end, style), cancelled, review, layer).also { validate(it) }
         }
     }
 }

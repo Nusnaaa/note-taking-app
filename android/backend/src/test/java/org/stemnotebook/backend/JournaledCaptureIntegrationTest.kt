@@ -33,6 +33,41 @@ class JournaledCaptureIntegrationTest {
         return MotionEvent.obtain(10, time, action, 1, arrayOf(property), arrayOf(coordinate), 0, 0, 1f, 1f, 0, 0, InputDevice.SOURCE_STYLUS, 0)
     }
     private fun submit(session: JournaledCaptureSession, action: Int, time: Long): JournaledCaptureSession.Submission = event(action, time).let { try { session.accept(it).single() } finally { it.recycle() } }
+    @Test(timeout = 30_000) fun fixedLayerCaptureAndMissingDestinationRecoveryNeverFallbackOrRewriteObservations() {
+        val root = temporary.newFolder(); val context = platform(root); var backend = NotebookBackend(context)
+        try {
+            val canvas = UUID.fromString(call(backend, JSONObject().put("op", "Create").put("kind", "Canvas").put("parent", JSONObject.NULL).put("title", "layer capture")).getJSONObject("data").getString("id"))
+            val layer = CaptureLayer.Custom(UUID.randomUUID())
+            val state = JSONObject().put("canvas", canvas.toString()).put("revision", 0).put("base_visible", false).put("layers", org.json.JSONArray().put(JSONObject().put("id", layer.id.toString()).put("name", "ink").put("visible", true).put("blocks", org.json.JSONArray())))
+            call(backend, JSONObject().put("op", "SetCanvasLayers").put("state", state).put("expected", 0))
+            val style = StrokeStyle(17, 128, 255, 64, 0.6)
+            val session = backend.openCaptureSession(canvas, "fixed-space", style, layer)
+            submit(session, MotionEvent.ACTION_DOWN, 10).receipt.get(5, TimeUnit.SECONDS)
+            val first = submit(session, MotionEvent.ACTION_UP, 20); assertTrue(first.receipt.get(5, TimeUnit.SECONDS).committed)
+            assertEquals(first.stroke.id, call(backend, JSONObject().put("op", "SourceInk").put("block", blocks(backend, canvas).getJSONObject(0).getString("id"))).getJSONArray("data").getJSONObject(0).getString("id"))
+            val saved = call(backend, JSONObject().put("op", "CanvasLayers").put("canvas", canvas.toString())).getJSONObject("data")
+            assertEquals(1, saved.getJSONArray("layers").getJSONObject(0).getJSONArray("blocks").length())
+            val revision = saved.getLong("revision"); saved.put("layers", org.json.JSONArray())
+            call(backend, JSONObject().put("op", "SetCanvasLayers").put("state", saved).put("expected", revision))
+            assertTrue(session.retry(first).receipt.get(5, TimeUnit.SECONDS).committed)
+            submit(session, MotionEvent.ACTION_DOWN, 30).receipt.get(5, TimeUnit.SECONDS)
+            val blocked = submit(session, MotionEvent.ACTION_UP, 40); assertFalse(blocked.receipt.get(5, TimeUnit.SECONDS).committed)
+            assertEquals(1, blocks(backend, canvas).length())
+            backend.closeFullyAsync().get(5, TimeUnit.SECONDS); backend = NotebookBackend(context)
+            val review = backend.reviewInterruptedCapture(UUID.fromString(blocked.stroke.id)).get(5, TimeUnit.SECONDS)
+            assertEquals(layer, review.layer); assertEquals(false, review.layerAvailable); assertEquals(style, review.stroke.style); assertEquals(blocked.stroke.points, review.stroke.points)
+            assertThrows(ExecutionException::class.java) { backend.acceptInterruptedCapture(review, true).get(5, TimeUnit.SECONDS) }
+            assertEquals(1, backend.pendingCaptures().get(5, TimeUnit.SECONDS).toInt()); assertEquals(1, blocks(backend, canvas).length())
+            val blockId = blocks(backend, canvas).getJSONObject(0).getString("id")
+            backend.authenticate("[{\"Block\":\"$blockId\"}]") { true }.get(5, TimeUnit.SECONDS)
+            call(backend, JSONObject().put("op", "SetBlockLock").put("block", blockId).put("revision", 0).put("locked", true))
+            call(backend, JSONObject().put("op", "Relock"))
+            val protectedReview = backend.reviewInterruptedCapture(UUID.fromString(blocked.stroke.id)).get(5, TimeUnit.SECONDS)
+            assertNull(protectedReview.layerAvailable); assertEquals(blocked.stroke.points, protectedReview.stroke.points)
+            assertThrows(ExecutionException::class.java) { backend.acceptInterruptedCapture(protectedReview, true).get(5, TimeUnit.SECONDS) }
+            backend.discardInterruptedCapture(protectedReview, true).get(5, TimeUnit.SECONDS)
+        } finally { backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
+    }
     @Test(timeout = 20_000) fun actualJniRetainsPerContactStyleAcrossConfigurationChangeAndExactRetry() {
         val backend = NotebookBackend(platform(temporary.newFolder()))
         try {

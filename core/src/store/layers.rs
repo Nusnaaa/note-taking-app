@@ -168,6 +168,37 @@ impl Store {
    Ok(state)
   })
     }
+    pub(crate) fn attach_new_block_to_layer(
+        db: &Connection,
+        canvas: Id,
+        layer: LayerRef,
+        block: Id,
+        access: &Access,
+    ) -> Result<()> {
+        Self::check_canvas(db, canvas, access)?;
+        Self::require_content_access(db, canvas, access)?;
+        let mut state = Self::raw_canvas_layers(db, canvas)?;
+        if !state.contains(layer) {
+            return Err(Error::ReviewRequired);
+        }
+        if let LayerRef::Custom(id) = layer {
+            let destination = state
+                .layers
+                .iter_mut()
+                .find(|l| l.id == id)
+                .ok_or(Error::Integrity)?;
+            destination.blocks.push(block);
+            state.validate()?;
+            Self::check_layer_references(db, &state, access)?;
+            state.revision = state
+                .revision
+                .checked_add(1)
+                .filter(|r| *r <= i64::MAX as u64)
+                .ok_or(Error::ResourceLimit)?;
+            db.execute("INSERT INTO canvas_layers VALUES(?1,?2) ON CONFLICT(canvas) DO UPDATE SET payload=excluded.payload",rusqlite::params![canvas.to_string(),serde_json::to_string(&state)?])?;
+        }
+        Ok(())
+    }
     pub fn set_embed_layers(
         &mut self,
         embed: Id,

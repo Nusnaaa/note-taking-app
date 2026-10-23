@@ -20,6 +20,7 @@ pub struct Exercise {
 pub enum WritingTarget {
     Entity(Id),
     Exercise(Id),
+    CanvasLayer { canvas: Id, layer: LayerRef },
 }
 
 #[derive(Debug, Clone)]
@@ -156,6 +157,10 @@ impl Store {
         access: &Access,
     ) -> Result<Id> {
         match target {
+            WritingTarget::CanvasLayer { canvas, .. } => {
+                Self::check_canvas(db, canvas, access)?;
+                Ok(canvas)
+            }
             WritingTarget::Entity(id) => {
                 Self::authorise(db, id, access, false)?;
                 Ok(id)
