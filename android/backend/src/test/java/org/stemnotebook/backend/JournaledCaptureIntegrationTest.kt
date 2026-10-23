@@ -33,6 +33,49 @@ class JournaledCaptureIntegrationTest {
         return MotionEvent.obtain(10, time, action, 1, arrayOf(property), arrayOf(coordinate), 0, 0, 1f, 1f, 0, 0, InputDevice.SOURCE_STYLUS, 0)
     }
     private fun submit(session: JournaledCaptureSession, action: Int, time: Long): JournaledCaptureSession.Submission = event(action, time).let { try { session.accept(it).single() } finally { it.recycle() } }
+    @Test(timeout = 30_000) fun explicitDiscardRetiresCallerHeldFramesEvenAfterSessionInterruption() {
+        for (interrupted in listOf(false, true)) for (combined in listOf(false, true)) {
+            val backend = NotebookBackend(platform(temporary.newFolder()))
+            try {
+                val canvas = UUID.fromString(call(backend, JSONObject().put("op", "Create").put("kind", "Canvas").put("parent", JSONObject.NULL).put("title", "discard retirement")).getJSONObject("data").getString("id"))
+                val session = backend.openCaptureSession(canvas, "fixed-space", layer = CaptureLayer.Custom(UUID.randomUUID()))
+                submit(session, MotionEvent.ACTION_DOWN, 10).receipt.get(5, TimeUnit.SECONDS)
+                val pending = if (interrupted) session.interrupt().single() else submit(session, MotionEvent.ACTION_UP, 20)
+                assertFalse(pending.receipt.get(5, TimeUnit.SECONDS).committed)
+                val review = backend.reviewInterruptedCapture(UUID.fromString(pending.stroke.id)).get(5, TimeUnit.SECONDS)
+                if (combined) {
+                    val deletion = backend.prepareDeletionWithCaptures(canvas, false).get(5, TimeUnit.SECONDS)
+                    val receipt = backend.confirmDeletionWithCaptures(deletion, CaptureDeletionDisposition.DiscardReviewedSealed, true).get(5, TimeUnit.SECONDS)
+                    assertEquals(1, receipt.draftsRemoved)
+                    val entry = call(backend, JSONObject().put("op", "TrashEntries").put("offset", 0).put("limit", 10)).getJSONArray("data").getJSONObject(0)
+                    call(backend, JSONObject().put("op", "RestoreEntity").put("entity", canvas.toString()).put("revision", entry.getLong("revision")))
+                } else backend.discardInterruptedCapture(review, true).get(5, TimeUnit.SECONDS)
+                assertEquals(0, backend.pendingCaptures().get(5, TimeUnit.SECONDS).toInt())
+                assertThrows(ExecutionException::class.java) { session.retry(pending).receipt.get(5, TimeUnit.SECONDS) }
+                assertEquals(0, backend.pendingCaptures().get(5, TimeUnit.SECONDS).toInt()); assertEquals(0, blocks(backend, canvas).length())
+            } finally { backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
+        }
+    }
+    @Test(timeout = 20_000) fun unacknowledgedDiscardAfterUnlinkCannotResurrectAndKeepsOtherFramesRetryable() {
+        val armed = java.util.concurrent.atomic.AtomicBoolean(false)
+        val backend = NotebookBackend(platform(temporary.newFolder()), { platform, native -> PdfWorkspace(platform, native) }, captureJournalFault = { if (it == "after-delete" && armed.getAndSet(false)) throw java.io.IOException("synthetic directory acknowledgement failure") })
+        try {
+            val canvas = UUID.fromString(call(backend, JSONObject().put("op", "Create").put("kind", "Canvas").put("parent", JSONObject.NULL).put("title", "discard failure")).getJSONObject("data").getString("id"))
+            val session = backend.openCaptureSession(canvas, "fixed-space", layer = CaptureLayer.Custom(UUID.randomUUID()))
+            submit(session, MotionEvent.ACTION_DOWN, 10).receipt.get(5, TimeUnit.SECONDS)
+            val first = submit(session, MotionEvent.ACTION_UP, 20); first.receipt.get(5, TimeUnit.SECONDS)
+            submit(session, MotionEvent.ACTION_DOWN, 30).receipt.get(5, TimeUnit.SECONDS)
+            val second = submit(session, MotionEvent.ACTION_UP, 40); second.receipt.get(5, TimeUnit.SECONDS)
+            val review = backend.reviewInterruptedCapture(UUID.fromString(first.stroke.id)).get(5, TimeUnit.SECONDS)
+            armed.set(true)
+            assertThrows(ExecutionException::class.java) { backend.discardInterruptedCapture(review, true).get(5, TimeUnit.SECONDS) }
+            assertEquals(1, backend.pendingCaptures().get(5, TimeUnit.SECONDS).toInt())
+            assertThrows(ExecutionException::class.java) { session.retry(first).receipt.get(5, TimeUnit.SECONDS) }
+            assertFalse(session.retry(second).receipt.get(5, TimeUnit.SECONDS).committed)
+            assertEquals(second.stroke, backend.reviewInterruptedCapture(UUID.fromString(second.stroke.id)).get(5, TimeUnit.SECONDS).stroke)
+            assertEquals(1, backend.pendingCaptures().get(5, TimeUnit.SECONDS).toInt()); assertEquals(0, blocks(backend, canvas).length())
+        } finally { backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
+    }
     @Test(timeout = 30_000) fun fixedLayerCaptureAndMissingDestinationRecoveryNeverFallbackOrRewriteObservations() {
         val root = temporary.newFolder(); val context = platform(root); var backend = NotebookBackend(context)
         try {

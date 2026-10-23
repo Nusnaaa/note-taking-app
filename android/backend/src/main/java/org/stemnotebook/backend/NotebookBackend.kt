@@ -25,6 +25,9 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
     private val outbox: CompletableFuture<CaptureOutbox>
     private val activeJournal: CompletableFuture<ActiveCaptureJournal>
     private val captureSessions = mutableSetOf<JournaledCaptureSession>()
+    // Weak keys cover caller-held interrupted sessions without extending their
+    // lifetime or retaining their observations after callers release them.
+    private val captureSessionHistory = java.util.WeakHashMap<JournaledCaptureSession, Unit>()
     private var recoveryAttention = false
     init {
         var createdPdf: PdfWorkspace? = null
@@ -109,9 +112,15 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
         val encoded = Charsets.UTF_8.newEncoder().onMalformedInput(java.nio.charset.CodingErrorAction.REPORT).onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT).encode(java.nio.CharBuffer.wrap(coordinateSpace))
         require(coordinateSpace.isNotEmpty() && encoded.remaining() <= 256)
         check(captureSessions.size < 16)
-        return JournaledCaptureSession(this, entity, coordinateSpace, style, layer, fingerInk).also { captureSessions += it }
+        return JournaledCaptureSession(this, entity, coordinateSpace, style, layer, fingerInk).also { captureSessions += it; captureSessionHistory[it] = Unit }
     }
     @Synchronized internal fun retireCaptureSession(session: JournaledCaptureSession) { captureSessions.remove(session) }
+    // Writer-only seen state; removing this exact ticket restores the existing
+    // begin-order rejection for old frames. Other pending tickets remain retryable.
+    private fun retireDiscardedFrame(entity: UUID, ticket: UUID) {
+        val sessions = synchronized(this) { captureSessionHistory.keys.toList() }
+        sessions.filter { it.entity == entity }.forEach { it.seen.remove(ticket) }
+    }
     @Synchronized internal fun checkpointCapture(session: JournaledCaptureSession, stroke: CapturedStroke, revision: Long, cancelled: Boolean): CompletableFuture<JournaledCaptureSession.Receipt> {
         check(!closed && session.backend === this)
         val snapshot = stroke.copy(points = stroke.points.toList())
@@ -245,7 +254,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
         val ticket = review.ticket; val entity = review.entity; val checksum = review.checksum
         return submitAdmittedVoid({
             recoveryAccess(entity)
-            activeJournal.join().discardReview(ticket, checksum)
+            activeJournal.join().discardReview(ticket, checksum) { retireDiscardedFrame(entity, ticket) }
         }, executor, bytes = inputBytes(checksum))
     }
 
@@ -304,14 +313,10 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
             if (disposition == CaptureDeletionDisposition.DiscardReviewedSealed) for (stamp in sealed) {
                 try {
                     when (stamp.storage) {
-                        DeletionCaptureStorage.ActiveJournal -> activeJournal.join().discardReview(stamp.ticket, stamp.checksum)
+                        DeletionCaptureStorage.ActiveJournal -> activeJournal.join().discardReview(stamp.ticket, stamp.checksum) { retireDiscardedFrame(stamp.entity, stamp.ticket) }
                         DeletionCaptureStorage.LegacyOutbox -> outbox.join().discardForDeletion(stamp)
                     }
                     removed++
-                    if (stamp.storage == DeletionCaptureStorage.ActiveJournal) {
-                        val sessions = synchronized(this) { captureSessions.toList() }
-                        sessions.filter { it.entity == stamp.entity }.forEach { it.seen.remove(stamp.ticket) }
-                    }
                 } catch (_: Exception) { unconfirmed++; recoveryAttention = true; executor.markAttention() }
             }
             DeletionCaptureReceipt(review.entity, review.permanent, removed, review.stamps.count { !it.sealed }, if (disposition == CaptureDeletionDisposition.KeepDrafts) sealed.size else 0, unconfirmed)

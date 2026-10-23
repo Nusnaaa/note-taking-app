@@ -85,9 +85,12 @@ internal class ActiveCaptureJournal(
         check(entry.revision < Long.MAX_VALUE)
         return entry.copy(revision = entry.revision + 1, layer = layer).also { publish(it) }
     }
-    fun discardReview(ticket: UUID, expectedChecksum: String) {
+    fun discardReview(ticket: UUID, expectedChecksum: String, beforeRemoval: () -> Unit = {}) {
         require(checksum(ticket) == expectedChecksum)
         val entry = read(ticket); require(entry.stroke.end != StrokeEnd.InProgress && !entry.cancelled)
+        // Retire typed caller frames before unlink: directory-sync failure must
+        // not let an unacknowledged removal recreate the same private evidence.
+        beforeRemoval()
         remove(checkNotNull(fileFor(ticket)))
     }
     /** Preserve each session's order; blocked recovery never stalls unrelated input. */

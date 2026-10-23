@@ -864,3 +864,21 @@ Workers must use the same shared lease pool. This component fix does not itself 
 recogniser adapters, mapped native resources, scheduling or isolated-process shutdown
 into the host. Those lifecycle integrations remain open. No resource installation,
 model download, executable plugin loading or handwriting egress occurs here.
+
+
+### Discarding a caller-held recovery frame
+
+Explicit sealed-draft discard retires the exact caller-held session ticket after fresh
+scope/checksum/ending validation and before unlinking its journal file. The existing
+per-session begin-order check then rejects old completed/active frames when no matching
+journal or SQLite receipt exists. No separate tombstone collection or new persistent
+format is added, and other pending tickets retain their normal retry path.
+
+The backend keeps weak keys for caller-owned sessions so an interrupted session still
+held by its caller receives the same retirement. This does not extend session or raw
+observation lifetimes, change the active-session limit or add strong recovery ownership.
+Both standalone discard and acknowledged combined deletion/disposition use the same
+validated pre-removal hook. Failed/ambiguous native deletion never invokes it. A failure
+after file unlink still rejects old typed frames, while reporting disposal failure.
+Uncertain filesystem durability after a failed directory sync remains uncertain; no
+power-loss guarantee or global prohibition on deliberate future reimport is inferred.
