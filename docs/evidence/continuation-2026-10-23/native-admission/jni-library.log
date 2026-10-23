@@ -1,0 +1,17 @@
+$ /tmp/stem-cargo/bin/cargo build -p stem-bridge --locked --offline
+exit_code=0
+
+   Compiling bitflags v2.13.2
+   Compiling rustybuzz v0.20.1
+   Compiling usvg v0.45.1
+   Compiling png v0.18.1
+   Compiling jni-sys v0.3.1
+   Compiling pdf-writer v0.12.1
+   Compiling resvg v0.45.1
+   Compiling image v0.25.10
+   Compiling rusqlite v0.32.1
+   Compiling svg2pdf v0.13.0
+   Compiling jni v0.21.1
+   Compiling stem-core v0.1.0 (/home/linus/Projects/software/note-taking-app/repo/core)
+   Compiling stem-bridge v0.1.0 (/home/linus/Projects/software/note-taking-app/repo/bridge)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 52.60s

@@ -42,8 +42,10 @@ workspace Clippy check also passed. No production code was changed to satisfy th
 incorrect assertion. The complete Rust validation passed format, strict workspace lint, all 138 tests
 (with no failures/ignored tests), release build and traceability. The actual release
 JNI library also passed all seven desktop JVM smoke groups under JDK 17 with
-`-Xcheck:jni`, including independent registry access. Android validation is still
-running; it is not reported as passing until it completes.
+`-Xcheck:jni`, including independent registry access. The ARM64 native/ELF, desktop JNI, Android compilation, all ten Android unit/
+Robolectric tests, lint, AAR payload and merged library manifest checks also passed.
+Desktop and Android fingerprints match. This is component/backend-library evidence,
+not device, hardware biometric, model-quality or full backend acceptance.
 
 Validation outputs for this increment are under
 `continuation-2026-10-23/native-admission/`. The runner fingerprints all tracked
@@ -58,3 +60,10 @@ capture receipts are still implementation work. Original ink remains independent
 recognition and history; no handwriting upload, raster recognition path, remote
 inference, model weights or production H.I. has been introduced. Backend acceptance
 remains NOT MET. Test counts do not close complete requirements or hardware checks.
+
+The concurrent scratch Gradle build exposed an implicit Build Tools 34 auto-install
+race in the shared SDK. The authoritative baseline run completed with ten passing
+Android tests, while the scratch attempt failed on the damaged SDK package. The
+scratch retry explicitly pins Build Tools 35 (matching the documented toolchain);
+the incomplete SDK package is repaired from the official checksummed archive.
+No failed scratch attempt is counted as passing application evidence.

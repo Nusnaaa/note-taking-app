@@ -1,4 +1,5 @@
-$ /tmp/stem-jdk/bin/java -Xcheck:jni -Djava.library.path=target/debug -cp /workspace/scratch/98dc4bf95b81/stem-notebook/target/jvm-test BoundarySmoke
+$ /tmp/stem-build-tools/jdk-17.0.21+9/bin/java -Xcheck:jni -Djava.library.path=target/debug -cp /home/linus/Projects/software/note-taking-app/repo/target/jvm-test BoundarySmoke
 exit_code=0
 
-PASS: JNI Unicode, platform-verifier callback, relock, restart, malformed input and closed-handle checks (6)
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/stem-android-user
+PASS: JNI Unicode, platform-verifier callback, relock, restart, malformed input, closed handles and independent registry access (7)

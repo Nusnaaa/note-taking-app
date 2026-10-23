@@ -1,8 +1,26 @@
-$ /tmp/stem-gradle/gradle-8.9/bin/gradle --no-daemon -p android :backend:assembleDebug :backend:testDebugUnitTest :backend:lintDebug --console=plain --rerun-tasks --offline -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=44603 -Dhttp.proxyHost=127.0.0.1 -Dhttp.proxyPort=44603 -Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts
+$ /tmp/stem-build-tools/gradle-8.9/bin/gradle --no-daemon -p android :backend:assembleDebug :backend:testDebugUnitTest :backend:lintDebug --console=plain --rerun-tasks -Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts
 exit_code=0
+
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/stem-android-user
+
+Welcome to Gradle 8.9!
+
+Here are the highlights of this release:
+ - Enhanced Error and Warning Messages
+ - IDE Integration Improvements
+ - Daemon JVM Information
+
+For more details see https://docs.gradle.org/8.9/release-notes.html
 
 To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.9/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
 Daemon will be stopped at the end of the build 
+Checking the license for package Android SDK Build-Tools 34 in /tmp/stem-android-sdk/licenses
+License for package Android SDK Build-Tools 34 accepted.
+Preparing "Install Android SDK Build-Tools 34 v.34.0.0".
+"Install Android SDK Build-Tools 34 v.34.0.0" ready.
+Installing Android SDK Build-Tools 34 in /tmp/stem-android-sdk/build-tools/34.0.0
+"Install Android SDK Build-Tools 34 v.34.0.0" complete.
+"Install Android SDK Build-Tools 34 v.34.0.0" finished.
 > Task :backend:preBuild UP-TO-DATE
 > Task :backend:preDebugBuild UP-TO-DATE
 > Task :backend:mergeDebugJniLibFolders
@@ -15,26 +33,31 @@ Daemon will be stopped at the end of the build
 > Task :backend:copyDebugJniLibsProjectAndLocalJars
 > Task :backend:extractDeepLinksForAarDebug
 > Task :backend:javaPreCompileDebug
-> Task :backend:parseDebugLocalResources
 > Task :backend:mergeDebugShaders
 > Task :backend:compileDebugShaders NO-SOURCE
 > Task :backend:generateDebugAssets UP-TO-DATE
+> Task :backend:parseDebugLocalResources
 > Task :backend:packageDebugAssets
 > Task :backend:prepareDebugArtProfile
 > Task :backend:prepareLintJarForPublish
 > Task :backend:generateDebugRFile
 
 > Task :backend:processDebugManifest
-/workspace/scratch/98dc4bf95b81/stem-notebook/android/backend/src/main/AndroidManifest.xml:3:5-86 Warning:
+/home/linus/Projects/software/note-taking-app/repo/android/backend/src/main/AndroidManifest.xml:3:5-86 Warning:
 	uses-permission#android.permission.INTERNET was tagged at AndroidManifest.xml:3 to remove other declarations but no other declaration present
-/workspace/scratch/98dc4bf95b81/stem-notebook/android/backend/src/main/AndroidManifest.xml:4:5-6:19 Warning:
+/home/linus/Projects/software/note-taking-app/repo/android/backend/src/main/AndroidManifest.xml:4:5-6:19 Warning:
 	application@android:allowBackup was tagged at AndroidManifest.xml:4 to replace other declarations but no other declaration present
-/workspace/scratch/98dc4bf95b81/stem-notebook/android/backend/src/main/AndroidManifest.xml:4:5-6:19 Warning:
+/home/linus/Projects/software/note-taking-app/repo/android/backend/src/main/AndroidManifest.xml:4:5-6:19 Warning:
 	application@android:fullBackupContent was tagged at AndroidManifest.xml:4 to replace other declarations but no other declaration present
-/workspace/scratch/98dc4bf95b81/stem-notebook/android/backend/src/main/AndroidManifest.xml:4:5-6:19 Warning:
+/home/linus/Projects/software/note-taking-app/repo/android/backend/src/main/AndroidManifest.xml:4:5-6:19 Warning:
 	application@android:dataExtractionRules was tagged at AndroidManifest.xml:4 to replace other declarations but no other declaration present
-/workspace/scratch/98dc4bf95b81/stem-notebook/android/backend/src/main/AndroidManifest.xml:4:5-6:19 Warning:
+/home/linus/Projects/software/note-taking-app/repo/android/backend/src/main/AndroidManifest.xml:4:5-6:19 Warning:
 	application@android:usesCleartextTraffic was tagged at AndroidManifest.xml:4 to replace other declarations but no other declaration present
+
+> Task :backend:compileDebugKotlin
+w: Unable to find the dependency at the location '/tmp/stem-android-sdk/build-tools/34.0.0/core-lambda-stubs.jar'.
+Please make sure that the dependency exists at the specified location or ensure that dependency declarations are correct in your project.
+
 
 > Task :backend:writeDebugAarMetadata
 > Task :backend:preDebugUnitTestBuild UP-TO-DATE
@@ -47,16 +70,16 @@ Daemon will be stopped at the end of the build
 > Task :backend:extractDeepLinksDebug
 
 > Task :backend:processDebugUnitTestManifest
-/workspace/scratch/98dc4bf95b81/stem-notebook/android/backend/build/intermediates/tmp/manifest/test/debug/tempFile1ProcessTestManifest12528156665146455436.xml Warning:
-	uses-permission#android.permission.INTERNET was tagged at tempFile1ProcessTestManifest12528156665146455436.xml:0 to remove other declarations but no other declaration present
-/workspace/scratch/98dc4bf95b81/stem-notebook/android/backend/build/intermediates/tmp/manifest/test/debug/tempFile1ProcessTestManifest12528156665146455436.xml:7:5-9:19 Warning:
-	application@android:allowBackup was tagged at tempFile1ProcessTestManifest12528156665146455436.xml:7 to replace other declarations but no other declaration present
-/workspace/scratch/98dc4bf95b81/stem-notebook/android/backend/build/intermediates/tmp/manifest/test/debug/tempFile1ProcessTestManifest12528156665146455436.xml:7:5-9:19 Warning:
-	application@android:fullBackupContent was tagged at tempFile1ProcessTestManifest12528156665146455436.xml:7 to replace other declarations but no other declaration present
-/workspace/scratch/98dc4bf95b81/stem-notebook/android/backend/build/intermediates/tmp/manifest/test/debug/tempFile1ProcessTestManifest12528156665146455436.xml:7:5-9:19 Warning:
-	application@android:dataExtractionRules was tagged at tempFile1ProcessTestManifest12528156665146455436.xml:7 to replace other declarations but no other declaration present
-/workspace/scratch/98dc4bf95b81/stem-notebook/android/backend/build/intermediates/tmp/manifest/test/debug/tempFile1ProcessTestManifest12528156665146455436.xml:7:5-9:19 Warning:
-	application@android:usesCleartextTraffic was tagged at tempFile1ProcessTestManifest12528156665146455436.xml:7 to replace other declarations but no other declaration present
+/home/linus/Projects/software/note-taking-app/repo/android/backend/build/intermediates/tmp/manifest/test/debug/tempFile1ProcessTestManifest7458394662750257065.xml Warning:
+	uses-permission#android.permission.INTERNET was tagged at tempFile1ProcessTestManifest7458394662750257065.xml:0 to remove other declarations but no other declaration present
+/home/linus/Projects/software/note-taking-app/repo/android/backend/build/intermediates/tmp/manifest/test/debug/tempFile1ProcessTestManifest7458394662750257065.xml:7:5-9:19 Warning:
+	application@android:allowBackup was tagged at tempFile1ProcessTestManifest7458394662750257065.xml:7 to replace other declarations but no other declaration present
+/home/linus/Projects/software/note-taking-app/repo/android/backend/build/intermediates/tmp/manifest/test/debug/tempFile1ProcessTestManifest7458394662750257065.xml:7:5-9:19 Warning:
+	application@android:fullBackupContent was tagged at tempFile1ProcessTestManifest7458394662750257065.xml:7 to replace other declarations but no other declaration present
+/home/linus/Projects/software/note-taking-app/repo/android/backend/build/intermediates/tmp/manifest/test/debug/tempFile1ProcessTestManifest7458394662750257065.xml:7:5-9:19 Warning:
+	application@android:dataExtractionRules was tagged at tempFile1ProcessTestManifest7458394662750257065.xml:7 to replace other declarations but no other declaration present
+/home/linus/Projects/software/note-taking-app/repo/android/backend/build/intermediates/tmp/manifest/test/debug/tempFile1ProcessTestManifest7458394662750257065.xml:7:5-9:19 Warning:
+	application@android:usesCleartextTraffic was tagged at tempFile1ProcessTestManifest7458394662750257065.xml:7 to replace other declarations but no other declaration present
 
 > Task :backend:processDebugUnitTestResources
 > Task :backend:javaPreCompileDebugUnitTest
@@ -69,9 +92,16 @@ Daemon will be stopped at the end of the build
 > Task :backend:generateDebugAndroidTestResValues
 > Task :backend:writeDebugLintModelMetadata
 > Task :backend:extractProguardFiles
-> Task :backend:compileDebugKotlin
 > Task :backend:extractDebugAnnotations
+
 > Task :backend:compileDebugJavaWithJavac
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/stem-android-user
+
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/stem-android-user
+
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/stem-android-user
+
+
 > Task :backend:mergeDebugGeneratedProguardFiles
 > Task :backend:mergeDebugConsumerProguardFiles
 > Task :backend:processDebugJavaRes
@@ -85,17 +115,19 @@ Daemon will be stopped at the end of the build
 > Task :backend:createFullJarDebug
 > Task :backend:generateDebugAndroidTestLintModel
 > Task :backend:generateDebugLintReportModel
-> Task :backend:generateDebugUnitTestLintModel
 > Task :backend:compileDebugUnitTestKotlin
+> Task :backend:generateDebugUnitTestLintModel
 > Task :backend:compileDebugUnitTestJavaWithJavac NO-SOURCE
 > Task :backend:processDebugUnitTestJavaRes
+
 > Task :backend:testDebugUnitTest
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/stem-android-user
+
 > Task :backend:lintAnalyzeDebugAndroidTest
-> Task :backend:lintAnalyzeDebug
 > Task :backend:lintAnalyzeDebugUnitTest
+> Task :backend:lintAnalyzeDebug
 > Task :backend:lintReportDebug
 > Task :backend:lintDebug
-w: Detected multiple Kotlin daemon sessions at 
 
-BUILD SUCCESSFUL in 35s
+BUILD SUCCESSFUL in 3m 16s
 58 actionable tasks: 58 executed

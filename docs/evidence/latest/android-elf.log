@@ -1,4 +1,4 @@
-$ readelf -h /workspace/scratch/98dc4bf95b81/stem-notebook/target/aarch64-linux-android/release/libstem_bridge.so
+$ readelf -h /home/linus/Projects/software/note-taking-app/repo/target/aarch64-linux-android/release/libstem_bridge.so
 exit_code=0
 
 ELF Header:
@@ -13,7 +13,7 @@ ELF Header:
   Version:                           0x1
   Entry point address:               0x0
   Start of program headers:          64 (bytes into file)
-  Start of section headers:          4910512 (bytes into file)
+  Start of section headers:          4887688 (bytes into file)
   Flags:                             0x0
   Size of this header:               64 (bytes)
   Size of program headers:           56 (bytes)
