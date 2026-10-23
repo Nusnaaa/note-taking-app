@@ -22,6 +22,24 @@ pub enum Tool {
     ExplicitFinger,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum Interruption {
+    Lifecycle,
+    Recovery,
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub enum StrokeEnd {
+    #[default]
+    Completed,
+    InProgress,
+    Interrupted(Interruption),
+}
+impl StrokeEnd {
+    pub fn is_completed(&self) -> bool {
+        *self == Self::Completed
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Stroke {
@@ -32,8 +50,19 @@ pub struct Stroke {
     pub coordinate_space: String,
     pub tool: Tool,
     pub points: Vec<Point>,
+    /// Absence is a legacy completed stroke. An interrupted prefix has no
+    /// fabricated pen-up sample; InProgress is only valid in a capture journal.
+    #[serde(default, skip_serializing_if = "StrokeEnd::is_completed")]
+    pub end: StrokeEnd,
 }
 impl Stroke {
+    pub fn validate_persisted(&self) -> Result<()> {
+        self.validate()?;
+        if self.end == StrokeEnd::InProgress {
+            return Err(Error::Invalid("unfinished capture"));
+        }
+        Ok(())
+    }
     pub fn validate(&self) -> Result<()> {
         if self.coordinate_space.is_empty()
             || self.coordinate_space.len() > 256

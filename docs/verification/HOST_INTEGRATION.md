@@ -62,6 +62,38 @@ status observation remain incomplete. Encoded-byte limits do not claim a total R
 The CLI has no authentication bypass. This optional developer harness does not replace
 or require the owner's deferred handwriting/model tests on a complete runnable app.
 
+## Observed prefixes and stroke termination
+
+Raw source strokes now distinguish `Completed`, `InProgress`, and
+`Interrupted(Lifecycle|Recovery)`. Existing source payloads omit `end` and retain
+completed semantics; default serialization still omits it, preserving old payload
+hashes and capture receipt fingerprints. Active prefixes cannot enter SQLite,
+normal capture queues or native documents. Interrupting seals only the observed
+prefix and records its reason; no pen-up sample, coordinates or time is invented.
+
+Rust `InputRouter` and Android `InkAccumulator` expose immutable `checkpoint`
+snapshots with stable begin-allocated IDs/session order and explicit `interrupt`.
+Snapshots remain uncommitted observations. Normal finish preserves identity and
+records completion. Platform/palm cancellation still discards tentative contacts;
+it is not inferred to be a lifecycle interruption. Routing/accumulation has bounded
+active pointers (32) and a shared observed-point budget. Rejected batches preserve
+prior observations. These are admission bounds, not tablet performance promises.
+
+Android's generic DTO is now `CapturedStroke`; `CompletedStroke` remains a source
+alias for existing callers. `CaptureRequest` rejects active prefixes and carries
+explicit interrupted provenance through the existing JNI capture command. Ordinary
+completion retains the previous wire encoding. `MotionCapture.interrupt` is the
+backend lifecycle seam; automatic checkpoint journaling and app lifecycle recovery
+remain to be integrated. Calling `checkpoint` alone is never a durable-save receipt.
+
+SQLite schema 10 introduces the versioned source termination field without rewriting
+legacy payloads. Native subset v5 carries interrupted provenance and reads v1-v4
+completed sources; older native version tags cannot conceal the new semantics.
+Encrypted logical backup schema 10 restores schemas 8/9 with completed legacy
+sources and preserves interrupted provenance/receipts in schema 10. Unknown/active
+termination or downgraded containers fail closed. This remains the implemented
+native subset; complete PDF-linked portability and scalable whole backup are open.
+
 ## Android backend library
 
 Provision JDK 17, Gradle 8.9, Android SDK platform/build tools 35, NDK 27.0.12077973 and

@@ -30,4 +30,32 @@ class InkAccumulatorTest {
         a.begin(1,false,point(1));val second=a.complete(1)
         assertEquals(first.session,second.session);assertNotEquals(first.id,second.id);assertEquals(1,second.sequence)
     }
+    @Test fun activeCheckpointsHaveStableBeginIdentityAndNoFabricatedCompletion() {
+        val a = InkAccumulator(3)
+        a.begin(9, false, point(10)); a.begin(1, true, point(10))
+        val original = a.checkpoint()
+        assertEquals(listOf(9, 1), original.map { it.pointer })
+        assertTrue(original.all { it.end == StrokeEnd.InProgress })
+        a.append(9, listOf(point(11)))
+        assertThrows(IllegalArgumentException::class.java) { a.append(1, listOf(point(12))) }
+        val latest = a.checkpoint(); val interrupted = a.interrupt(StrokeInterruption.Lifecycle)
+        assertTrue(a.pendingPointers().isEmpty()); assertEquals(original[0].id, latest[0].id)
+        assertEquals(1, original[0].points.size)
+        assertEquals(latest.map { it.points }, interrupted.map { it.points })
+        assertTrue(interrupted.all { it.end == StrokeEnd.Interrupted(StrokeInterruption.Lifecycle) })
+        assertEquals((-0.0).toRawBits(), interrupted[0].points[0].y.toRawBits())
+        a.begin(2, false, point(20)); val prefix = a.checkpoint().single(); val complete = a.complete(2)
+        assertEquals(prefix.id, complete.id); assertEquals(2L, complete.sequence); assertEquals(StrokeEnd.Completed, complete.end)
+    }
+    @Test fun documentCaptureEncoderRejectsActivePrefixesAndPreservesExplicitInterruption() {
+        val a = InkAccumulator(); a.begin(1, false, point(10))
+        val ticket = java.util.UUID.randomUUID(); val entity = java.util.UUID.randomUUID()
+        assertThrows(IllegalArgumentException::class.java) { CaptureRequest.encode(ticket, entity, "fixed-space", a.checkpoint()) }
+        val interrupted = a.interrupt(StrokeInterruption.Recovery)
+        val request = CaptureRequest.encode(ticket, entity, "fixed-space", interrupted)
+        assertTrue(request.contains("\"end\":{\"Interrupted\":\"Recovery\"}"))
+        a.begin(1, false, point(20))
+        assertFalse(CaptureRequest.encode(ticket, entity, "fixed-space", listOf(a.complete(1))).contains("\"end\""))
+    }
+
 }

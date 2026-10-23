@@ -1,7 +1,7 @@
 //! Platform-independent pen routing and bounded persistence admission. The Android
 //! adapter supplies classified observed events; predictions never enter this API.
 use crate::{
-    ink::{Point, Stroke, Tool},
+    ink::{Interruption, Point, Stroke, StrokeEnd, Tool},
     processing::JobControl,
     security::Access,
     store::{Block, Store, WritingTarget},
@@ -89,10 +89,21 @@ impl InputRouter {
             pointer_id: pointer,
             coordinate_space: self.space.clone(),
             tool,
+            end: StrokeEnd::InProgress,
             points: vec![point],
         };
 
         s.validate()?;
+        let retained = self
+            .active
+            .values()
+            .filter(|s| kind == PointerKind::Touch || s.tool != Tool::ExplicitFinger)
+            .collect::<Vec<_>>();
+        if retained.len() >= 32
+            || retained.iter().map(|s| s.points.len()).sum::<usize>() >= self.max_points
+        {
+            return Err(Error::ResourceLimit);
+        }
 
         // A newly detected stylus cancels tentative finger ink, not a committed pen stroke.
         if kind != PointerKind::Touch {
@@ -107,6 +118,9 @@ impl InputRouter {
     }
 
     pub fn sample(&mut self, pointer: u32, point: Point) -> Result<()> {
+        if self.active.values().map(|s| s.points.len()).sum::<usize>() >= self.max_points {
+            return Err(Error::ResourceLimit);
+        }
         let s = self.active.get_mut(&pointer).ok_or(Error::Unavailable)?;
 
         if s.points.len() >= self.max_points {
@@ -130,7 +144,26 @@ impl InputRouter {
     }
 
     pub fn finish(&mut self, pointer: u32) -> Result<Stroke> {
-        self.active.remove(&pointer).ok_or(Error::Unavailable)
+        let mut stroke = self.active.remove(&pointer).ok_or(Error::Unavailable)?;
+        stroke.end = StrokeEnd::Completed;
+        Ok(stroke)
+    }
+    /// Immutable exact observed prefixes. This is not a durable-save receipt.
+    pub fn checkpoint(&self) -> Vec<Stroke> {
+        let mut strokes = self.active.values().cloned().collect::<Vec<_>>();
+        strokes.sort_by_key(|s| s.sequence);
+        strokes
+    }
+    /// Seal only observed samples, without adding pen-up coordinates or timestamps.
+    pub fn interrupt(&mut self, reason: Interruption) -> Vec<Stroke> {
+        let mut strokes = std::mem::take(&mut self.active)
+            .into_values()
+            .collect::<Vec<_>>();
+        for stroke in &mut strokes {
+            stroke.end = StrokeEnd::Interrupted(reason);
+        }
+        strokes.sort_by_key(|s| s.sequence);
+        strokes
     }
 
     pub fn cancel(&mut self, pointer: u32) -> bool {
@@ -155,6 +188,7 @@ impl Stroke {
             pointer_id: self.pointer_id,
             coordinate_space: self.coordinate_space.clone(),
             tool: self.tool.clone(),
+            end: self.end,
             points: vec![],
         }
     }
@@ -200,7 +234,7 @@ impl PersistenceQueue {
         }
 
         for s in &capture.strokes {
-            s.validate()?;
+            s.validate_persisted()?;
         }
 
         let bytes = serde_json::to_vec(&capture.strokes)?.len();

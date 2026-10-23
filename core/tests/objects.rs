@@ -298,7 +298,7 @@ fn native_v3_roundtrip_preserves_assets_layout_groups_and_embeds_with_new_ids() 
         .unwrap()
         .bytes;
     let d = NativeDocument::decode(&bytes).unwrap();
-    assert_eq!(d.version, 4);
+    assert_eq!(d.version, 5);
     assert_eq!(d.attachments.assets.len(), 1);
     assert_eq!(d.attachments.embeds.len(), 1);
     let mut target = Store::memory().unwrap();

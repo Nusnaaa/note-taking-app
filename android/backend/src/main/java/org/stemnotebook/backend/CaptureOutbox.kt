@@ -92,6 +92,11 @@ object CaptureRequest {
         }
         fun number(value: Double?): String { require(value == null || value.isFinite()); return value?.toString() ?: "null" }
         val encoded = strokes.map { stroke ->
+            val ending = when (val end = stroke.end) {
+                StrokeEnd.Completed -> ""
+                StrokeEnd.InProgress -> throw IllegalArgumentException("An active prefix is not a completed capture")
+                is StrokeEnd.Interrupted -> ",\"end\":{\"Interrupted\":\"${end.reason.name}\"}"
+            }
             UUID.fromString(stroke.id); UUID.fromString(stroke.session)
             require(stroke.sequence >= 0 && stroke.pointer >= 0 && stroke.points.size in 1..100_000)
             var previous = 0L
@@ -100,7 +105,7 @@ object CaptureRequest {
                 previous = point.timeUs
                 "{\"x\":${number(point.x)},\"y\":${number(point.y)},\"time_us\":${point.timeUs},\"pressure\":${number(point.pressure)},\"tilt_rad\":${number(point.tiltRad)},\"orientation_rad\":${number(point.orientationRad)},\"buttons\":${point.buttons ?: "null"}}"
             }.joinToString(",")
-            "{\"id\":${quote(stroke.id)},\"capture_session\":${quote(stroke.session)},\"sequence\":${stroke.sequence},\"pointer_id\":${stroke.pointer},\"coordinate_space\":${quote(coordinateSpace)},\"tool\":\"${if (stroke.eraser) "Eraser" else "Pen"}\",\"points\":[$points]}"
+            "{\"id\":${quote(stroke.id)},\"capture_session\":${quote(stroke.session)},\"sequence\":${stroke.sequence},\"pointer_id\":${stroke.pointer},\"coordinate_space\":${quote(coordinateSpace)},\"tool\":\"${if (stroke.eraser) "Eraser" else "Pen"}\",\"points\":[$points]$ending}"
         }.joinToString(",")
         require(strokes.map { it.id }.toSet().size == strokes.size)
         return "{\"version\":1,\"command\":{\"op\":\"Capture\",\"ticket\":\"$ticket\",\"entity\":\"$entity\",\"strokes\":[$encoded]}}"

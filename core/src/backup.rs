@@ -26,7 +26,7 @@ use std::{
     path::Path,
 };
 
-// Column order is the on-disk contract of schema 8. Unknown tables/widths fail closed.
+// Column order is the on-disk contract of schemas 9/10. Unknown tables/widths fail closed.
 const TABLES: &[(&str, usize)] = &[
     ("settings", 2),
     ("entities", 3),
@@ -168,7 +168,7 @@ impl Store {
 
         let mut snapshot = Snapshot {
             format: "STEM-LIBRARY-1".into(),
-            schema: 9,
+            schema: 10,
             tables: BTreeMap::new(),
             omissions: vec![],
         };
@@ -325,6 +325,7 @@ impl Store {
         }
 
         let mut snapshot: Snapshot = serde_json::from_slice(bytes)?;
+        let source_schema = snapshot.schema;
         if snapshot.schema == 8 {
             snapshot.tables.insert("edit_operations".into(), vec![]);
             snapshot.tables.insert("edit_changes".into(), vec![]);
@@ -339,7 +340,7 @@ impl Store {
             snapshot.schema = 9;
         }
 
-        if snapshot.format != "STEM-LIBRARY-1" || snapshot.schema != 9 {
+        if snapshot.format != "STEM-LIBRARY-1" || !matches!(snapshot.schema, 9 | 10) {
             return Err(Error::Unsupported);
         }
 
@@ -397,7 +398,7 @@ impl Store {
 
         tx.commit()?;
 
-        destination.validate_backup_state()?;
+        destination.validate_backup_state(if source_schema >= 10 { 5 } else { 4 })?;
 
         // Provider grants and in-process adapter readiness are not transferable.
         // Retain relationship/revision metadata without pretending the file is open.
@@ -506,7 +507,7 @@ impl Store {
         Self::setting(&self.db, "library_id")
     }
 
-    fn validate_backup_state(&self) -> Result<()> {
+    fn validate_backup_state(&self, native_version: u32) -> Result<()> {
         self.validate_edit_journal()?;
         self.check_integrity()?;
 
@@ -548,7 +549,7 @@ impl Store {
         };
 
         let mut doc = NativeDocument {
-            version: 4,
+            version: native_version,
             created_ms: 0,
             entities: vec![],
             blocks: vec![],

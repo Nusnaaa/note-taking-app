@@ -227,7 +227,7 @@ impl Store {
         let mut ids = BTreeSet::new();
         let mut sequences = BTreeSet::new();
         for s in &strokes {
-            s.validate()?;
+            s.validate_persisted()?;
             if !ids.insert(s.id) || !sequences.insert((s.capture_session, s.sequence)) {
                 return Err(Error::Invalid("duplicate stroke"));
             }
@@ -276,7 +276,7 @@ impl Store {
         let mut seen = BTreeSet::new();
         let mut sequence = std::collections::BTreeMap::new();
         for s in &strokes {
-            s.validate()?;
+            s.validate_persisted()?;
             if !seen.insert(s.id)
                 || sequence
                     .insert(s.capture_session, s.sequence)
@@ -523,7 +523,7 @@ impl Store {
                 return Err(Error::Integrity);
             }
             let s: Stroke = serde_json::from_str(&payload)?;
-            s.validate()?;
+            s.validate_persisted()?;
             strokes.push(s);
         }
         Ok(strokes)

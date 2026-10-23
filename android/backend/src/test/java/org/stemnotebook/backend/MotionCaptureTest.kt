@@ -43,5 +43,20 @@ class MotionCaptureTest {
         event(MotionEvent.ACTION_DOWN,13,MotionEvent.TOOL_TYPE_FINGER).useEvent {assertTrue(capture.accept(it).isEmpty())}
         event(MotionEvent.ACTION_UP,14,MotionEvent.TOOL_TYPE_FINGER).useEvent {assertTrue(capture.accept(it).isEmpty())}
     }
+    @Test fun lifecycleInterruptionSealsOnlyObservedPrefixAndCannotBeConfusedWithPlatformCancel() {
+        val capture = MotionCapture()
+        event(MotionEvent.ACTION_DOWN, 10).useEvent { capture.accept(it) }
+        event(MotionEvent.ACTION_MOVE, 20).useEvent { capture.accept(it) }
+        val prefix = capture.checkpoint().single()
+        val interrupted = capture.interrupt().single()
+        assertEquals(prefix.id, interrupted.id); assertEquals(prefix.points, interrupted.points)
+        assertEquals(listOf(0L, 10_000L), interrupted.points.map { it.timeUs })
+        assertEquals(StrokeEnd.Interrupted(StrokeInterruption.Lifecycle), interrupted.end)
+        event(MotionEvent.ACTION_UP, 30).useEvent { assertTrue(capture.accept(it).isEmpty()) }
+        assertTrue(capture.checkpoint().isEmpty())
+        event(MotionEvent.ACTION_DOWN, 40).useEvent { capture.accept(it) }
+        event(MotionEvent.ACTION_CANCEL, 50).useEvent { capture.accept(it) }
+        assertTrue(capture.interrupt().isEmpty())
+    }
     private inline fun MotionEvent.useEvent(action: (MotionEvent)->Unit) {try {action(this)}finally{recycle()}}
 }

@@ -77,7 +77,7 @@ Capture fixtures exercise classified observed events, cancellation, bounded admi
 failed-save retry, durable idempotency and cooperative scheduler leases. Separate
 Android fixtures exercise synthetic MotionEvents under Robolectric. These are not
 physical tablet event-delivery tests and do not establish a device latency SLO. Object fixtures exercise
-editable data, grouping, camera independence, protection and native v3 copies. Image
+editable data, grouping, camera independence, protection and native subset copies. Image
 fixtures are signature-level byte fixtures, not successful image decoder tests.
 
 Engine fixtures use compiled synthetic adapters and local bytes; they exercise hash
@@ -134,3 +134,16 @@ retain the actual app OS lease until full retirement. Native-open failure retire
 is checked before any explicit close call. These establish desktop cooperative
 locking and simulated Android resource lifetime,
 not physical-device Binder termination or final APK/process enforcement.
+
+
+Interrupted capture fixtures check immutable active snapshots, stable begin-order
+identities, aggregate bounds, no fabricated final sample, rejection of active
+prefixes at all persisted admission boundaries and exact retry identity including
+termination. Schema-9 migration preserves raw source payload/digest and receipts;
+native v5/import and encrypted schema-10 restoration preserve interrupted provenance,
+while downgraded containers reject it. Legacy schema-8/9 and native v1-v4 readers
+remain covered. Android accumulator/MotionEvent fixtures distinguish lifecycle
+interruption from rejected platform contacts; actual JNI capture/reopen verifies
+one observed prefix, its interruption reason and exact measured-zero/raw doubles.
+Automatic durable active-prefix journaling/recovery is still open, and no physical
+pen interruption or save-latency guarantee is established.

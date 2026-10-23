@@ -32,6 +32,8 @@ object ObservedInk {
  * Finger contact remains navigation; this adapter never substitutes predicted ink. */
 class MotionCapture(private val accumulator: InkAccumulator = InkAccumulator()) {
     private var originUs: Long? = null
+    fun checkpoint(): List<CapturedStroke> = accumulator.checkpoint()
+    fun interrupt(reason: StrokeInterruption = StrokeInterruption.Lifecycle): List<CapturedStroke> = accumulator.interrupt(reason)
     fun accept(event: MotionEvent): List<CompletedStroke> {
         if (event.actionMasked == MotionEvent.ACTION_CANCEL) { accumulator.cancelAll(); return emptyList() }
         val actionPointer = event.getPointerId(event.actionIndex)

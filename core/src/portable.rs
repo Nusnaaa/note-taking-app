@@ -1,4 +1,4 @@
-//! Native JSON v3 (with v1/v2 read compatibility) for the implemented core subset.
+//! Native JSON v5 (with v1-v4 read compatibility) for the implemented core subset.
 //! It is NOT yet the complete v0.5.8 interchange contract (see status).
 use crate::{
     crypto, digest,
@@ -107,7 +107,7 @@ impl NativeDocument {
         })?)
     }
     pub fn validate(&self) -> Result<()> {
-        if !matches!(self.version, 1..=4) {
+        if !matches!(self.version, 1..=5) {
             return Err(Error::Unsupported);
         }
         if self.version < 4
@@ -188,7 +188,10 @@ impl NativeDocument {
                 return Err(Error::Invalid("native ink membership"));
             }
             for s in &n.strokes {
-                s.validate()?;
+                s.validate_persisted()?;
+                if self.version < 5 && !s.end.is_completed() {
+                    return Err(Error::Unsupported);
+                }
                 if !stroke_ids.insert(s.id) || !durable_ids.insert(s.id) {
                     return Err(Error::Invalid("native duplicate stroke"));
                 }
@@ -521,7 +524,7 @@ impl Store {
             entities.push(e);
         }
         let mut document = NativeDocument {
-            version: 4,
+            version: 5,
             created_ms: now_ms(),
             entities,
             blocks,
