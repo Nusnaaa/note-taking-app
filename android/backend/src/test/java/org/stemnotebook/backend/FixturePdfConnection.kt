@@ -8,6 +8,7 @@ import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicInteger
 
 internal class FixturePdfConnection(private val callbacks: Executor, val mode: String) : PdfConnection {
+        val connectCalled = CountDownLatch(1)
         val entered = CountDownLatch(1)
         val release = CountDownLatch(1)
         val closes = AtomicInteger(0)
@@ -51,6 +52,7 @@ internal class FixturePdfConnection(private val callbacks: Executor, val mode: S
         })
         override fun connect(ready: (Messenger) -> Unit, failed: () -> Unit): Boolean {
             this.failed = failed; connected = ready
+            connectCalled.countDown()
             if (mode != "never-bind") callbacks.execute { ready(messenger) }
             return true
         }

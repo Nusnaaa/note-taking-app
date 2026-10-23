@@ -93,6 +93,9 @@ class PdfParserClientTest {
                 input().use { fd ->
                     val pending = client.render(fd, 0, 2, 2, 1_000)
                     assertTrue(created.await(5, TimeUnit.SECONDS))
+                    // Factory publication precedes connect(). Cancel only after the
+                    // callback exists so this exercises a genuinely late binding.
+                    assertTrue(binding.connectCalled.await(5, TimeUnit.SECONDS))
                     if (cancel) {
                         pending.cancel()
                         assertThrows(java.util.concurrent.CancellationException::class.java) { pending.await() }
