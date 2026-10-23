@@ -1,0 +1,104 @@
+$ /tmp/stem-build-tools/gradle-8.9/bin/gradle --no-daemon -p android :backend:assembleDebug :backend:testDebugUnitTest :backend:lintDebug --console=plain --rerun-tasks -Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts
+exit_code=0
+
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/stem-android-user
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.9/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :backend:preBuild UP-TO-DATE
+> Task :backend:preDebugBuild UP-TO-DATE
+> Task :backend:mergeDebugJniLibFolders
+> Task :backend:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :backend:generateDebugResValues
+> Task :backend:generateDebugResources
+> Task :backend:mergeDebugNativeLibs
+> Task :backend:packageDebugResources
+> Task :backend:stripDebugDebugSymbols
+> Task :backend:copyDebugJniLibsProjectAndLocalJars
+> Task :backend:extractDeepLinksForAarDebug
+> Task :backend:javaPreCompileDebug
+> Task :backend:parseDebugLocalResources
+> Task :backend:mergeDebugShaders
+> Task :backend:compileDebugShaders NO-SOURCE
+> Task :backend:generateDebugAssets UP-TO-DATE
+> Task :backend:packageDebugAssets
+> Task :backend:prepareDebugArtProfile
+> Task :backend:prepareLintJarForPublish
+> Task :backend:generateDebugRFile
+
+> Task :backend:processDebugManifest
+/home/linus/Projects/software/note-taking-app/repo/android/backend/src/main/AndroidManifest.xml:3:5-86 Warning:
+	uses-permission#android.permission.INTERNET was tagged at AndroidManifest.xml:3 to remove other declarations but no other declaration present
+/home/linus/Projects/software/note-taking-app/repo/android/backend/src/main/AndroidManifest.xml:4:5-6:19 Warning:
+	application@android:allowBackup was tagged at AndroidManifest.xml:4 to replace other declarations but no other declaration present
+/home/linus/Projects/software/note-taking-app/repo/android/backend/src/main/AndroidManifest.xml:4:5-6:19 Warning:
+	application@android:fullBackupContent was tagged at AndroidManifest.xml:4 to replace other declarations but no other declaration present
+/home/linus/Projects/software/note-taking-app/repo/android/backend/src/main/AndroidManifest.xml:4:5-6:19 Warning:
+	application@android:dataExtractionRules was tagged at AndroidManifest.xml:4 to replace other declarations but no other declaration present
+/home/linus/Projects/software/note-taking-app/repo/android/backend/src/main/AndroidManifest.xml:4:5-6:19 Warning:
+	application@android:usesCleartextTraffic was tagged at AndroidManifest.xml:4 to replace other declarations but no other declaration present
+
+> Task :backend:writeDebugAarMetadata
+> Task :backend:preDebugUnitTestBuild UP-TO-DATE
+> Task :backend:checkDebugUnitTestAarMetadata
+> Task :backend:compileDebugLibraryResources
+> Task :backend:generateDebugUnitTestResValues
+> Task :backend:mapDebugUnitTestSourceSetPaths
+> Task :backend:generateDebugUnitTestResources
+> Task :backend:mergeDebugUnitTestResources
+> Task :backend:extractDeepLinksDebug
+
+> Task :backend:processDebugUnitTestManifest
+/home/linus/Projects/software/note-taking-app/repo/android/backend/build/intermediates/tmp/manifest/test/debug/tempFile1ProcessTestManifest10927693051913158626.xml Warning:
+	uses-permission#android.permission.INTERNET was tagged at tempFile1ProcessTestManifest10927693051913158626.xml:0 to remove other declarations but no other declaration present
+/home/linus/Projects/software/note-taking-app/repo/android/backend/build/intermediates/tmp/manifest/test/debug/tempFile1ProcessTestManifest10927693051913158626.xml:7:5-9:19 Warning:
+	application@android:allowBackup was tagged at tempFile1ProcessTestManifest10927693051913158626.xml:7 to replace other declarations but no other declaration present
+/home/linus/Projects/software/note-taking-app/repo/android/backend/build/intermediates/tmp/manifest/test/debug/tempFile1ProcessTestManifest10927693051913158626.xml:7:5-9:19 Warning:
+	application@android:fullBackupContent was tagged at tempFile1ProcessTestManifest10927693051913158626.xml:7 to replace other declarations but no other declaration present
+/home/linus/Projects/software/note-taking-app/repo/android/backend/build/intermediates/tmp/manifest/test/debug/tempFile1ProcessTestManifest10927693051913158626.xml:7:5-9:19 Warning:
+	application@android:dataExtractionRules was tagged at tempFile1ProcessTestManifest10927693051913158626.xml:7 to replace other declarations but no other declaration present
+/home/linus/Projects/software/note-taking-app/repo/android/backend/build/intermediates/tmp/manifest/test/debug/tempFile1ProcessTestManifest10927693051913158626.xml:7:5-9:19 Warning:
+	application@android:usesCleartextTraffic was tagged at tempFile1ProcessTestManifest10927693051913158626.xml:7 to replace other declarations but no other declaration present
+
+> Task :backend:processDebugUnitTestResources
+> Task :backend:javaPreCompileDebugUnitTest
+> Task :backend:mergeDebugAssets
+> Task :backend:generateDebugUnitTestAssets UP-TO-DATE
+> Task :backend:mergeDebugUnitTestAssets
+> Task :backend:packageDebugUnitTestForUnitTest
+> Task :backend:generateDebugUnitTestConfig
+> Task :backend:preDebugAndroidTestBuild UP-TO-DATE
+> Task :backend:generateDebugAndroidTestResValues
+> Task :backend:writeDebugLintModelMetadata
+> Task :backend:extractProguardFiles
+> Task :backend:compileDebugKotlin
+> Task :backend:extractDebugAnnotations
+> Task :backend:compileDebugJavaWithJavac
+> Task :backend:mergeDebugGeneratedProguardFiles
+> Task :backend:mergeDebugConsumerProguardFiles
+> Task :backend:processDebugJavaRes
+> Task :backend:bundleLibRuntimeToJarDebug
+> Task :backend:bundleLibCompileToJarDebug
+> Task :backend:mergeDebugJavaResource
+> Task :backend:syncDebugLibJars
+> Task :backend:bundleDebugAar
+> Task :backend:assembleDebug
+> Task :backend:bundleDebugLocalLintAar
+> Task :backend:createFullJarDebug
+> Task :backend:generateDebugAndroidTestLintModel
+> Task :backend:generateDebugLintReportModel
+> Task :backend:generateDebugUnitTestLintModel
+> Task :backend:compileDebugUnitTestKotlin
+> Task :backend:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :backend:processDebugUnitTestJavaRes
+> Task :backend:lintAnalyzeDebug
+
+> Task :backend:testDebugUnitTest
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/stem-android-user
+
+> Task :backend:lintAnalyzeDebugAndroidTest
+> Task :backend:lintAnalyzeDebugUnitTest
+> Task :backend:lintReportDebug
+> Task :backend:lintDebug
+
+BUILD SUCCESSFUL in 2m 9s
+58 actionable tasks: 58 executed
