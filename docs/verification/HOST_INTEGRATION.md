@@ -28,6 +28,21 @@ groups, embeds, saved views, backlinks, locks and status. `AppendTo`/`CaptureTo`
 unknown fields and malformed inputs fail. A successful edit response acknowledges
 SQLite commit. Retry an ambiguous capture using the same ticket and identical data.
 A rejected/full request must remain in the caller's buffer; it was not acknowledged.
+The native host now reserves separate count and encoded-payload-byte budgets for
+pending authoring and optional reads (including the executing request). Authoring,
+capture, undo and access changes retain FIFO order and run ahead of queued reads.
+A running operation is not preempted. `Host::submit` returns an admission receipt;
+`PendingResponse::wait` returns the actual response. Dropping the receipt does not
+cancel admitted work. Closing drains all admitted work before the writer exits.
+`Host::subscribe_status` offers pull-based, coalesced content-free admission status;
+there are no writer callbacks or per-observer event queues. Attention is sticky after
+an admitted authoring/authentication failure for that host lifetime; these counters
+are not a replacement for per-ticket SQLite commit receipts. JNI clones a library
+handle under the registry lock and releases that lock before waiting or calling a
+trusted verifier, so separate libraries do not block each other's registry access.
+The Kotlin executor is still a single queue: end-to-end Android capture priority and
+status observation remain incomplete. Encoded-byte limits do not claim a total RSS bound.
+
 The CLI has no authentication bypass. This optional developer harness does not replace
 or require the owner's deferred handwriting/model tests on a complete runnable app.
 

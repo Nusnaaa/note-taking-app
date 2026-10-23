@@ -21,6 +21,29 @@ public final class BoundarySmoke {
         try { NativeBridge.request(handle,"malformed private payload");throw new AssertionError(); } catch(IllegalStateException expected) {check(!expected.getMessage().contains("private"));}
         NativeBridge.close(handle);
         try {NativeBridge.request(handle,read);throw new AssertionError();}catch(IllegalStateException expected) { }
-        System.out.println("PASS: JNI Unicode, platform-verifier callback, relock, restart, malformed input and closed-handle checks (6)");
+        // A verifier waiting on one library must not hold the global registry.
+        long blockedHandle=NativeBridge.open(Files.createTempDirectory("stem-jni-blocked").resolve("notebook.db").toString());
+        long otherHandle=NativeBridge.open(Files.createTempDirectory("stem-jni-other").resolve("notebook.db").toString());
+        var entered=new java.util.concurrent.CountDownLatch(1);
+        var release=new java.util.concurrent.CountDownLatch(1);
+        var pool=java.util.concurrent.Executors.newFixedThreadPool(2);
+        try {
+            var authentication=pool.submit(() -> NativeBridge.authenticate(blockedHandle,"[\"App\"]",challenge -> {
+                entered.countDown();
+                try { return release.await(10,java.util.concurrent.TimeUnit.SECONDS); }
+                catch(InterruptedException interrupted) { Thread.currentThread().interrupt(); return false; }
+            }));
+            check(entered.await(5,java.util.concurrent.TimeUnit.SECONDS));
+            var independent=pool.submit(() -> NativeBridge.request(otherHandle,"{\"version\":1,\"command\":{\"op\":\"Status\"}}"));
+            check(independent.get(5,java.util.concurrent.TimeUnit.SECONDS).contains("\"ok\":true"));
+            release.countDown();
+            authentication.get(5,java.util.concurrent.TimeUnit.SECONDS);
+        } finally {
+            release.countDown();
+            pool.shutdownNow();
+            NativeBridge.close(blockedHandle);
+            NativeBridge.close(otherHandle);
+        }
+        System.out.println("PASS: JNI Unicode, platform-verifier callback, relock, restart, malformed input, closed handles and independent registry access (7)");
     }
 }

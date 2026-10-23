@@ -11,7 +11,15 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
-use std::{collections::BTreeSet, path::PathBuf, sync::mpsc, thread};
+use std::{
+    collections::BTreeSet,
+    path::PathBuf,
+    sync::{mpsc, Arc},
+    thread,
+};
+mod mailbox;
+use mailbox::Mailbox;
+pub use mailbox::{HostStatus, StatusSubscription, WriterLimits};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "op", deny_unknown_fields)]
@@ -303,18 +311,35 @@ enum Message {
         Box<dyn Authenticator + Send>,
         mpsc::Sender<Result<()>>,
     ),
-    Close,
+}
+
+/// Admission is separate from completion. Dropping this receipt never cancels an
+/// admitted edit. A successful response is the SQLite commit acknowledgement.
+pub struct PendingResponse(mpsc::Receiver<Response>);
+impl PendingResponse {
+    pub fn wait(self) -> Result<Response> {
+        self.0.recv().map_err(|_| Error::WorkerFailed)
+    }
 }
 pub struct Host {
-    tx: mpsc::SyncSender<Message>,
+    mailbox: Arc<Mailbox>,
     worker: Option<thread::JoinHandle<()>>,
 }
 impl Host {
     pub fn open(path: PathBuf, capacity: usize) -> Result<Self> {
-        if capacity == 0 || capacity > 4096 {
-            return Err(Error::Invalid("writer capacity"));
-        }
-        let (tx, rx) = mpsc::sync_channel(capacity);
+        Self::open_with_limits(
+            path,
+            WriterLimits {
+                authoring_count: capacity,
+                query_count: capacity,
+                authoring_bytes: 32 * 1024 * 1024,
+                query_bytes: 8 * 1024 * 1024,
+            },
+        )
+    }
+    pub fn open_with_limits(path: PathBuf, limits: WriterLimits) -> Result<Self> {
+        let mailbox = Mailbox::new(limits)?;
+        let input = Arc::clone(&mailbox);
         let (ready_tx, ready_rx) = mpsc::channel();
         let worker = thread::Builder::new()
             .name("stem-writer".into())
@@ -326,17 +351,26 @@ impl Host {
                     }
                     Err(e) => {
                         let _ = ready_tx.send(Err(e));
+                        input.close();
                         return;
                     }
                 };
                 let mut access = Access::public();
-                while let Ok(message) = rx.recv() {
-                    match message {
-                        Message::Close => break,
+                while let Ok(Some(envelope)) = input.next() {
+                    match envelope.message {
                         Message::Authenticate(scopes, mut auth, reply) => {
-                            let result = Access::authenticate(auth.as_mut(), scopes).map(|a| {
+                            let result =
+                                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                                    Access::authenticate(auth.as_mut(), scopes)
+                                }))
+                                .unwrap_or(Err(Error::WorkerFailed));
+                            // A failed verifier must not retain an older grant.
+                            access.relock();
+                            let result = result.map(|a| {
                                 access = a;
                             });
+                            let _ =
+                                input.complete(envelope.authoring, envelope.bytes, result.is_err());
                             let _ = reply.send(result);
                         }
                         Message::Call(request, reply) => {
@@ -345,31 +379,57 @@ impl Host {
                                     execute(&mut store, &mut access, request)
                                 }))
                                 .unwrap_or_else(|_| Response::error(Error::WorkerFailed));
+                            let _ = input.complete(envelope.authoring, envelope.bytes, !result.ok);
                             let _ = reply.send(result);
                         }
                     }
                 }
                 access.relock();
+                input.close();
             })?;
         ready_rx.recv().map_err(|_| Error::WorkerFailed)??;
         Ok(Self {
-            tx,
+            mailbox,
             worker: Some(worker),
         })
     }
-    pub fn request(&self, json: &str) -> Result<Response> {
+    pub fn subscribe_status(&self) -> StatusSubscription {
+        self.mailbox.subscribe()
+    }
+    pub fn submit(&self, json: &str) -> Result<PendingResponse> {
         if json.len() > 16 * 1024 * 1024 {
             return Err(Error::ResourceLimit);
         }
         let request: Request = serde_json::from_str(json)?;
+        let authoring = !matches!(
+            &request.command,
+            Command::Block { .. }
+                | Command::Mode { .. }
+                | Command::OpenInMaster { .. }
+                | Command::Layout { .. }
+                | Command::Group { .. }
+                | Command::Embed { .. }
+                | Command::View { .. }
+                | Command::Links { .. }
+                | Command::List { .. }
+                | Command::Read { .. }
+                | Command::Blocks { .. }
+                | Command::Search { .. }
+                | Command::Exercises { .. }
+                | Command::ExerciseBlocks { .. }
+                | Command::SourceInk { .. }
+                | Command::History { .. }
+                | Command::FlatExercises { .. }
+                | Command::SearchViews { .. }
+                | Command::Status { .. }
+        );
         let (tx, rx) = mpsc::channel();
-        self.tx
-            .try_send(Message::Call(request, tx))
-            .map_err(|e| match e {
-                mpsc::TrySendError::Full(_) => Error::ResourceLimit,
-                _ => Error::WorkerFailed,
-            })?;
-        rx.recv().map_err(|_| Error::WorkerFailed)
+        self.mailbox
+            .admit(Message::Call(request, tx), authoring, json.len())?;
+        Ok(PendingResponse(rx))
+    }
+    pub fn request(&self, json: &str) -> Result<Response> {
+        self.submit(json)?.wait()
     }
     /// Trusted host code supplies a verifier. This is deliberately absent from JSON.
     pub fn authenticate(
@@ -377,21 +437,25 @@ impl Host {
         scopes: BTreeSet<Scope>,
         auth: Box<dyn Authenticator + Send>,
     ) -> Result<()> {
+        if scopes.is_empty() || scopes.len() > 1024 {
+            return Err(Error::Invalid("authentication scopes"));
+        }
+        let bytes = 128 + scopes.len() * 64;
         let (tx, rx) = mpsc::channel();
-        self.tx
-            .try_send(Message::Authenticate(scopes, auth, tx))
-            .map_err(|_| Error::ResourceLimit)?;
+        self.mailbox
+            .admit(Message::Authenticate(scopes, auth, tx), true, bytes)?;
         rx.recv().map_err(|_| Error::WorkerFailed)?
     }
 }
 impl Drop for Host {
     fn drop(&mut self) {
-        let _ = self.tx.send(Message::Close);
+        self.mailbox.close();
         if let Some(worker) = self.worker.take() {
             let _ = worker.join();
         }
     }
 }
+
 fn execute(s: &mut Store, a: &mut Access, r: Request) -> Response {
     if r.version != 1 {
         return Response::error(Error::Unsupported);

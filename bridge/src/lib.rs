@@ -8,12 +8,12 @@ use jni::{
 use std::{
     collections::BTreeMap,
     sync::atomic::{AtomicI64, Ordering},
-    sync::{Mutex, OnceLock},
+    sync::{Arc, Mutex, OnceLock},
 };
 use stem_core::host::Host;
-static HOSTS: OnceLock<Mutex<BTreeMap<i64, Host>>> = OnceLock::new();
+static HOSTS: OnceLock<Mutex<BTreeMap<i64, Arc<Host>>>> = OnceLock::new();
 static NEXT: AtomicI64 = AtomicI64::new(1);
-fn hosts() -> &'static Mutex<BTreeMap<i64, Host>> {
+fn hosts() -> &'static Mutex<BTreeMap<i64, Arc<Host>>> {
     HOSTS.get_or_init(|| Mutex::new(BTreeMap::new()))
 }
 fn fail(env: &mut JNIEnv<'_>) {
@@ -38,7 +38,7 @@ pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_open(
         if id <= 0 {
             return None;
         }
-        hosts().lock().ok()?.insert(id, host);
+        hosts().lock().ok()?.insert(id, Arc::new(host));
         Some(id)
     }));
     match result {
@@ -68,8 +68,7 @@ pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_request(
             return None;
         }
         let request: String = env.get_string(&request).ok()?.into();
-        let registry = hosts().lock().ok()?;
-        let host = registry.get(&handle)?;
+        let host = Arc::clone(hosts().lock().ok()?.get(&handle)?);
         let response = host.request(&request).ok()?;
         let json = serde_json::to_string(&response).ok()?;
         Some(env.new_string(json).ok()?.into_raw())
@@ -89,7 +88,8 @@ pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_close(
     handle: jlong,
 ) {
     let result = std::panic::catch_unwind(|| {
-        hosts().lock().ok()?.remove(&handle)?;
+        let host = hosts().lock().ok()?.remove(&handle)?;
+        drop(host);
         Some(())
     });
     if !matches!(result, Ok(Some(()))) {
@@ -156,12 +156,8 @@ pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_authenticate(
             vm: env.get_java_vm().ok()?,
             proof: env.new_global_ref(proof).ok()?,
         };
-        hosts()
-            .lock()
-            .ok()?
-            .get(&handle)?
-            .authenticate(scopes, Box::new(verifier))
-            .ok()
+        let host = Arc::clone(hosts().lock().ok()?.get(&handle)?);
+        host.authenticate(scopes, Box::new(verifier)).ok()
     }));
     if !matches!(result, Ok(Some(()))) {
         fail(&mut env)

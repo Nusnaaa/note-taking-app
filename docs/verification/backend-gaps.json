@@ -7,7 +7,7 @@
       "NB-DOC-004",
       "NB-DATA-008"
     ],
-    "work": "Shared exercise membership/edits/status, extraction, reversible reassignment, hiding, protection, independent rich-object copies, flat exercise/search projections and open-in-master navigation are implemented and exposed through the host boundary. Remaining: caret/selection positions, live host subscriptions and complete operation history/retirement. Save state belongs to the single host Store."
+    "work": "Shared exercise membership/edits/status, extraction, reversible reassignment, hiding, protection, independent rich-object copies, flat exercise/search projections and open-in-master navigation are implemented and exposed through the host boundary. Native coalesced content-free host admission subscriptions are implemented. Remaining: caret/selection positions, Android subscriptions and complete operation history/retirement. Save state belongs to the single host Store."
   },
   {
     "id": "A2-CAPTURE-HOST",
@@ -18,7 +18,7 @@
       "NB-PEN-005",
       "NB-DATA-002"
     ],
-    "work": "Observed Android MotionEvent capture, cancellation, immutable vector encoding, asynchronous JNI writer, bounded durable capture recovery journal, exact-ticket ordered replay, low-space reserve release and draining close are implemented. The core retains retry receipts across reopen. Remaining: complete admission/active-stroke interruption policy, capture-priority host scheduling and automated device interruption/resource coverage. No latency or zero-loss guarantee."
+    "work": "Observed Android MotionEvent capture, cancellation, immutable vector encoding, asynchronous JNI writer, bounded durable capture recovery journal, exact-ticket ordered replay, low-space reserve release and draining close are implemented. The core retains retry receipts across reopen. Native admission now reserves separate count/encoded-byte budgets for authoring/queries (including executing requests), preserves FIFO among edits/capture/undo/access changes, prioritises authoring over queued reads, and drains on close. JNI releases the registry lock before waiting or invoking trusted authentication. Remaining: active-stroke interruption policy, Android admission/priority scheduling and automated device interruption/resource coverage. No latency or zero-loss guarantee."
   },
   {
     "id": "A3-RICH-OBJECTS",
