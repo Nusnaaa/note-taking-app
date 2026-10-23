@@ -1,5 +1,5 @@
 {
-  "source_commit": "af80108bbe408e5531a50366bd41cb04a849ddd9",
+  "source_commit": "5cf9263a1f8f17398773fc5c0bbf946902ce4388",
   "working_tree_before": "",
   "source_sha256": {
     ".gitignore": "47df1768ba52b16ac4fd14a3042d10ecc149fe248e1ddeb2b100a177d279f9f9",
@@ -10,7 +10,7 @@
     "android/backend/build.gradle.kts": "32c6c9bfe0dee1247b8da7d98fe65a7da8e269057c03e71aa82a386c4a052b4e",
     "android/backend/gradle.lockfile": "cbec11f0c961a5a5bfe6aab69d9bf761a8b8e27bc19034fd5b8eb6589005941e",
     "android/backend/src/main/AndroidManifest.xml": "e6c3baa8a6e88d578962c679301f3d53cd4cb2eb39351457e47c0915cb368a24",
-    "android/backend/src/main/java/org/stemnotebook/backend/ActiveCaptureJournal.kt": "7076e43f4dd691e37554693bc22ccd2b1a983cde1c268af887348c94b4e65247",
+    "android/backend/src/main/java/org/stemnotebook/backend/ActiveCaptureJournal.kt": "ccbceb70b0c19eb3a2b604eeb095c7b9c2eab868cf582b063599b29b53ca5fa0",
     "android/backend/src/main/java/org/stemnotebook/backend/BackendWriter.kt": "b575c502c87a40b28463f81741299619242df323a08deb71acd37b50a3d78250",
     "android/backend/src/main/java/org/stemnotebook/backend/CaptureLayer.kt": "b95f7a3eaee59a6b15536718cb936db685024b6daa09ea05aafe7e82b0a712d0",
     "android/backend/src/main/java/org/stemnotebook/backend/CaptureOutbox.kt": "58562a58cd2fa83797d36f300c3be4f0e1fff5c86a69df8f136a797fe825ba9b",
@@ -19,7 +19,7 @@
     "android/backend/src/main/java/org/stemnotebook/backend/JournaledCaptureSession.kt": "b4e194f8a50128fb26eff15891cc8cff8d76f242586641b19ba616f37c4d9566",
     "android/backend/src/main/java/org/stemnotebook/backend/LibraryOwnership.kt": "664e17e6fd36cd95e00ed10acf2f15d24c1efaed86cc7594f36ad038c59f8647",
     "android/backend/src/main/java/org/stemnotebook/backend/NativeBridge.java": "bf0d8acaedb40ef9577ce6bcd1d4d7c246a27809bb1588663728ad55bbe4e904",
-    "android/backend/src/main/java/org/stemnotebook/backend/NotebookBackend.kt": "bc0fe70323a141d55eac21aaf5ad51b9cdff4dabd6b400173d69818aef3eb150",
+    "android/backend/src/main/java/org/stemnotebook/backend/NotebookBackend.kt": "28db7c787d3b5adbe18c088e4cffa02a661eabc2e3725181c79ef01988f617c3",
     "android/backend/src/main/java/org/stemnotebook/backend/ObservedInk.kt": "e805ee74103677a5304d858b2078374ba9ab1f1ee6ca695228d1d8729edca45d",
     "android/backend/src/main/java/org/stemnotebook/backend/PdfConnection.kt": "c7b5c61bc5d209f70a2867c8942d606556daf29a04a28e48872d1bd68af5504f",
     "android/backend/src/main/java/org/stemnotebook/backend/PdfParserClient.kt": "ae4fd736f00d29be432ffc4bb60d5443ba9bf9ca5a06ac3f83e2fe9c9b1c8214",
@@ -41,7 +41,7 @@
     "android/backend/src/test/java/org/stemnotebook/backend/InkAccumulatorTest.kt": "96e7cd818d463329b33f37484de47900462f215cf8d7c314d9cb268d3414b83a",
     "android/backend/src/test/java/org/stemnotebook/backend/InterruptedCaptureTest.kt": "53c2e17d1c724ba553d39040f67a08a454323be2b8d0ea7c2e8d2422b291ef5b",
     "android/backend/src/test/java/org/stemnotebook/backend/JniBackendRunner.kt": "b8ddaad94cbec781a133898ff48733809ad9b0ff4790d66a04899631182044d1",
-    "android/backend/src/test/java/org/stemnotebook/backend/JournaledCaptureIntegrationTest.kt": "264979dcb7b1ba7f544f1d6661cb4d2e9b9f071110cac449816cf3365ee1ea7b",
+    "android/backend/src/test/java/org/stemnotebook/backend/JournaledCaptureIntegrationTest.kt": "b4957deab38500d3fe0ca41bb37338afe5d1be19bda4851c494eef4269fe42c8",
     "android/backend/src/test/java/org/stemnotebook/backend/MotionCaptureTest.kt": "256a7105fe9c0654caf919e9e7e3a7b230bdbaa19f66f3292f0469ca32653b39",
     "android/backend/src/test/java/org/stemnotebook/backend/PdfConnectionTest.kt": "deeb311c819cb566bcc449fbd5c4b2e3810b789e1dd8af77f3eb0c694d81df77",
     "android/backend/src/test/java/org/stemnotebook/backend/PdfParserClientTest.kt": "9c8dbd693cd1b3fd42f575329ac2b9af3dea47d7ecc8063e6623568dcc8c124f",
@@ -187,21 +187,21 @@
     "docs/licensing/dependency-inventory.json": "c86a26e424db68595a545e056ad6726307d9167b564590ea565bba3e08c05c32",
     "docs/spec/approved-v0.5.8.md": "68612d4dc4d0e69c61f0018fbcf67bf779559bcbb120bcd0f6c3f9333f27b7b3",
     "docs/verification/DEFERRED_MANUAL.md": "c694b9fe185c216204dfd72aa6c55d1f8d21e06c431bb50b126bce1a6b514e1c",
-    "docs/verification/HOST_INTEGRATION.md": "3feb86ca76c98fc64b0b9cf066459a3aead24884bab059a72aa67a802a22fd85",
+    "docs/verification/HOST_INTEGRATION.md": "342c5352cbd654e03a913e4238f54962773bdbccbe48ebe023ceebc4abf495c4",
     "docs/verification/TEST_PLAN.md": "b87eb3dba1b3074e9d8ab4b38ab9ac0323aa7d1c09dc01b800aa007893c511d9",
-    "docs/verification/backend-gaps.json": "1d6dcf7b2836c3d03c715f34a96d1dfb452d91bc25c6566b1b1fcb384bcf44b8",
-    "docs/verification/candidates-current.csv": "3307516ef15e0d78ccc7e4af02db251fa80ae225af97e0ef6d50f656ed5c30f2",
-    "docs/verification/inherited-current.csv": "29eebb7b659db1c6884a1c779b4e987886158be5e7116e1cbf1c9fa87f967a03",
-    "docs/verification/requirements-current.csv": "afa1f5b940c7d577ae4339073f4847a6600ed5eb506c9a01e73db26b060a268a",
+    "docs/verification/backend-gaps.json": "31e7f1480073ef7fd38aea5d8af3eb51fbc0240ef13f4246b3f0bc421dbf4558",
+    "docs/verification/candidates-current.csv": "907a87c3e6fbf8f49c6ae06a8a485fb880cee374c264dd740ed9f3927e9b07da",
+    "docs/verification/inherited-current.csv": "621df95a9b0872073dc9d0b94bfbc8973ffed44280d1f4c7faa93596e8448870",
+    "docs/verification/requirements-current.csv": "9f05277f19d3fe8d400e33494ddad2bd41bd8ed1d1dec42682cf6d87ee9ab653",
     "docs/verification/traceability-manifest.json": "15d09e00b540a512b8e0b6afd98b06824e93d743d80317963ebe18d91d3adb22",
     "rust-toolchain.toml": "c33d1f0b1b8fda448bea32d7dc867aa64947c87169fd9de7122ffccad1dd80f9",
     "tools/backend_gate.py": "f2e695b770631ef9dcff18125b737665b3153be72f0bb8992007f151fc1e762d",
     "tools/dependency_inventory.py": "51dc9dcd28cab69c8af36b976d65aa67557d6afe8827be162a431d1854232315",
-    "tools/traceability.py": "2ffe46eb5e829b9d707df5f6b05fab9d78b3fe39d9e5c20a3a854008d82ddc5a",
+    "tools/traceability.py": "9412ed64c0bd16e34975e802a24b77a76125d5d79ee9b3ca4dca1be059578db6",
     "tools/validate.py": "2a25d3f4c6d487754f7b73bc0f415809cdf9e8416fe9f651f0302522a373711a",
     "tools/validate_android.py": "54269646d3c5eefaba3b410e5727ecef2eb49b26d18fc86291ea90ccdc4b79d5"
   },
-  "started_utc": "2026-10-23T22:13:20.216426+00:00",
+  "started_utc": "2026-10-23T22:28:51.506205+00:00",
   "checks": [
     {
       "name": "android-native",
@@ -296,11 +296,11 @@
     "CC_aarch64_linux_android": "/tmp/stem-android-sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android30-clang",
     "AR_aarch64_linux_android": "/tmp/stem-android-sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar"
   },
-  "full_working_tree_before": "?? docs/evidence/continuation-2026-10-23/resource-handles/",
-  "aar_sha256": "224f726ee7b5a7d08eba763b06685fc0477580d461ea0e10579f0bc78602acc9",
+  "full_working_tree_before": "?? docs/evidence/continuation-2026-10-23/capture-discard/",
+  "aar_sha256": "0dadd55d1bc3cdf7eb769b0e41735c17125780963e4ab61f52629ff39d63ff78",
   "packaged_arm64_library_bytes": 4865872,
   "android_tests": {
-    "tests": 129,
+    "tests": 131,
     "failures": 0,
     "errors": 0,
     "skipped": 0
@@ -309,5 +309,5 @@
   "merged_manifest_policy": "PASS",
   "native_sha256": "cf319c3f9c353c66ad80f52701261bd9dc57d1b1a99be1ffdde2406486b9a29f",
   "manifest_scope": "AAR merge contract only: INTERNET removal marker, no backup/transfer, no cleartext, isolated non-exported PDF service. Final APK/device enforcement NOT RUN.",
-  "finished_utc": "2026-10-23T22:18:57.273126+00:00"
+  "finished_utc": "2026-10-23T22:31:10.511583+00:00"
 }
