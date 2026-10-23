@@ -5,10 +5,7 @@ import android.os.StatFs
 import java.io.Closeable
 import java.io.File
 import java.io.RandomAccessFile
-import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.ThreadPoolExecutor
-import java.util.concurrent.TimeUnit
 import java.util.UUID
 import org.json.JSONObject
 
@@ -17,7 +14,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
     constructor(context: Context) : this(context, { platform, native -> PdfWorkspace(platform, native) })
     private val ownership = try { LibraryOwnership.acquire(context.noBackupFilesDir) } catch (error: Exception) { selectionProvider.close(); throw error }
     private val directory = File(context.noBackupFilesDir, "notebook")
-    private val executor = ThreadPoolExecutor(1, 1, 0, TimeUnit.MILLISECONDS, ArrayBlockingQueue(64), ThreadPoolExecutor.AbortPolicy())
+    private val executor = BackendWriter()
     private val handle = CompletableFuture<Long>()
     private var closed = false
     private val nativeClosed = CompletableFuture<Void>()
@@ -95,16 +92,18 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
     }
 
     /** Observation cancellation does not cancel an admitted edit/checkpoint. */
-    private fun <T> submitAdmitted(action: () -> T, writer: java.util.concurrent.Executor): CompletableFuture<T> {
-        val result = CompletableFuture<T>()
-        writer.execute { try { result.complete(action()) } catch (error: Throwable) { result.completeExceptionally(error) } }
-        return result
-    }
-    private fun submitAdmittedVoid(action: () -> Unit, writer: java.util.concurrent.Executor): CompletableFuture<Void> {
+    private fun <T> submitAdmitted(action: () -> T, writer: BackendWriter, authoring: Boolean = true, bytes: Long = 256): CompletableFuture<T> = writer.admit(authoring, bytes, action)
+    private fun submitAdmittedVoid(action: () -> Unit, writer: BackendWriter, bytes: Long = 256): CompletableFuture<Void> {
         val result = CompletableFuture<Void>()
-        writer.execute { try { action(); result.complete(null) } catch (error: Throwable) { result.completeExceptionally(error) } }
+        writer.admit(true, bytes, action).whenComplete { _, error -> if (error == null) result.complete(null) else result.completeExceptionally(error) }
         return result
     }
+    // Conservative input charges bound retained strings/vector frames, including
+    // executing work. They are neither a whole-process RSS nor a latency promise.
+    private fun inputBytes(vararg values: String): Long = 512L + values.sumOf { it.length.toLong() * 4 }
+    private fun strokeBytes(strokes: List<CapturedStroke>, space: String): Long = inputBytes(space) + strokes.sumOf { 512L + inputBytes(it.id, it.session) + it.points.size.toLong() * 128 }
+    fun writerStatus(): BackendAdmissionStatus = executor.snapshot()
+    fun observeWriterStatus(): BackendStatusSubscription = executor.subscribe()
     @Synchronized fun openCaptureSession(entity: UUID, coordinateSpace: String): JournaledCaptureSession {
         check(!closed)
         val encoded = Charsets.UTF_8.newEncoder().onMalformedInput(java.nio.charset.CodingErrorAction.REPORT).onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT).encode(java.nio.CharBuffer.wrap(coordinateSpace))
@@ -116,7 +115,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
     @Synchronized internal fun checkpointCapture(session: JournaledCaptureSession, stroke: CapturedStroke, revision: Long, cancelled: Boolean): CompletableFuture<JournaledCaptureSession.Receipt> {
         check(!closed && session.backend === this)
         val snapshot = stroke.copy(points = stroke.points.toList())
-        return submitAdmitted({ writeCheckpoint(session, snapshot, revision, cancelled) }, executor)
+        return submitAdmitted({ writeCheckpoint(session, snapshot, revision, cancelled) }, executor, bytes = strokeBytes(listOf(snapshot), session.space))
     }
     private fun nativeCaptureCommand(command: JSONObject): JSONObject {
         val result = JSONObject(NativeBridge.request(handle.join(), JSONObject().put("version", 1).put("command", command).toString()))
@@ -129,7 +128,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
             val reply = JSONObject(NativeBridge.request(handle.join(), CaptureRequest.encode(entry.ticket, entry.entity, entry.space, listOf(entry.stroke))))
             reply.getInt("version") == 1 && reply.getBoolean("ok")
         } catch (_: Exception) { false }
-        if (!ok) recoveryAttention = true
+        if (!ok) { recoveryAttention = true; executor.markAttention() }
         return ok
     }
     private fun writeCheckpoint(session: JournaledCaptureSession, stroke: CapturedStroke, revision: Long, cancelled: Boolean): JournaledCaptureSession.Receipt {
@@ -160,7 +159,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
     data class CaptureRecoveryState(val pending: Int, val incomplete: Int, val needsAttention: Boolean)
     @Synchronized fun captureRecoveryState(): CompletableFuture<CaptureRecoveryState> {
         check(!closed)
-        return submitAdmitted({ val journal = activeJournal.join(); CaptureRecoveryState(outbox.join().pendingCount() + journal.pendingCount(), journal.incompleteCount(), recoveryAttention || journal.incompleteCount() != 0 || journal.reviewCount() != 0) }, executor)
+        return submitAdmitted({ val journal = activeJournal.join(); CaptureRecoveryState(outbox.join().pendingCount() + journal.pendingCount(), journal.incompleteCount(), recoveryAttention || journal.incompleteCount() != 0 || journal.reviewCount() != 0) }, executor, authoring = false)
     }
     class CaptureRecoveryReview internal constructor(internal val owner: NotebookBackend, val ticket: UUID, val entity: UUID, val coordinateSpace: String, val stroke: CapturedStroke, internal val checksum: String)
     @Synchronized fun interruptedCaptureTickets(): CompletableFuture<List<UUID>> {
@@ -170,7 +169,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
             journal.reviewTickets().filter { ticket ->
                 try { nativeCaptureCommand(JSONObject().put("op", "Read").put("id", journal.read(ticket).entity.toString())); true } catch (_: Exception) { false }
             }
-        }, executor)
+        }, executor, authoring = false)
     }
     @Synchronized fun reviewInterruptedCapture(ticket: UUID): CompletableFuture<CaptureRecoveryReview> {
         check(!closed)
@@ -178,23 +177,25 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
             val journal = activeJournal.join(); val entry = journal.read(ticket); require(entry.review && !entry.cancelled)
             nativeCaptureCommand(JSONObject().put("op", "Read").put("id", entry.entity.toString()))
             CaptureRecoveryReview(this, ticket, entry.entity, entry.space, entry.stroke, journal.checksum(ticket))
-        }, executor)
+        }, executor, authoring = false)
     }
     @Synchronized fun acceptInterruptedCapture(review: CaptureRecoveryReview, confirmed: Boolean): CompletableFuture<Int> {
         check(!closed && review.owner === this); require(confirmed)
+        val ticket = review.ticket; val entity = review.entity; val checksum = review.checksum
         return submitAdmitted({
             val journal = activeJournal.join()
-            nativeCaptureCommand(JSONObject().put("op", "Read").put("id", review.entity.toString()))
-            journal.approve(review.ticket, review.checksum)
+            nativeCaptureCommand(JSONObject().put("op", "Read").put("id", entity.toString()))
+            journal.approve(ticket, checksum)
             replayCaptures()
-        }, executor)
+        }, executor, bytes = inputBytes(checksum))
     }
     @Synchronized fun discardInterruptedCapture(review: CaptureRecoveryReview, confirmed: Boolean): CompletableFuture<Void> {
         check(!closed && review.owner === this); require(confirmed)
+        val ticket = review.ticket; val entity = review.entity; val checksum = review.checksum
         return submitAdmittedVoid({
-            nativeCaptureCommand(JSONObject().put("op", "Read").put("id", review.entity.toString()))
-            activeJournal.join().discardReview(review.ticket, review.checksum)
-        }, executor)
+            nativeCaptureCommand(JSONObject().put("op", "Read").put("id", entity.toString()))
+            activeJournal.join().discardReview(ticket, checksum)
+        }, executor, bytes = inputBytes(checksum))
     }
 
     /** The caller chooses and retains this ticket before submission. Rejection
@@ -209,7 +210,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
             releaseReserveIfNeeded()
             outbox.join().enqueue(ticket, CaptureRequest.encode(ticket, entity, coordinateSpace, snapshots))
             replayCaptures()
-        }, executor)
+        }, executor, bytes = strokeBytes(snapshots, coordinateSpace))
     }
 
     /** Call after opening/unlocking and after a recoverable storage failure. A
@@ -220,7 +221,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
     }
     @Synchronized fun pendingCaptures(): CompletableFuture<Int> {
         check(!closed)
-        return submitAdmitted({ outbox.join().pendingCount() + activeJournal.join().pendingCount() }, executor)
+        return submitAdmitted({ outbox.join().pendingCount() + activeJournal.join().pendingCount() }, executor, authoring = false)
     }
     private fun replayCaptures(): Int {
         recoveryAttention = false
@@ -230,6 +231,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
         }
         val checkpoints = activeJournal.join().drain(::sendCheckpoint)
         if (outbox.join().pendingCount() != 0) recoveryAttention = true
+        if (recoveryAttention) executor.markAttention()
         return legacy + checkpoints
     }
     private fun releaseReserveIfNeeded() {
@@ -241,20 +243,25 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
     @Synchronized fun request(json: String): CompletableFuture<String> {
         check(!closed)
         require(json.length <= 8 * 1024 * 1024)
-        if (affectsPdfPolicy(JSONObject(json).getJSONObject("command"))) { pdf.invalidate(); selections.invalidate() }
+        val command = JSONObject(json).getJSONObject("command")
+        val authoring = !isQuery(command)
+        if (affectsPdfPolicy(command)) { pdf.invalidate(); selections.invalidate() }
         return submitAdmitted({
             releaseReserveIfNeeded()
-            NativeBridge.request(handle.join(), json)
-        }, executor)
+            val reply = NativeBridge.request(handle.join(), json)
+            if (authoring && !JSONObject(reply).getBoolean("ok")) executor.markAttention()
+            reply
+        }, executor, authoring = authoring, bytes = inputBytes(json))
     }
 
     @Synchronized fun authenticate(scopesJson: String, proof: NativeBridge.Verification): CompletableFuture<Void> {
         check(!closed)
+        require(scopesJson.length <= 65536)
         pdf.invalidate(); selections.invalidate()
         return submitAdmittedVoid({
             NativeBridge.authenticate(handle.join(), scopesJson, proof)
-            try { replayCaptures() } catch (_: Exception) { recoveryAttention = true }
-        }, executor)
+            try { replayCaptures() } catch (_: Exception) { recoveryAttention = true; executor.markAttention() }
+        }, executor, bytes = inputBytes(scopesJson))
     }
 
     @Synchronized fun allocateReserve(bytes: Long = 4L * 1024 * 1024): CompletableFuture<Void> {
@@ -294,12 +301,23 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
     }
     @Synchronized private fun prepareSelectionNative(target: String, locator: String, revision: String, proof: NativeBridge.PdfGrant): CompletableFuture<JSONObject> {
         check(!closed)
-        return submitAdmitted({ JSONObject(NativeBridge.preparePdfSelection(handle.join(), target, locator, revision, proof)) }, executor)
+        return submitAdmitted({ JSONObject(NativeBridge.preparePdfSelection(handle.join(), target, locator, revision, proof)) }, executor, bytes = inputBytes(target, locator, revision))
     }
     @Synchronized private fun finishSelectionNative(review: String, confirmed: Boolean, proof: NativeBridge.PdfGrant): CompletableFuture<JSONObject> {
         check(!closed)
         pdf.invalidate()
-        return submitAdmitted({ JSONObject(NativeBridge.finishPdfSelection(handle.join(), review, confirmed, proof)) }, executor)
+        return submitAdmitted({ JSONObject(NativeBridge.finishPdfSelection(handle.join(), review, confirmed, proof)) }, executor, bytes = inputBytes(review))
+    }
+    /** Keep the native host's read classification; unknown/new commands retain
+     * FIFO authoring semantics until deliberately classified. */
+    private fun isQuery(command: JSONObject): Boolean {
+        val op = command.getString("op")
+        if (op == "Pdf") return command.getJSONObject("command").getString("op") in setOf(
+            "Assets", "PrepareAssetRead", "ReadAssetChunk", "ValidateAssetRead", "Source", "Anchor", "PrepareRead", "ValidateRead", "ReviewRevision",
+        )
+        return op in setOf(
+            "CaptureReceipt", "Block", "Mode", "OpenInMaster", "Layout", "Group", "Embed", "View", "Links", "List", "Read", "Blocks", "Search", "Exercises", "ExerciseBlocks", "SourceInk", "History", "FlatExercises", "SearchViews", "Status",
+        )
     }
     private fun affectsPdfPolicy(command: JSONObject): Boolean {
         val op = command.getString("op")

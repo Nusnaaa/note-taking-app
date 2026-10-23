@@ -162,3 +162,16 @@ prove cancelled observer futures cannot drop admitted journaled/legacy ink. Nati
 fixtures verify receipt scope/target and private identity without granting access.
 These are process/filesystem/desktop-JNI tests with synthetic MotionEvents, not
 physical power-loss, pen-latency or Android device acceptance.
+
+## Android reserved writer admission
+
+`BackendWriterTest` deterministically gates running actions to exercise separate
+count and byte budgets (including running input), authoring FIFO over queued reads,
+capacity recovery, cancelled observers, draining shutdown, sticky authoring failure
+and coalesced status. No status callback or per-subscriber event queue runs on the
+writer. `BackendAdmissionIntegrationTest` uses actual desktop JNI and synthetic
+MotionEvents: a full optional-read lane still admits checkpoints/completion, queued
+reads observe the subsequent commit, large input exhausts bytes before count, and
+capture/relock ordering checks fresh authority while retaining denied work for replay.
+These are backend/Robolectric fixtures; device latency, load and process acceptance
+remain unproven. Counter snapshots never substitute for per-ticket commit receipts.

@@ -56,8 +56,36 @@ closes admission and grants no future access. JNI removes the opaque handle unde
 the registry lock, releases that lock, and waits for Host close. A blocked close
 therefore does not block registry access to another library.
 
-The Kotlin executor is still a single queue: end-to-end Android capture priority and
-status observation remain incomplete. Encoded-byte limits do not claim a total RSS bound.
+The Android backend now uses its own single writer with reserved authoring/query
+count and input-byte budgets, including running actions. Capture, edits, authentication,
+relock and unknown/new commands preserve FIFO; queued optional reads yield to them.
+Read classification follows the native host, including PDF lease/read queries. A
+running action is never preempted, and continuous writing may defer queued reads.
+Default admission limits are 64 authoring actions/32 MiB and 16 queries/8 MiB.
+These are implementation capacity limits, not approved performance SLOs. Rejection
+throws before admission; callers retain observations and retry the same ticket.
+
+String charges conservatively allow four bytes per UTF-16 code unit plus envelope
+space. Typed vector frames charge fixed per-stroke metadata, all retained strings
+and 128 bytes per point. These input charges bound queued/running logical input;
+they do not bound whole-process RSS, caller-owned snapshots, native allocations,
+returned content, trusted callback closures or total replay/storage work. The typed
+capture encoder remains on the writer rather than allocating full JSON on input.
+Authentication scope strings also obey the JNI 65,536-character input limit before
+admission. Closing rejects new actions and drains both lanes, including cancelled
+observation futures. Even shutdownNow deliberately drains instead of retracting ink.
+
+`writerStatus()` returns a content-free immediate admission snapshot.
+`observeWriterStatus().next(timeoutMillis)` provides pull-based coalescing from an
+observer thread without writer callbacks or per-observer queues. Slow observers
+read the latest counters/byte charges; authoring execution/native failures set sticky
+attention for this writer lifetime. A denied admission is reported to that caller
+and does not set sticky execution failure. Counts and termination are not recovery,
+SQLite commit or full library-retirement receipts: inspect capture receipts,
+`captureRecoveryState()` and `closeFullyAsync()` respectively. Dependent callbacks
+on returned CompletableFutures can still run on the completing thread; callers must
+keep them short or explicitly dispatch them to their own executor. This increment
+does not establish physical pen latency or device resource acceptance.
 
 The CLI has no authentication bypass. This optional developer harness does not replace
 or require the owner's deferred handwriting/model tests on a complete runnable app.
