@@ -427,6 +427,7 @@ impl Store {
                 let mut item=Self::authorise(db,i,access,true)?;
                 Self::require_content_access(db,i,access)?;
                 // Detailed undo payloads are content too; tombstones must not retain them.
+                db.execute("DELETE FROM canvas_layers WHERE canvas=?1",[i.to_string()])?;
                 db.execute("DELETE FROM edit_operations WHERE entity=?1",[i.to_string()])?;
                 db.execute("DELETE FROM pdf_anchors WHERE block IN(SELECT id FROM blocks WHERE entity=?1)",[i.to_string()])?;
                 db.execute("DELETE FROM capture_receipts WHERE block IN(SELECT id FROM blocks WHERE entity=?1)",[i.to_string()])?;

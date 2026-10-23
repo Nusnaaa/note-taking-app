@@ -149,12 +149,12 @@ fn schema9_upgrade_preserves_original_payload_hash_and_capture_receipt_byte_for_
         )
         .unwrap();
     assert!(!before.0.contains("\"end\""));
-    db.execute_batch("DROP TRIGGER view_workspace_identity; DROP TRIGGER stroke_workspace_identity; DROP TABLE workspace_state; DROP TABLE workspace_panes;")
+    db.execute_batch("DROP TRIGGER IF EXISTS workspace_layer_identity; DROP TRIGGER IF EXISTS stroke_layer_identity; DROP TRIGGER IF EXISTS view_layer_identity; DROP TABLE canvas_layers; DROP TRIGGER view_workspace_identity; DROP TRIGGER stroke_workspace_identity; DROP TABLE workspace_state; DROP TABLE workspace_panes;")
         .unwrap();
     db.pragma_update(None, "user_version", 9).unwrap();
     drop(db);
     let mut s = Store::open(&path).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 13);
+    assert_eq!(s.schema_version().unwrap(), 14);
     assert_eq!(
         s.append_capture(
             ticket,
@@ -188,7 +188,7 @@ fn native_v5_preserves_interruption_provenance_and_legacy_tags_cannot_hide_it() 
     s.append_ink(n.id, vec![original.clone()], &a).unwrap();
     let bytes = export(&s, n.id);
     let doc = NativeDocument::decode(&bytes).unwrap();
-    assert_eq!(doc.version, 7);
+    assert_eq!(doc.version, 8);
     let mut imported = Store::memory().unwrap();
     let new = imported.import_native(&bytes, &a).unwrap();
     let b = imported.blocks(new[0], 0, 10, &a).unwrap().pop().unwrap();
@@ -235,12 +235,16 @@ fn encrypted_schema10_retains_interruption_and_old_schema_cannot_claim_it() {
         .finish_backup(plan, password, &mut TestAuth(true), true)
         .unwrap();
     let restored = Store::restore_backup_password(&backup.bytes, password).unwrap();
-    assert_eq!(restored.schema_version().unwrap(), 13);
+    assert_eq!(restored.schema_version().unwrap(), 14);
     assert_eq!(restored.source_ink(b.id, &a).unwrap(), vec![original]);
     let plain = crypto::decrypt(&backup.bytes, Credential::Password(password)).unwrap();
     let mut downgraded: serde_json::Value = serde_json::from_slice(&plain).unwrap();
-    assert_eq!(downgraded["schema"], 13);
+    assert_eq!(downgraded["schema"], 14);
     downgraded["schema"] = 9.into();
+    downgraded["tables"]
+        .as_object_mut()
+        .unwrap()
+        .remove("canvas_layers");
     downgraded["tables"]
         .as_object_mut()
         .unwrap()
@@ -287,6 +291,10 @@ fn legacy_schema9_backup_defaults_to_completed_without_rewriting_source_or_recei
     let plain = crypto::decrypt(&backup.bytes, Credential::Password(password)).unwrap();
     let mut old: serde_json::Value = serde_json::from_slice(&plain).unwrap();
     old["schema"] = 9.into();
+    old["tables"]
+        .as_object_mut()
+        .unwrap()
+        .remove("canvas_layers");
     old["tables"]
         .as_object_mut()
         .unwrap()

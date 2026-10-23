@@ -32,7 +32,7 @@
       "NB-REC-002",
       "NB-REC-007"
     ],
-    "work": "Structured table cells, diagrams, graphs, image assets, groups/layouts/embeds/views, transactional authoring undo, selected-stroke regions and revision-safe region proposals are implemented. Host commands expose current object APIs. Remaining: component-cell recognition, anchored flow/reflow, embed overlays/follow-object, layers and full image/canvas/graph/diagram export fidelity. Image import checks signature/integrity, not full decoding."
+    "work": "Structured table cells, diagrams, graphs, image assets, groups/layouts/embeds/views, transactional authoring undo, selected-stroke regions and revision-safe region proposals are implemented. Host commands expose current object APIs. Revisioned canvas block layers, independent per-embed visibility/defaults, missing-layer states, paginated byte-bounded block/nested-reference projections and durable undo/copy/backup now exist. Layer visibility never grants source access or deletes observations. Remaining: layer-aware capture destination/recovery, custom nested-embed assignment, component-cell recognition, anchored flow/reflow, embed overlays/follow-object and full image/canvas/graph/diagram export fidelity. Image import checks signature/integrity, not full decoding."
   },
   {
     "id": "A4-LIFECYCLE",
@@ -66,7 +66,7 @@
       "NB-EXP-003",
       "NB-EXP-004"
     ],
-    "work": "Native subset v7 adds immutable chosen stroke appearance, retains revision-bound selection bookmarks, retains interrupted-stroke provenance, reads v1-v6, preserves regions/rich attachments and remaps identities. Encrypted schema-13 whole backups retain style/workspace/bookmarks/provenance/authoring undo and restore schemas 8/9/10/11/12 without inventing termination or old history. Converted-only Markdown/SVG and paginated selectable Unicode/vector maths PDF are implemented. Base-style original SVG now preserves RGBA/width/dots and explicitly warns about legacy/pressure/eraser fidelity. Remaining: complete nib/pressure/scene rendering, static embeds, cropped images/canvas fidelity, scalable/chunked backup beyond the current 64 MiB bound, complete import lineage/PDF-linked native portability and all-operation undo. Model files and source grants are not portable."
+    "work": "Native subset v8 adds canvas-layer/independent embed-view state, retains immutable chosen stroke appearance, retains revision-bound selection bookmarks, retains interrupted-stroke provenance, reads v1-v7, preserves regions/rich attachments and remaps identities. Encrypted schema-14 whole backups retain layers/style/workspace/bookmarks/provenance/authoring undo and restore schemas 8/9/10/11/12/13 without inventing termination or old history. Converted-only Markdown/SVG and paginated selectable Unicode/vector maths PDF are implemented. Base-style original SVG now preserves RGBA/width/dots and explicitly warns about legacy/pressure/eraser fidelity. Remaining: complete nib/pressure/scene rendering, static embeds, cropped images/canvas fidelity, scalable/chunked backup beyond the current 64 MiB bound, complete import lineage/PDF-linked native portability and all-operation undo. Model files and source grants are not portable."
   },
   {
     "id": "A7-ANDROID-BOUNDARY",

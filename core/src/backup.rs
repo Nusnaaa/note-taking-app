@@ -26,7 +26,7 @@ use std::{
     path::Path,
 };
 
-// Column order is the on-disk contract of schemas 9/10/11/12/13. Unknown tables/widths fail closed.
+// Column order is the on-disk contract of schemas 9/10/11/12/13/14. Unknown tables/widths fail closed.
 const TABLES: &[(&str, usize)] = &[
     ("settings", 2),
     ("entities", 3),
@@ -58,6 +58,7 @@ const TABLES: &[(&str, usize)] = &[
     ("edit_changes", 5),
     ("workspace_panes", 7),
     ("workspace_state", 4),
+    ("canvas_layers", 2),
 ];
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -170,7 +171,7 @@ impl Store {
 
         let mut snapshot = Snapshot {
             format: "STEM-LIBRARY-1".into(),
-            schema: 13,
+            schema: 14,
             tables: BTreeMap::new(),
             omissions: vec![],
         };
@@ -342,10 +343,25 @@ impl Store {
             snapshot.schema = 9;
         }
 
-        if snapshot.format != "STEM-LIBRARY-1" || !matches!(snapshot.schema, 9..=13) {
+        if snapshot.format != "STEM-LIBRARY-1" || !matches!(snapshot.schema, 9..=14) {
             return Err(Error::Unsupported);
         }
 
+        if source_schema < 14 {
+            if snapshot.tables.contains_key("canvas_layers") {
+                return Err(Error::Invalid("legacy layer extension"));
+            }
+            snapshot.tables.insert("canvas_layers".into(), vec![]);
+            if snapshot
+                .tables
+                .get("edit_changes")
+                .into_iter()
+                .flatten()
+                .any(|r| r.get(1).and_then(|c| c.text().ok()) == Some("canvas_layers"))
+            {
+                return Err(Error::Unsupported);
+            }
+        }
         if source_schema < 12 {
             if snapshot.tables.contains_key("workspace_panes")
                 || snapshot.tables.contains_key("workspace_state")
@@ -419,7 +435,9 @@ impl Store {
 
         tx.commit()?;
 
-        destination.validate_backup_state(if source_schema >= 13 {
+        destination.validate_backup_state(if source_schema >= 14 {
+            8
+        } else if source_schema >= 13 {
             7
         } else if source_schema >= 11 {
             6
@@ -538,6 +556,36 @@ impl Store {
 
     fn validate_backup_state(&self, native_version: u32) -> Result<()> {
         self.validate_edit_journal()?;
+        if native_version < 8 {
+            let mut q = self
+                .db
+                .prepare("SELECT table_name,before_row,after_row FROM edit_changes")?;
+            for row in q.query_map([], |r| {
+                Ok((
+                    r.get::<_, String>(0)?,
+                    r.get::<_, Option<String>>(1)?,
+                    r.get::<_, Option<String>>(2)?,
+                ))
+            })? {
+                let (table, before, after) = row?;
+                if table == "canvas_layers" {
+                    return Err(Error::Unsupported);
+                }
+                if table == "embeds" {
+                    for json in [before, after].into_iter().flatten() {
+                        let fields: Vec<serde_json::Value> = serde_json::from_str(&json)?;
+                        let raw = fields
+                            .last()
+                            .and_then(serde_json::Value::as_str)
+                            .ok_or(Error::Integrity)?;
+                        if serde_json::from_str::<Embed>(raw)?.visible_layers.is_some() {
+                            return Err(Error::Unsupported);
+                        }
+                    }
+                }
+            }
+        }
+
         self.check_integrity()?;
         Self::stored_workspace(&self.db)?;
         let db = &self.db;
@@ -568,7 +616,12 @@ impl Store {
             serde_json::from_str(&Self::setting(db, "global_mode")?)?;
 
         let payloads = |table: &str| -> Result<Vec<(String, String)>> {
-            let mut q = db.prepare(&format!("SELECT id,payload FROM {table}"))?;
+            let key = if table == "canvas_layers" {
+                "canvas"
+            } else {
+                "id"
+            };
+            let mut q = db.prepare(&format!("SELECT {key},payload FROM {table}"))?;
 
             let rows = q
                 .query_map([], |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?)))?
@@ -829,6 +882,13 @@ impl Store {
             doc.attachments.views.push(v);
         }
 
+        for (id, json) in payloads("canvas_layers")? {
+            let state: crate::store::CanvasLayers = serde_json::from_str(&json)?;
+            if state.canvas.to_string() != id {
+                return Err(Error::Integrity);
+            }
+            doc.attachments.layers.push(state);
+        }
         doc.validate()?;
 
         for (id, json) in payloads("sources")? {

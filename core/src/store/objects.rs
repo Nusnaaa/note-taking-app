@@ -70,9 +70,23 @@ pub struct Embed {
     pub camera: Camera,
     pub frame: Rect,
     pub pinned: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub visible_layers: Option<Vec<LayerRef>>,
     pub revision: u64,
 }
 
+impl Embed {
+    pub(crate) fn validate_layers(&self) -> Result<()> {
+        if self
+            .visible_layers
+            .as_ref()
+            .is_some_and(|v| v.len() > 129 || v.iter().collect::<BTreeSet<_>>().len() != v.len())
+        {
+            return Err(Error::Invalid("embed layers"));
+        }
+        Ok(())
+    }
+}
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ViewSettings {
@@ -106,7 +120,7 @@ impl ViewSettings {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum SurfaceItem {
     Visible(Box<Block>),
     Protected { block: Id, exercise: Option<Id> },
@@ -463,7 +477,7 @@ impl Store {
         })
     }
 
-    fn read_embed(db: &Connection, id: Id, access: &Access) -> Result<Embed> {
+    pub(crate) fn read_embed(db: &Connection, id: Id, access: &Access) -> Result<Embed> {
         let json: String = db
             .query_row(
                 "SELECT payload FROM embeds WHERE id=?1",
@@ -474,6 +488,7 @@ impl Store {
             .ok_or(Error::Unavailable)?;
 
         let e: Embed = serde_json::from_str(&json)?;
+        e.validate_layers()?;
 
         Self::authorise(db, e.host, access, false)?;
 
@@ -522,6 +537,7 @@ impl Store {
                 camera: Camera::default(),
                 frame,
                 pinned: false,
+                visible_layers: None,
                 revision: 0,
             };
             db.execute(

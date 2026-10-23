@@ -1,4 +1,4 @@
-//! Native JSON v7 (with v1-v6 read compatibility) for the implemented core subset.
+//! Native JSON v8 (with v1-v7 read compatibility) for the implemented core subset.
 //! It is NOT yet the complete v0.5.8 interchange contract (see status).
 use crate::{
     crypto, digest,
@@ -107,7 +107,7 @@ impl NativeDocument {
         })?)
     }
     pub fn validate(&self) -> Result<()> {
-        if !matches!(self.version, 1..=7) {
+        if !matches!(self.version, 1..=8) {
             return Err(Error::Unsupported);
         }
         if self.version < 4
@@ -122,6 +122,16 @@ impl NativeDocument {
             return Err(Error::Invalid("native v3 extensions"));
         }
         if self.version < 6 && self.attachments.views.iter().any(|v| v.bookmark.is_some()) {
+            return Err(Error::Unsupported);
+        }
+        if self.version < 8
+            && (!self.attachments.layers.is_empty()
+                || self
+                    .attachments
+                    .embeds
+                    .iter()
+                    .any(|e| e.visible_layers.is_some()))
+        {
             return Err(Error::Unsupported);
         }
         self.attachments.validate(self)?;
@@ -302,6 +312,12 @@ impl NativeDocument {
         durable_ids.extend(self.attachments.groups.iter().map(|g| g.id));
         durable_ids.extend(self.attachments.embeds.iter().map(|e| e.id));
         durable_ids.extend(self.attachments.views.iter().map(|v| v.id));
+        durable_ids.extend(
+            self.attachments
+                .layers
+                .iter()
+                .flat_map(|s| s.layers.iter().map(|l| l.id)),
+        );
         let mut region_owners = BTreeMap::new();
         for b in &self.blocks {
             for block in std::iter::once(&b.current).chain(b.history.iter().map(|h| &h.block)) {
@@ -537,7 +553,7 @@ impl Store {
             omissions.push("App workspace and pane activation are library-local and are not included in native copies; selected saved views remain included.".into());
         }
         let mut document = NativeDocument {
-            version: 7,
+            version: 8,
             created_ms: now_ms(),
             entities,
             blocks,

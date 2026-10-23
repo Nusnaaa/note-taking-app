@@ -316,7 +316,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
             "Assets", "PrepareAssetRead", "ReadAssetChunk", "ValidateAssetRead", "Source", "Anchor", "PrepareRead", "ValidateRead", "ReviewRevision",
         )
         return op in setOf(
-            "CaptureReceipt", "Block", "Mode", "OpenInMaster", "Layout", "Group", "Embed", "View", "RestoreView", "RestoreWorkspace", "Links", "List", "Read", "Blocks", "Search", "Exercises", "ExerciseBlocks", "SourceInk", "History", "FlatExercises", "SearchViews", "Status",
+            "CanvasLayers", "CanvasScene", "CaptureReceipt", "Block", "Mode", "OpenInMaster", "Layout", "Group", "Embed", "View", "RestoreView", "RestoreWorkspace", "Links", "List", "Read", "Blocks", "Search", "Exercises", "ExerciseBlocks", "SourceInk", "History", "FlatExercises", "SearchViews", "Status",
         )
     }
     private fun affectsPdfPolicy(command: JSONObject): Boolean {

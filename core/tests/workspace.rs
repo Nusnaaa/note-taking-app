@@ -373,6 +373,10 @@ fn encrypted_workspace_restore_revokes_pdf_readiness_and_rejects_malformed_or_do
     assert!(Store::restore_backup_password(&bad.bytes, password).is_err());
     let mut legacy = original;
     legacy["schema"] = 11.into();
+    legacy["tables"]
+        .as_object_mut()
+        .unwrap()
+        .remove("canvas_layers");
     let bad = crypto::encrypt(&serde_json::to_vec(&legacy).unwrap(), password).unwrap();
     assert!(Store::restore_backup_password(&bad.bytes, password).is_err());
     legacy["tables"]
@@ -385,7 +389,7 @@ fn encrypted_workspace_restore_revokes_pdf_readiness_and_rejects_malformed_or_do
         .remove("workspace_state");
     let bytes = crypto::encrypt(&serde_json::to_vec(&legacy).unwrap(), password).unwrap();
     let restored = Store::restore_backup_password(&bytes.bytes, password).unwrap();
-    assert_eq!(restored.schema_version().unwrap(), 13);
+    assert_eq!(restored.schema_version().unwrap(), 14);
     assert_eq!(restored.restore_workspace(&a).unwrap().revision, 0);
     assert!(restored.restore_workspace(&a).unwrap().panes.is_empty());
     assert_eq!(restored.view(v.id, &a).unwrap(), v);
@@ -440,12 +444,12 @@ fn schema11_upgrade_creates_an_empty_workspace_without_rewriting_saved_view_payl
             |r| r.get(0),
         )
         .unwrap();
-    db.execute_batch("DROP TRIGGER view_workspace_identity; DROP TRIGGER stroke_workspace_identity; DROP TABLE workspace_state; DROP TABLE workspace_panes;")
+    db.execute_batch("DROP TRIGGER IF EXISTS workspace_layer_identity; DROP TRIGGER IF EXISTS stroke_layer_identity; DROP TRIGGER IF EXISTS view_layer_identity; DROP TABLE canvas_layers; DROP TRIGGER view_workspace_identity; DROP TRIGGER stroke_workspace_identity; DROP TABLE workspace_state; DROP TABLE workspace_panes;")
         .unwrap();
     db.pragma_update(None, "user_version", 11).unwrap();
     drop(db);
     let s = Store::open(&path).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 13);
+    assert_eq!(s.schema_version().unwrap(), 14);
     assert!(s.restore_workspace(&a).unwrap().panes.is_empty());
     assert_eq!(s.view(v.id, &a).unwrap(), v);
     drop(s);

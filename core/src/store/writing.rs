@@ -132,6 +132,25 @@ impl Store {
             .optional()?;
         Ok(serde_json::from_str(&json.ok_or(Error::Unavailable)?)?)
     }
+    /// Permission-only scene projection: do not load denied block content merely
+    /// to render a protected placeholder. Keep the existing block policy intact.
+    pub(crate) fn authorise_block_metadata(db: &Connection, id: Id, access: &Access) -> Result<()> {
+        let (owner,payload_owner,locked):(String,String,bool)=db.query_row("SELECT entity,json_extract(payload,'$.entity'),json_extract(payload,'$.locked') FROM blocks WHERE id=?1",[id.to_string()],|r|Ok((r.get(0)?,r.get(1)?,r.get(2)?))).optional()?.ok_or(Error::Unavailable)?;
+        if owner != payload_owner {
+            return Err(Error::Integrity);
+        }
+        Self::authorise(db, Id::parse(&owner)?, access, false)?;
+        if locked && !access.permits(&Scope::Block(id)) {
+            return Err(Error::Denied);
+        }
+        if let Some(exercise) = Self::block_exercise(db, id)? {
+            let e = Self::raw_exercise(db, exercise)?;
+            if e.locked && !access.permits(&Scope::Exercise(e.id)) {
+                return Err(Error::Denied);
+            }
+        }
+        Ok(())
+    }
     pub(crate) fn read_block(db: &Connection, id: Id, access: &Access) -> Result<Block> {
         let b = Self::raw_block(db, id)?;
         Self::authorise(db, b.entity, access, false)?;

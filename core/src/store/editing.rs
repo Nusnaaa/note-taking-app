@@ -55,7 +55,7 @@ impl Store {
                 let width = match table.as_str() {
                     "blocks" | "embeds" => 4,
                     "object_groups" => 3,
-                    "layouts" => 2,
+                    "layouts" | "canvas_layers" => 2,
                     _ => return Err(Error::Integrity),
                 };
                 if fields.len() != width || string(&fields, 0)? != item {
@@ -91,6 +91,7 @@ impl Store {
                     }
                     "embeds" => {
                         let e: Embed = serde_json::from_value(payload(&fields)?)?;
+                        e.validate_layers()?;
                         e.camera.validate()?;
                         e.frame.validate()?;
                         if e.id != id
@@ -98,6 +99,13 @@ impl Store {
                             || string(&fields, 1)? != entity
                             || string(&fields, 2)? != e.source.to_string()
                         {
+                            return Err(Error::Integrity);
+                        }
+                    }
+                    "canvas_layers" => {
+                        let state: CanvasLayers = serde_json::from_value(payload(&fields)?)?;
+                        state.validate()?;
+                        if state.canvas != owner || state.canvas != id {
                             return Err(Error::Integrity);
                         }
                     }
@@ -152,6 +160,19 @@ impl Store {
                             db.execute("UPDATE blocks SET ordinal=?1 WHERE id=?2",params![ordinal,key])?;
                         }
                         Self::persist_block(db,&desired)?;
+                    }
+                    "canvas_layers" => {
+                        if id!=entity {return Err(Error::Integrity)}
+                        Self::check_canvas(db,entity,access)?;Self::require_content_access(db,entity,access)?;
+                        let current=Self::raw_canvas_layers(db,entity)?;
+                        let expected_state:CanvasLayers=if let Some(expected)=expected {serde_json::from_value(payload(expected)?)?} else {CanvasLayers::implicit(entity)};
+                        if comparable(serde_json::to_value(&current)?)!=comparable(serde_json::to_value(expected_state)?) {return Err(Error::Conflict)}
+                        let mut desired:CanvasLayers=if let Some(target)=target {serde_json::from_value(payload(target)?)?} else {CanvasLayers::implicit(entity)};
+                        if desired.canvas!=entity {return Err(Error::Integrity)}
+                        Self::check_layer_references(db,&current,access)?;Self::check_layer_references(db,&desired,access)?;
+                        desired.revision=current.revision.checked_add(1).filter(|r|*r<=i64::MAX as u64).ok_or(Error::ResourceLimit)?;
+                        db.execute("INSERT INTO canvas_layers VALUES(?1,?2) ON CONFLICT(canvas) DO UPDATE SET payload=excluded.payload",params![entity.to_string(),serde_json::to_string(&desired)?])?;
+                        Self::touch_master(db,entity)?;
                     }
                     "layouts" | "object_groups" | "embeds" => {
                         let key_column=if table=="layouts" {"block"} else {"id"};

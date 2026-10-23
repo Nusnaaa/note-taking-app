@@ -172,6 +172,53 @@ states that activation is library-local. Complete pen presets/backgrounds, remai
 pane workflows and all-operation history/retirement remain open. No production H.I.
 is authorised by this increment.
 
+## Canvas layers and independent embed visibility
+
+`CanvasLayers` is a revisioned source-canvas presentation state. The implicit base
+layer contains every unassigned block; old canvases start with that base visible,
+without rewriting existing blocks or source observations. Custom layers have stable
+IDs, names, default visibility and disjoint block membership. Layer order precedes
+per-block layout z/order. Removing a layer moves its members back to the base; it
+never deletes working. SetCanvasLayers validates owner/kind, unique identities and
+membership, current source/block access and optimistic revision. Its state changes
+are atomic and undoable. Undo to the original implicit base retains a monotonically
+advancing revision; redo cannot accidentally accept a stale revision-0 update.
+
+`SetEmbedLayers` records either None (Use canvas defaults) or an explicit list of
+Base/Custom layer references on that embed alone. An empty explicit list shows none.
+Duplicate embeds retain independent overrides/camera/pin state. Changed canvas defaults
+do not rewrite an explicit override. Deleted referenced layers are reported as
+unresolved and stay invisible rather than falling back to all layers; undo can
+restore the original identity. Fresh source/host/block protection still applies,
+and layer visibility never grants access. Current embed reads retain their strict
+whole-source permission requirement. Layer controls and edit history contain no
+replacement copies of original observations.
+
+`CanvasScene` projects visible items in layer/z/element-kind/ordinal order. Nested
+embeds are currently base-layer items; inaccessible or broken references return
+placeholders without their source/frame metadata. Source blocks with denied access
+return protected placeholders without loading their content into the result. Scene
+pages are bounded by 512 items and 8 MiB output, with explicit next_offset. An item
+that alone exceeds the budget fails rather than truncating content. The metadata scan
+is capped at 100,000 source items, including hidden items. These are implementation
+capacity limits, not measured performance SLOs. Callers compare entity_revision,
+layer_revision and embed_revision between pages and restart after a change instead
+of combining incompatible snapshots. No renderer/provider or recogniser is started.
+
+Schema 14 adds a source-owned layer-state table and durable undo capture. Native
+subset v8 retains styles/bookmarks and reads v1-v7, remapping layer IDs, members,
+embed references and even unresolved override identities without a live-source join.
+Encrypted schema-14 backups retain state/history; schemas 8-13 default to the implicit
+base and reject layer metadata/history smuggled under older tags. Purge retires the
+source's state and detailed history. Default-visibility filtering applies to canvas
+block derivative exports, with explicit omissions; raw native source remains intact.
+Static embed/whole-scene rendering remains unsupported by those export paths.
+
+Still open: layer-aware capture destination/recovery routing, custom assignment of
+nested embed objects, local embed overlays/follow-object anchors, complete scene
+rendering and other rich-object fidelity. This is backend layer/view behavior, not
+production layer controls or a claim that the whole canvas programme is complete.
+
 ## Immutable chosen stroke appearance
 
 New captures may supply `StrokeStyle { colour_rgba, width }`. Width uses the stroke's

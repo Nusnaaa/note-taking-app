@@ -4,6 +4,7 @@
 mod editing;
 mod engines;
 mod exercises;
+mod layers;
 mod navigation;
 mod objects;
 mod organisation;
@@ -95,6 +96,7 @@ const V4: &str = include_str!("../migrations/004.sql");
 const V5: &str = include_str!("../migrations/005.sql");
 const V6: &str = include_str!("../migrations/006.sql");
 const V7: &str = include_str!("../migrations/007.sql");
+const V14: &str = include_str!("../migrations/014.sql");
 const V13: &str = include_str!("../migrations/013.sql");
 const V12: &str = include_str!("../migrations/012.sql");
 const V11: &str = include_str!("../migrations/011.sql");
@@ -116,7 +118,7 @@ impl Store {
                 PRAGMA trusted_schema=OFF;",
         )?;
         let version: i64 = db.pragma_query_value(None, "user_version", |r| r.get(0))?;
-        if !(0..=13).contains(&version) {
+        if !(0..=14).contains(&version) {
             return Err(Error::Unsupported);
         }
         let tx = db.transaction_with_behavior(TransactionBehavior::Immediate)?;
@@ -158,6 +160,9 @@ impl Store {
         }
         if version < 13 {
             tx.execute_batch(V13)?;
+        }
+        if version < 14 {
+            tx.execute_batch(V14)?;
         }
         tx.commit()?;
         Ok(Self {
@@ -351,6 +356,10 @@ pub use positions::{
 pub use workspace::{
     PaneTarget, RestoredPane, RestoredPaneState, RestoredWorkspace, SplitAxis, WorkspacePane,
     WorkspaceTool, WorkspaceUpdate,
+};
+
+pub use layers::{
+    CanvasLayer, CanvasLayers, CanvasScene, CanvasSceneContent, CanvasSceneItem, LayerRef,
 };
 
 #[cfg(test)]

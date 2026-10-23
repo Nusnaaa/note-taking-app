@@ -7,8 +7,8 @@ use crate::{
     objects::{CellValue, DiagramPart, Rect},
     security::{Access, Authenticator, Scope},
     store::{
-        Camera, Display, Kind, Order, Store, ViewSettings, WorkspaceUpdate, WritingMode,
-        WritingTarget,
+        Camera, CanvasLayers, Display, Kind, LayerRef, Order, Store, ViewSettings, WorkspaceUpdate,
+        WritingMode, WritingTarget,
     },
     Error, Id, Result,
 };
@@ -151,6 +151,24 @@ pub enum Command {
     Ungroup {
         group: Id,
         revision: u64,
+    },
+    CanvasLayers {
+        canvas: Id,
+    },
+    SetCanvasLayers {
+        state: CanvasLayers,
+        expected: u64,
+    },
+    CanvasScene {
+        canvas: Id,
+        embed: Option<Id>,
+        offset: u32,
+        limit: u32,
+    },
+    SetEmbedLayers {
+        embed: Id,
+        revision: u64,
+        visible: Option<Vec<LayerRef>>,
     },
     Embed {
         embed: Id,
@@ -532,6 +550,8 @@ impl Host {
                 | Command::OpenInMaster { .. }
                 | Command::Layout { .. }
                 | Command::Group { .. }
+                | Command::CanvasLayers { .. }
+                | Command::CanvasScene { .. }
                 | Command::Embed { .. }
                 | Command::View { .. }
                 | Command::RestoreView { .. }
@@ -747,6 +767,21 @@ fn execute(s: &mut Store, a: &mut Access, pdf: &mut PdfState, r: Request) -> Res
                 s.ungroup(group, revision, a)?;
                 Value::Null
             }
+            Command::CanvasLayers { canvas } => serde_json::to_value(s.canvas_layers(canvas, a)?)?,
+            Command::SetCanvasLayers { state, expected } => {
+                serde_json::to_value(s.set_canvas_layers(state, expected, a)?)?
+            }
+            Command::CanvasScene {
+                canvas,
+                embed,
+                offset,
+                limit,
+            } => serde_json::to_value(s.canvas_scene(canvas, embed, offset, limit, a)?)?,
+            Command::SetEmbedLayers {
+                embed,
+                revision,
+                visible,
+            } => serde_json::to_value(s.set_embed_layers(embed, revision, visible, a)?)?,
             Command::Embed { embed } => serde_json::to_value(s.embed(embed, a)?)?,
             Command::CreateEmbed {
                 host,

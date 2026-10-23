@@ -4,7 +4,7 @@ use crate::{
     digest,
     objects::Image,
     portable::NativeDocument,
-    store::{Embed, Layout, ObjectGroup, ViewSettings},
+    store::{CanvasLayers, Embed, LayerRef, Layout, ObjectGroup, ViewSettings},
     Error, Id, Result,
 };
 
@@ -32,6 +32,8 @@ pub struct NativeLayout {
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Attachments {
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub layers: Vec<CanvasLayers>,
     pub assets: Vec<NativeAsset>,
     pub layouts: Vec<NativeLayout>,
     pub groups: Vec<ObjectGroup>,
@@ -66,6 +68,27 @@ impl Attachments {
                 .flat_map(|b| b.strokes.iter().map(|s| s.id)),
         );
 
+        let mut layer_owners = BTreeSet::new();
+        for state in &self.layers {
+            state.validate()?;
+            if !layer_owners.insert(state.canvas)
+                || !entities
+                    .get(&state.canvas)
+                    .is_some_and(|e| e.kind == crate::store::Kind::Canvas)
+            {
+                return Err(Error::Invalid("native canvas layers"));
+            }
+            for layer in &state.layers {
+                if !ids.insert(layer.id)
+                    || layer
+                        .blocks
+                        .iter()
+                        .any(|b| blocks.get(b).is_none_or(|b| b.entity != state.canvas))
+                {
+                    return Err(Error::Invalid("native layer member"));
+                }
+            }
+        }
         let mut assets = BTreeMap::new();
 
         let mut bytes = 0usize;
@@ -137,6 +160,11 @@ impl Attachments {
         }
 
         for e in &self.embeds {
+            if e.visible_layers.as_ref().is_some_and(|v| {
+                v.len() > 129 || v.iter().collect::<BTreeSet<_>>().len() != v.len()
+            }) {
+                return Err(Error::Invalid("native embed layers"));
+            }
             e.camera.validate()?;
 
             e.frame.validate()?;
@@ -218,6 +246,19 @@ impl Attachments {
     }
 
     pub(crate) fn add_ids(&self, ids: &mut BTreeMap<Id, Id>) {
+        for state in &self.layers {
+            for layer in &state.layers {
+                ids.entry(layer.id).or_default();
+            }
+        }
+        for e in &self.embeds {
+            for layer in e.visible_layers.iter().flatten() {
+                if let LayerRef::Custom(id) = layer {
+                    ids.entry(*id).or_default();
+                }
+            }
+        }
+
         for bookmark in self.views.iter().filter_map(|v| v.bookmark.as_ref()) {
             for point in bookmark.points() {
                 if let Some(region) = point.region {
@@ -239,6 +280,14 @@ impl Attachments {
     }
 
     pub(crate) fn remap(&mut self, ids: &BTreeMap<Id, Id>) {
+        for state in &mut self.layers {
+            state.canvas = ids[&state.canvas];
+            for layer in &mut state.layers {
+                layer.id = ids[&layer.id];
+                layer.blocks = layer.blocks.iter().map(|b| ids[b]).collect();
+            }
+        }
+
         for a in &mut self.assets {
             a.id = ids[&a.id];
 
@@ -263,6 +312,11 @@ impl Attachments {
             e.host = ids[&e.host];
 
             e.source = ids[&e.source];
+            for layer in e.visible_layers.iter_mut().flatten() {
+                if let LayerRef::Custom(id) = layer {
+                    *id = ids[id];
+                }
+            }
         }
 
         for v in &mut self.views {
@@ -282,7 +336,7 @@ impl Attachments {
 
 use crate::{security::Access, store::Store};
 
-use rusqlite::Connection;
+use rusqlite::{Connection, OptionalExtension};
 
 impl Store {
     pub(crate) fn export_attachments(
@@ -335,6 +389,27 @@ impl Store {
         }
 
         for &entity in &selected {
+            if Self::raw_entity(&self.db, entity)?.kind == crate::store::Kind::Canvas {
+                let row: Option<String> = self
+                    .db
+                    .query_row(
+                        "SELECT payload FROM canvas_layers WHERE canvas=?1",
+                        [entity.to_string()],
+                        |r| r.get(0),
+                    )
+                    .optional()?;
+                if let Some(row) = row {
+                    let mut state: CanvasLayers = serde_json::from_str(&row)?;
+                    if exercise.is_some() {
+                        for layer in &mut state.layers {
+                            layer.blocks.retain(|b| blocks.contains(b));
+                        }
+                        state.layers.retain(|l| !l.blocks.is_empty());
+                    }
+                    out.layers.push(state);
+                }
+            }
+
             let mut q = self
                 .db
                 .prepare("SELECT payload FROM object_groups WHERE entity=?1")?;
@@ -421,6 +496,13 @@ impl Store {
     }
 
     pub(crate) fn import_attachment_relations(db: &Connection, a: &Attachments) -> Result<()> {
+        for state in &a.layers {
+            db.execute(
+                "INSERT INTO canvas_layers VALUES(?1,?2)",
+                rusqlite::params![state.canvas.to_string(), serde_json::to_string(state)?],
+            )?;
+        }
+
         for l in &a.layouts {
             db.execute(
                 "INSERT INTO layouts VALUES(?1,?2)",

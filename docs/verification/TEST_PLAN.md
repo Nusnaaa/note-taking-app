@@ -211,3 +211,17 @@ STEMAC02 exact style bits and changed-header rejection, a frozen independent STE
 record without invented style, and actual JNI capture/retry after mid-contact style
 change. No pressure/nib inference, implicit physical conversion or production H.I.
 is established by these fixtures.
+
+## Canvas layers and embed visibility
+
+`layers` covers implicit defaults, independent explicit/default/empty embed overrides,
+missing references and identity recovery on undo, monotonic revisions, rollback,
+reopen, exact source retention, malformed members/aliases, fresh protection,
+layer/z ordering, nested protected/broken placeholders, output-byte paging with
+explicit continuation/revision metadata, native remap, default-visibility derivatives,
+encrypted state/undo restoration and current/historical downgrade rejection. Legacy
+schema-13 migration compares exact original payload/hash bytes. The actual desktop-
+JNI/Robolectric workflow sets defaults/overrides, reads both projections and undoes
+an override without changing source defaults. The initial backup fixture exposed the
+canvas-keyed payload reader case; the validator now checks that explicit key instead
+of assuming an id column. No tests bypass source protection or enable production H.I.

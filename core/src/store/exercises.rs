@@ -142,7 +142,11 @@ impl Store {
     }
     pub(crate) fn touch_master(db: &Connection, master: Id) -> Result<()> {
         let mut e = Self::raw_entity(db, master)?;
-        e.revision += 1;
+        e.revision = e
+            .revision
+            .checked_add(1)
+            .filter(|r| *r <= i64::MAX as u64)
+            .ok_or(Error::ResourceLimit)?;
         e.modified_ms = now_ms();
         Self::save_entity(db, &e)
     }

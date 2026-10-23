@@ -36,6 +36,28 @@ class BackendAdmissionIntegrationTest {
         val event = MotionEvent.obtain(10, time, action, 1, arrayOf(property), arrayOf(coordinate), 0, 0, 1f, 1f, 0, 0, InputDevice.SOURCE_STYLUS, 0)
         return try { session.accept(event).single() } finally { event.recycle() }
     }
+    @Test(timeout = 20_000) fun independentEmbedLayersCrossActualJniWithoutChangingCanvasDefaults() {
+        val backend = NotebookBackend(platform(temporary.newFolder()))
+        try {
+            val host = note(backend)
+            val canvas = call(backend, JSONObject().put("op", "Create").put("kind", "Canvas").put("parent", JSONObject.NULL).put("title", "layers")).getJSONObject("data").getString("id")
+            val ids = listOf("one", "two").map { text -> call(backend, JSONObject().put("op", "Append").put("entity", canvas).put("content", JSONObject().put("type", "Text").put("value", text))).getJSONObject("data").getString("id") }
+            val layer = JSONObject().put("id", UUID.randomUUID().toString()).put("name", "first").put("visible", true).put("blocks", org.json.JSONArray().put(ids[0]))
+            val state = JSONObject().put("canvas", canvas).put("revision", 0).put("base_visible", false).put("layers", org.json.JSONArray().put(layer))
+            call(backend, JSONObject().put("op", "SetCanvasLayers").put("state", state).put("expected", 0))
+            val embed = call(backend, JSONObject().put("op", "CreateEmbed").put("host", host.toString()).put("source", canvas).put("frame", JSONObject().put("x", 0).put("y", 0).put("width", 100).put("height", 50))).getJSONObject("data").getString("id")
+            fun visible(): String {
+                val scene = call(backend, JSONObject().put("op", "CanvasScene").put("canvas", canvas).put("embed", embed).put("offset", 0).put("limit", 10)).getJSONObject("data")
+                assertEquals(1, scene.getJSONArray("items").length())
+                return scene.getJSONArray("items").getJSONObject(0).getJSONObject("item").getJSONObject("Block").getJSONObject("item").getJSONObject("Visible").getString("id")
+            }
+            assertEquals(ids[0], visible())
+            call(backend, JSONObject().put("op", "SetEmbedLayers").put("embed", embed).put("revision", 0).put("visible", org.json.JSONArray().put("Base")))
+            assertEquals(ids[1], visible()); assertFalse(call(backend, JSONObject().put("op", "CanvasLayers").put("canvas", canvas)).getJSONObject("data").getBoolean("base_visible"))
+            call(backend, JSONObject().put("op", "SetEmbedLayers").put("embed", embed).put("revision", 1).put("visible", JSONObject.NULL)); assertEquals(ids[0], visible())
+            call(backend, JSONObject().put("op", "Undo").put("entity", host.toString())); assertEquals(ids[1], visible())
+        } finally { backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
+    }
     @Test(timeout = 20_000) fun workspaceFindsSavedPaneAndToolAfterFullBackendReopen() {
         val context = platform(temporary.newFolder()); var backend = NotebookBackend(context)
         try {

@@ -261,10 +261,22 @@ impl Store {
         let mut included = false;
 
         let control = JobControl::new(Duration::from_secs(30))?;
-
+        let mut layer_states = BTreeMap::new();
+        for entity in blocks.iter().map(|b| b.entity).collect::<BTreeSet<_>>() {
+            if Self::raw_entity(&self.db, entity)?.kind == Kind::Canvas {
+                let state = Self::raw_canvas_layers(&self.db, entity)?;
+                layer_states.insert(entity, (state.base_visible, state.index()));
+            }
+        }
         for b in &blocks {
             scopes.extend(self.protection_scopes(b.entity, Some(b.id))?);
 
+            if let Some((base, index)) = layer_states.get(&b.entity) {
+                if !index.get(&b.id).map_or(*base, |(_, _, visible)| *visible) {
+                    warnings.push("Hidden canvas layer omitted from derivative export; native source remains retained.".into());
+                    continue;
+                }
+            }
             if !b.visible {
                 warnings.push("Hidden block omitted from derivative export.".into());
 

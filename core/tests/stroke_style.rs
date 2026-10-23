@@ -99,7 +99,7 @@ fn source_style_and_receipt_survive_edits_reopen_native_copy_and_legacy_format_v
     assert_eq!(s.source_ink(b.id, &a).unwrap(), vec![original.clone()]);
     let bytes = export(&s, n.id);
     let mut doc = NativeDocument::decode(&bytes).unwrap();
-    assert_eq!(doc.version, 7);
+    assert_eq!(doc.version, 8);
     doc.version = 6;
     assert!(doc.validate().is_err());
     doc.blocks[0].strokes[0].style = None;
@@ -138,6 +138,10 @@ fn encrypted_style_backup_retains_exact_metadata_and_cannot_be_disguised_as_sche
     let plain = crypto::decrypt(&bytes, Credential::Password(password)).unwrap();
     let mut doc: serde_json::Value = serde_json::from_slice(&plain).unwrap();
     doc["schema"] = 12.into();
+    doc["tables"]
+        .as_object_mut()
+        .unwrap()
+        .remove("canvas_layers");
     let bad = crypto::encrypt(&serde_json::to_vec(&doc).unwrap(), password).unwrap();
     assert!(Store::restore_backup_password(&bad.bytes, password).is_err());
 }
@@ -167,10 +171,11 @@ fn legacy_source_payload_hash_and_receipt_are_not_rewritten_by_schema13_upgrade(
         )
         .unwrap();
     assert!(!before.0.contains("style"));
+    db.execute_batch("DROP TRIGGER workspace_layer_identity; DROP TRIGGER stroke_layer_identity; DROP TRIGGER view_layer_identity; DROP TABLE canvas_layers;").unwrap();
     db.pragma_update(None, "user_version", 12).unwrap();
     drop(db);
     let mut s = Store::open(&path).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 13);
+    assert_eq!(s.schema_version().unwrap(), 14);
     s.append_capture(
         ticket,
         WritingTarget::Entity(n.id),

@@ -74,7 +74,7 @@ fn v2_upgrade_keeps_existing_content_and_enables_exercises() {
     .unwrap();
     drop(db);
     let mut s = Store::open(&path).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 13);
+    assert_eq!(s.schema_version().unwrap(), 14);
     let a = Access::public();
     assert_eq!(s.entity(n.id, &a).unwrap(), n);
     assert_eq!(s.block(b.id, &a).unwrap(), b);
