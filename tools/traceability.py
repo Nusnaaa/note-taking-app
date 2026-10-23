@@ -30,7 +30,7 @@ GROUPS = {
     'organisation': ('NB-DOC-001 NB-ORG-001 NB-ORG-003 NB-ORG-004 NB-ORG-014', 'store/organisation.rs', 'organisation', 'Core I0/I1 parent, identity, move and backlink rules tested; anchored navigation, full-object moves and scale coverage remain open. M1 Journal rules deferred.'),
     'exercises': ('NB-DOC-003 NB-DOC-004 NB-DATA-008', 'host.rs store/exercises.rs store/navigation.rs store/writing.rs store/objects.rs store.rs portable.rs attachments.rs', 'exercises exercise_migrations objects backup host', 'Shared identity/status, protections, reassignment undo, independent copies, flat search/navigation and persisted view anchors exist. Native coalesced content-free admission subscriptions exist; caret positions, Android subscriptions and complete operation history remain open.'),
     'rich-objects': ('NB-DOC-002 NB-CAN-001 NB-CAN-002 NB-CAN-003 NB-CAN-004', 'content.rs objects.rs store/objects.rs store/editing.rs attachments.rs export.rs render.rs', 'objects export backup editing render', 'Technical data, image assets, groups/layouts/cameras and durable authoring undo exist. Full rendering, flow/reflow, overlays, layers and follow-object behaviour remain open.'),
-    'pdf-sources': ('NB-REF-001 NB-REF-002 NB-REF-003 NB-PDF-001 NB-PDF-002', 'sources.rs backup.rs', 'sources pdf_revisions backup', 'Core revision/anchor/reacquisition policy and Android provider/isolated renderer exist. Client binding, permission lifecycle, timeout/revocation, complete navigation and device execution remain open.'),
+    'pdf-sources': ('NB-REF-001 NB-REF-002 NB-REF-003 NB-PDF-001 NB-PDF-002', 'sources.rs backup.rs android/backend/src/main/java/org/stemnotebook/backend/PdfProvider.kt android/backend/src/main/java/org/stemnotebook/backend/PdfWorkerService.kt', 'sources pdf_revisions backup android:PdfProviderTest android:PdfWorkerCleanupTest', 'Core revision/anchor policy and bounded asynchronous Android provider opening with cancellation/timeout and descriptor cleanup exist. Client binding, source-policy synchronisation, parser timeout/revocation orchestration, complete navigation and device execution remain open.'),
     'export': ('NB-CORE-003 NB-EXP-001 NB-EXP-002 NB-EXP-003 NB-EXP-004 NB-DATA-006 NB-DATA-007', 'portable.rs attachments.rs backup.rs crypto.rs export.rs converters.rs render.rs', 'portable converters exercises objects backup export render regions', 'Native v4 regions/rich attachments, schema-8/9 encrypted whole restore and paginated vector maths/selectable text PDF exist. Static embeds, clipped images/canvas fidelity, scalable backup, complete lineage and PDF-linked native portability remain open.'),
     'recovery': ('NB-DATA-001 NB-DATA-004 NB-DATA-005', 'store.rs store/writing.rs store/editing.rs store/organisation.rs portable.rs backup.rs capture.rs host.rs', 'recovery writing portable exercises exercise_migrations capture backup editing host', 'Transactional authoring undo, capture retry receipts, durable Android outbox and schema-8/9 separate-library restore are tested. Native content-free coalesced admission status and draining close exist. All-operation history, chunked backup, Android live status and remaining interruption paths remain open.'),
     'security': ('NB-SEC-001 NB-SEC-002 NB-SEC-003', 'security.rs host.rs store.rs store/objects.rs portable.rs backup.rs sources.rs export.rs', 'organisation writing recognition portable sources exercises objects backup export host editing', 'Scoped core checks, trusted JNI authentication callback, platform proof and Android manifest exclusions exist. Final app/device enforcement, complete process integration and privacy coverage remain open.'),
@@ -67,8 +67,15 @@ def rows(name):
 
 
 def tests(module):
-    path = ROOT / f"core/tests/{module}.rs"
-    return [f"core/tests/{module}.rs::{name}" for name in re.findall(r"#\[test\]\s*fn (\w+)", path.read_text())]
+    if module.startswith("android:"):
+        name = module.split(":", 1)[1]
+        relative = f"android/backend/src/test/java/org/stemnotebook/backend/{name}.kt"
+        names = re.findall(r"@Test(?:\([^)]*\))?\s+fun (\w+)", (ROOT / relative).read_text())
+    else:
+        relative = f"core/tests/{module}.rs"
+        names = re.findall(r"#\[test\]\s*fn (\w+)", (ROOT / relative).read_text())
+    assert names, f"No executable fixture methods found: {relative}"
+    return [f"{relative}::{name}" for name in names]
 
 
 def csv_text(data):
@@ -105,7 +112,7 @@ def generate():
             state = "LATER"
         else:
             _, implementation, modules, gap = GROUPS[group]
-            code = [f"core/src/{p}" for p in implementation.split()]
+            code = [p if p.startswith(("android/", "bridge/")) else f"core/src/{p}" for p in implementation.split()]
             refs = sorted({t for m in modules.split() for t in tests(m)})
             state = "POST_HI" if group == "post-hi" else "PARTIAL" if refs or group == "governance" else "NOT_IMPLEMENTED"
         if identifier == "NB-SUP-001":

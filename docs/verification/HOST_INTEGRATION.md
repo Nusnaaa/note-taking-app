@@ -77,10 +77,26 @@ A low-space check releases the reserve before writing. Call `allocateReserve` wh
 is available. Active-stroke interruption, device behaviour and capture-priority scheduling
 still require implementation/acceptance; no zero-loss or performance guarantee is implied.
 
-`PdfProvider` and `PdfWorkerService` are backend components. Complete client binding,
-source-policy synchronisation, timeout/revocation orchestration and Android integration
-coverage remain open. A parser receives an explicit read-only descriptor, no notebook
-path or access tokens. It must never determine source-retention authority.
+`PdfProvider.openReadOnly(uri, timeoutMillis)` now returns an owned `PendingPdf`.
+Opening runs on bounded background workers using a `CancellationSignal`. Call `await`
+off the main thread to take the read-only descriptor, then close that descriptor;
+close/cancel the pending operation if it is abandoned. Provider close also retires
+unclaimed descriptors. Timeouts and cancellation retain admission while an
+uncooperative provider is still running, and late descriptors close without delivery.
+A ready but unclaimed descriptor also consumes capacity. Cancellation listeners have
+a separate bounded executor so a blocking listener cannot stall deadline delivery.
+Grant retention remains explicit. Revocation cancels current openings before releasing
+the platform grant; the core/client must independently enforce persisted source policy.
+No source bytes are copied by this adapter and its errors omit private provider details.
+
+`PdfWorkerService` owns each incoming descriptor through admission, rejects busy work
+without leaking the descriptor, validates render bounds inside that ownership scope,
+and closes both pipe ends when reply/compression fails. The isolated parser receives
+no notebook path or access tokens and never determines retention authority. Pixel pipes
+must be fully decoded/validated by the client: an `ok` reply alone is not rendered-image
+success. Complete client binding, persisted source-policy synchronisation, parser
+process timeout/revocation orchestration, annotation/navigation and device execution
+remain open. The Android module explicitly pins Build Tools 35.0.0.
 
 ## Rendering and processing
 

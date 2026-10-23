@@ -52,7 +52,7 @@
       "NB-REF-001",
       "NB-REF-003"
     ],
-    "work": "Source-linked annotations/revision policy and an Android read-only content provider plus isolated PDF rendering service exist. Remaining: complete client binding, revocation/timeout orchestration, source-policy synchronisation, annotation/navigation workflows and executed Android service/device integration. The core does not fetch remote source bytes."
+    "work": "Source-linked annotations/revision policy, a bounded asynchronous read-only Android provider opener with cancellation/deadline and late-result cleanup, and an isolated PDF rendering service with owned descriptor/pipe cleanup are implemented. Ready unclaimed descriptors and uncooperative provider calls retain bounded admission; provider failures are content-free. Remaining: complete client binding, persisted source-policy synchronisation, parser-process timeout/revocation orchestration, annotation/navigation workflows and executed service/device integration. The core does not fetch remote source bytes. Provider-only cancellation is not full parser/source-policy integration."
   },
   {
     "id": "A6-FULL-PORTABILITY",

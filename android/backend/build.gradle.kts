@@ -3,6 +3,7 @@ dependencyLocking { lockAllConfigurations() }
 android {
     namespace = "org.stemnotebook.backend"
     compileSdk = 35
+    buildToolsVersion = "35.0.0"
     defaultConfig { minSdk = 30; testInstrumentationRunner = "android.test.InstrumentationTestRunner" }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     kotlinOptions { jvmTarget = "17" }
