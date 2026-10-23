@@ -36,7 +36,7 @@ class PdfSelectionTest {
     }
     private fun pdf(op: String, source: UUID) = JSONObject().put("op", "Pdf").put("command", JSONObject().put("op", op).put("source", source.toString()))
     private class Fixture(val backend: NotebookBackend, val file: File, val context: UUID, val opened: AtomicInteger, val retained: AtomicInteger, val permitted: AtomicBoolean) : AutoCloseable {
-        override fun close() { backend.closeAsync().get(5, TimeUnit.SECONDS) }
+        override fun close() { backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
     }
     private fun fixture(beforeOpen: () -> Unit = {}): Fixture {
         val root = temporary.newFolder()

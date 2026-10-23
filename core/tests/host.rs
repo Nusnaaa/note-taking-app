@@ -466,3 +466,257 @@ fn verifier_panic_fails_closed_without_killing_the_writer_or_retaining_access() 
     assert!(!h.request(&encode(Command::Read { id })).unwrap().ok);
     assert!(h.request(&encode(Command::Status {})).unwrap().ok);
 }
+
+#[test]
+fn library_host_ownership_rejects_duplicate_aliases_without_truncating_and_allows_other_libraries()
+{
+    let root = tempfile::tempdir().unwrap();
+    let path = root.path().join("library.db");
+    let h = Host::open(path.clone(), 8).unwrap();
+    let note = request(
+        &h,
+        Command::Create {
+            kind: stem_core::store::Kind::Note,
+            parent: None,
+            title: "preserved".into(),
+        },
+    );
+    assert!(matches!(
+        Host::open(path.clone(), 8),
+        Err(Error::Unavailable)
+    ));
+    let alias = root.path().join("hard-link.db");
+    std::fs::hard_link(&path, &alias).unwrap();
+    assert!(matches!(Host::open(alias, 8), Err(Error::Unavailable)));
+    #[cfg(unix)]
+    {
+        let link = root.path().join("symbolic-link.db");
+        std::os::unix::fs::symlink(&path, &link).unwrap();
+        assert!(matches!(Host::open(link, 8), Err(Error::Unavailable)));
+    }
+    let other = Host::open(root.path().join("other.db"), 8).unwrap();
+    drop(other);
+    let id = stem_core::Id::parse(note["id"].as_str().unwrap()).unwrap();
+    assert_eq!(request(&h, Command::Read { id })["title"], "preserved");
+    drop(h);
+    let h = Host::open(path, 8).unwrap();
+    assert_eq!(request(&h, Command::Read { id })["title"], "preserved");
+}
+#[test]
+fn failed_host_initialisation_releases_ownership_before_returning() {
+    let root = tempfile::tempdir().unwrap();
+    let path = root.path().join("invalid.db");
+    std::fs::write(&path, b"synthetic invalid sqlite fixture").unwrap();
+    assert!(Host::open(path.clone(), 8).is_err());
+    std::fs::write(&path, b"").unwrap();
+    let h = Host::open(path, 8).unwrap();
+    assert!(h.request(&encode(Command::Status {})).unwrap().ok);
+    assert!(Host::open(":memory:".into(), 8).is_err());
+}
+#[test]
+fn active_call_and_shutdown_drain_hold_ownership_until_original_ink_is_committed() {
+    use std::sync::{mpsc, Arc};
+    struct Gate(mpsc::Sender<()>, mpsc::Receiver<()>);
+    impl stem_core::security::Authenticator for Gate {
+        fn verify(&mut self, _: stem_core::Id, _: &std::collections::BTreeSet<Scope>) -> bool {
+            self.0.send(()).unwrap();
+            self.1.recv().unwrap();
+            true
+        }
+    }
+    let root = tempfile::tempdir().unwrap();
+    let path = root.path().join("drain.db");
+    let h = Arc::new(Host::open(path.clone(), 8).unwrap());
+    let note = request(
+        &h,
+        Command::Create {
+            kind: stem_core::store::Kind::Note,
+            parent: None,
+            title: "ink".into(),
+        },
+    );
+    let entity = stem_core::Id::parse(note["id"].as_str().unwrap()).unwrap();
+    let (entered_tx, entered_rx) = mpsc::channel();
+    let (release_tx, release_rx) = mpsc::channel();
+    let call = Arc::clone(&h);
+    let thread = std::thread::spawn(move || {
+        call.authenticate(
+            [Scope::App].into_iter().collect(),
+            Box::new(Gate(entered_tx, release_rx)),
+        )
+    });
+    entered_rx.recv().unwrap();
+    let observed = stroke(0);
+    let pending = h
+        .submit(&encode(Command::Capture {
+            ticket: stem_core::Id::new(),
+            entity,
+            strokes: vec![observed.clone()],
+        }))
+        .unwrap();
+    let mut status = h.subscribe_status();
+    let closing = Arc::clone(&h);
+    let (closed_tx, closed_rx) = mpsc::channel();
+    let closer = std::thread::spawn(move || {
+        let result = closing.close();
+        closed_tx.send(()).unwrap();
+        result
+    });
+    loop {
+        if status
+            .next_timeout(std::time::Duration::from_secs(5))
+            .unwrap()
+            .expect("close status")
+            .closed
+        {
+            break;
+        }
+    }
+    assert!(matches!(
+        closed_rx.try_recv(),
+        Err(mpsc::TryRecvError::Empty)
+    ));
+    assert!(matches!(
+        Host::open(path.clone(), 8),
+        Err(Error::Unavailable)
+    ));
+    release_tx.send(()).unwrap();
+    let capture = pending.wait().unwrap();
+    assert!(capture.ok);
+    thread.join().unwrap().unwrap();
+    closer.join().unwrap().unwrap();
+    h.close().unwrap();
+    assert!(h.request(&encode(Command::Status {})).is_err());
+    let block = stem_core::Id::parse(capture.data.unwrap()["id"].as_str().unwrap()).unwrap();
+    let h = Host::open(path, 8).unwrap();
+    assert_eq!(
+        request(&h, Command::SourceInk { block }),
+        serde_json::json!([observed])
+    );
+}
+#[test]
+fn host_ownership_is_cross_process_and_abrupt_exit_recovers_original_ink() {
+    use std::io::{BufRead, BufReader, Write};
+    use std::process::{Command as Process, Stdio};
+    struct Child(std::process::Child);
+    impl Drop for Child {
+        fn drop(&mut self) {
+            let _ = self.0.kill();
+            let _ = self.0.wait();
+        }
+    }
+    let root = tempfile::tempdir().unwrap();
+    let path = root.path().join("process.db");
+    let h = Host::open(path.clone(), 8).unwrap();
+    let rejected = Process::new(env!("CARGO_BIN_EXE_notebook_cli"))
+        .arg(&path)
+        .stdin(Stdio::null())
+        .output()
+        .unwrap();
+    assert!(!rejected.status.success());
+    drop(h);
+    let mut child = Child(
+        Process::new(env!("CARGO_BIN_EXE_notebook_cli"))
+            .arg(&path)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()
+            .unwrap(),
+    );
+    let mut input = child.0.stdin.take().unwrap();
+    let mut output = BufReader::new(child.0.stdout.take().unwrap());
+    let mut call = |command: Command| -> Value {
+        writeln!(input, "{}", encode(command)).unwrap();
+        input.flush().unwrap();
+        let mut line = String::new();
+        output.read_line(&mut line).unwrap();
+        let value: Value = serde_json::from_str(&line).unwrap();
+        assert_eq!(value["ok"], true);
+        value["data"].clone()
+    };
+    let note = call(Command::Create {
+        kind: stem_core::store::Kind::Note,
+        parent: None,
+        title: "process fixture".into(),
+    });
+    let entity = stem_core::Id::parse(note["id"].as_str().unwrap()).unwrap();
+    let observed = stroke(0);
+    let capture = call(Command::Capture {
+        ticket: stem_core::Id::new(),
+        entity,
+        strokes: vec![observed.clone()],
+    });
+    assert!(matches!(
+        Host::open(path.clone(), 8),
+        Err(Error::Unavailable)
+    ));
+    child.0.kill().unwrap();
+    child.0.wait().unwrap();
+    let h = Host::open(path, 8).unwrap();
+    let block = stem_core::Id::parse(capture["id"].as_str().unwrap()).unwrap();
+    assert_eq!(
+        request(&h, Command::SourceInk { block }),
+        serde_json::json!([observed])
+    );
+}
+
+#[test]
+fn reentrant_close_from_verifier_fails_without_self_join_or_retained_access() {
+    use std::sync::{mpsc, Arc, Weak};
+    struct Reentrant(Weak<Host>, mpsc::Sender<()>, mpsc::Receiver<()>);
+    impl stem_core::security::Authenticator for Reentrant {
+        fn verify(&mut self, _: stem_core::Id, _: &std::collections::BTreeSet<Scope>) -> bool {
+            self.1.send(()).unwrap();
+            self.2.recv().unwrap();
+            assert!(matches!(
+                self.0.upgrade().unwrap().close(),
+                Err(Error::WorkerFailed)
+            ));
+            false
+        }
+    }
+    let root = tempfile::tempdir().unwrap();
+    let path = root.path().join("reentrant.db");
+    let h = Arc::new(Host::open(path.clone(), 8).unwrap());
+    let (entered_tx, entered_rx) = mpsc::channel();
+    let (invoke_tx, invoke_rx) = mpsc::channel();
+    let (auth_tx, auth_rx) = mpsc::channel();
+    let call = Arc::clone(&h);
+    let weak = Arc::downgrade(&h);
+    let authentication = std::thread::spawn(move || {
+        let result = call.authenticate(
+            [Scope::App].into_iter().collect(),
+            Box::new(Reentrant(weak, entered_tx, invoke_rx)),
+        );
+        auth_tx.send(result).unwrap();
+    });
+    entered_rx
+        .recv_timeout(std::time::Duration::from_secs(5))
+        .unwrap();
+    let mut status = h.subscribe_status();
+    let closing = Arc::clone(&h);
+    let closer = std::thread::spawn(move || closing.close());
+    loop {
+        if status
+            .next_timeout(std::time::Duration::from_secs(5))
+            .unwrap()
+            .expect("close status")
+            .closed
+        {
+            break;
+        }
+    }
+    invoke_tx.send(()).unwrap();
+    assert!(matches!(
+        auth_rx
+            .recv_timeout(std::time::Duration::from_secs(5))
+            .unwrap(),
+        Err(Error::Denied)
+    ));
+    authentication.join().unwrap();
+    closer.join().unwrap().unwrap();
+    h.close().unwrap();
+    assert!(h.request(&encode(Command::Status {})).is_err());
+    let reopened = Host::open(path, 8).unwrap();
+    request(&reopened, Command::Status {});
+}

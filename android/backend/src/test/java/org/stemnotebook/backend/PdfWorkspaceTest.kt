@@ -41,7 +41,7 @@ class PdfWorkspaceTest {
         assertTrue(condition())
     }
     private class Fixture(val backend: NotebookBackend, val source: File, val cache: File, val parserCalls: AtomicInteger, val context: UUID, val reference: UUID, val providerOpens: AtomicInteger) : AutoCloseable {
-        override fun close() { backend.closeAsync().get(5, TimeUnit.SECONDS) }
+        override fun close() { backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
     }
     private fun fixture(denySecondOpen: Boolean = false, retainedBytes: Int = 0, corruptChunkMode: Int = 0, intercept: (JSONObject) -> Unit = {}): Fixture {
         val root = temporary.newFolder()

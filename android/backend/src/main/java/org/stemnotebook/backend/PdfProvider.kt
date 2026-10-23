@@ -98,6 +98,7 @@ class PdfProvider internal constructor(
         return PendingPdf(opening)
     }
     internal fun pendingCount(): Int = synchronized(lock) { pending.size }
+    internal fun awaitClosed() { awaitStopped(executor, cancellations, deadlines) }
     override fun close() {
         val accepted = synchronized(lock) {
             if (closed) return

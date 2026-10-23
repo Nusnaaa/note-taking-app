@@ -89,7 +89,7 @@ pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_close(
 ) {
     let result = std::panic::catch_unwind(|| {
         let host = hosts().lock().ok()?.remove(&handle)?;
-        drop(host);
+        host.close().ok()?;
         Some(())
     });
     if !matches!(result, Ok(Some(()))) {

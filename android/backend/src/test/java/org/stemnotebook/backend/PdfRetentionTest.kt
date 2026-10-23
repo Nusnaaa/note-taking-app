@@ -41,7 +41,7 @@ class PdfRetentionTest {
         assertTrue(condition())
     }
     private class Fixture(val backend: NotebookBackend, val source: UUID, val entity: UUID, val file: File, val cache: File, val opens: AtomicInteger, val grants: AtomicInteger, val permitted: AtomicBoolean) : AutoCloseable {
-        override fun close() { backend.closeAsync().get(5, TimeUnit.SECONDS) }
+        override fun close() { backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
     }
     private fun fixture(beforeOpen: (Int) -> Unit = {}): Fixture {
         val root = temporary.newFolder()

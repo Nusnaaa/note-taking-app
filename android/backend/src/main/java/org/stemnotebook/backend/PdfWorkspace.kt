@@ -47,10 +47,15 @@ class PdfWorkspace internal constructor(
     private val cleanup = ThreadPoolExecutor(1, 1, 0, TimeUnit.MILLISECONDS, ArrayBlockingQueue(1), factory("pdf-source-dispose"), ThreadPoolExecutor.AbortPolicy())
     private val deadlines = ScheduledThreadPoolExecutor(1, factory("pdf-source-deadline")).apply { removeOnCancelPolicy = true }
     init {
-        check(directory.isDirectory || directory.mkdirs())
-        require(!java.nio.file.Files.isSymbolicLink(directory.toPath()))
-        // Crash leftovers are disposable live bytes, never independently retained evidence.
-        directory.listFiles()?.filter { it.name.startsWith("pdf-") && it.name.endsWith(".pending") }?.forEach { check(it.delete()) }
+        try {
+            check(directory.isDirectory || directory.mkdirs())
+            require(!java.nio.file.Files.isSymbolicLink(directory.toPath()))
+            // Only the library owner may retire disposable crash leftovers.
+            directory.listFiles()?.filter { it.name.startsWith("pdf-") && it.name.endsWith(".pending") }?.forEach { check(it.delete()) }
+        } catch (error: Exception) {
+            try { provider.close() } finally { parser.close(); worker.shutdown(); cleanup.shutdown(); deadlines.shutdownNow() }
+            throw error
+        }
     }
     fun render(source: UUID, page: Int, width: Int, height: Int, timeoutMillis: Long = 30_000): PendingFrame {
         return submit(source, false, page, width, height, timeoutMillis)
@@ -73,6 +78,7 @@ class PdfWorkspace internal constructor(
         resources.second?.close()
         resources.first?.fail(CancellationException("PDF source policy changed"))
     }
+    internal fun awaitClosed() { awaitStopped(worker, cleanup, deadlines); provider.awaitClosed(); parser.awaitClosed() }
     override fun close() {
         synchronized(lock) { if (closed) return; closed = true }
         invalidate()

@@ -223,6 +223,7 @@ class PdfSelectionManager internal constructor(
         }
         resources?.cancel(CancellationException("PDF selection policy changed"))
     }
+    internal fun awaitClosed() { awaitStopped(worker, disposal, deadlines); provider.awaitClosed() }
     override fun close() {
         synchronized(lock) { if (closed) return; closed = true }
         invalidate(); provider.close()

@@ -40,6 +40,23 @@ an admitted authoring/authentication failure for that host lifetime; these count
 are not a replacement for per-ticket SQLite commit receipts. JNI clones a library
 handle under the registry lock and releases that lock before waiting or calling a
 trusted verifier, so separate libraries do not block each other's registry access.
+Native `Host::open` now holds an exclusive OS lock on the database inode before
+opening SQLite. Duplicate Host/JNI opens, including symlink/hard-link aliases, fail
+without truncating the database. Independent libraries remain independent. The
+worker retains ownership through all admitted work; shutdown closes SQLite before
+explicitly unlocking. Explicit unlock matters when a child/duplicated descriptor
+still refers to the same open file description. Initialization failure joins the
+failed writer before returning. This coordinates cooperative Host/JNI entry points;
+the lower-level Store API and arbitrary external SQLite processes are not a separate
+access-control boundary.
+
+`Host::close` closes admission and waits for actual drain even while Arc callers
+still exist. Concurrent closes share the same join; repeated closes are safe.
+A verifier must not close its own writer: reentrant close fails without self-join,
+closes admission and grants no future access. JNI removes the opaque handle under
+the registry lock, releases that lock, and waits for Host close. A blocked close
+therefore does not block registry access to another library.
+
 The Kotlin executor is still a single queue: end-to-end Android capture priority and
 status observation remain incomplete. Encoded-byte limits do not claim a total RSS bound.
 
@@ -236,6 +253,27 @@ opened. Frames expose the retained asset ID, captured `sourceRevision` and
 Retirement, expiry, relock and retention revocation use the same private bitmap
 ownership as live reads. Already drawn H.I. pixels still require eventual H.I.
 hide/redraw handling; no production H.I. is implemented here.
+
+### Library ownership and full shutdown
+
+Android acquires an OS file lease in `noBackupFilesDir` before constructing any
+workspace or retiring crash files. Duplicate/canonical-root aliases fail before
+factory or cleanup code can run; a symlinked notebook directory is rejected. The
+persistent empty owner file is not unlinked, avoiding a split-inode lock race.
+Factories finish before any JNI handle opens, and failed initialization closes
+already-created resources/provider and retires ownership. Asynchronous native-open
+failure also closes the backend. Capture recovery records remain authoritative and
+are not discarded by these paths.
+
+`closeAsync` remains the native writer-drain acknowledgement.
+`closeFullyAsync` additionally waits for provider opening/cancellation, PDF parsing/
+disposal/control threads, cache/selection workers and owned descriptors before
+releasing app ownership. An uncooperative platform call leaves full shutdown pending
+and a second backend is rejected; late bytes cannot publish or let another instance
+retire an active cache. Reopen after the full acknowledgement. The closer runs away
+from main/writer/control threads. Independent notebook authoring and original ink
+retain their existing commit/recovery semantics. No device termination-latency
+claim follows from these synthetic lifecycle fixtures.
 
 ## Rendering and processing
 

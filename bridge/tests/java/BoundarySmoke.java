@@ -22,11 +22,13 @@ public final class BoundarySmoke {
         NativeBridge.close(handle);
         try {NativeBridge.request(handle,read);throw new AssertionError();}catch(IllegalStateException expected) { }
         // A verifier waiting on one library must not hold the global registry.
-        long blockedHandle=NativeBridge.open(Files.createTempDirectory("stem-jni-blocked").resolve("notebook.db").toString());
+        String blockedPath=Files.createTempDirectory("stem-jni-blocked").resolve("notebook.db").toString();
+        long blockedHandle=NativeBridge.open(blockedPath);
         long otherHandle=NativeBridge.open(Files.createTempDirectory("stem-jni-other").resolve("notebook.db").toString());
         var entered=new java.util.concurrent.CountDownLatch(1);
         var release=new java.util.concurrent.CountDownLatch(1);
-        var pool=java.util.concurrent.Executors.newFixedThreadPool(2);
+        var pool=java.util.concurrent.Executors.newFixedThreadPool(3);
+        boolean closedBlocked=false;
         try {
             var authentication=pool.submit(() -> NativeBridge.authenticate(blockedHandle,"[\"App\"]",challenge -> {
                 entered.countDown();
@@ -36,12 +38,18 @@ public final class BoundarySmoke {
             check(entered.await(5,java.util.concurrent.TimeUnit.SECONDS));
             var independent=pool.submit(() -> NativeBridge.request(otherHandle,"{\"version\":1,\"command\":{\"op\":\"Status\"}}"));
             check(independent.get(5,java.util.concurrent.TimeUnit.SECONDS).contains("\"ok\":true"));
+            var closing=pool.submit(() -> NativeBridge.close(blockedHandle));
+            try { closing.get(100,java.util.concurrent.TimeUnit.MILLISECONDS);throw new AssertionError("Close returned before native drain"); }
+            catch(java.util.concurrent.TimeoutException expected) { }
+            check(pool.submit(() -> NativeBridge.request(otherHandle,"{\"version\":1,\"command\":{\"op\":\"Status\"}}")).get(5,java.util.concurrent.TimeUnit.SECONDS).contains("\"ok\":true"));
             release.countDown();
             authentication.get(5,java.util.concurrent.TimeUnit.SECONDS);
+            closing.get(5,java.util.concurrent.TimeUnit.SECONDS);closedBlocked=true;
+            long reopened=NativeBridge.open(blockedPath);NativeBridge.close(reopened);
         } finally {
             release.countDown();
             pool.shutdownNow();
-            NativeBridge.close(blockedHandle);
+            if (!closedBlocked) NativeBridge.close(blockedHandle);
             NativeBridge.close(otherHandle);
         }
         long selectionHandle=NativeBridge.open(Files.createTempDirectory("stem-jni-source-selection").resolve("notebook.db").toString());
@@ -61,7 +69,7 @@ public final class BoundarySmoke {
             try { NativeBridge.finishPdfSelection(selectionHandle,review.group(1),true,proof);throw new AssertionError(); } catch(IllegalStateException expected) { }
             try { NativeBridge.preparePdfSelection(selectionHandle,target,uri,revision,(c,t,l,r) -> {throw new IllegalArgumentException("private provider diagnostic");});throw new AssertionError(); } catch(IllegalStateException expected) {check(!expected.getMessage().contains("private"));}
         } finally {NativeBridge.close(selectionHandle);}
-        System.out.println("PASS: JNI Unicode, platform-verifier callback, relock, restart, malformed input, closed handles, independent registry access and fresh source-selection proof (8)");
+        System.out.println("PASS: JNI Unicode, platform-verifier callback, relock, restart, malformed input, closed handles, independent registry access fresh source-selection proof and concurrent close drain (9)");
 
     }
 }

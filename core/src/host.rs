@@ -14,14 +14,16 @@ use serde_json::{json, Value};
 use std::{
     collections::BTreeSet,
     path::PathBuf,
-    sync::{mpsc, Arc},
+    sync::{mpsc, Arc, Mutex},
     thread,
 };
 mod mailbox;
+mod ownership;
 mod pdf;
 use crate::sources::PdfSelectionTarget;
 use mailbox::Mailbox;
 pub use mailbox::{HostStatus, StatusSubscription, WriterLimits};
+use ownership::LibraryLease;
 use pdf::PdfState;
 pub use pdf::{PdfCommand, PdfGrantVerifier};
 
@@ -343,7 +345,8 @@ impl PendingResponse {
 }
 pub struct Host {
     mailbox: Arc<Mailbox>,
-    worker: Option<thread::JoinHandle<()>>,
+    worker: Mutex<Option<thread::JoinHandle<Result<()>>>>,
+    writer_thread: thread::ThreadId,
 }
 impl Host {
     pub fn open(path: PathBuf, capacity: usize) -> Result<Self> {
@@ -359,11 +362,17 @@ impl Host {
     }
     pub fn open_with_limits(path: PathBuf, limits: WriterLimits) -> Result<Self> {
         let mailbox = Mailbox::new(limits)?;
+        if path == std::path::Path::new(":memory:") {
+            return Err(Error::Invalid("file-backed library path"));
+        }
+        let ownership = LibraryLease::acquire(&path)?;
         let input = Arc::clone(&mailbox);
         let (ready_tx, ready_rx) = mpsc::channel();
         let worker = thread::Builder::new()
             .name("stem-writer".into())
             .spawn(move || {
+                // Outlives Store and all admitted work, including shutdown drain.
+                let lease = ownership;
                 let mut store = match Store::open(path) {
                     Ok(s) => {
                         let _ = ready_tx.send(Ok(()));
@@ -372,7 +381,7 @@ impl Host {
                     Err(e) => {
                         let _ = ready_tx.send(Err(e));
                         input.close();
-                        return;
+                        return Ok(());
                     }
                 };
                 let mut access = Access::public();
@@ -445,12 +454,41 @@ impl Host {
                 }
                 access.relock();
                 input.close();
+                drop(pdf);
+                drop(store);
+                lease.release()
             })?;
-        ready_rx.recv().map_err(|_| Error::WorkerFailed)??;
+        match ready_rx.recv() {
+            Ok(Ok(())) => {}
+            failure => {
+                mailbox.close();
+                let _ = worker.join();
+                return Err(match failure {
+                    Ok(Err(error)) => error,
+                    _ => Error::WorkerFailed,
+                });
+            }
+        }
         Ok(Self {
             mailbox,
-            worker: Some(worker),
+            writer_thread: worker.thread().id(),
+            worker: Mutex::new(Some(worker)),
         })
+    }
+    /// Close admission, drain all accepted work and wait for the writer even when
+    /// other callers still hold Arc references. Never call from a verifier callback.
+    pub fn close(&self) -> Result<()> {
+        self.mailbox.close();
+        // Check before taking the join mutex: an external closer may already
+        // hold it while waiting for this very verifier to return.
+        if self.writer_thread == thread::current().id() {
+            return Err(Error::WorkerFailed);
+        }
+        let mut worker = self.worker.lock().map_err(|_| Error::WorkerFailed)?;
+        if let Some(worker) = worker.take() {
+            worker.join().map_err(|_| Error::WorkerFailed)??;
+        }
+        Ok(())
     }
     pub fn subscribe_status(&self) -> StatusSubscription {
         self.mailbox.subscribe()
@@ -544,10 +582,7 @@ impl Host {
 }
 impl Drop for Host {
     fn drop(&mut self) {
-        self.mailbox.close();
-        if let Some(worker) = self.worker.take() {
-            let _ = worker.join();
-        }
+        let _ = self.close();
     }
 }
 

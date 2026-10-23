@@ -15,31 +15,66 @@ import org.json.JSONObject
 /** Owns native lifetime and serialises requests away from the Android main thread. */
 class NotebookBackend internal constructor(context: Context, pdfFactory: (Context, (JSONObject) -> JSONObject) -> PdfWorkspace, selectionProvider: PdfProvider = PdfProvider(context)) : Closeable {
     constructor(context: Context) : this(context, { platform, native -> PdfWorkspace(platform, native) })
-    private val directory = File(context.noBackupFilesDir, "notebook").apply { mkdirs() }
+    private val ownership = try { LibraryOwnership.acquire(context.noBackupFilesDir) } catch (error: Exception) { selectionProvider.close(); throw error }
+    private val directory = File(context.noBackupFilesDir, "notebook")
     private val executor = ThreadPoolExecutor(1, 1, 0, TimeUnit.MILLISECONDS, ArrayBlockingQueue(64), ThreadPoolExecutor.AbortPolicy())
-    private val handle = CompletableFuture.supplyAsync({ NativeBridge.open(File(directory, "library.db").absolutePath) }, executor)
+    private val handle = CompletableFuture<Long>()
     private var closed = false
     private val nativeClosed = CompletableFuture<Void>()
+    private val fullyClosed = CompletableFuture<Void>()
     private val reserve = File(directory, "emergency.reserve")
-    private val pdf = pdfFactory(context) { command ->
-        JSONObject(request(JSONObject().put("version", 1).put("command", command).toString()).join())
-    }
-    private val selections = PdfSelectionManager(selectionProvider,
-        { target, locator, revision, proof -> prepareSelectionNative(target, locator, revision, proof).join() },
-        { review, confirmed, proof -> finishSelectionNative(review, confirmed, proof).join() },
-        { review -> request(JSONObject().put("version", 1).put("command", JSONObject().put("op", "Pdf").put("command", JSONObject().put("op", "ReleaseSelection").put("review", review.toString()))).toString()); Unit },
-        { target ->
-            val command = when (target) {
-                is PdfSelectionManager.Target.Link -> JSONObject().put("op", "Read").put("id", target.context.toString())
-                is PdfSelectionManager.Target.Relink -> JSONObject().put("op", "Pdf").put("command", JSONObject().put("op", "Source").put("source", target.source.toString()))
+    private val pdf: PdfWorkspace
+    private val selections: PdfSelectionManager
+    private val outbox: CompletableFuture<CaptureOutbox>
+    init {
+        var createdPdf: PdfWorkspace? = null
+        var createdSelections: PdfSelectionManager? = null
+        try {
+            check(directory.isDirectory || directory.mkdirs())
+            require(!java.nio.file.Files.isSymbolicLink(directory.toPath()))
+            val loadedPdf = pdfFactory(context) { command ->
+                JSONObject(request(JSONObject().put("version", 1).put("command", command).toString()).join())
             }
-            val result = JSONObject(request(JSONObject().put("version", 1).put("command", command).toString()).join())
-            if (!result.getBoolean("ok")) throw java.io.IOException("PDF selection context unavailable")
-        },
-        retentionDirectory = File(context.noBackupFilesDir, "pdf-retention-cache"),
-        nativePdf = { command -> JSONObject(request(JSONObject().put("version", 1).put("command", JSONObject().put("op", "Pdf").put("command", command)).toString()).join()) },
-    )
-    private val outbox = CompletableFuture.supplyAsync({ CaptureOutbox(File(directory, "capture-recovery")) }, executor)
+            createdPdf = loadedPdf
+            pdf = loadedPdf
+            val loadedSelections = PdfSelectionManager(selectionProvider,
+                { target, locator, revision, proof -> prepareSelectionNative(target, locator, revision, proof).join() },
+                { review, confirmed, proof -> finishSelectionNative(review, confirmed, proof).join() },
+                { review -> request(JSONObject().put("version", 1).put("command", JSONObject().put("op", "Pdf").put("command", JSONObject().put("op", "ReleaseSelection").put("review", review.toString()))).toString()); Unit },
+                { target ->
+                    val command = when (target) {
+                        is PdfSelectionManager.Target.Link -> JSONObject().put("op", "Read").put("id", target.context.toString())
+                        is PdfSelectionManager.Target.Relink -> JSONObject().put("op", "Pdf").put("command", JSONObject().put("op", "Source").put("source", target.source.toString()))
+                    }
+                    val result = JSONObject(request(JSONObject().put("version", 1).put("command", command).toString()).join())
+                    if (!result.getBoolean("ok")) throw java.io.IOException("PDF selection context unavailable")
+                },
+                retentionDirectory = File(context.noBackupFilesDir, "pdf-retention-cache"),
+                nativePdf = { command -> JSONObject(request(JSONObject().put("version", 1).put("command", JSONObject().put("op", "Pdf").put("command", command)).toString()).join()) },
+            )
+            createdSelections = loadedSelections
+            selections = loadedSelections
+            outbox = CompletableFuture.supplyAsync({ CaptureOutbox(File(directory, "capture-recovery")) }, executor)
+            // No native handle is opened until every synchronous factory succeeds.
+            CompletableFuture.supplyAsync({ NativeBridge.open(File(directory, "library.db").absolutePath) }, executor).whenComplete { value, error ->
+                if (error == null) handle.complete(value) else { handle.completeExceptionally(error); close() }
+            }
+        } catch (error: Throwable) {
+            closed = true
+            handle.completeExceptionally(error)
+            try { createdPdf?.close() } catch (_: Exception) { }
+            try { createdSelections?.close() } catch (_: Exception) { }
+            try { selectionProvider.close() } catch (_: Exception) { }
+            executor.shutdown()
+            Thread({
+                try {
+                    awaitStopped(executor); createdPdf?.awaitClosed(); createdSelections?.awaitClosed(); selectionProvider.awaitClosed()
+                    ownership.close()
+                } catch (_: Exception) { /* ownership remains unavailable if cleanup fails */ }
+            }, "stem-failed-open").apply { isDaemon = true; start() }
+            throw error
+        }
+    }
 
     /** The caller chooses and retains this ticket before submission. Rejection
      * before admission leaves that caller's observations authoritative. After
@@ -152,22 +187,29 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
         )
     }
 
-    /** Completes after admitted native writer calls drain. Uncooperative platform
-     * callbacks may still return late; their private results remain retired. */
+    /** Native-drain acknowledgement. Optional resources may still be retiring;
+     * use closeFullyAsync before reopening this library. */
     @Synchronized fun closeAsync(): CompletableFuture<Void> { close(); return nativeClosed }
+    /** Completes only after writer, provider/parser/cache work and ownership retire.
+     * An uncooperative platform call keeps this pending; no new owner is admitted. */
+    @Synchronized fun closeFullyAsync(): CompletableFuture<Void> { close(); return fullyClosed }
 
     @Synchronized override fun close() {
         if (closed) return
         closed = true
         pdf.close(); selections.close()
-        // Flush accepted requests in order. A separate closer avoids blocking the H.I.
         Thread({
             try {
                 executor.shutdown()
-                while (!executor.awaitTermination(1, TimeUnit.SECONDS)) { /* wait for durable replies */ }
+                awaitStopped(executor)
                 if (!handle.isCompletedExceptionally) NativeBridge.close(handle.join())
                 nativeClosed.complete(null)
-            } catch (error: Exception) { nativeClosed.completeExceptionally(error) }
-        }, "stem-close").start()
+                pdf.awaitClosed(); selections.awaitClosed()
+                ownership.close()
+                fullyClosed.complete(null)
+            } catch (error: Exception) {
+                nativeClosed.completeExceptionally(error); fullyClosed.completeExceptionally(error)
+            }
+        }, "stem-close").apply { isDaemon = true; start() }
     }
 }

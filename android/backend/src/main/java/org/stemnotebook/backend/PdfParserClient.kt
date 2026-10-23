@@ -59,6 +59,7 @@ internal class PdfParserClient(private val connectionFactory: (Executor) -> PdfC
         val stop = synchronized(lock) { if (current === job) current = null; closed && current == null }
         if (stop) control.quitSafely()
     }
+    internal fun awaitClosed() { awaitStopped(wire, pixels, cleanup, deadlines); control.join() }
     override fun close() {
         val job = synchronized(lock) { if (closed) return; closed = true; current }
         job?.fail(CancellationException("PDF parser closed"))
