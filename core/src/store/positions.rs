@@ -275,6 +275,6 @@ impl Store {
         })
     }
     pub fn restore_view(&self, id: Id, access: &Access) -> Result<RestoredView> {
-        self.read_view(id, access)
+        Self::read_view_db(&self.db, id, access)
     }
 }

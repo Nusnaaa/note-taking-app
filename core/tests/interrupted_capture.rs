@@ -149,10 +149,12 @@ fn schema9_upgrade_preserves_original_payload_hash_and_capture_receipt_byte_for_
         )
         .unwrap();
     assert!(!before.0.contains("\"end\""));
+    db.execute_batch("DROP TRIGGER view_workspace_identity; DROP TRIGGER stroke_workspace_identity; DROP TABLE workspace_state; DROP TABLE workspace_panes;")
+        .unwrap();
     db.pragma_update(None, "user_version", 9).unwrap();
     drop(db);
     let mut s = Store::open(&path).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 11);
+    assert_eq!(s.schema_version().unwrap(), 12);
     assert_eq!(
         s.append_capture(
             ticket,
@@ -233,12 +235,20 @@ fn encrypted_schema10_retains_interruption_and_old_schema_cannot_claim_it() {
         .finish_backup(plan, password, &mut TestAuth(true), true)
         .unwrap();
     let restored = Store::restore_backup_password(&backup.bytes, password).unwrap();
-    assert_eq!(restored.schema_version().unwrap(), 11);
+    assert_eq!(restored.schema_version().unwrap(), 12);
     assert_eq!(restored.source_ink(b.id, &a).unwrap(), vec![original]);
     let plain = crypto::decrypt(&backup.bytes, Credential::Password(password)).unwrap();
     let mut downgraded: serde_json::Value = serde_json::from_slice(&plain).unwrap();
-    assert_eq!(downgraded["schema"], 11);
+    assert_eq!(downgraded["schema"], 12);
     downgraded["schema"] = 9.into();
+    downgraded["tables"]
+        .as_object_mut()
+        .unwrap()
+        .remove("workspace_panes");
+    downgraded["tables"]
+        .as_object_mut()
+        .unwrap()
+        .remove("workspace_state");
     let forged = crypto::encrypt(&serde_json::to_vec(&downgraded).unwrap(), password).unwrap();
     assert!(Store::restore_backup_password(&forged.bytes, password).is_err());
 }
@@ -277,6 +287,14 @@ fn legacy_schema9_backup_defaults_to_completed_without_rewriting_source_or_recei
     let plain = crypto::decrypt(&backup.bytes, Credential::Password(password)).unwrap();
     let mut old: serde_json::Value = serde_json::from_slice(&plain).unwrap();
     old["schema"] = 9.into();
+    old["tables"]
+        .as_object_mut()
+        .unwrap()
+        .remove("workspace_panes");
+    old["tables"]
+        .as_object_mut()
+        .unwrap()
+        .remove("workspace_state");
     let bytes = crypto::encrypt(&serde_json::to_vec(&old).unwrap(), password).unwrap();
     let mut restored = Store::restore_backup_password(&bytes.bytes, password).unwrap();
     assert_eq!(

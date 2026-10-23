@@ -10,6 +10,7 @@ mod organisation;
 mod positions;
 mod proposals;
 mod regions;
+mod workspace;
 mod writing;
 
 use crate::{
@@ -94,6 +95,7 @@ const V4: &str = include_str!("../migrations/004.sql");
 const V5: &str = include_str!("../migrations/005.sql");
 const V6: &str = include_str!("../migrations/006.sql");
 const V7: &str = include_str!("../migrations/007.sql");
+const V12: &str = include_str!("../migrations/012.sql");
 const V11: &str = include_str!("../migrations/011.sql");
 const V10: &str = include_str!("../migrations/010.sql");
 const V9: &str = include_str!("../migrations/009.sql");
@@ -113,7 +115,7 @@ impl Store {
                 PRAGMA trusted_schema=OFF;",
         )?;
         let version: i64 = db.pragma_query_value(None, "user_version", |r| r.get(0))?;
-        if !(0..=11).contains(&version) {
+        if !(0..=12).contains(&version) {
             return Err(Error::Unsupported);
         }
         let tx = db.transaction_with_behavior(TransactionBehavior::Immediate)?;
@@ -149,6 +151,9 @@ impl Store {
         }
         if version < 11 {
             tx.execute_batch(V11)?;
+        }
+        if version < 12 {
+            tx.execute_batch(V12)?;
         }
         tx.commit()?;
         Ok(Self {
@@ -337,6 +342,11 @@ pub use writing::{Block, Display, HistoryEntry, InkSnapshot, Region};
 pub use positions::{
     BookmarkState, CaretPoint, CaretTarget, GraphLabel, InlinePoint, RestoredView,
     SelectionBookmark,
+};
+
+pub use workspace::{
+    PaneTarget, RestoredPane, RestoredPaneState, RestoredWorkspace, SplitAxis, WorkspacePane,
+    WorkspaceTool, WorkspaceUpdate,
 };
 
 #[cfg(test)]

@@ -36,6 +36,27 @@ class BackendAdmissionIntegrationTest {
         val event = MotionEvent.obtain(10, time, action, 1, arrayOf(property), arrayOf(coordinate), 0, 0, 1f, 1f, 0, 0, InputDevice.SOURCE_STYLUS, 0)
         return try { session.accept(event).single() } finally { event.recycle() }
     }
+    @Test(timeout = 20_000) fun workspaceFindsSavedPaneAndToolAfterFullBackendReopen() {
+        val context = platform(temporary.newFolder()); var backend = NotebookBackend(context)
+        try {
+            val entity = note(backend); val view = UUID.randomUUID(); val slot = UUID.randomUUID()
+            val settings = JSONObject().put("id", view.toString()).put("entity", entity.toString()).put("exercise", JSONObject.NULL)
+                .put("camera", JSONObject().put("centre_x", 4).put("centre_y", -2).put("zoom", 3).put("rotation_rad", 0.5))
+                .put("pen_width_mm", 0.6).put("colour_rgba", org.json.JSONArray(listOf(1, 2, 3, 255))).put("finger_ink", false).put("anchor", JSONObject.NULL).put("revision", 0)
+            call(backend, JSONObject().put("op", "SaveView").put("view", settings).put("expected", JSONObject.NULL))
+            val pane = JSONObject().put("slot", slot.toString()).put("weight", 3).put("target", JSONObject().put("View", JSONObject().put("view", view.toString()).put("tool", "Eraser")))
+            val workspace = JSONObject().put("panes", org.json.JSONArray().put(pane)).put("active", slot.toString()).put("axis", "Vertical")
+            val command = JSONObject().put("op", "SaveWorkspace").put("workspace", workspace).put("expected", 0)
+            assertEquals(1, call(backend, command).getJSONObject("data").getInt("revision"))
+            assertFalse(JSONObject(backend.request(wire(command)).get(5, TimeUnit.SECONDS)).getBoolean("ok"))
+            backend.closeFullyAsync().get(5, TimeUnit.SECONDS); backend = NotebookBackend(context)
+            val restored = call(backend, JSONObject().put("op", "RestoreWorkspace")).getJSONObject("data")
+            assertEquals(slot.toString(), restored.getString("active")); assertEquals("Vertical", restored.getString("axis"))
+            val ready = restored.getJSONArray("panes").getJSONObject(0).getJSONObject("state").getJSONObject("View")
+            assertEquals("Eraser", ready.getString("tool")); val saved = ready.getJSONObject("view").getJSONObject("settings")
+            assertEquals(view.toString(), saved.getString("id")); assertEquals(3.0, saved.getJSONObject("camera").getDouble("zoom"), 0.0)
+        } finally { backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
+    }
     @Test(timeout = 20_000) fun savedUnicodeSelectionRestoresOnlyAtItsOriginalRevision() {
         val backend = NotebookBackend(platform(temporary.newFolder())); val entity = note(backend)
         try {

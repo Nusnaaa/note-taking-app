@@ -526,6 +526,13 @@ impl Store {
             }
             entities.push(e);
         }
+        if self
+            .db
+            .prepare("SELECT 1 FROM workspace_panes LIMIT 1")?
+            .exists([])?
+        {
+            omissions.push("App workspace and pane activation are library-local and are not included in native copies; selected saved views remain included.".into());
+        }
         let mut document = NativeDocument {
             version: 6,
             created_ms: now_ms(),

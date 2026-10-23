@@ -187,3 +187,16 @@ JNI/Robolectric fixtures exercise SaveView/RestoreView before/after an explicit 
 A preliminary region fixture correctly received ReviewRequired for an attempted
 whole-block replacement; it now uses the explicit region-edit API. No bypass was
 introduced. No tablet caret/gesture, automatic rebase or production H.I. is claimed.
+
+## Workspace restoration and privacy
+
+`workspace` covers reopen with independent master/exercise views, tools, camera,
+weights, source samples and PDF position; fresh protection/redaction; Keep without
+private-target disclosure; app lock; invalid/stale layout, rollback and clear; Trash/
+restore and atomic purge reference retirement; encrypted restore with revoked PDF
+readiness; malformed order/downgraded tables; default legacy migration and native
+copy without workspace activation. Host and actual desktop-JNI/Robolectric fixtures
+save layout, fully close/reopen and discover the previous view/tool, retaining current
+access boundaries. Existing legacy fixtures use their genuine pre-workspace table
+sets, so older bookmark/interruption downgrade tests still check those feature tags.
+No physical tablet pane layout, provider grant persistence or H.I. behavior is claimed.

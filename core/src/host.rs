@@ -6,7 +6,10 @@ use crate::{
     ink::{Stroke, Transform},
     objects::{CellValue, DiagramPart, Rect},
     security::{Access, Authenticator, Scope},
-    store::{Camera, Display, Kind, Order, Store, ViewSettings, WritingMode, WritingTarget},
+    store::{
+        Camera, Display, Kind, Order, Store, ViewSettings, WorkspaceUpdate, WritingMode,
+        WritingTarget,
+    },
     Error, Id, Result,
 };
 use serde::{Deserialize, Serialize};
@@ -175,6 +178,11 @@ pub enum Command {
     },
     RestoreView {
         view: Id,
+    },
+    RestoreWorkspace,
+    SaveWorkspace {
+        workspace: WorkspaceUpdate,
+        expected: u64,
     },
     SaveView {
         view: ViewSettings,
@@ -527,6 +535,7 @@ impl Host {
                 | Command::Embed { .. }
                 | Command::View { .. }
                 | Command::RestoreView { .. }
+                | Command::RestoreWorkspace
                 | Command::Links { .. }
                 | Command::List { .. }
                 | Command::Read { .. }
@@ -759,6 +768,11 @@ fn execute(s: &mut Store, a: &mut Access, pdf: &mut PdfState, r: Request) -> Res
                 Value::Null
             }
             Command::View { view } => serde_json::to_value(s.view(view, a)?)?,
+            Command::RestoreWorkspace => serde_json::to_value(s.restore_workspace(a)?)?,
+            Command::SaveWorkspace {
+                workspace,
+                expected,
+            } => serde_json::json!({"revision": s.save_workspace(workspace, expected, a)?}),
             Command::RestoreView { view } => serde_json::to_value(s.restore_view(view, a)?)?,
             Command::SaveView { view, expected } => {
                 serde_json::to_value(s.save_view(view, expected, a)?)?

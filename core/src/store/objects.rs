@@ -703,11 +703,10 @@ impl Store {
     }
 
     pub fn view(&self, id: Id, access: &Access) -> Result<ViewSettings> {
-        Ok(self.read_view(id, access)?.settings)
+        Ok(Self::read_view_db(&self.db, id, access)?.settings)
     }
-    pub(crate) fn read_view(&self, id: Id, access: &Access) -> Result<RestoredView> {
-        let json: String = self
-            .db
+    pub(crate) fn read_view_db(db: &Connection, id: Id, access: &Access) -> Result<RestoredView> {
+        let json: String = db
             .query_row(
                 "SELECT payload FROM view_settings WHERE id=?1",
                 [id.to_string()],
@@ -718,17 +717,17 @@ impl Store {
 
         let v: ViewSettings = serde_json::from_str(&json)?;
         v.validate()?;
-        Self::authorise(&self.db, v.entity, access, false)?;
+        Self::authorise(db, v.entity, access, false)?;
 
         if let Some(e) = v.exercise {
-            Self::read_exercise(&self.db, e, access)?;
+            Self::read_exercise(db, e, access)?;
         }
 
         if let Some(b) = v.anchor {
-            Self::read_block(&self.db, b, access)?;
+            Self::read_block(db, b, access)?;
         }
 
-        let bookmark_state = Self::bookmark_state(&self.db, &v, access)?;
+        let bookmark_state = Self::bookmark_state(db, &v, access)?;
         Ok(RestoredView {
             settings: v,
             bookmark_state,

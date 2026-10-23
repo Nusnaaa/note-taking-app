@@ -500,6 +500,14 @@ fn schema8_logical_backup_upgrades_without_inventing_old_undo_actions() {
     doc["tables"]
         .as_object_mut()
         .unwrap()
+        .remove("workspace_panes");
+    doc["tables"]
+        .as_object_mut()
+        .unwrap()
+        .remove("workspace_state");
+    doc["tables"]
+        .as_object_mut()
+        .unwrap()
         .remove("edit_operations");
     doc["tables"]
         .as_object_mut()
@@ -511,7 +519,7 @@ fn schema8_logical_backup_upgrades_without_inventing_old_undo_actions() {
         .retain(|row| row[0]["value"] != "edit_operation");
     let old = crypto::encrypt(&serde_json::to_vec(&doc).unwrap(), PASSWORD).unwrap();
     let restored = Store::restore_backup_password(&old.bytes, PASSWORD).unwrap();
-    assert_eq!(restored.schema_version().unwrap(), 11);
+    assert_eq!(restored.schema_version().unwrap(), 12);
     assert_eq!(
         restored.block(b.id, &a).unwrap().content.literal(),
         "schema-eight content"

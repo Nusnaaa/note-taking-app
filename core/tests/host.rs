@@ -828,3 +828,90 @@ fn host_restores_revision_bound_selection_without_silently_rebinding_after_edit(
     assert_eq!(restored["settings"]["bookmark"]["anchor"]["revision"], 0);
     host.close().unwrap();
 }
+#[test]
+fn host_workspace_discovers_last_view_after_reopen_without_serializing_locked_targets() {
+    use stem_core::{
+        store::{
+            Camera, Kind, PaneTarget, SplitAxis, ViewSettings, WorkspacePane, WorkspaceTool,
+            WorkspaceUpdate,
+        },
+        Id,
+    };
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("workspace.db");
+    let host = Host::open(path.clone(), 8).unwrap();
+    let note = request(
+        &host,
+        Command::Create {
+            kind: Kind::Note,
+            parent: None,
+            title: "private workspace".into(),
+        },
+    );
+    let entity = Id::parse(note["id"].as_str().unwrap()).unwrap();
+    let view = ViewSettings {
+        id: Id::new(),
+        entity,
+        exercise: None,
+        camera: Camera::default(),
+        pen_width_mm: 0.5,
+        colour_rgba: [0, 0, 0, 255],
+        finger_ink: false,
+        anchor: None,
+        bookmark: None,
+        revision: 0,
+    };
+    request(
+        &host,
+        Command::SaveView {
+            view: view.clone(),
+            expected: None,
+        },
+    );
+    let slot = Id::new();
+    let workspace = WorkspaceUpdate {
+        panes: vec![WorkspacePane {
+            slot,
+            weight: 3,
+            target: PaneTarget::View {
+                view: view.id,
+                tool: WorkspaceTool::Eraser,
+            },
+        }],
+        active: Some(slot),
+        axis: SplitAxis::Vertical,
+    };
+    assert_eq!(
+        request(
+            &host,
+            Command::SaveWorkspace {
+                workspace,
+                expected: 0
+            }
+        )["revision"],
+        1
+    );
+    host.close().unwrap();
+    let host = Host::open(path, 8).unwrap();
+    let opened = request(&host, Command::RestoreWorkspace);
+    assert_eq!(opened["active"], slot.to_string());
+    assert_eq!(opened["panes"][0]["state"]["View"]["tool"], "Eraser");
+    host.authenticate(
+        [Scope::Entity(entity)].into_iter().collect(),
+        Box::new(TestAuth(true)),
+    )
+    .unwrap();
+    request(
+        &host,
+        Command::SetLock {
+            entity,
+            revision: 0,
+            locked: true,
+        },
+    );
+    request(&host, Command::Relock {});
+    let locked = request(&host, Command::RestoreWorkspace);
+    assert_eq!(locked["panes"][0]["state"], "Locked");
+    assert!(!locked.to_string().contains(&view.id.to_string()));
+    host.close().unwrap();
+}

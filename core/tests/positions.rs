@@ -367,6 +367,14 @@ fn encrypted_backup_retains_stale_bookmarks_and_schema10_defaults_without_rewrit
     let plain = crypto::decrypt(&backup.bytes, Credential::Password(password)).unwrap();
     let mut old: serde_json::Value = serde_json::from_slice(&plain).unwrap();
     old["schema"] = 10.into();
+    old["tables"]
+        .as_object_mut()
+        .unwrap()
+        .remove("workspace_panes");
+    old["tables"]
+        .as_object_mut()
+        .unwrap()
+        .remove("workspace_state");
     let forged = crypto::encrypt(&serde_json::to_vec(&old).unwrap(), password).unwrap();
     assert!(Store::restore_backup_password(&forged.bytes, password).is_err());
     for row in old["tables"]["view_settings"].as_array_mut().unwrap() {
@@ -377,7 +385,7 @@ fn encrypted_backup_retains_stale_bookmarks_and_schema10_defaults_without_rewrit
     }
     let legacy = crypto::encrypt(&serde_json::to_vec(&old).unwrap(), password).unwrap();
     let restored = Store::restore_backup_password(&legacy.bytes, password).unwrap();
-    assert_eq!(restored.schema_version().unwrap(), 11);
+    assert_eq!(restored.schema_version().unwrap(), 12);
     assert!(restored.view(v.id, &a).unwrap().bookmark.is_none());
 }
 #[test]
@@ -540,10 +548,12 @@ fn schema10_upgrade_keeps_legacy_view_payload_byte_for_byte_and_absent_bookmark_
         )
         .unwrap();
     assert!(!before.contains("bookmark"));
+    db.execute_batch("DROP TRIGGER view_workspace_identity; DROP TRIGGER stroke_workspace_identity; DROP TABLE workspace_state; DROP TABLE workspace_panes;")
+        .unwrap();
     db.pragma_update(None, "user_version", 10).unwrap();
     drop(db);
     let s = Store::open(&path).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 11);
+    assert_eq!(s.schema_version().unwrap(), 12);
     assert_eq!(s.view(legacy.id, &a).unwrap(), legacy);
     drop(s);
     let db = rusqlite::Connection::open(&path).unwrap();

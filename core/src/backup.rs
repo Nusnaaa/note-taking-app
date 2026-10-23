@@ -26,7 +26,7 @@ use std::{
     path::Path,
 };
 
-// Column order is the on-disk contract of schemas 9/10/11. Unknown tables/widths fail closed.
+// Column order is the on-disk contract of schemas 9/10/11/12. Unknown tables/widths fail closed.
 const TABLES: &[(&str, usize)] = &[
     ("settings", 2),
     ("entities", 3),
@@ -56,6 +56,8 @@ const TABLES: &[(&str, usize)] = &[
     ("pdf_anchors", 4),
     ("edit_operations", 4),
     ("edit_changes", 5),
+    ("workspace_panes", 7),
+    ("workspace_state", 4),
 ];
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -168,7 +170,7 @@ impl Store {
 
         let mut snapshot = Snapshot {
             format: "STEM-LIBRARY-1".into(),
-            schema: 11,
+            schema: 12,
             tables: BTreeMap::new(),
             omissions: vec![],
         };
@@ -340,10 +342,27 @@ impl Store {
             snapshot.schema = 9;
         }
 
-        if snapshot.format != "STEM-LIBRARY-1" || !matches!(snapshot.schema, 9..=11) {
+        if snapshot.format != "STEM-LIBRARY-1" || !matches!(snapshot.schema, 9..=12) {
             return Err(Error::Unsupported);
         }
 
+        if source_schema < 12 {
+            if snapshot.tables.contains_key("workspace_panes")
+                || snapshot.tables.contains_key("workspace_state")
+            {
+                return Err(Error::Invalid("legacy workspace extension"));
+            }
+            snapshot.tables.insert("workspace_panes".into(), vec![]);
+            snapshot.tables.insert(
+                "workspace_state".into(),
+                vec![vec![
+                    Cell::Integer(1),
+                    Cell::Integer(0),
+                    Cell::Null,
+                    Cell::Text("Horizontal".into()),
+                ]],
+            );
+        }
         if snapshot.tables.len() != TABLES.len()
             || TABLES
                 .iter()
@@ -370,6 +389,8 @@ impl Store {
 
         tx.execute_batch("PRAGMA defer_foreign_keys=ON;")?;
 
+        tx.execute("DELETE FROM workspace_state", [])?;
+        tx.execute("DELETE FROM workspace_panes", [])?;
         tx.execute("DELETE FROM settings", [])?;
 
         let mut count = 0usize;
@@ -516,7 +537,7 @@ impl Store {
     fn validate_backup_state(&self, native_version: u32) -> Result<()> {
         self.validate_edit_journal()?;
         self.check_integrity()?;
-
+        Self::stored_workspace(&self.db)?;
         let db = &self.db;
 
         Id::parse(&Self::setting(db, "library_id")?)?;

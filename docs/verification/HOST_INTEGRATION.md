@@ -122,9 +122,55 @@ part/series IDs remain scoped to their copied immutable content. Stale metadata 
 review-required after copy, and cannot become current through later monotonic edits.
 Encrypted backup schema 11 preserves current/stale bookmarks and restores schemas
 8/9/10; older backup tags reject the extension. Selection-only native exports include
-only views whose bookmark endpoints are inside the selected block boundary. Full
-workspace/last-document/pane discovery and all-operation history remain open. These
+only views whose bookmark endpoints are inside the selected block boundary. Workspace activation now discovers these saved views as described below; complete
+authoring configuration and all-operation history remain open. These
 are backend position contracts, not production caret rendering or gesture behavior.
+
+## Last workspace and pane activation
+
+`SaveWorkspace` stores the library-local pane order, integer relative weights,
+horizontal/vertical arrangement, active slot (or None for the library route), selected
+tool and references to existing saved views/PDF links. Stable slot IDs identify panes,
+not entities. SQL identity guards reject slot/content ID collisions, including later
+view/stroke inserts, so redacted placeholders cannot echo private target IDs. A saved view retains the current note/canvas/exercise identity, camera,
+pen settings and revision-bound bookmark; ordinary entity reads resolve its notebook
+ancestry. This is a backend activation contract, not production window or gesture code.
+The default is an empty workspace at revision 0. Updates require the current workspace
+revision and commit atomically; invalid layout, stale revision or access rejection
+leaves the old layout intact. Eight panes and weights 1..1,000,000 are implementation
+capacity/representation bounds, not approved performance SLOs. Selected-tool values
+record intent only and never enable an unimplemented tool or start recognition.
+
+`RestoreWorkspace` checks current app access first, then resolves every pane using
+fresh view/source/block/exercise authority. Accessible view panes include their
+selection restoration state and selected tool. Locked/unavailable panes expose only
+opaque slot/weight placeholders, without target IDs, tool, titles or PDF locators;
+independent accessible panes still restore. Protected targets are never automatically
+unlocked. `Keep` retains only an existing slot's exact private target/tool, allowing
+layout adjustment without revealing or rebinding it. Explicit new targets require
+fresh access; Keep on a new/forged slot fails. Closing a locked pane edits navigation
+metadata only and does not require unlocking/deleting its authored content.
+
+PDF panes return authorised source/view metadata with
+`requires_platform_validation=true`, even if stored availability is Available.
+Restoration does not open a provider/parser, acquire a read lease, restore an OS grant,
+read source bytes or claim runtime readiness. Regrant/rendering still goes through the
+trusted PDF pipeline. Orientation/layout changes never transform source observations.
+A workspace receipt acknowledges only workspace metadata, not active stroke capture.
+
+Schema 12 adds relational workspace tables. Foreign-key retirement on permanent
+view/source deletion replaces the target/tool with an unavailable placeholder and
+advances workspace revision in the same purge transaction. Slot order, weight and
+focus remain stable; Trash/unavailable contexts can recover their existing references
+on ordinary restore. Encrypted schema-12 whole backups retain workspace metadata;
+schemas 8-11 create the default empty workspace and cannot smuggle new workspace
+tables under an old tag. Malformed references, order and table shapes fail closed.
+Restored Available/Missing PDF sources remain Missing; an existing Revoked state
+stays Revoked. No source becomes runtime-ready. Native v6 copies preserve selected saved
+views but do not activate or overwrite a destination workspace; their omission report
+states that activation is library-local. Complete pen presets/backgrounds, remaining
+pane workflows and all-operation history/retirement remain open. No production H.I.
+is authorised by this increment.
 
 ## Observed prefixes and stroke termination
 
