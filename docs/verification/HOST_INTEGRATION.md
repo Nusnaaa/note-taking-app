@@ -89,14 +89,57 @@ Grant retention remains explicit. Revocation cancels current openings before rel
 the platform grant; the core/client must independently enforce persisted source policy.
 No source bytes are copied by this adapter and its errors omit private provider details.
 
-`PdfWorkerService` owns each incoming descriptor through admission, rejects busy work
-without leaking the descriptor, validates render bounds inside that ownership scope,
-and closes both pipe ends when reply/compression fails. The isolated parser receives
-no notebook path or access tokens and never determines retention authority. Pixel pipes
-must be fully decoded/validated by the client: an `ok` reply alone is not rendered-image
-success. Complete client binding, persisted source-policy synchronisation, parser
-process timeout/revocation orchestration, annotation/navigation and device execution
-remain open. The Android module explicitly pins Build Tools 35.0.0.
+`NotebookBackend.renderPdf(source, page, width, height)` now connects the native
+source policy, provider and isolated parser. It returns an owned `PendingFrame`;
+call `await` off the main thread, then use `Frame.draw` for the viewport. Closing,
+source/lock/containment changes, failed authentication and native access expiry
+retire earlier frames. `Frame` never exposes its Bitmap and rejects drawing once
+retired. Ordinary pen/text edits keep the PDF viewport; no canvas or ink is changed.
+`closeAsync` acknowledges native writer drain. An uncooperative platform callback
+may still return late, but its private results cannot become a new preview.
+
+Each read streams into an app-private, disposable cache below `noBackupFilesDir`
+while hashing the exact source revision. This freezes the parser input without
+turning a link into a managed library copy. Cache paths are unlinked before parsing
+and crash leftovers are removed on startup; these bytes are never included in native
+backup/export. Streaming uses bounded buffers, a 16 GiB operation bound and an 8 MiB
+free-space guard for disposable copying; these are engineering admission limits,
+not approved device performance or zero-loss SLOs. Provider access is reopened
+read-only and native revision/access are revalidated before frame publication.
+
+The native JSON v1 `Pdf` command group exposes Source, Link, SetView, MarkMissing,
+Revoke, Anchor, CreateAnchor, ReconnectAnchor, ReviewRevision, ReplaceRevision,
+PrepareRead, ValidateRead and ReleaseRead. Use `{"op":"Pdf","command":{"op":...}}`
+inside the usual request. Prepared read leases and revision-review tokens refer to
+private bounded host state (32 each, at most five minutes); reviews are single-use,
+and read validity is additionally bounded by remaining authentication lifetime.
+Ordinary requests cannot supply a review plan or a `new_platform_grant` flag.
+Relock/access changes clear prepared capabilities. Changing source revisions keeps
+anchor lineage and requires an explicit prepared review rather than guessing a page.
+
+The parser binds to a fresh isolated service instance. Only a duplicated read-only
+FD, page, viewport dimensions, request token and pixel format cross this boundary;
+no notebook path, source locator or authentication token does. A separate control
+looper handles termination while parsing runs elsewhere. Timeout/cancellation
+closes descriptors, sends stop and unbinds; an isolated service also terminates on
+destruction. Admission is retained while an outstanding bind/send/read/disposal
+still runs, even after the caller has received a timeout. Late replies close their
+descriptors. Input ownership remains with the caller; the client owns its duplicate.
+
+Private pixel IPC format `stem-argb-1` is `STEMPIX1`, big-endian u32 width/height,
+then exactly width*height big-endian ARGB u32 values and EOF. The host checks the
+requested dimensions before allocation (maximum side 4096, total 8,000,000 pixels),
+reads bounded rows and rejects truncation/trailing bytes. It does not run a PNG or
+other image decoder over worker output. The worker closes both local pipe ends on
+failed reply/write. This is PDF viewing, never a raster handwriting-recognition path.
+
+Automated fixtures use actual desktop JNI with simulated Android/provider/Messenger
+boundaries. Robolectric's pipe/dup shadow uses regular files/copies, so these tests
+are not live kernel-pipe or cross-process/device evidence. The module explicitly
+pins Build Tools 35.0.0. Trusted picker/regrant/restore, managed-copy/historical read
+paths, complete permission/lifecycle/navigation cases and actual service/device
+execution remain open. Already drawn external H.I. pixels must be hidden/redrawn
+when a frame is retired; this library does not implement production H.I.
 
 ## Rendering and processing
 

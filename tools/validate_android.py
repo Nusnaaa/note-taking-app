@@ -76,7 +76,8 @@ def main():
     internet=[node for node in permissions if node.get(ns+'name')=='android.permission.INTERNET']
     assert internet and all(node.get('{http://schemas.android.com/tools}node')=='remove' for node in internet)
     assert app.get(ns+'usesCleartextTraffic')=='false'
-    services=app.findall('service');assert any(s.get(ns+'isolatedProcess')=='true' and s.get(ns+'exported')=='false' for s in services)
+    services=app.findall('service');pdf_services=[s for s in services if s.get(ns+'name','').endswith('.PdfWorkerService')]
+    assert len(pdf_services)==1 and pdf_services[0].get(ns+'isolatedProcess')=='true' and pdf_services[0].get(ns+'exported')=='false'
     aar=ROOT/'android/backend/build/outputs/aar/backend-debug.aar'
     with zipfile.ZipFile(aar) as bundle:
         packaged=bundle.read('jni/arm64-v8a/libstem_bridge.so')

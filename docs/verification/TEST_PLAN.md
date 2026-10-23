@@ -85,8 +85,14 @@ verification, consent, probe/transaction failure, rollback, defaults and concurr
 change. They establish no recogniser accuracy or sandbox isolation. PDF fixtures
 exercise source/anchor metadata and cache policy. Android provider fixtures also cover
 bounded off-thread opening, deadlines, cancellation, revocation, late descriptors and
-invalid-render/failed-reply descriptor cleanup. Full parser client/process integration
-and device parsing/rendering remain open.
+invalid-render/failed-reply descriptor cleanup. New native host fixtures exercise
+bounded private read/revision tokens and source/lock/restart/lineage rules. The Android
+pipeline fixtures use the actual desktop JNI library plus synthetic provider and
+Messenger transport to exercise frozen source hashes, live permission rechecks,
+revocation, expiry, low storage and raw-pixel framing. Robolectric pipes are file-backed
+and its dup copies bytes; these are not live-pipe/cross-process/device tests. Trusted
+picker/regrant, managed/historical rendering and complete platform lifecycle acceptance
+remain open.
 
 Backup fixtures exercise password/recovery restoration, Trash/history/membership
 undo, rich object/view/anchor/profile/proposal/capture state, authorised source assets,

@@ -33,6 +33,7 @@ class PdfWorkerService : Service() {
                 Process.killProcess(Process.myPid())
                 return
             }
+            require(message.data.getString("format") == PdfPixels.FORMAT)
             val output = message.replyTo ?: return
             val fd = descriptor ?: throw IOException("PDF descriptor missing")
             val job = PdfRenderJob(message.what, message.arg2, message.arg1, message.data.getInt("width"), message.data.getInt("height"), fd)
@@ -55,7 +56,12 @@ class PdfWorkerService : Service() {
     private fun sendFailure(output: Messenger, what: Int, token: Int) {
         try { output.send(Message.obtain(null, what).apply { arg2 = token; data = Bundle().apply { putBoolean("ok", false) } }) } catch (_: Exception) { }
     }
-    override fun onDestroy() { thread.quitSafely(); super.onDestroy() }
+    override fun onDestroy() {
+        thread.quitSafely()
+        super.onDestroy()
+        // This component has its own isolated process, never the notebook process.
+        if (Process.isIsolated()) Process.killProcess(Process.myPid())
+    }
 }
 
 /** Small owned parser job: the descriptor closes even before PdfRenderer exists. */
@@ -64,7 +70,7 @@ internal data class PdfRenderJob(val what: Int, val token: Int, val page: Int, v
         var replied = false
         try {
             descriptor.use { fd ->
-                require(width in 1..4096 && height in 1..4096 && width.toLong() * height <= 8_000_000)
+                PdfPixels.validate(width, height)
                 PdfRenderer(fd).use { renderer ->
                     require(page in 0 until renderer.pageCount)
                     renderer.openPage(page).use { source ->
@@ -75,7 +81,7 @@ internal data class PdfRenderJob(val what: Int, val token: Int, val page: Int, v
                             streamPdfPixels(bitmap) { input ->
                                 send(Message.obtain(null, what).apply {
                                     arg2 = token
-                                    data = Bundle().apply { putParcelable("pixels", input); putInt("pages", renderer.pageCount); putBoolean("ok", true) }
+                                    data = Bundle().apply { putParcelable("pixels", input); putInt("pages", renderer.pageCount); putString("format", PdfPixels.FORMAT); putBoolean("ok", true) }
                                 })
                                 replied = true
                             }
@@ -84,21 +90,21 @@ internal data class PdfRenderJob(val what: Int, val token: Int, val page: Int, v
                 }
             }
         } catch (_: Exception) {
-            // After publishing a pipe, compression failure is signalled by EOF;
-            // the client must validate the complete image, not trust ok alone.
+            // After publishing a pipe, incomplete pixels are signalled by EOF;
+            // the client validates the entire frame, not just the ok flag.
             if (!replied) try { send(Message.obtain(null, what).apply { arg2 = token; data = Bundle().apply { putBoolean("ok", false) } }) } catch (_: Exception) { }
         }
     }
 }
 
-/** No Binder pixel payload. Both local pipe ends close on send/compress failure.
+/** No Binder pixel payload. Both local pipe ends close on send/write failure.
  * Binder duplicates the reader for the remote client; close our reader before
  * writing so a cancelled client causes a broken pipe rather than a stuck writer. */
 internal fun streamPdfPixels(bitmap: Bitmap, pipe: Array<ParcelFileDescriptor> = ParcelFileDescriptor.createPipe(), send: (ParcelFileDescriptor) -> Unit) {
     try {
         try { send(pipe[0]) } finally { pipe[0].close() }
         ParcelFileDescriptor.AutoCloseOutputStream(pipe[1]).use {
-            if (!bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)) throw IOException("PDF image encoding failed")
+            PdfPixels.write(bitmap, it)
         }
     } finally {
         for (end in pipe) try { end.close() } catch (_: IOException) { }

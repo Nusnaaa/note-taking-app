@@ -43,6 +43,10 @@ impl Access {
         self.scopes.clear();
         self.expires = None;
     }
+    pub(crate) fn remaining(&self) -> Option<Duration> {
+        self.expires
+            .map(|until| until.saturating_duration_since(Instant::now()))
+    }
     pub(crate) fn permits(&self, scope: &Scope) -> bool {
         self.expires.is_some_and(|until| Instant::now() < until) && self.scopes.contains(scope)
     }

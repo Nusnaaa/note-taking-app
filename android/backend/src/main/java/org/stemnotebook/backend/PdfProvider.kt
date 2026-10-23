@@ -114,12 +114,14 @@ class PdfProvider internal constructor(
      * completion callback executes on the provider, deadline or control threads. */
     class PendingPdf internal constructor(private val opening: Opening) : Closeable {
         fun await(): ParcelFileDescriptor = opening.take()
+        internal fun awaitRetired() = opening.awaitRetired()
         fun cancel() { opening.fail(CancellationException("PDF source open cancelled")) }
         override fun close() = cancel()
     }
     internal inner class Opening(val uri: Uri) {
         val signal = CancellationSignal()
         private val ready = CountDownLatch(1)
+        private val retired = CountDownLatch(1)
         private val state = Any()
         private var active = true
         private var done = false
@@ -183,6 +185,7 @@ class PdfProvider internal constructor(
             if (release) forget()
             return result
         }
-        private fun forget() { synchronized(lock) { pending.remove(this) } }
+        fun awaitRetired() { retired.await() }
+        private fun forget() { synchronized(lock) { pending.remove(this) }; retired.countDown() }
     }
 }

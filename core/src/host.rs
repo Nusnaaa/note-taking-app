@@ -18,12 +18,18 @@ use std::{
     thread,
 };
 mod mailbox;
+mod pdf;
 use mailbox::Mailbox;
 pub use mailbox::{HostStatus, StatusSubscription, WriterLimits};
+pub use pdf::PdfCommand;
+use pdf::PdfState;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "op", deny_unknown_fields)]
 pub enum Command {
+    Pdf {
+        command: PdfCommand,
+    },
     Block {
         block: Id,
     },
@@ -356,9 +362,11 @@ impl Host {
                     }
                 };
                 let mut access = Access::public();
+                let mut pdf = PdfState::default();
                 while let Ok(Some(envelope)) = input.next() {
                     match envelope.message {
                         Message::Authenticate(scopes, mut auth, reply) => {
+                            pdf.clear();
                             let result =
                                 std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                                     Access::authenticate(auth.as_mut(), scopes)
@@ -376,7 +384,7 @@ impl Host {
                         Message::Call(request, reply) => {
                             let result =
                                 std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                                    execute(&mut store, &mut access, request)
+                                    execute(&mut store, &mut access, &mut pdf, request)
                                 }))
                                 .unwrap_or_else(|_| Response::error(Error::WorkerFailed));
                             let _ = input.complete(envelope.authoring, envelope.bytes, !result.ok);
@@ -423,6 +431,8 @@ impl Host {
                 | Command::SearchViews { .. }
                 | Command::Status { .. }
         );
+        let authoring = authoring
+            && !matches!(&request.command, Command::Pdf { command } if command.is_query());
         let (tx, rx) = mpsc::channel();
         self.mailbox
             .admit(Message::Call(request, tx), authoring, json.len())?;
@@ -456,12 +466,30 @@ impl Drop for Host {
     }
 }
 
-fn execute(s: &mut Store, a: &mut Access, r: Request) -> Response {
+fn execute(s: &mut Store, a: &mut Access, pdf: &mut PdfState, r: Request) -> Response {
     if r.version != 1 {
         return Response::error(Error::Unsupported);
     }
+    if a.remaining().is_some_and(|remaining| remaining.is_zero()) {
+        a.relock();
+        pdf.clear();
+    }
+    if matches!(
+        &r.command,
+        Command::Relock {}
+            | Command::SetLock { .. }
+            | Command::SetBlockLock { .. }
+            | Command::ExerciseLock { .. }
+            | Command::SetAppLock { .. }
+            | Command::Move { .. }
+            | Command::Undo { .. }
+            | Command::Redo { .. }
+    ) {
+        pdf.clear();
+    }
     let result = (|| -> Result<Value> {
         Ok(match r.command {
+            Command::Pdf { command } => pdf.execute(s, a, command)?,
             Command::Block { block } => serde_json::to_value(s.block(block, a)?)?,
             Command::SetMode { entity, mode } => {
                 s.set_mode(entity, mode, a)?;

@@ -14,6 +14,8 @@ android {
             System.getProperty(property)?.let { value -> it.systemProperty(property, value) }
         }
         it.systemProperty("robolectric.dependency.repo.url", "https://repo.maven.apache.org/maven2")
+        // Integration fixtures use the actual desktop JNI core built by the validator.
+        it.systemProperty("java.library.path", rootProject.projectDir.parentFile.resolve("target/debug").absolutePath)
     }
     lint { abortOnError = true }
 }
