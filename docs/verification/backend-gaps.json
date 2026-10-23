@@ -78,7 +78,7 @@
       "NB-OPS-001",
       "NB-OPS-004"
     ],
-    "work": "ARM64 Rust/JNI and Kotlin backend module, bounded asynchronous host, scoped platform authentication callback, privacy-safe core errors, OS backup/transfer exclusions, no INTERNET permission and isolated PDF service are implemented. Actual JNI, Android unit/Robolectric, lint, AAR and merged-manifest validation run in the developer environment. Remaining: full boundary workflow coverage, final app lifecycle/manifest enforcement, actual device authentication/privacy and process integration. Production H.I. remains gated."
+    "work": "ARM64 Rust/JNI and Kotlin backend module, bounded asynchronous host, scoped platform authentication callback, privacy-safe core errors, OS backup/transfer exclusions, no INTERNET permission and isolated PDF service are implemented. Actual JNI, Android unit/Robolectric, lint, AAR and merged-manifest validation run in the developer environment. Capture receipt retries now authorise current stored-block/actual-owner/exercise scope before stored fingerprint comparison, removing protected content-guess error distinctions. Common block reads also authorise metadata before payload deserialisation and reject SQL/payload owner or ID mismatch. Remaining: full boundary workflow coverage, final app lifecycle/manifest enforcement, actual device authentication/privacy and process integration. Production H.I. remains gated."
   },
   {
     "id": "A7-COVERAGE",

@@ -36,6 +36,29 @@ class BackendAdmissionIntegrationTest {
         val event = MotionEvent.obtain(10, time, action, 1, arrayOf(property), arrayOf(coordinate), 0, 0, 1f, 1f, 0, 0, InputDevice.SOURCE_STYLUS, 0)
         return try { session.accept(event).single() } finally { event.recycle() }
     }
+    @Test(timeout = 20_000) fun protectedCaptureRetriesReturnIdenticalErrorsBeforeComparingObservedInk() {
+        val backend = NotebookBackend(platform(temporary.newFolder()))
+        try {
+            val entity = note(backend); val ticket = UUID.randomUUID(); val original = stroke()
+            assertEquals(1, backend.capture(ticket, entity, "fixed-space", listOf(original)).get(5, TimeUnit.SECONDS).toInt())
+            val block = call(backend, blocks(entity)).getJSONArray("data").getJSONObject(0).getString("id")
+            val scope = "[{\"Block\":\"$block\"}]"
+            backend.authenticate(scope) { true }.get(5, TimeUnit.SECONDS)
+            call(backend, JSONObject().put("op", "SetBlockLock").put("block", block).put("revision", 0).put("locked", true))
+            call(backend, JSONObject().put("op", "Relock"))
+            val changed = original.copy(points = listOf(original.points.single().copy(x = 9.5)))
+            fun retry(source: CapturedStroke) = JSONObject(backend.request(CaptureRequest.encode(ticket, entity, "fixed-space", listOf(source))).get(5, TimeUnit.SECONDS))
+            val denied = retry(original); val mismatch = retry(changed)
+            assertFalse(denied.getBoolean("ok")); assertEquals("authentication required", denied.getString("error")); assertEquals(denied.toString(), mismatch.toString())
+            assertTrue(denied.isNull("data")); assertTrue(denied.isNull("generation"))
+            backend.authenticate(scope) { true }.get(5, TimeUnit.SECONDS)
+            assertEquals(block, retry(original).getJSONObject("data").getString("id"))
+            val authorisedMismatch = retry(changed); assertFalse(authorisedMismatch.getBoolean("ok")); assertNotEquals(denied.getString("error"), authorisedMismatch.getString("error"))
+            assertEquals(1, call(backend, blocks(entity)).getJSONArray("data").length())
+            val source = call(backend, JSONObject().put("op", "SourceInk").put("block", block)).getJSONArray("data").getJSONObject(0)
+            assertEquals(original.id, source.getString("id")); assertEquals((-0.0).toRawBits(), source.getJSONArray("points").getJSONObject(0).getDouble("x").toRawBits())
+        } finally { backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
+    }
     @Test(timeout = 20_000) fun independentEmbedLayersCrossActualJniWithoutChangingCanvasDefaults() {
         val backend = NotebookBackend(platform(temporary.newFolder()))
         try {

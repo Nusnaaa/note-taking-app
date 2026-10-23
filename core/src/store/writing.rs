@@ -152,7 +152,11 @@ impl Store {
         Ok(())
     }
     pub(crate) fn read_block(db: &Connection, id: Id, access: &Access) -> Result<Block> {
+        Self::authorise_block_metadata(db, id, access)?;
         let b = Self::raw_block(db, id)?;
+        if b.id != id {
+            return Err(Error::Integrity);
+        }
         Self::authorise(db, b.entity, access, false)?;
         Self::authorise_block_protection(db, &b, access)?;
         Ok(b)
@@ -364,18 +368,30 @@ impl Store {
         };
         self.write_for(entity, |db| {
             if let Some((ticket, fingerprint)) = &receipt {
-                let old: Option<(String, String)> = db
+                let old: Option<String> = db
                     .query_row(
-                        "SELECT block,fingerprint FROM capture_receipts WHERE ticket=?1",
+                        "SELECT block FROM capture_receipts WHERE ticket=?1",
                         [ticket.to_string()],
-                        |r| Ok((r.get(0)?, r.get(1)?)),
+                        |r| r.get(0),
                     )
                     .optional()?;
-                if let Some((block, hash)) = old {
+                if let Some(block) = old {
+                    let block_id = Id::parse(&block)?;
+                    // A mismatch must not confirm a guess about protected ink.
+                    // Authorise the stored block before loading/comparing its hash.
+                    let previous = Self::read_block(db, block_id, access)?;
+                    if previous.entity != entity {
+                        return Err(Error::Conflict);
+                    }
+                    let hash: String = db.query_row(
+                        "SELECT fingerprint FROM capture_receipts WHERE ticket=?1",
+                        [ticket.to_string()],
+                        |r| r.get(0),
+                    )?;
                     if &hash != fingerprint {
                         return Err(Error::Conflict);
                     }
-                    return Self::read_block(db, Id::parse(&block)?, access);
+                    return Ok(previous);
                 }
             }
             if Self::writing_owner(db, target, access)? != entity {

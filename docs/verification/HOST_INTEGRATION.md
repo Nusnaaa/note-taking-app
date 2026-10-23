@@ -690,3 +690,21 @@ identity can make the original destination available again; there is no automati
 retargeting or invented source sample. Deliberate retargeting to a different layer
 requires a future reviewed workflow and is not exposed here. Existing capacity,
 resource/lifecycle and production-H.I. gates still apply.
+
+## Capture receipt privacy
+
+Receipt retry checks authorise the stored block's current metadata, actual owning
+context and current block/exercise protection before fetching/comparing the stored
+fingerprint. A syntactically valid changed retry cannot confirm a guess about
+protected ink by producing a different conflict error before authentication. Naming
+a different public destination does not replace the stored block's authority. The
+current payload identity and expected owner are checked before returning a receipt.
+`CaptureReceipt` likewise gates metadata before deserialising block content. Common
+block reads now apply that metadata-first gate and verify the payload ID and SQL owner
+binding; a working-row payload spliced into another owner fails closed.
+
+Authorised identical retries still return the existing block; authorised changed
+payload/target retries conflict. Existing fingerprints and source bytes stay intact.
+Request validation errors concern supplied input and still run before persistence.
+These rules address structured receipt replies, not a constant-time implementation
+or complete privacy acceptance for every backend path.

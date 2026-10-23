@@ -253,3 +253,13 @@ destinations and rollback. Android fixtures freeze STEMAC01/02 golden records,
 preserve destination through recovery, reject destination rebinding and exercise
 real JNI fixed-layer capture/retry/missing-layer restart/review/discard. Legacy
 request tests reject unpaired UTF-16 without changing valid vector encoding.
+
+Capture receipt privacy fixtures were first run against the prior implementation
+and reproduced block/exercise mismatch-before-authority failures. Regression cases
+cover equal/changed valid payloads and targets under current block, exercise and
+actual-owner locks, authorised exact/conflicting retries, unchanged original ink,
+protected malformed block content without unauthorised deserialisation, and a
+synthetic SQL-owner/payload-owner splice in ordinary block reads (reproduced before
+the common read guard was applied). An
+actual Android/JNI fixture compares the complete denied JSON responses for equal
+and changed retries, with null data/generation and no raw-content diagnostics.
