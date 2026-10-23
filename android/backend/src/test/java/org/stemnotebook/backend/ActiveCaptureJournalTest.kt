@@ -43,6 +43,36 @@ class ActiveCaptureJournalTest {
         val base = stroke(); reopened.checkpoint(entity, "fixed-space", 0, base, layer = CaptureLayer.Base)
         assertEquals(CaptureLayer.Base, reopened.read(UUID.fromString(base.id)).layer)
     }
+    @Test fun reviewedRetargetPreservesSealedObservationsAndRejectsActiveStaleOrImplicitRebinding() {
+        val root = temporary.newFolder(); val journal = ActiveCaptureJournal(root, library); val active = stroke(); val ticket = UUID.fromString(active.id)
+        val old = CaptureLayer.Custom(UUID.randomUUID()); val selected = CaptureLayer.Custom(UUID.randomUUID())
+        journal.checkpoint(entity, "fixed-space", 0, active, layer = old)
+        assertThrows(IllegalArgumentException::class.java) { journal.retarget(ticket, journal.checksum(ticket), selected) }
+        val sealed = active.copy(end = StrokeEnd.Interrupted(StrokeInterruption.Lifecycle), style = null)
+        journal.checkpoint(entity, "fixed-space", 1, sealed, layer = old)
+        val checksum = journal.checksum(ticket)
+        assertThrows(IllegalArgumentException::class.java) { journal.retarget(ticket, "stale", selected) }
+        val changed = journal.retarget(ticket, checksum, selected)
+        assertEquals(sealed, changed.stroke); assertEquals(selected, changed.layer); assertEquals(2, changed.revision)
+        assertThrows(IllegalArgumentException::class.java) { journal.retarget(ticket, checksum, CaptureLayer.Base) }
+        assertThrows(IllegalArgumentException::class.java) { journal.checkpoint(entity, "fixed-space", 3, sealed, layer = old) }
+        val reopened = ActiveCaptureJournal(root, library); assertEquals(changed, reopened.read(ticket))
+        assertEquals(1, reopened.drain { assertEquals(selected, it.layer); assertEquals(sealed, it.stroke); true })
+    }
+    @Test fun retargetPublicationFailureRetainsAnHonestRecoverableDestinationAndExactStroke() {
+        for (phase in listOf("after-file-sync", "after-rename")) {
+            val root = temporary.newFolder(); val armed = AtomicBoolean(false)
+            val journal = ActiveCaptureJournal(root, library, fault = { if (it == phase && armed.getAndSet(false)) throw IOException("synthetic retarget failure") })
+            val source = stroke().copy(end = StrokeEnd.Interrupted(StrokeInterruption.Recovery))
+            val ticket = UUID.fromString(source.id); val old = CaptureLayer.Custom(UUID.randomUUID())
+            journal.checkpoint(entity, "fixed-space", 0, source, layer = old); armed.set(true)
+            assertThrows(IOException::class.java) { journal.retarget(ticket, journal.checksum(ticket), CaptureLayer.Base) }
+            val reopened = ActiveCaptureJournal(root, library); val entry = reopened.read(ticket)
+            assertEquals(source, entry.stroke); assertTrue(entry.review)
+            assertEquals(if (phase == "after-rename") CaptureLayer.Base else old, entry.layer)
+            assertEquals(0, reopened.drain { error("Recovered evidence still requires approval") })
+        }
+    }
     @Test fun styleSurvivesBinaryRecoveryAndCannotBeReboundByAChangedCheckpointHeader() {
         val root = temporary.newFolder(); val chosen = StrokeStyle(17, 128, 255, 64, 0.12345678901234567); val source = stroke().copy(style = chosen); val ticket = UUID.fromString(source.id)
         val journal = ActiveCaptureJournal(root, library); journal.checkpoint(entity, "fixed-space", 0, source)

@@ -68,6 +68,109 @@ class JournaledCaptureIntegrationTest {
             backend.discardInterruptedCapture(protectedReview, true).get(5, TimeUnit.SECONDS)
         } finally { backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
     }
+    @Test(timeout = 30_000) fun explicitRetargetChecksLayerRevisionFreshAuthorityAndOriginalTicketBeforePublishing() {
+        val root = temporary.newFolder(); val context = platform(root); var backend = NotebookBackend(context)
+        try {
+            val canvas = UUID.fromString(call(backend, JSONObject().put("op", "Create").put("kind", "Canvas").put("parent", JSONObject.NULL).put("title", "retarget")).getJSONObject("data").getString("id"))
+            val missing = CaptureLayer.Custom(UUID.randomUUID()); val chosen = StrokeStyle(17, 128, 255, 64, 0.6)
+            val session = backend.openCaptureSession(canvas, "fixed-space", chosen, missing)
+            submit(session, MotionEvent.ACTION_DOWN, 10).receipt.get(5, TimeUnit.SECONDS)
+            val pending = submit(session, MotionEvent.ACTION_UP, 20); assertFalse(pending.receipt.get(5, TimeUnit.SECONDS).committed)
+            val ticket = UUID.fromString(pending.stroke.id); val source = backend.reviewInterruptedCapture(ticket).get(5, TimeUnit.SECONDS)
+            assertThrows(ExecutionException::class.java) { backend.reviewCaptureRetarget(source, CaptureLayer.Custom(UUID.randomUUID())).get(5, TimeUnit.SECONDS) }
+            val stale = backend.reviewCaptureRetarget(source, CaptureLayer.Base).get(5, TimeUnit.SECONDS)
+            val layers = call(backend, JSONObject().put("op", "CanvasLayers").put("canvas", canvas.toString())).getJSONObject("data"); val revision = layers.getLong("revision")
+            layers.put("base_visible", false)
+            call(backend, JSONObject().put("op", "SetCanvasLayers").put("state", layers).put("expected", revision))
+            assertThrows(ExecutionException::class.java) { backend.confirmCaptureRetarget(stale, true).get(5, TimeUnit.SECONDS) }
+            assertEquals(source.checksum, backend.reviewInterruptedCapture(ticket).get(5, TimeUnit.SECONDS).checksum)
+            val reviewed = backend.reviewCaptureRetarget(source, CaptureLayer.Base).get(5, TimeUnit.SECONDS)
+            assertThrows(IllegalArgumentException::class.java) { backend.confirmCaptureRetarget(reviewed, false) }
+            val scope = "[{\"Entity\":\"$canvas\"}]"
+            backend.authenticate(scope) { true }.get(5, TimeUnit.SECONDS)
+            val entityRevision = call(backend, JSONObject().put("op", "Read").put("id", canvas.toString())).getJSONObject("data").getLong("revision")
+            call(backend, JSONObject().put("op", "SetLock").put("entity", canvas.toString()).put("revision", entityRevision).put("locked", true))
+            call(backend, JSONObject().put("op", "Relock"))
+            assertThrows(ExecutionException::class.java) { backend.confirmCaptureRetarget(reviewed, true).get(5, TimeUnit.SECONDS) }
+            backend.authenticate(scope) { true }.get(5, TimeUnit.SECONDS)
+            val receipt = backend.confirmCaptureRetarget(reviewed, true).get(5, TimeUnit.SECONDS)
+            assertTrue(receipt.checkpointed); assertTrue(receipt.committed); assertEquals(ticket, receipt.ticket); assertEquals(CaptureLayer.Base, receipt.destination)
+            assertEquals(0, backend.pendingCaptures().get(5, TimeUnit.SECONDS).toInt()); assertEquals(1, blocks(backend, canvas).length())
+            val block = blocks(backend, canvas).getJSONObject(0).getString("id")
+            val ink = call(backend, JSONObject().put("op", "SourceInk").put("block", block)).getJSONArray("data").getJSONObject(0)
+            assertEquals(pending.stroke.id, ink.getString("id")); assertEquals(pending.stroke.session, ink.getString("capture_session")); assertEquals(2, ink.getJSONArray("points").length())
+            assertEquals(0.125, ink.getJSONArray("points").getJSONObject(0).getDouble("x"), 0.0); assertEquals(chosen.width, ink.getJSONObject("style").getDouble("width"), 0.0)
+            // A caller still holding the old immutable frame cannot republish the old destination.
+            assertThrows(ExecutionException::class.java) { session.retry(pending).receipt.get(5, TimeUnit.SECONDS) }
+            assertEquals(0, backend.pendingCaptures().get(5, TimeUnit.SECONDS).toInt()); assertEquals(1, blocks(backend, canvas).length())
+            assertThrows(ExecutionException::class.java) { backend.confirmCaptureRetarget(reviewed, true).get(5, TimeUnit.SECONDS) }
+            backend.closeFullyAsync().get(5, TimeUnit.SECONDS); backend = NotebookBackend(context)
+            backend.authenticate(scope) { true }.get(5, TimeUnit.SECONDS)
+            assertEquals(1, blocks(backend, canvas).length()); assertEquals(0, backend.pendingCaptures().get(5, TimeUnit.SECONDS).toInt())
+        } finally { backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
+    }
+    @Test(timeout = 20_000) fun ambiguousNativeCommitCannotBeRetargetedOrDuplicated() {
+        val armed = java.util.concurrent.atomic.AtomicBoolean(false)
+        val backend = NotebookBackend(platform(temporary.newFolder()), { platform, native -> PdfWorkspace(platform, native) }, captureJournalFault = { if (it == "after-native-reply" && armed.getAndSet(false)) throw java.io.IOException("synthetic acknowledgement loss") })
+        try {
+            val canvas = UUID.fromString(call(backend, JSONObject().put("op", "Create").put("kind", "Canvas").put("parent", JSONObject.NULL).put("title", "ambiguous retarget")).getJSONObject("data").getString("id"))
+            val session = backend.openCaptureSession(canvas, "fixed-space", layer = CaptureLayer.Base)
+            submit(session, MotionEvent.ACTION_DOWN, 10).receipt.get(5, TimeUnit.SECONDS); armed.set(true)
+            val pending = submit(session, MotionEvent.ACTION_UP, 20)
+            assertThrows(ExecutionException::class.java) { pending.receipt.get(5, TimeUnit.SECONDS) }
+            assertEquals(1, blocks(backend, canvas).length()); assertEquals(1, backend.pendingCaptures().get(5, TimeUnit.SECONDS).toInt())
+            val review = backend.reviewInterruptedCapture(UUID.fromString(pending.stroke.id)).get(5, TimeUnit.SECONDS)
+            val error = assertThrows(ExecutionException::class.java) { backend.reviewCaptureRetarget(review, CaptureLayer.Custom(UUID.randomUUID())).get(5, TimeUnit.SECONDS) }
+            assertEquals("Capture already committed", error.cause!!.message)
+            assertEquals(review.checksum, backend.reviewInterruptedCapture(review.ticket).get(5, TimeUnit.SECONDS).checksum)
+            backend.retryCaptures().get(5, TimeUnit.SECONDS)
+            assertEquals(1, blocks(backend, canvas).length()); assertEquals(0, backend.pendingCaptures().get(5, TimeUnit.SECONDS).toInt())
+        } finally { backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
+    }
+    @Test(timeout = 30_000) fun reopenedInterruptedDraftRetargetsToChosenCustomLayerWithExactSourceIdentity() {
+        val root = temporary.newFolder(); val context = platform(root); var backend = NotebookBackend(context)
+        try {
+            val canvas = UUID.fromString(call(backend, JSONObject().put("op", "Create").put("kind", "Canvas").put("parent", JSONObject.NULL).put("title", "custom retarget")).getJSONObject("data").getString("id"))
+            val selected = CaptureLayer.Custom(UUID.randomUUID())
+            val state = JSONObject().put("canvas", canvas.toString()).put("revision", 0).put("base_visible", true).put("layers", org.json.JSONArray().put(JSONObject().put("id", selected.id.toString()).put("name", "chosen").put("visible", true).put("blocks", org.json.JSONArray())))
+            call(backend, JSONObject().put("op", "SetCanvasLayers").put("state", state).put("expected", 0))
+            val style = StrokeStyle(17, 128, 255, 64, 0.6)
+            val session = backend.openCaptureSession(canvas, "fixed-space", style, CaptureLayer.Custom(UUID.randomUUID()))
+            submit(session, MotionEvent.ACTION_DOWN, 10).receipt.get(5, TimeUnit.SECONDS); submit(session, MotionEvent.ACTION_MOVE, 20).receipt.get(5, TimeUnit.SECONDS)
+            val pending = session.interrupt().single(); assertFalse(pending.receipt.get(5, TimeUnit.SECONDS).committed)
+            backend.closeFullyAsync().get(5, TimeUnit.SECONDS); backend = NotebookBackend(context)
+            val source = backend.reviewInterruptedCapture(UUID.fromString(pending.stroke.id)).get(5, TimeUnit.SECONDS)
+            assertEquals(pending.stroke, source.stroke)
+            val review = backend.reviewCaptureRetarget(source, selected).get(5, TimeUnit.SECONDS)
+            assertTrue(backend.confirmCaptureRetarget(review, true).get(5, TimeUnit.SECONDS).committed)
+            val block = blocks(backend, canvas).getJSONObject(0).getString("id")
+            val layers = call(backend, JSONObject().put("op", "CanvasLayers").put("canvas", canvas.toString())).getJSONObject("data")
+            assertEquals(block, layers.getJSONArray("layers").getJSONObject(0).getJSONArray("blocks").getString(0))
+            val ink = call(backend, JSONObject().put("op", "SourceInk").put("block", block)).getJSONArray("data").getJSONObject(0)
+            assertEquals(pending.stroke.id, ink.getString("id")); assertEquals(pending.stroke.session, ink.getString("capture_session"))
+            assertEquals("Lifecycle", ink.getJSONObject("end").getString("Interrupted")); assertEquals(2, ink.getJSONArray("points").length()); assertEquals(style.width, ink.getJSONObject("style").getDouble("width"), 0.0)
+            assertEquals(0, backend.pendingCaptures().get(5, TimeUnit.SECONDS).toInt())
+        } finally { backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
+    }
+    @Test(timeout = 20_000) fun conflictingUnclassifiedLegacyEnvelopeCannotBeBypassedByRetarget() {
+        val root = temporary.newFolder(); val context = platform(root); var backend = NotebookBackend(context)
+        try {
+            val canvas = UUID.fromString(call(backend, JSONObject().put("op", "Create").put("kind", "Canvas").put("parent", JSONObject.NULL).put("title", "legacy conflict")).getJSONObject("data").getString("id"))
+            val session = backend.openCaptureSession(canvas, "fixed-space", layer = CaptureLayer.Custom(UUID.randomUUID()))
+            submit(session, MotionEvent.ACTION_DOWN, 10).receipt.get(5, TimeUnit.SECONDS)
+            val pending = session.interrupt().single(); pending.receipt.get(5, TimeUnit.SECONDS)
+            backend.closeFullyAsync().get(5, TimeUnit.SECONDS)
+            val ticket = UUID.fromString(pending.stroke.id)
+            // Simulate an older/unclassified envelope while the library is fully closed.
+            CaptureOutbox(File(root, "notebook/capture-recovery")).enqueue(ticket, "{\"version\":1,\"command\":{\"op\":\"UnknownOldCapture\"}}")
+            backend = NotebookBackend(context)
+            val source = backend.reviewInterruptedCapture(ticket).get(5, TimeUnit.SECONDS)
+            val error = assertThrows(ExecutionException::class.java) { backend.reviewCaptureRetarget(source, CaptureLayer.Base).get(5, TimeUnit.SECONDS) }
+            assertEquals("Conflicting legacy capture", error.cause!!.message)
+            assertEquals(source.checksum, backend.reviewInterruptedCapture(ticket).get(5, TimeUnit.SECONDS).checksum)
+            assertEquals(0, blocks(backend, canvas).length()); assertEquals(2, backend.pendingCaptures().get(5, TimeUnit.SECONDS).toInt())
+        } finally { backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
+    }
     @Test(timeout = 20_000) fun actualJniRetainsPerContactStyleAcrossConfigurationChangeAndExactRetry() {
         val backend = NotebookBackend(platform(temporary.newFolder()))
         try {
@@ -219,6 +322,7 @@ class JournaledCaptureIntegrationTest {
                 val review = backend.reviewInterruptedCapture(ticket).get(5, TimeUnit.SECONDS)
                 assertEquals(if (purged) NotebookBackend.CaptureTargetState.Purged else NotebookBackend.CaptureTargetState.Trashed, review.targetState)
                 assertEquals(source.points, review.stroke.points)
+                assertThrows(ExecutionException::class.java) { backend.reviewCaptureRetarget(review, CaptureLayer.Base).get(5, TimeUnit.SECONDS) }
                 assertThrows(ExecutionException::class.java) { backend.acceptInterruptedCapture(review, true).get(5, TimeUnit.SECONDS) }
                 assertEquals(1, backend.pendingCaptures().get(5, TimeUnit.SECONDS).toInt())
                 call(backend, JSONObject().put("op", "Relock"))

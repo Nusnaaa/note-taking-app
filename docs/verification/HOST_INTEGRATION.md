@@ -819,3 +819,30 @@ STEMAC01–03 with their original 0/1 meaning and absent older style/layer metad
 Rewriting a recovered legacy record uses v4 without inventing finger classification.
 Tool identity is immutable across checkpoint revisions and survives review/replay.
 SQLite/native document formats already support ExplicitFinger and are unchanged.
+
+
+### Reviewed pending-draft layer retargeting
+
+For sealed active-journal evidence, `reviewCaptureRetarget(sourceReview, destination)`
+prepares an explicit same-canvas destination and current canvas-layer revision.
+`confirmCaptureRetarget(review, confirmed=true)` freshly checks source-context access,
+active target state, exact journal checksum, absence of an already committed SQLite
+receipt, absence of a conflicting legacy envelope ticket, destination existence and
+unchanged layer revision before altering the private pending route. Current full-canvas
+permissions apply even for Base. Retired targets and Note destinations are rejected.
+The original session cannot implicitly select a replacement for a missing layer.
+
+Only route/recovery revision metadata changes; stroke ID, capture session, begin order,
+coordinates, style, tool and observed ending remain identical. The journal persists the
+selected route before approving recovery and attempting normal per-session FIFO replay.
+An earlier blocked stroke may still defer publication. The typed receipt separately
+reports private checkpointing and actual document commitment; SQLite and the private
+journal remain separate durability boundaries. Errors after durable publication require
+inspecting recovery/current document state, not assuming rollback or a document save.
+
+Changed/missing layers, changed recovery evidence and fresh protection reject without
+implicit fallback. A committed or ambiguously acknowledged original ticket can only
+replay its exact original target/source; it cannot be retargeted. A caller retrying an
+old session frame probes an existing SQLite receipt before recreating a missing journal
+file, preventing a retired frame from leaving a stale pending destination behind.
+Cross-entity moves and full legacy/incomplete-record retargeting remain open.

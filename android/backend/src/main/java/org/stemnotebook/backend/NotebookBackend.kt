@@ -136,17 +136,23 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
         val ticket = UUID.fromString(stroke.id); val journal = activeJournal.join()
         try {
             releaseReserveIfNeeded()
-            if (!journal.contains(ticket) && ticket !in session.seen) {
+            // Replay/review can retire a file while the caller still owns an old
+            // session frame. Probe SQLite before recreating any missing record.
+            if (!journal.contains(ticket)) {
                 if (captureWasCommitted(ticket, session.entity)) {
                     require(!cancelled && stroke.end != StrokeEnd.InProgress)
                     val already = ActiveCaptureJournal.Entry(0, UUID.fromString(NativeBridge.captureLibraryIdentity(handle.join())), session.entity, session.space, revision, stroke, layer = session.layer)
                     check(sendCheckpoint(already))
                     return JournaledCaptureSession.Receipt(ticket, revision, true, true)
                 }
-                if (cancelled && stroke.sequence <= session.latestSequence) return JournaledCaptureSession.Receipt(ticket, revision, true, false, true)
-                require(stroke.sequence > session.latestSequence)
-                check(session.seen.size < 256)
-                session.latestSequence = stroke.sequence
+                if (ticket !in session.seen) {
+                    if (cancelled && stroke.sequence <= session.latestSequence) {
+                        return JournaledCaptureSession.Receipt(ticket, revision, true, false, true)
+                    }
+                    require(stroke.sequence > session.latestSequence)
+                    check(session.seen.size < 256)
+                    session.latestSequence = stroke.sequence
+                }
             }
             session.seen[ticket] = revision
             journal.checkpoint(session.entity, session.space, revision, stroke, cancelled, session.layer)
@@ -200,6 +206,39 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
             journal.approve(ticket, checksum)
             replayCaptures()
         }, executor, bytes = inputBytes(checksum))
+    }
+    class CaptureRetargetReview internal constructor(internal val owner: NotebookBackend, val source: CaptureRecoveryReview, val destination: CaptureLayer, val layerRevision: Long)
+    data class CaptureRetargetReceipt(val ticket: UUID, val destination: CaptureLayer, val checkpointed: Boolean, val committed: Boolean)
+    private fun retargetLayers(review: CaptureRecoveryReview, destination: CaptureLayer): JSONObject {
+        require(recoveryAccess(review.entity) == CaptureTargetState.Active)
+        val journal = activeJournal.join()
+        require(journal.checksum(review.ticket) == review.checksum)
+        val entry = journal.read(review.ticket)
+        require(entry.entity == review.entity && entry.stroke.end != StrokeEnd.InProgress && !entry.cancelled && entry.layer != destination)
+        // Never reinterpret an already published capture or an ambiguous receipt.
+        require(!captureWasCommitted(entry.ticket, entry.entity)) { "Capture already committed" }
+        require(!outbox.join().containsTicket(entry.ticket)) { "Conflicting legacy capture" }
+        val state = nativeCaptureCommand(JSONObject().put("op", "CanvasLayers").put("canvas", entry.entity.toString()))
+        val layers = state.getJSONArray("layers")
+        require(destination == CaptureLayer.Base || (0 until layers.length()).any { layers.getJSONObject(it).getString("id") == (destination as CaptureLayer.Custom).id.toString() }) { "Capture destination unavailable" }
+        return state
+    }
+    /** Explicit same-canvas routing review; no fallback, source copy or publication. */
+    @Synchronized fun reviewCaptureRetarget(review: CaptureRecoveryReview, destination: CaptureLayer): CompletableFuture<CaptureRetargetReview> {
+        check(!closed && review.owner === this)
+        return submitAdmitted({ CaptureRetargetReview(this, review, destination, retargetLayers(review, destination).getLong("revision")) }, executor, authoring = false, bytes = inputBytes(review.checksum))
+    }
+    @Synchronized fun confirmCaptureRetarget(review: CaptureRetargetReview, confirmed: Boolean): CompletableFuture<CaptureRetargetReceipt> {
+        check(!closed && review.owner === this && review.source.owner === this); require(confirmed)
+        return submitAdmitted({
+            require(retargetLayers(review.source, review.destination).getLong("revision") == review.layerRevision) { "Capture destination changed" }
+            val journal = activeJournal.join(); val ticket = review.source.ticket
+            releaseReserveIfNeeded()
+            journal.retarget(ticket, review.source.checksum, review.destination)
+            journal.approve(ticket, journal.checksum(ticket))
+            replayCaptures()
+            CaptureRetargetReceipt(ticket, review.destination, true, !journal.contains(ticket))
+        }, executor, bytes = inputBytes(review.source.checksum))
     }
     @Synchronized fun discardInterruptedCapture(review: CaptureRecoveryReview, confirmed: Boolean): CompletableFuture<Void> {
         check(!closed && review.owner === this); require(confirmed)

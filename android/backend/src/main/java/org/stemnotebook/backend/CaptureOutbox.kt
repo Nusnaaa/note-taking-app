@@ -80,6 +80,7 @@ class CaptureOutbox(private val directory: File, private val maximumBytes: Long 
         require(deletionStamp(file) == stamp)
         check(file.delete()); syncDirectory()
     }
+    @Synchronized internal fun containsTicket(ticket: UUID): Boolean = records().any { it.name.endsWith("-$ticket.capture") }
     @Synchronized fun pendingCount(): Int = records().size
     private fun records(): List<File> {
         val files = directory.listFiles() ?: error("Capture recovery journal unavailable")

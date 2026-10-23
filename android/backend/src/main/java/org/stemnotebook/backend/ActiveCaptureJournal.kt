@@ -75,6 +75,16 @@ internal class ActiveCaptureJournal(
             publish(entry.copy(revision = entry.revision + 1, review = false))
         }
     }
+    /** Only an explicitly confirmed, still-uncommitted routing decision may call
+     * this. Observations/identity/order remain unchanged; ordinary checkpoints
+     * still cannot rebind a destination. Native receipt checks belong to the writer. */
+    fun retarget(ticket: UUID, expectedChecksum: String, layer: CaptureLayer): Entry {
+        require(checksum(ticket) == expectedChecksum)
+        val entry = read(ticket)
+        require(entry.stroke.end != StrokeEnd.InProgress && !entry.cancelled && entry.layer != layer)
+        check(entry.revision < Long.MAX_VALUE)
+        return entry.copy(revision = entry.revision + 1, layer = layer).also { publish(it) }
+    }
     fun discardReview(ticket: UUID, expectedChecksum: String) {
         require(checksum(ticket) == expectedChecksum)
         val entry = read(ticket); require(entry.stroke.end != StrokeEnd.InProgress && !entry.cancelled)
