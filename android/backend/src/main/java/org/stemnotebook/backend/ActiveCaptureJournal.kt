@@ -40,6 +40,11 @@ internal class ActiveCaptureJournal(
     fun reviewCount(): Int = records().count { decode(readBytes(it)).review }
     fun incompleteCount(): Int = ownFiles().count { it.name.endsWith(".incomplete") }
     fun read(ticket: UUID): Entry = decode(readBytes(fileFor(ticket) ?: throw IOException("Capture checkpoint unavailable"))).also { require(it.library == library) }
+    fun deletionSnapshot(targets: Set<UUID>): List<DeletionCaptureStamp> = records().mapNotNull { file ->
+        val entry = decode(readBytes(file))
+        if (entry.entity !in targets || entry.cancelled) null
+        else DeletionCaptureStamp(DeletionCaptureStorage.ActiveJournal, entry.ticket, entry.entity, checksum(entry.ticket), entry.stroke.end != StrokeEnd.InProgress)
+    }
     fun checksum(ticket: UUID): String = MessageDigest.getInstance("SHA-256").digest(readBytes(checkNotNull(fileFor(ticket)))).joinToString("") { "%02x".format(it.toInt() and 255) }
     fun checkpoint(entity: UUID, space: String, revision: Long, stroke: CapturedStroke, cancelled: Boolean = false, layer: CaptureLayer? = null): Entry {
         check(!failed)
@@ -129,7 +134,7 @@ internal class ActiveCaptureJournal(
             syncDirectory()
         }
     }
-    private fun remove(file: File) { check(file.delete()); fault("after-delete"); syncDirectory() }
+    private fun remove(file: File) { fault("before-delete"); check(file.delete()); fault("after-delete"); syncDirectory() }
     private fun name(entry: Entry) = "${entry.ordinal.toString().padStart(19, '0')}-${entry.ticket}.prefix"
     private fun fileFor(ticket: UUID): File? = records().singleOrNull { it.name.endsWith("-$ticket.prefix") }
     private fun ownFiles(): List<File> = (directory.listFiles() ?: throw IOException("Capture checkpoint storage unavailable")).filter {

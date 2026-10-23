@@ -50,6 +50,36 @@ class CaptureOutbox(private val directory: File, private val maximumBytes: Long 
         }
         return committed
     }
+    internal data class DeletionSnapshot(val stamps: List<DeletionCaptureStamp>, val unclassified: Int)
+    private fun checksum(bytes: ByteArray) = java.security.MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it.toInt() and 255) }
+    private fun deletionStamp(file: File): DeletionCaptureStamp? = try {
+        val bytes = read(file)
+        val raw = Charsets.UTF_8.newDecoder().onMalformedInput(java.nio.charset.CodingErrorAction.REPORT).onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT).decode(java.nio.ByteBuffer.wrap(bytes)).toString()
+        val request = org.json.JSONObject(raw); val command = request.getJSONObject("command")
+        require(request.getInt("version") == 1 && command.getString("op") == "Capture")
+        val ticket = UUID.fromString(command.getString("ticket")); val entity = UUID.fromString(command.getString("entity"))
+        require(file.name.endsWith("-$ticket.capture"))
+        val strokes = command.getJSONArray("strokes"); require(strokes.length() in 1..1000)
+        val sealed = (0 until strokes.length()).all { index ->
+            val stroke = strokes.getJSONObject(index)
+            !stroke.has("end") || stroke.optString("end") == "Completed" || stroke.optJSONObject("end")?.optString("Interrupted") in listOf("Lifecycle", "Recovery")
+        }
+        DeletionCaptureStamp(DeletionCaptureStorage.LegacyOutbox, ticket, entity, checksum(bytes), sealed)
+    } catch (_: Exception) { null } // Unknown records are retained, never attributed or discarded.
+    @Synchronized internal fun deletionSnapshot(targets: Set<UUID>): DeletionSnapshot {
+        var unclassified = 0
+        val stamps = records().mapNotNull { file ->
+            val stamp = deletionStamp(file)
+            if (stamp == null) { unclassified++; null } else stamp.takeIf { it.entity in targets }
+        }
+        return DeletionSnapshot(stamps, unclassified)
+    }
+    @Synchronized internal fun discardForDeletion(stamp: DeletionCaptureStamp) {
+        require(stamp.storage == DeletionCaptureStorage.LegacyOutbox && stamp.sealed)
+        val file = records().singleOrNull { it.name.endsWith("-${stamp.ticket}.capture") } ?: throw java.io.IOException("Capture checkpoint unavailable")
+        require(deletionStamp(file) == stamp)
+        check(file.delete()); syncDirectory()
+    }
     @Synchronized fun pendingCount(): Int = records().size
     private fun records(): List<File> {
         val files = directory.listFiles() ?: error("Capture recovery journal unavailable")

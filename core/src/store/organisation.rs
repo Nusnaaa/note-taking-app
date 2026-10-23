@@ -27,8 +27,15 @@ pub struct DeletionReview {
     target: Id,
     generation: String,
     permanent: bool,
+    capture_targets: Vec<Id>,
     pub has_dependencies: bool,
     pub visible_dependants: Vec<Id>,
+}
+
+impl DeletionReview {
+    pub fn capture_targets(&self) -> &[Id] {
+        &self.capture_targets
+    }
 }
 
 impl Store {
@@ -373,12 +380,16 @@ impl Store {
         }
         let mut has_dependencies = false;
         let mut visible = BTreeSet::new();
+        let mut capture_targets = Vec::new();
         for target in targets {
             if Self::raw_entity(&self.db, target)?.purged {
                 continue;
             }
-            Self::authorise(&self.db, target, access, true)?;
+            let owner = Self::authorise(&self.db, target, access, true)?;
             Self::require_content_access(&self.db, target, access)?;
+            if owner.kind.is_surface() {
+                capture_targets.push(target);
+            }
             has_dependencies |= self.db.query_row(
                 "SELECT EXISTS(SELECT 1 FROM exercises WHERE master=?1)",
                 [target.to_string()],
@@ -402,9 +413,25 @@ impl Store {
             target: id,
             generation: Self::setting(&self.db, "generation")?,
             permanent,
+            capture_targets,
             has_dependencies,
             visible_dependants: visible.into_iter().collect(),
         })
+    }
+    /// Recheck a held review without consuming it or changing document state.
+    pub fn validate_deletion_review(&self, review: &DeletionReview, access: &Access) -> Result<()> {
+        if Self::setting(&self.db, "generation")? != review.generation {
+            return Err(Error::Conflict);
+        }
+        Self::authorise(&self.db, review.target, access, review.permanent)?;
+        for target in Self::subtree(&self.db, review.target)? {
+            if Self::raw_entity(&self.db, target)?.purged {
+                continue;
+            }
+            Self::authorise(&self.db, target, access, true)?;
+            Self::require_content_access(&self.db, target, access)?;
+        }
+        Ok(())
     }
     /// Lists explicitly trashed entities; inherited Trash does not manufacture entries.
     pub fn trash_entries(&self, offset: u32, limit: u32, access: &Access) -> Result<Vec<Entity>> {

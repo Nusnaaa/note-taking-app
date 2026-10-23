@@ -10,7 +10,7 @@ import java.util.UUID
 import org.json.JSONObject
 
 /** Owns native lifetime and serialises requests away from the Android main thread. */
-class NotebookBackend internal constructor(context: Context, pdfFactory: (Context, (JSONObject) -> JSONObject) -> PdfWorkspace, selectionProvider: PdfProvider = PdfProvider(context)) : Closeable {
+class NotebookBackend internal constructor(context: Context, pdfFactory: (Context, (JSONObject) -> JSONObject) -> PdfWorkspace, selectionProvider: PdfProvider = PdfProvider(context), captureJournalFault: (String) -> Unit = {}) : Closeable {
     constructor(context: Context) : this(context, { platform, native -> PdfWorkspace(platform, native) })
     private val ownership = try { LibraryOwnership.acquire(context.noBackupFilesDir) } catch (error: Exception) { selectionProvider.close(); throw error }
     private val directory = File(context.noBackupFilesDir, "notebook")
@@ -56,7 +56,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
             selections = loadedSelections
             outbox = CompletableFuture.supplyAsync({ CaptureOutbox(File(directory, "capture-recovery")) }, executor)
             activeJournal = handle.thenApply { nativeHandle ->
-                val journal = ActiveCaptureJournal(File(directory, "active-capture"), UUID.fromString(NativeBridge.captureLibraryIdentity(nativeHandle)))
+                val journal = ActiveCaptureJournal(File(directory, "active-capture"), UUID.fromString(NativeBridge.captureLibraryIdentity(nativeHandle)), fault = captureJournalFault)
                 journal.recoverActive()
                 try {
                     val legacy = outbox.join()
@@ -210,6 +210,75 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
         }, executor, bytes = inputBytes(checksum))
     }
 
+    private fun deletionStamps(targets: Set<UUID>): Pair<List<DeletionCaptureStamp>, Int> {
+        val journal = activeJournal.join(); val legacy = outbox.join().deletionSnapshot(targets)
+        return (journal.deletionSnapshot(targets) + legacy.stamps) to (journal.incompleteCount() + legacy.unclassified)
+    }
+    private fun releaseDeletionToken(token: UUID) {
+        nativeCaptureCommand(JSONObject().put("op", "ReleaseDeletion").put("review", token.toString()))
+    }
+    /** Review native dependencies and exact private recovery records without publishing ink. */
+    @Synchronized fun prepareDeletionWithCaptures(entity: UUID, permanent: Boolean): CompletableFuture<DeletionCaptureReview> {
+        check(!closed)
+        return submitAdmitted({
+            val data = nativeCaptureCommand(JSONObject().put("op", "PrepareDeletion").put("entity", entity.toString()).put("permanent", permanent))
+            val token = UUID.fromString(data.getString("review"))
+            try {
+                val targetsJson = data.getJSONArray("capture_targets")
+                val targets = (0 until targetsJson.length()).map { UUID.fromString(targetsJson.getString(it)) }.toSet()
+                val (stamps, unknown) = deletionStamps(targets)
+                stamps.map { it.entity }.distinct().forEach { recoveryAccess(it) }
+                val visible = data.getJSONArray("visible_dependants")
+                DeletionCaptureReview(this, token, entity, permanent, data.getBoolean("has_dependencies"), (0 until visible.length()).map { UUID.fromString(visible.getString(it)) }, targets, stamps, unknown)
+            } catch (error: Exception) {
+                try { releaseDeletionToken(token) } catch (_: Exception) { /* bounded native review expires or retires on close */ }
+                throw error
+            }
+        }, executor, bytes = inputBytes(entity.toString()))
+    }
+    @Synchronized fun releaseDeletionWithCaptures(review: DeletionCaptureReview): CompletableFuture<Void> {
+        check(!closed && review.owner === this)
+        return submitAdmittedVoid({
+            if (!review.consumed) { review.consumed = true; releaseDeletionToken(review.token) }
+        }, executor)
+    }
+    /** Confirmation is one admitted operation. Cancellation cancels observation only.
+     * Native deletion commits first; only its successful acknowledgement permits
+     * disposal of the exact reviewed sealed recovery copies. Active/unknown stay. */
+    @Synchronized fun confirmDeletionWithCaptures(review: DeletionCaptureReview, disposition: CaptureDeletionDisposition, confirmed: Boolean): CompletableFuture<DeletionCaptureReceipt> {
+        check(!closed && review.owner === this); require(confirmed)
+        pdf.invalidate(); selections.invalidate()
+        return submitAdmitted({
+            check(!review.consumed); review.consumed = true
+            try {
+                nativeCaptureCommand(JSONObject().put("op", "ValidateDeletionReview").put("review", review.token.toString()))
+                val (current, _) = deletionStamps(review.targets)
+                current.map { it.entity }.distinct().forEach { recoveryAccess(it) }
+                require(current == review.stamps) { "Capture drafts changed; review again" }
+                nativeCaptureCommand(JSONObject().put("op", "ConfirmDeletion").put("review", review.token.toString()).put("confirmed", true))
+            } catch (error: Exception) {
+                try { releaseDeletionToken(review.token) } catch (_: Exception) { }
+                throw error // no recovery copy is removed on failed/ambiguous native acknowledgement
+            }
+            var removed = 0; var unconfirmed = 0
+            val sealed = review.stamps.filter { it.sealed }
+            if (disposition == CaptureDeletionDisposition.DiscardReviewedSealed) for (stamp in sealed) {
+                try {
+                    when (stamp.storage) {
+                        DeletionCaptureStorage.ActiveJournal -> activeJournal.join().discardReview(stamp.ticket, stamp.checksum)
+                        DeletionCaptureStorage.LegacyOutbox -> outbox.join().discardForDeletion(stamp)
+                    }
+                    removed++
+                    if (stamp.storage == DeletionCaptureStorage.ActiveJournal) {
+                        val sessions = synchronized(this) { captureSessions.toList() }
+                        sessions.filter { it.entity == stamp.entity }.forEach { it.seen.remove(stamp.ticket) }
+                    }
+                } catch (_: Exception) { unconfirmed++; recoveryAttention = true; executor.markAttention() }
+            }
+            DeletionCaptureReceipt(review.entity, review.permanent, removed, review.stamps.count { !it.sealed }, if (disposition == CaptureDeletionDisposition.KeepDrafts) sealed.size else 0, unconfirmed)
+        }, executor, bytes = 512L + review.stamps.size.toLong() * 256)
+    }
+
     /** The caller chooses and retains this ticket before submission. Rejection
      * before admission leaves that caller's observations authoritative. After
      * admission, unsuccessful JNI replies remain in the durable recovery journal. */
@@ -342,7 +411,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
             "Block", "Mode", "SetMode", "AppendTo", "CaptureTo", "Append", "Capture", "Edit", "EditRegion", "Partition", "SplitRegion", "MergeRegions",
             "SetHeading", "SetVisible", "SetDisplay", "TransformSelection", "EraseStrokes", "RestoreRevision", "Layout", "SetLayout", "EditCell", "EditDiagramPart",
             "RestoreView", "RestoreWorkspace", "SaveWorkspace", "CreateGroup", "Group", "TransformGroup", "Ungroup", "Embed", "CreateEmbed", "EditEmbed", "DuplicateEmbed", "RemoveEmbed", "Views", "View", "SaveView",
-            "TrashEntries", "PrepareDeletion", "ReleaseDeletion", "CaptureRecoveryAccess", "CaptureReceipt", "AddLink", "Links", "RemoveLink", "List", "Create", "Read", "Blocks", "Search", "Exercises", "ExerciseBlocks", "SourceInk", "History", "FlatExercises", "SearchViews", "Status",
+            "TrashEntries", "PrepareDeletion", "ValidateDeletionReview", "ReleaseDeletion", "CaptureRecoveryAccess", "CaptureReceipt", "AddLink", "Links", "RemoveLink", "List", "Create", "Read", "Blocks", "Search", "Exercises", "ExerciseBlocks", "SourceInk", "History", "FlatExercises", "SearchViews", "Status",
             "CreateExercise", "RenameExercise", "ExerciseVisibility", "OpenInMaster", "Rename",
         )
     }

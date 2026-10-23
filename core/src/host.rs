@@ -38,6 +38,9 @@ pub enum Command {
         entity: Id,
         permanent: bool,
     },
+    ValidateDeletionReview {
+        review: Id,
+    },
     ConfirmDeletion {
         review: Id,
         confirmed: bool,
@@ -716,6 +719,10 @@ fn execute(
         Ok(match r.command {
             Command::PrepareDeletion { entity, permanent } => {
                 deletion.prepare(s, a, entity, permanent)?
+            }
+            Command::ValidateDeletionReview { review } => {
+                deletion.validate(s, a, review)?;
+                Value::Null
             }
             Command::ConfirmDeletion { review, confirmed } => {
                 deletion.confirm(s, a, review, confirmed)?;

@@ -263,3 +263,11 @@ synthetic SQL-owner/payload-owner splice in ordinary block reads (reproduced bef
 the common read guard was applied). An
 actual Android/JNI fixture compares the complete denied JSON responses for equal
 and changed retries, with null data/generation and no raw-content diagnostics.
+
+Combined deletion fixtures check native non-consuming review validation and current
+proof/generation, capture-target privacy (including previously purged descendants),
+actual JNI subtree Trash and purge, exact keep/discard behavior across active journal
+and legacy outbox, active-prefix invalidation, unrelated/incomplete/unknown retention,
+relock rejection and post-commit cleanup failure reporting. Legacy pending records in
+the mixed-store fixture are injected while the app writer is idle to simulate records
+awaiting acknowledgement; no production untrusted file writer is introduced.

@@ -708,3 +708,49 @@ payload/target retries conflict. Existing fingerprints and source bytes stay int
 Request validation errors concern supplied input and still run before persistence.
 These rules address structured receipt replies, not a constant-time implementation
 or complete privacy acceptance for every backend path.
+
+## Combined deletion and pending captures
+
+Native PrepareDeletion now returns capture_targets: currently authorised, non-purged
+Note/Canvas IDs in the reviewed subtree. Protected/purged descendants do not acquire
+new preview rights. ValidateDeletionReview rechecks the held token's generation and
+current subtree content authority without consuming it; confirmation still rechecks
+and consumes its native token. The 32-token/300-second review limits remain.
+
+Android prepareDeletionWithCaptures(entity, permanent) combines that native review
+with exact checksum-bound recovery records from both the active journal and recognised
+legacy Capture outbox records. It returns dependency metadata and draft tickets/owners/
+sealed flags, never raw observations. Current recovery access is checked for matched
+records, including the separate target-specific proof for already-retired contexts.
+Unattributable legacy records and incomplete files are counted without owner/content
+disclosure and always retained. Other contexts' drafts are excluded.
+
+confirmDeletionWithCaptures(review, disposition, confirmed=true) is one admitted writer
+operation. It validates native authority first, then exact current record hashes, then
+commits native deletion. Any draft-prefix/membership change since preview rejects and
+releases the review without deleting/discarding. Access/relock, generation and expiry
+checks still apply. Use releaseDeletionWithCaptures to cancel before confirmation.
+False confirmation rejects before admission; true attempts consume the review.
+
+KeepDrafts preserves all recovery copies. DiscardReviewedSealed removes only the exact
+reviewed sealed copies after successful native acknowledgement. Active, unknown,
+unrelated and later-arriving drafts stay retained; they are not retargeted or completed
+synthetically. The successful native acknowledgement authorises disposal of that
+reviewed subset as part of the same operation, even when the context has just become
+Trash/purged. This grants no subsequent raw-content access to a retired context.
+
+DeletionCaptureReceipt acknowledges the document action separately from draftsRemoved,
+keptActive, keptSealed and cleanupUnconfirmed. If draft cleanup fails after native commit,
+the document action remains committed; cleanupUnconfirmed counts removals lacking an
+acknowledgement, which may include an uncertain filesystem result. Attention is set.
+The app must not claim those copies were removed or roll back the document implicitly.
+Use scoped recovery review/discard to resolve retained evidence. Failed/ambiguous native
+acknowledgement removes no recovery copy and requires checking current document state.
+Cancellation of a returned future cancels observation, not the admitted operation.
+
+SQLite and recovery files are separate durability boundaries; this is not an atomic
+cross-store deletion or a journal-export/undo API. Existing raw JSON deletion commands
+remain document-only and retain private recovery evidence by default. Production H.I.
+should use the combined typed review. Legacy records not recognised as Entity Capture
+are retained; full legacy/incomplete content review/recovery remains open. Existing
+record/byte capacities bound this workflow, with no constant-RSS or latency claim.

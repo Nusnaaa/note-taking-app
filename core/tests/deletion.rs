@@ -117,3 +117,26 @@ fn container_retirement_handles_independently_trashed_and_already_purged_descend
     );
     s.check_integrity().unwrap();
 }
+
+#[test]
+fn capture_target_manifest_omits_purged_descendants_and_revalidation_checks_fresh_proof() {
+    let a = Access::public();
+    let mut s = Store::memory().unwrap();
+    let root = s.create(Kind::Notebook, None, "root", &a).unwrap();
+    let child = s.create(Kind::Note, Some(root.id), "child", &a).unwrap();
+    let old = s.create(Kind::Note, Some(root.id), "purged", &a).unwrap();
+    let review = s.review_deletion(old.id, &a).unwrap();
+    s.trash(review, true, &a).unwrap();
+    s.purge(old.id, &a).unwrap();
+    let proof = access([Scope::Entity(child.id)]);
+    s.set_lock(child.id, child.revision, true, &proof).unwrap();
+    assert!(matches!(s.review_deletion(root.id, &a), Err(Error::Denied)));
+    let review = s.review_deletion(root.id, &proof).unwrap();
+    assert_eq!(review.capture_targets(), &[child.id]);
+    assert!(matches!(
+        s.validate_deletion_review(&review, &a),
+        Err(Error::Denied)
+    ));
+    s.validate_deletion_review(&review, &proof).unwrap();
+    s.trash(review, true, &proof).unwrap();
+}

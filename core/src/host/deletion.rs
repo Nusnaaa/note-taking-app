@@ -43,7 +43,7 @@ impl DeletionState {
             store.review_deletion(entity, access)?
         };
         let token = Id::new();
-        let result = json!({"review":token,"permanent":permanent,"has_dependencies":review.has_dependencies,"visible_dependants":review.visible_dependants});
+        let result = json!({"review":token,"permanent":permanent,"has_dependencies":review.has_dependencies,"visible_dependants":review.visible_dependants,"capture_targets":review.capture_targets()});
         self.reviews.insert(
             token,
             Pending {
@@ -53,6 +53,11 @@ impl DeletionState {
             },
         );
         Ok(result)
+    }
+    pub fn validate(&mut self, store: &Store, access: &Access, token: Id) -> Result<()> {
+        self.expire();
+        let pending = self.reviews.get(&token).ok_or(Error::Unavailable)?;
+        store.validate_deletion_review(&pending.review, access)
     }
     pub fn confirm(
         &mut self,

@@ -332,3 +332,67 @@ fn host_reviews_are_local_and_relock_retires_capabilities_without_declassifying_
     );
     assert!(call(&h, Command::Read { id: n }).ok);
 }
+
+#[test]
+fn held_review_validation_is_non_consuming_generation_bound_and_authorises_capture_targets() {
+    let dir = tempfile::tempdir().unwrap();
+    let h = Host::open(dir.path().join("review.db"), 16).unwrap();
+    let root: Id = serde_json::from_value(
+        ok(
+            &h,
+            Command::Create {
+                kind: Kind::Notebook,
+                parent: None,
+                title: "root".into(),
+            },
+        )["id"]
+            .clone(),
+    )
+    .unwrap();
+    let child: Id = serde_json::from_value(
+        ok(
+            &h,
+            Command::Create {
+                kind: Kind::Note,
+                parent: Some(root),
+                title: "child".into(),
+            },
+        )["id"]
+            .clone(),
+    )
+    .unwrap();
+    let value = ok(
+        &h,
+        Command::PrepareDeletion {
+            entity: root,
+            permanent: false,
+        },
+    );
+    assert_eq!(value["capture_targets"], serde_json::json!([child]));
+    let review = serde_json::from_value(value["review"].clone()).unwrap();
+    ok(&h, Command::ValidateDeletionReview { review });
+    ok(&h, Command::ValidateDeletionReview { review });
+    assert!(call(&h, Command::Read { id: root }).ok);
+    note(&h, "changed generation");
+    assert!(!call(&h, Command::ValidateDeletionReview { review }).ok);
+    assert!(
+        !call(
+            &h,
+            Command::ConfirmDeletion {
+                review,
+                confirmed: true
+            }
+        )
+        .ok
+    );
+    let review = prepare(&h, root, false);
+    ok(&h, Command::ValidateDeletionReview { review });
+    ok(
+        &h,
+        Command::ConfirmDeletion {
+            review,
+            confirmed: true,
+        },
+    );
+    assert!(!call(&h, Command::Read { id: child }).ok);
+}
