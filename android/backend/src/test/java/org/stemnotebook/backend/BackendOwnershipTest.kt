@@ -39,6 +39,25 @@ class BackendOwnershipTest {
             assertTrue(System.nanoTime() < until); Thread.sleep(5)
         }
     }
+    private fun probeLease(root: File): String {
+        val probe = File(temporary.root, "OwnershipLeaseProbe.java")
+        probe.writeText("""
+            import java.io.RandomAccessFile;
+            public class OwnershipLeaseProbe {
+                public static void main(String[] args) throws Exception {
+                    try (var file = new RandomAccessFile(args[0], "rw"); var lease = file.getChannel().tryLock()) {
+                        System.out.println(lease == null ? "OWNED" : "AVAILABLE");
+                    }
+                }
+            }
+        """.trimIndent())
+        val process = ProcessBuilder(File(System.getProperty("java.home"), "bin/java").absolutePath, probe.absolutePath, File(root, ".backend-owner").absolutePath).redirectErrorStream(true).start()
+        try {
+            assertTrue(process.waitFor(10, TimeUnit.SECONDS)); val output = process.inputStream.bufferedReader().readText()
+            assertEquals(output, 0, process.exitValue())
+            return output.lineSequence().first { it == "OWNED" || it == "AVAILABLE" }
+        } finally { process.destroyForcibly() }
+    }
     @Test(timeout = 20_000) fun duplicateAndAliasedBackendAreRejectedBeforeFactoriesOrCacheCleanup() {
         val root = temporary.newFolder(); val context = platform(root); val backend = NotebookBackend(context)
         val factories = AtomicInteger()
@@ -54,9 +73,11 @@ class BackendOwnershipTest {
             assertThrows(IllegalArgumentException::class.java) { NotebookBackend(platform(otherRoot), pdfFactory = { _, _ -> factories.incrementAndGet(); error("Aliased library directory must not construct resources") }) }
             released(otherRoot)
             assertEquals(0, factories.get()); assertEquals("active owner's private cache", pending.readText())
+            assertEquals("OWNED", probeLease(root))
             assertThrows(IllegalStateException::class.java) { NativeBridge.open(File(root, "notebook/library.db").absolutePath) }
             assertEquals("ownership fixture", call(backend, JSONObject().put("op", "Read").put("id", id.toString())).getString("title"))
         } finally { backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
+        assertEquals("AVAILABLE", probeLease(root))
         val reopened = NotebookBackend(context)
         try { call(reopened, JSONObject().put("op", "Status")); assertFalse(File(root, "pdf-read-cache/pdf-owned.pending").exists()) }
         finally { reopened.closeFullyAsync().get(5, TimeUnit.SECONDS) }
@@ -136,8 +157,8 @@ class BackendOwnershipTest {
         val root = temporary.newFolder(); val context = platform(root)
         val database = File(root, "notebook/library.db"); check(database.parentFile!!.mkdirs()); database.writeText("invalid synthetic database")
         val failed = NotebookBackend(context)
-        // Calling close also covers the race where the asynchronous open is still running.
-        failed.closeFullyAsync().get(5, TimeUnit.SECONDS); released(root)
+        // Prove automatic failure retirement before invoking any explicit close.
+        released(root); failed.closeFullyAsync().get(5, TimeUnit.SECONDS)
         database.writeText("")
         val backend = NotebookBackend(context)
         try { call(backend, JSONObject().put("op", "Status")) } finally { backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }

@@ -255,9 +255,13 @@ hide/redraw handling; no production H.I. is implemented here.
 
 ### Library ownership and full shutdown
 
-Android acquires an OS file lease in `noBackupFilesDir` before constructing any
+Android reserves the canonical root in process before opening its OS file lease
+in `noBackupFilesDir` or constructing any
 workspace or retiring crash files. Duplicate/canonical-root aliases fail before
-factory or cleanup code can run; a symlinked notebook directory is rejected. The
+factory or cleanup code can run; a symlinked notebook directory is rejected.
+Rejecting in process before opening a duplicate FD also prevents that rejected
+channel's close from releasing the process's POSIX lease. An independent JVM probe
+checks actual OS ownership after rejected duplicates and after full retirement. The
 persistent empty owner file is not unlinked, avoiding a split-inode lock race.
 Factories finish before any JNI handle opens, and failed initialization closes
 already-created resources/provider and retires ownership. Asynchronous native-open

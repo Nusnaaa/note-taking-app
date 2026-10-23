@@ -129,5 +129,8 @@ from a verifier. Standalone JNI checks actual concurrent close waiting while ano
 library remains responsive. Actual JNI Android fixtures reject duplicate/root aliases
 before factories/cache cleanup, distinguish native drain from provider/parser
 retirement, close failed factories/native opens and reopen after full shutdown.
-These establish desktop cooperative locking and simulated Android resource lifetime,
+An independent JVM probe verifies that rejected duplicate/canonical alias opens
+retain the actual app OS lease until full retirement. Native-open failure retirement
+is checked before any explicit close call. These establish desktop cooperative
+locking and simulated Android resource lifetime,
 not physical-device Binder termination or final APK/process enforcement.
