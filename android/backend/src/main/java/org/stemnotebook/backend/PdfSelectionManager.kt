@@ -166,9 +166,13 @@ class PdfSelectionManager internal constructor(
                         synchronized(state) {
                             if (failure == null) { value = result; result = null }
                         }
-                    } catch (_: Exception) {
+                    } catch (error: Exception) {
                         synchronized(state) {
-                            if (failure == null) failure = IOException("PDF selection unavailable or changed; review again")
+                            if (failure == null) failure = when (error) {
+                                is TimeoutException -> TimeoutException("PDF selection timed out")
+                                is CancellationException -> CancellationException("PDF selection cancelled")
+                                else -> IOException("PDF selection unavailable or changed; review again")
+                            }
                             // Failure publication must not wait for an uncooperative
                             // provider to retire or for our own deadline thread.
                             ready.countDown()

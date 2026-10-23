@@ -200,7 +200,7 @@ class PdfSelectionTest {
             assertTrue(blockedTimer.await(5, TimeUnit.SECONDS))
             val pending = manager.review(PdfSelectionManager.Target.Link(UUID.randomUUID()), uri, Intent.FLAG_GRANT_READ_URI_PERMISSION, 1_000)
             assertTrue(entered.await(5, TimeUnit.SECONDS))
-            assertThrows(IOException::class.java) { pending.await() }
+            assertThrows(TimeoutException::class.java) { pending.await() }
             assertThrows(RejectedExecutionException::class.java) { manager.review(PdfSelectionManager.Target.Link(UUID.randomUUID()), uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
         } finally { releaseTimer.countDown(); releaseProvider.countDown(); manager.close() }
     }
