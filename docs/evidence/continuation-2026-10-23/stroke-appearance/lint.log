@@ -1,0 +1,5 @@
+$ /tmp/stem-cargo/bin/cargo clippy --workspace --all-targets --locked --offline -- -D warnings
+exit_code=0
+
+    Checking stem-core v0.1.0 (/home/linus/Projects/software/note-taking-app/repo/core)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.41s
