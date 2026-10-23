@@ -200,3 +200,14 @@ save layout, fully close/reopen and discover the previous view/tool, retaining c
 access boundaries. Existing legacy fixtures use their genuine pre-workspace table
 sets, so older bookmark/interruption downgrade tests still check those feature tags.
 No physical tablet pane layout, provider grant persistence or H.I. behavior is claimed.
+
+## Stroke appearance provenance
+
+`stroke_style` covers begin-bound configuration, immutable active headers, invalid
+styles, exact receipts, reopen/correction/native copy, schema-12 migration without
+payload/hash/receipt rewriting, encrypted style restore/downgrade rejection and SVG
+RGBA/width/dots/fallback warnings. Android tests cover begin-bound style/legacy wire,
+STEMAC02 exact style bits and changed-header rejection, a frozen independent STEMAC01
+record without invented style, and actual JNI capture/retry after mid-contact style
+change. No pressure/nib inference, implicit physical conversion or production H.I.
+is established by these fixtures.

@@ -14,6 +14,7 @@ pub fn stroke(sequence: u64) -> Stroke {
         pointer_id: 1,
         coordinate_space: "synthetic-local-units".into(),
         tool: Tool::Pen,
+        style: None,
         end: Default::default(),
         points: vec![
             Point {

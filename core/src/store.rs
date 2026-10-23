@@ -95,6 +95,7 @@ const V4: &str = include_str!("../migrations/004.sql");
 const V5: &str = include_str!("../migrations/005.sql");
 const V6: &str = include_str!("../migrations/006.sql");
 const V7: &str = include_str!("../migrations/007.sql");
+const V13: &str = include_str!("../migrations/013.sql");
 const V12: &str = include_str!("../migrations/012.sql");
 const V11: &str = include_str!("../migrations/011.sql");
 const V10: &str = include_str!("../migrations/010.sql");
@@ -115,7 +116,7 @@ impl Store {
                 PRAGMA trusted_schema=OFF;",
         )?;
         let version: i64 = db.pragma_query_value(None, "user_version", |r| r.get(0))?;
-        if !(0..=12).contains(&version) {
+        if !(0..=13).contains(&version) {
             return Err(Error::Unsupported);
         }
         let tx = db.transaction_with_behavior(TransactionBehavior::Immediate)?;
@@ -154,6 +155,9 @@ impl Store {
         }
         if version < 12 {
             tx.execute_batch(V12)?;
+        }
+        if version < 13 {
+            tx.execute_batch(V13)?;
         }
         tx.commit()?;
         Ok(Self {

@@ -40,6 +40,23 @@ impl StrokeEnd {
     }
 }
 
+/// Chosen appearance, not inferred sensor data. Width uses the stroke's named
+/// coordinate-space units, just like x/y; physical-unit conversion is explicit
+/// platform work. None on a legacy stroke means its appearance was not recorded.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct StrokeStyle {
+    pub colour_rgba: [u8; 4],
+    pub width: f64,
+}
+impl StrokeStyle {
+    pub fn validate(self) -> Result<()> {
+        if !self.width.is_finite() || self.width <= 0. || self.width > 1_000_000. {
+            return Err(Error::Invalid("stroke style"));
+        }
+        Ok(())
+    }
+}
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Stroke {
@@ -49,6 +66,8 @@ pub struct Stroke {
     pub pointer_id: u32,
     pub coordinate_space: String,
     pub tool: Tool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub style: Option<StrokeStyle>,
     pub points: Vec<Point>,
     /// Absence is a legacy completed stroke. An interrupted prefix has no
     /// fabricated pen-up sample; InProgress is only valid in a capture journal.
@@ -64,6 +83,9 @@ impl Stroke {
         Ok(())
     }
     pub fn validate(&self) -> Result<()> {
+        if let Some(style) = self.style {
+            style.validate()?;
+        }
         if self.coordinate_space.is_empty()
             || self.coordinate_space.len() > 256
             || self.points.is_empty()

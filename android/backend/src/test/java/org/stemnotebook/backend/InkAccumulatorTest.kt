@@ -5,6 +5,13 @@ import org.junit.Test
 
 class InkAccumulatorTest {
     private fun point(time: Long, x: Double = 0.125) = ObservedPoint(x, -0.0, time, null, null, null, null)
+    @Test fun chosenStyleBelongsToBeginAndLegacyEncodingDoesNotInventIt() {
+        val a = InkAccumulator(); val first = StrokeStyle(0, 128, 255, 64, 0.12345678901234567); val second = first.copy(width = 9.5)
+        a.setStyle(first); a.begin(1, false, point(0)); a.setStyle(second); a.append(1, listOf(point(1))); a.begin(2, true, point(0))
+        val completed = a.complete(1); assertEquals(first, completed.style); assertEquals(second, a.complete(2).style)
+        assertFalse(CaptureRequest.encode(java.util.UUID.randomUUID(), java.util.UUID.randomUUID(), "space", listOf(completed.copy(style = null))).contains("\"style\""))
+        assertThrows(IllegalArgumentException::class.java) { first.copy(width = Double.NaN) }; assertThrows(IllegalArgumentException::class.java) { first.copy(red = 256) }
+    }
     @Test fun preservesOrderZeroAndUnavailableChannels() {
         val a = InkAccumulator(); a.begin(2, false, point(10)); a.append(2, listOf(point(11), point(12)))
         val stroke = a.complete(2)

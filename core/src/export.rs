@@ -403,24 +403,35 @@ impl Store {
                         continue;
                     }
 
-                    for p in &s.points {
-                        min_x = min_x.min(p.x);
-
-                        min_y = min_y.min(p.y);
-
-                        max_x = max_x.max(p.x);
-
-                        max_y = max_y.max(p.y);
+                    let (colour, width) = if let Some(style) = s.style {
+                        (style.colour_rgba, style.width)
+                    } else {
+                        warnings.push("Legacy ink appearance was not recorded; original-ink SVG uses a black, unit-width fallback.".into());
+                        ([0, 0, 0, 255], 1.)
+                    };
+                    if s.points.iter().any(|p| {
+                        p.pressure.is_some() || p.tilt_rad.is_some() || p.orientation_rad.is_some()
+                    }) {
+                        warnings.push("Original-ink SVG preserves recorded base colour/width; pressure/tilt-dependent appearance is not reconstructed.".into());
                     }
-
-                    body += &format!(
-                        "<polyline fill=\"none\" stroke=\"black\" points=\"{}\"/>",
-                        s.points
-                            .iter()
-                            .map(|p| format!("{},{}", p.x, p.y))
-                            .collect::<Vec<_>>()
-                            .join(" ")
-                    );
+                    if s.tool == crate::ink::Tool::Eraser {
+                        warnings.push("Eraser observations are shown as source paths, not replayed as destructive edits.".into());
+                    }
+                    let margin = width / 2.;
+                    for p in &s.points {
+                        min_x = min_x.min(p.x - margin);
+                        min_y = min_y.min(p.y - margin);
+                        max_x = max_x.max(p.x + margin);
+                        max_y = max_y.max(p.y + margin);
+                    }
+                    let rgb = format!("#{:02x}{:02x}{:02x}", colour[0], colour[1], colour[2]);
+                    let opacity = colour[3] as f64 / 255.;
+                    if s.points.len() == 1 {
+                        let p = &s.points[0];
+                        body += &format!("<circle cx=\"{}\" cy=\"{}\" r=\"{margin}\" fill=\"{rgb}\" fill-opacity=\"{opacity}\"/>", p.x, p.y);
+                    } else {
+                        body += &format!("<polyline fill=\"none\" stroke=\"{rgb}\" stroke-opacity=\"{opacity}\" stroke-width=\"{width}\" stroke-linecap=\"round\" stroke-linejoin=\"round\" points=\"{}\"/>",s.points.iter().map(|p| format!("{},{}", p.x, p.y)).collect::<Vec<_>>().join(" "));
+                    }
                 }
 
                 if !body.is_empty() {

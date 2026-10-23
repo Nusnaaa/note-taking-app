@@ -97,6 +97,7 @@ object CaptureRequest {
                 StrokeEnd.InProgress -> throw IllegalArgumentException("An active prefix is not a completed capture")
                 is StrokeEnd.Interrupted -> ",\"end\":{\"Interrupted\":\"${end.reason.name}\"}"
             }
+            val style = stroke.style?.let { ",\"style\":{\"colour_rgba\":[${it.red},${it.green},${it.blue},${it.alpha}],\"width\":${number(it.width)}}" } ?: ""
             UUID.fromString(stroke.id); UUID.fromString(stroke.session)
             require(stroke.sequence >= 0 && stroke.pointer >= 0 && stroke.points.size in 1..100_000)
             var previous = 0L
@@ -105,7 +106,7 @@ object CaptureRequest {
                 previous = point.timeUs
                 "{\"x\":${number(point.x)},\"y\":${number(point.y)},\"time_us\":${point.timeUs},\"pressure\":${number(point.pressure)},\"tilt_rad\":${number(point.tiltRad)},\"orientation_rad\":${number(point.orientationRad)},\"buttons\":${point.buttons ?: "null"}}"
             }.joinToString(",")
-            "{\"id\":${quote(stroke.id)},\"capture_session\":${quote(stroke.session)},\"sequence\":${stroke.sequence},\"pointer_id\":${stroke.pointer},\"coordinate_space\":${quote(coordinateSpace)},\"tool\":\"${if (stroke.eraser) "Eraser" else "Pen"}\",\"points\":[$points]$ending}"
+            "{\"id\":${quote(stroke.id)},\"capture_session\":${quote(stroke.session)},\"sequence\":${stroke.sequence},\"pointer_id\":${stroke.pointer},\"coordinate_space\":${quote(coordinateSpace)},\"tool\":\"${if (stroke.eraser) "Eraser" else "Pen"}\",\"points\":[$points]$ending$style}"
         }.joinToString(",")
         require(strokes.map { it.id }.toSet().size == strokes.size)
         return "{\"version\":1,\"command\":{\"op\":\"Capture\",\"ticket\":\"$ticket\",\"entity\":\"$entity\",\"strokes\":[$encoded]}}"

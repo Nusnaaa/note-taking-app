@@ -162,7 +162,7 @@ Schema 12 adds relational workspace tables. Foreign-key retirement on permanent
 view/source deletion replaces the target/tool with an unavailable placeholder and
 advances workspace revision in the same purge transaction. Slot order, weight and
 focus remain stable; Trash/unavailable contexts can recover their existing references
-on ordinary restore. Encrypted schema-12 whole backups retain workspace metadata;
+on ordinary restore. Encrypted schema-13 whole backups retain the schema-12 workspace metadata;
 schemas 8-11 create the default empty workspace and cannot smuggle new workspace
 tables under an old tag. Malformed references, order and table shapes fail closed.
 Restored Available/Missing PDF sources remain Missing; an existing Revoked state
@@ -171,6 +171,37 @@ views but do not activate or overwrite a destination workspace; their omission r
 states that activation is library-local. Complete pen presets/backgrounds, remaining
 pane workflows and all-operation history/retirement remain open. No production H.I.
 is authorised by this increment.
+
+## Immutable chosen stroke appearance
+
+New captures may supply `StrokeStyle { colour_rgba, width }`. Width uses the stroke's
+named source-coordinate units, just like x/y; it is not silently interpreted as mm,
+pixels or normalized pressure. The platform must explicitly convert its physical pen
+configuration into that space. All channels are immutable and finite/bounded. A
+contact snapshots style at begin. InputRouter/set_style, InkAccumulator/MotionCapture
+and JournaledCaptureSession/setStyle change only subsequent contacts; active prefixes,
+completion, interruption, exact retry receipts and original source do not rebind.
+`openCaptureSession(..., style)` can establish the initial style. Style absence means
+unknown legacy appearance, not an assertion that black/unit width was selected.
+No current view settings or pressure sample is used to guess missing style.
+
+Schema 13 versions this optional immutable source metadata without rewriting existing
+payloads/hashes/receipts. Native subset v7 preserves it and reads v1-v6; older native
+tags reject styled sources. Encrypted schema-13 backups preserve styles and restore
+schemas 8-12 with their corresponding metadata limits. Android journal STEMAC02
+stores exact RGBA bytes and width bits; STEMAC01 remains readable with style absent.
+Recovery and explicit review preserve the begin-bound style; changed-style checkpoint
+headers or receipt retries are rejected. These are chosen appearance settings, not
+new sensor observations, pressure calibration or handwriting inference.
+
+Original-ink SVG derivatives now honour recorded colour/alpha/base width, round paths
+and single-observation dots. Bounds include stroke radius, avoiding clipped wide marks.
+Legacy fallback appearance and unreconstructed pressure/tilt-dependent appearance are
+reported in export warnings. Eraser observations are labelled as source paths rather
+than silently replayed as destructive edits. Native source still retains every exact
+observed point/channel/style independently of the derivative. Complete nib/pressure
+rendering, physical-space mapping, presets/backgrounds and whole-scene export remain
+open; these base-style derivatives are not a claim of full tablet appearance fidelity.
 
 ## Observed prefixes and stroke termination
 

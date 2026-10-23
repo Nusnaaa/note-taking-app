@@ -6,9 +6,9 @@ import java.util.concurrent.CompletableFuture
 
 /** Owns input identity and stale-frame admission. Rejection returns the caller's
  * immutable observations; checkpointed is distinct from a SQLite commit. */
-class JournaledCaptureSession internal constructor(internal val backend: NotebookBackend, internal val entity: UUID, internal val space: String) {
+class JournaledCaptureSession internal constructor(internal val backend: NotebookBackend, internal val entity: UUID, internal val space: String, style: StrokeStyle? = null) {
     val id: UUID = UUID.randomUUID()
-    private val motion = MotionCapture(InkAccumulator(sessionId = id))
+    private val motion = MotionCapture(InkAccumulator(sessionId = id)).apply { setStyle(style) }
     private var revision = 0L
     private var closed = false
     internal var latestSequence = -1L // writer-executor access only
@@ -16,6 +16,8 @@ class JournaledCaptureSession internal constructor(internal val backend: Noteboo
     private var interrupted = emptyList<CapturedStroke>()
     data class Receipt(val ticket: UUID, val revision: Long, val checkpointed: Boolean, val committed: Boolean, val discarded: Boolean = false)
     data class Submission(val stroke: CapturedStroke, val revision: Long, val receipt: CompletableFuture<Receipt>, val cancelled: Boolean = false)
+    /** New contacts inherit this style; observed active prefixes never change. */
+    @Synchronized fun setStyle(style: StrokeStyle?) { check(!closed); motion.setStyle(style) }
     @Synchronized fun accept(event: MotionEvent): List<Submission> {
         check(!closed); check(revision < Long.MAX_VALUE); revision++
         val before = motion.checkpoint(); val completed = motion.accept(event); val active = motion.checkpoint()

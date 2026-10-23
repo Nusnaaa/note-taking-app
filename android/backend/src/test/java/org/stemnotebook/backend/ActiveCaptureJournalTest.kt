@@ -15,6 +15,23 @@ class ActiveCaptureJournalTest {
     private val library = UUID.randomUUID(); private val entity = UUID.randomUUID()
     private fun point(time: Long) = ObservedPoint(-0.0, 1.2345678901234567, time, 0.0, null, -0.125, 0)
     private fun stroke() = CapturedStroke(UUID.randomUUID().toString(), UUID.randomUUID().toString(), 0, 7, false, listOf(point(10)), StrokeEnd.InProgress)
+    @Test fun versionOneGoldenRecordRecoversWithoutInventingStyleAndUpgradesOnlyRecoveryMetadata() {
+        val root = temporary.newFolder(); val legacyLibrary = UUID(0, 1); val ticket = UUID(0, 3)
+        val bytes = java.util.Base64.getDecoder().decode("U1RFTUFDMDEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAABwAAAAAAAAALZml4ZWQtc3BhY2UAAAABgAAAAAAAAAA/9AAAAAAAAAAAAAAAAAAKAQAAAAAAAAAApuxK8dPXXeVxPEqmelAqAxd64nz0rv5XsNbTGk90u2Q=")
+        val file = File(root, "0000000000000000000-$ticket.prefix").apply { writeBytes(bytes) }
+        val journal = ActiveCaptureJournal(root, legacyLibrary); val before = journal.read(ticket); assertNull(before.stroke.style)
+        assertEquals((-0.0).toRawBits(), before.stroke.points.single().x.toRawBits()); assertEquals(0.0, before.stroke.points.single().pressure!!, 0.0)
+        journal.recoverActive(); assertNull(journal.read(ticket).stroke.style); assertEquals(before.stroke.points, journal.read(ticket).stroke.points)
+        assertEquals("STEMAC02", String(file.readBytes().copyOfRange(0, 8), Charsets.US_ASCII))
+        assertEquals(0, journal.drain { error("Recovered prefix requires review") })
+    }
+    @Test fun styleSurvivesBinaryRecoveryAndCannotBeReboundByAChangedCheckpointHeader() {
+        val root = temporary.newFolder(); val chosen = StrokeStyle(17, 128, 255, 64, 0.12345678901234567); val source = stroke().copy(style = chosen); val ticket = UUID.fromString(source.id)
+        val journal = ActiveCaptureJournal(root, library); journal.checkpoint(entity, "fixed-space", 0, source)
+        assertThrows(IllegalArgumentException::class.java) { journal.checkpoint(entity, "fixed-space", 1, source.copy(style = chosen.copy(width = 2.0))) }
+        val recovered = ActiveCaptureJournal(root, library); recovered.recoverActive(); assertEquals(chosen, recovered.read(ticket).stroke.style)
+        recovered.approve(ticket, recovered.checksum(ticket)); assertEquals(1, recovered.drain { assertEquals(chosen, it.stroke.style); assertEquals(source.points, it.stroke.points); true })
+    }
     @Test fun checkpointsPreserveExactPrefixAndRejectStaleChangedOrReboundUpdates() {
         val root = temporary.newFolder(); val journal = ActiveCaptureJournal(root, library); val source = stroke(); val ticket = UUID.fromString(source.id)
         assertThrows(java.nio.charset.CharacterCodingException::class.java) { journal.checkpoint(entity, 0xD800.toChar().toString(), 0, source) }

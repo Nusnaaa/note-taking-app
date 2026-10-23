@@ -1,7 +1,7 @@
 //! Platform-independent pen routing and bounded persistence admission. The Android
 //! adapter supplies classified observed events; predictions never enter this API.
 use crate::{
-    ink::{Interruption, Point, Stroke, StrokeEnd, Tool},
+    ink::{Interruption, Point, Stroke, StrokeEnd, StrokeStyle, Tool},
     processing::JobControl,
     security::Access,
     store::{Block, Store, WritingTarget},
@@ -38,6 +38,7 @@ pub struct InputRouter {
     active: BTreeMap<u32, Stroke>,
     finger_ink: bool,
     max_points: usize,
+    style: Option<StrokeStyle>,
 }
 
 impl InputRouter {
@@ -53,9 +54,18 @@ impl InputRouter {
             active: BTreeMap::new(),
             finger_ink,
             max_points,
+            style: None,
         })
     }
 
+    /// Applies only to contacts begun afterwards; active headers stay immutable.
+    pub fn set_style(&mut self, style: Option<StrokeStyle>) -> Result<()> {
+        if let Some(style) = style {
+            style.validate()?;
+        }
+        self.style = style;
+        Ok(())
+    }
     pub fn begin(&mut self, pointer: u32, kind: PointerKind, point: Point) -> Result<Routing> {
         if self.active.contains_key(&pointer) {
             return Err(Error::Conflict);
@@ -89,6 +99,7 @@ impl InputRouter {
             pointer_id: pointer,
             coordinate_space: self.space.clone(),
             tool,
+            style: self.style,
             end: StrokeEnd::InProgress,
             points: vec![point],
         };
@@ -188,6 +199,7 @@ impl Stroke {
             pointer_id: self.pointer_id,
             coordinate_space: self.coordinate_space.clone(),
             tool: self.tool.clone(),
+            style: self.style,
             end: self.end,
             points: vec![],
         }

@@ -150,7 +150,8 @@ internal class ActiveCaptureJournal(
     }
     companion object {
         private const val MAX_RECORD = 6L * 1024 * 1024
-        private val MAGIC = "STEMAC01".toByteArray(Charsets.US_ASCII)
+        private val LEGACY_MAGIC = "STEMAC01".toByteArray(Charsets.US_ASCII)
+        private val MAGIC = "STEMAC02".toByteArray(Charsets.US_ASCII)
         private fun validate(entry: Entry) {
             require(entry.ordinal >= 0 && entry.revision >= 0 && entry.stroke.sequence >= 0 && entry.stroke.pointer >= 0)
             UUID.fromString(entry.stroke.id); UUID.fromString(entry.stroke.session)
@@ -172,6 +173,8 @@ internal class ActiveCaptureJournal(
                 val s = entry.stroke; uuid(UUID.fromString(s.id)); uuid(UUID.fromString(s.session)); out.writeLong(s.sequence); out.writeInt(s.pointer); out.writeBoolean(s.eraser)
                 out.writeByte(when (s.end) { StrokeEnd.InProgress -> 0; StrokeEnd.Completed -> 1; is StrokeEnd.Interrupted -> when (s.end.reason) { StrokeInterruption.Lifecycle -> 2; StrokeInterruption.Recovery -> 3 } })
                 out.writeBoolean(entry.cancelled); out.writeBoolean(entry.review)
+                out.writeBoolean(s.style != null)
+                s.style?.let { out.writeByte(it.red); out.writeByte(it.green); out.writeByte(it.blue); out.writeByte(it.alpha); out.writeLong(it.width.toRawBits()) }
                 val space = entry.space.toByteArray(Charsets.UTF_8); out.writeInt(space.size); out.write(space); out.writeInt(s.points.size)
                 for (p in s.points) {
                     out.writeLong(p.x.toRawBits()); out.writeLong(p.y.toRawBits()); out.writeLong(p.timeUs)
@@ -187,10 +190,12 @@ internal class ActiveCaptureJournal(
             val input = DataInputStream(ByteArrayInputStream(payload))
             fun uuid() = UUID(input.readLong(), input.readLong())
             fun flag(): Boolean { val value = input.readUnsignedByte(); require(value in 0..1); return value == 1 }
-            require(ByteArray(8).also { input.readFully(it) }.contentEquals(MAGIC))
+            val magic = ByteArray(8).also { input.readFully(it) }; require(magic.contentEquals(MAGIC) || magic.contentEquals(LEGACY_MAGIC))
             val ordinal = input.readLong(); val library = uuid(); val entity = uuid(); val revision = input.readLong(); val id = uuid(); val session = uuid(); val sequence = input.readLong(); val pointer = input.readInt(); val eraser = flag()
             val end = when (input.readUnsignedByte()) { 0 -> StrokeEnd.InProgress; 1 -> StrokeEnd.Completed; 2 -> StrokeEnd.Interrupted(StrokeInterruption.Lifecycle); 3 -> StrokeEnd.Interrupted(StrokeInterruption.Recovery); else -> throw IOException("Capture checkpoint state invalid") }
-            val cancelled = flag(); val review = flag(); val length = input.readInt(); require(length in 1..256)
+            val cancelled = flag(); val review = flag()
+            val style = if (magic.contentEquals(MAGIC) && flag()) StrokeStyle(input.readUnsignedByte(), input.readUnsignedByte(), input.readUnsignedByte(), input.readUnsignedByte(), Double.fromBits(input.readLong())) else null
+            val length = input.readInt(); require(length in 1..256)
             val encoded = ByteArray(length).also { input.readFully(it) }; val space = Charsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT).onUnmappableCharacter(CodingErrorAction.REPORT).decode(java.nio.ByteBuffer.wrap(encoded)).toString()
             val count = input.readInt(); require(count in 1..100_000)
             val points = List(count) {
@@ -198,7 +203,7 @@ internal class ActiveCaptureJournal(
                 ObservedPoint(x, y, time, if (flags and 1 != 0) Double.fromBits(input.readLong()) else null, if (flags and 2 != 0) Double.fromBits(input.readLong()) else null, if (flags and 4 != 0) Double.fromBits(input.readLong()) else null, if (flags and 8 != 0) input.readInt() else null)
             }
             require(input.available() == 0)
-            return Entry(ordinal, library, entity, space, revision, CapturedStroke(id.toString(), session.toString(), sequence, pointer, eraser, points, end), cancelled, review).also { validate(it) }
+            return Entry(ordinal, library, entity, space, revision, CapturedStroke(id.toString(), session.toString(), sequence, pointer, eraser, points, end, style), cancelled, review).also { validate(it) }
         }
     }
 }

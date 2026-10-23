@@ -33,6 +33,21 @@ class JournaledCaptureIntegrationTest {
         return MotionEvent.obtain(10, time, action, 1, arrayOf(property), arrayOf(coordinate), 0, 0, 1f, 1f, 0, 0, InputDevice.SOURCE_STYLUS, 0)
     }
     private fun submit(session: JournaledCaptureSession, action: Int, time: Long): JournaledCaptureSession.Submission = event(action, time).let { try { session.accept(it).single() } finally { it.recycle() } }
+    @Test(timeout = 20_000) fun actualJniRetainsPerContactStyleAcrossConfigurationChangeAndExactRetry() {
+        val backend = NotebookBackend(platform(temporary.newFolder()))
+        try {
+            val entity = note(backend); val first = StrokeStyle(17, 128, 255, 64, 0.12345678901234567); val second = first.copy(width = 8.125, red = 200)
+            val session = backend.openCaptureSession(entity, "fixed-space", first)
+            submit(session, MotionEvent.ACTION_DOWN, 10).receipt.get(5, TimeUnit.SECONDS); session.setStyle(second)
+            val up = submit(session, MotionEvent.ACTION_UP, 20); assertTrue(up.receipt.get(5, TimeUnit.SECONDS).committed); assertTrue(session.retry(up).receipt.get(5, TimeUnit.SECONDS).committed)
+            submit(session, MotionEvent.ACTION_DOWN, 30).receipt.get(5, TimeUnit.SECONDS); submit(session, MotionEvent.ACTION_UP, 40).receipt.get(5, TimeUnit.SECONDS)
+            val rows = blocks(backend, entity); assertEquals(2, rows.length())
+            for ((index, expected) in listOf(first, second).withIndex()) {
+                val source = call(backend, JSONObject().put("op", "SourceInk").put("block", rows.getJSONObject(index).getString("id"))).getJSONArray("data").getJSONObject(0)
+                assertEquals(expected.width, source.getJSONObject("style").getDouble("width"), 0.0); assertEquals(expected.red, source.getJSONObject("style").getJSONArray("colour_rgba").getInt(0)); assertEquals(2, source.getJSONArray("points").length())
+            }
+        } finally { backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
+    }
     @Test(timeout = 20_000) fun checkpointIsNotDocumentCommitAndCompletionRetiresJournalWithExactTicketRetry() {
         val root = temporary.newFolder(); val backend = NotebookBackend(platform(root))
         try {

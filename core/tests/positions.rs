@@ -285,7 +285,7 @@ fn observed_ink_region_bookmarks_copy_global_ids_and_old_format_tags_cannot_hide
         .unwrap();
     let bytes = export(&s, n.id);
     let mut doc = NativeDocument::decode(&bytes).unwrap();
-    assert_eq!(doc.version, 6);
+    assert_eq!(doc.version, 7);
     doc.version = 5;
     assert!(doc.validate().is_err());
     doc.attachments.views[0].bookmark = None;
@@ -385,7 +385,7 @@ fn encrypted_backup_retains_stale_bookmarks_and_schema10_defaults_without_rewrit
     }
     let legacy = crypto::encrypt(&serde_json::to_vec(&old).unwrap(), password).unwrap();
     let restored = Store::restore_backup_password(&legacy.bytes, password).unwrap();
-    assert_eq!(restored.schema_version().unwrap(), 12);
+    assert_eq!(restored.schema_version().unwrap(), 13);
     assert!(restored.view(v.id, &a).unwrap().bookmark.is_none());
 }
 #[test]
@@ -553,7 +553,7 @@ fn schema10_upgrade_keeps_legacy_view_payload_byte_for_byte_and_absent_bookmark_
     db.pragma_update(None, "user_version", 10).unwrap();
     drop(db);
     let s = Store::open(&path).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 12);
+    assert_eq!(s.schema_version().unwrap(), 13);
     assert_eq!(s.view(legacy.id, &a).unwrap(), legacy);
     drop(s);
     let db = rusqlite::Connection::open(&path).unwrap();

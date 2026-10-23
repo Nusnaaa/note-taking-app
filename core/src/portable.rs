@@ -1,4 +1,4 @@
-//! Native JSON v6 (with v1-v5 read compatibility) for the implemented core subset.
+//! Native JSON v7 (with v1-v6 read compatibility) for the implemented core subset.
 //! It is NOT yet the complete v0.5.8 interchange contract (see status).
 use crate::{
     crypto, digest,
@@ -107,7 +107,7 @@ impl NativeDocument {
         })?)
     }
     pub fn validate(&self) -> Result<()> {
-        if !matches!(self.version, 1..=6) {
+        if !matches!(self.version, 1..=7) {
             return Err(Error::Unsupported);
         }
         if self.version < 4
@@ -192,6 +192,9 @@ impl NativeDocument {
             }
             for s in &n.strokes {
                 s.validate_persisted()?;
+                if self.version < 7 && s.style.is_some() {
+                    return Err(Error::Unsupported);
+                }
                 if self.version < 5 && !s.end.is_completed() {
                     return Err(Error::Unsupported);
                 }
@@ -534,7 +537,7 @@ impl Store {
             omissions.push("App workspace and pane activation are library-local and are not included in native copies; selected saved views remain included.".into());
         }
         let mut document = NativeDocument {
-            version: 6,
+            version: 7,
             created_ms: now_ms(),
             entities,
             blocks,
