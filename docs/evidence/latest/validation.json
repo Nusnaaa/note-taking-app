@@ -1,8 +1,8 @@
 {
-  "started_utc": "2026-10-23T14:08:36.559224+00:00",
-  "source_commit": "6e4cd6d989c9a5e8bf29a6d008c58cba9081673d",
+  "started_utc": "2026-10-23T14:22:36.597599+00:00",
+  "source_commit": "afbd5c2769bbee6bac385cfb835f14aa7b75bee4",
   "working_tree_before": "",
-  "full_working_tree_before": " M docs/evidence/latest/android-elf.log\n M docs/evidence/latest/android-gradle.log\n M docs/evidence/latest/android-native.log\n M docs/evidence/latest/android-validation.json\n M docs/evidence/latest/jni-library.log\n M docs/evidence/latest/jni-smoke.log\n?? docs/evidence/PDF_Source_Selection_2026-10-23.md\n?? docs/evidence/continuation-2026-10-23/pdf-source-selection/",
+  "full_working_tree_before": "",
   "build_environment": {
     "CARGO_INCREMENTAL": "0",
     "CARGO_BUILD_JOBS": "2"
@@ -21,7 +21,7 @@
     "android/backend/src/main/java/org/stemnotebook/backend/CaptureOutbox.kt": "f1f24debcd5d2b96f936f5266c22b65d8faf8291e9d77d21cf808dfa3b05ad5d",
     "android/backend/src/main/java/org/stemnotebook/backend/InkAccumulator.kt": "55adec1ba11d34a53adba7b693908df3694e3ffd49bf09be14595ebee96590a2",
     "android/backend/src/main/java/org/stemnotebook/backend/NativeBridge.java": "213ef6deb837b0d9e42114458d58da7d1e52990b697071662e582ee2d75df70a",
-    "android/backend/src/main/java/org/stemnotebook/backend/NotebookBackend.kt": "421174962db02dcedac8281e980c6090a62010a1ba1c772e3c1771e69813863d",
+    "android/backend/src/main/java/org/stemnotebook/backend/NotebookBackend.kt": "1f702eeafc31c4188c5f5454ab9afffded82df74fa1b32697b71b673e916dbbf",
     "android/backend/src/main/java/org/stemnotebook/backend/ObservedInk.kt": "59e1a84ce8c2e9aa7bbd8c7e51b610377d8ee4ecc53a799f063b6a16dfd645ac",
     "android/backend/src/main/java/org/stemnotebook/backend/PdfConnection.kt": "c7b5c61bc5d209f70a2867c8942d606556daf29a04a28e48872d1bd68af5504f",
     "android/backend/src/main/java/org/stemnotebook/backend/PdfParserClient.kt": "87efa302b127d6fb9e55a12595759817a7c58308d399c06aab78e71dae58312b",
@@ -29,7 +29,7 @@
     "android/backend/src/main/java/org/stemnotebook/backend/PdfProvider.kt": "6792d24ef48e46a540814e4d60f7c7b51a83934e0c7865a018671bea0807d791",
     "android/backend/src/main/java/org/stemnotebook/backend/PdfSelectionManager.kt": "52dfe1dc5a449f8430e817d948da115b666bed925ab258293d502f33778dd9d3",
     "android/backend/src/main/java/org/stemnotebook/backend/PdfWorkerService.kt": "32dc41cde4b370cd48ee50706e4b611cdd5dba64b90d0a4b65ff7292faaee2f4",
-    "android/backend/src/main/java/org/stemnotebook/backend/PdfWorkspace.kt": "fa58f3f7835b25e5c2d3f6f95d52afe9e676ad63b7afe981d17b442febc9b119",
+    "android/backend/src/main/java/org/stemnotebook/backend/PdfWorkspace.kt": "7b49f281521f1abdcb73b0911e0adc428d7cbbc71211dee00261d3f8aef966a7",
     "android/backend/src/main/java/org/stemnotebook/backend/PlatformAuthentication.kt": "4b1a1df69cf8c027e323f3eb9ba3094fde797224ae0d607b726babdd080781a8",
     "android/backend/src/main/res/xml/backup_rules.xml": "9dc73ebd39e95acff8a4c69fe70c054e82a1148459cfc684a8252678c83ffa91",
     "android/backend/src/main/res/xml/data_extraction_rules.xml": "ac3e390093eeb9ee64b598412c4b5baf2033972647f4d8354d19fb0e85ffea98",
@@ -44,7 +44,7 @@
     "android/backend/src/test/java/org/stemnotebook/backend/PdfProviderTest.kt": "91548ccb9475d9eb93d8f654d61572e9f3c174740af674ecffd5e94ca8c7fbcf",
     "android/backend/src/test/java/org/stemnotebook/backend/PdfSelectionTest.kt": "4ec8c4366c089c29b6d2b1c983a17bbd96a328b854e76894439903d071f101c5",
     "android/backend/src/test/java/org/stemnotebook/backend/PdfWorkerCleanupTest.kt": "04470484098baee5e1c3254297ee5e775255df9d4f7d00214fc40bc23074d0a6",
-    "android/backend/src/test/java/org/stemnotebook/backend/PdfWorkspaceTest.kt": "e36a6477c293643b26994373fa4b19697f64b85bd2409762707468053ea24e8c",
+    "android/backend/src/test/java/org/stemnotebook/backend/PdfWorkspaceTest.kt": "8ae668bb411fd855e83ed96feee6660a48fc45c8a2d731caf50a53258956c739",
     "android/build.gradle.kts": "0f1f1142943fc4d17c9733a15d88c2c6b22a6d38bdcc87ef46f80a8c72b45cf5",
     "android/gradle.properties": "ffa11c46b1c6cd65f86aa9c8ddafa56fd440a8a8852b9631f61eb1207bb2e8f9",
     "android/settings.gradle.kts": "6436c45283cacfd750b43e199f4ce8703078f5c240db2d0e64b4d702283973c4",
@@ -74,7 +74,7 @@
     "core/src/help.rs": "6e590f88e4d92923f32ce1c9c0557c97a10dff8bb8039b16e4c034de809f4369",
     "core/src/host.rs": "172e5688c56c578900cc09abfcd527d4c056f2fdfb20af8d33d92d917ce38ac0",
     "core/src/host/mailbox.rs": "b28b65e2af428499079390df149be5356a3265fcced6d660be72515daa9f6aed",
-    "core/src/host/pdf.rs": "0c166ae35d0aff0dcda1279d9e062de231f33dc9fac36b9fe463f60060612468",
+    "core/src/host/pdf.rs": "a2234618fcfa05e273402a57eecacb515e517eba27d17211e0dfe5d8b9fdc8da",
     "core/src/ink.rs": "bedf7b2bf0fbd065084caefb9711f1b7f4a849fda6d295815cbe847ec3ba7467",
     "core/src/lib.rs": "dd8a3fb56d844e4c1967586e686499b0779319bfa22ea2e888c3bb1eda4b4396",
     "core/src/objects.rs": "071a855f967d86b13f2549667538bf8e90d49003f503d95feed766a52d60440b",
@@ -83,7 +83,7 @@
     "core/src/provisioning.rs": "79939df42ac8e3f020124c742164cc11b1e307f80c36671d06e588d437a34745",
     "core/src/render.rs": "49efca3a4d906df3c25036e1ab664e089f584b4aca8ff54f0de73a4f2e167cf0",
     "core/src/security.rs": "e890170726ecf8a7cd2bf2bf34774e386e16b22e53cf244f35d51e630923770a",
-    "core/src/sources.rs": "b6525757b5be1dc4ba1d1754c2baa2d877aa39aa2db0402dc0af429cc3b7ec0a",
+    "core/src/sources.rs": "54574b289cdb178e0cae3cb6b730a55bbe6689434675b3e79f2f53bef3a48a0d",
     "core/src/store.rs": "6adbcb128772f55509e2395ef1246c29e4787a627d7179d6b2b8ef0f572e26cd",
     "core/src/store/editing.rs": "c0fd282625698f21b0c50aeeade8f2bb24fff10526f618a4f40b26024e240ac7",
     "core/src/store/engines.rs": "4cf6d0470c5450a0c95e24287b80e5d04e8376a134738011bbfe6021d85b3673",
@@ -104,7 +104,7 @@
     "core/tests/exercises.rs": "b6a1d9ed5ba583dd9fbccd5ccbc5d94bd9cef0b7e5cd4016d040d42957106787",
     "core/tests/export.rs": "d1acfbe1f9993519afc273b72ebdb96694222836864773b6746a873c349fa4ae",
     "core/tests/host.rs": "3039ced83a487b5ca1329875da5f4ac58ce05f99725a6d167a2934d1ab78291c",
-    "core/tests/host_pdf.rs": "b0bd79af35c3a088e07f00d088be0b6e713f4d45f493de2f791be46a21cb323c",
+    "core/tests/host_pdf.rs": "04a2868e327f8210b68a581fbe2032bd09d1fbe5cd0b17a08a687e501df6f038",
     "core/tests/objects.rs": "08b41faf90250c5de13cd640328417189a5791be99142aff2903f49e459aafd4",
     "core/tests/organisation.rs": "daa071549362da0af485182073da639094b8653ac2b3b15919e818b8aa2ab5d4",
     "core/tests/pdf_revisions.rs": "a50c148003a6a8ff896331a70e4879eb58dae39f02bbb7a5fe0b433bf5813455",
@@ -156,17 +156,17 @@
     "docs/licensing/dependency-inventory.json": "c86a26e424db68595a545e056ad6726307d9167b564590ea565bba3e08c05c32",
     "docs/spec/approved-v0.5.8.md": "68612d4dc4d0e69c61f0018fbcf67bf779559bcbb120bcd0f6c3f9333f27b7b3",
     "docs/verification/DEFERRED_MANUAL.md": "c694b9fe185c216204dfd72aa6c55d1f8d21e06c431bb50b126bce1a6b514e1c",
-    "docs/verification/HOST_INTEGRATION.md": "4aa801b330de5a353faf79de33c053fbf2bfe4c8b2c371712392373b57561022",
-    "docs/verification/TEST_PLAN.md": "025b69dfe06262befefea0fdeebd513df06a95dc5dd2ae7f47b7c4d591d9413d",
-    "docs/verification/backend-gaps.json": "7ff71592c4e4d34deaf063fe63a3ac33da8b7c1e798366fce8e8347fc4c21555",
-    "docs/verification/candidates-current.csv": "535389b19f17fe9fe7b6613c613782108697c592cb14b8cd8e4af6509ac492bc",
-    "docs/verification/inherited-current.csv": "4078c86efbeaa24762854093a0da5b62bc1cdcfb91649806db0f833271e51429",
-    "docs/verification/requirements-current.csv": "716261891144e8cfbdb9909b3a966e6440478a3a1eeb32db604211de947074e0",
+    "docs/verification/HOST_INTEGRATION.md": "d09b158f2988de7ff9f8cd2bf1ead2612e104d13715fa1e0420786dac145d162",
+    "docs/verification/TEST_PLAN.md": "a12d3d906e5c45372f510f299ac3e55ec67427ee76e58ec87d3d7ecd670b9755",
+    "docs/verification/backend-gaps.json": "bdcfbbbe5ac74e981cb6405535acd8d8495a14e9da4354cee160667b7fc02f92",
+    "docs/verification/candidates-current.csv": "b7f0179522c6eedff0bee729b0a9dcf38a127d9949d011d5d80aa1bc91e85246",
+    "docs/verification/inherited-current.csv": "1104c7daf7e2d50d82d3507efb170aacba533bd3169be48d654de6d3ec1a9fdb",
+    "docs/verification/requirements-current.csv": "297a9a761b417ea2b21b2d89ca1bb3590d53a4ac488045d425c0b093e3b564ac",
     "docs/verification/traceability-manifest.json": "15d09e00b540a512b8e0b6afd98b06824e93d743d80317963ebe18d91d3adb22",
     "rust-toolchain.toml": "c33d1f0b1b8fda448bea32d7dc867aa64947c87169fd9de7122ffccad1dd80f9",
     "tools/backend_gate.py": "f2e695b770631ef9dcff18125b737665b3153be72f0bb8992007f151fc1e762d",
     "tools/dependency_inventory.py": "51dc9dcd28cab69c8af36b976d65aa67557d6afe8827be162a431d1854232315",
-    "tools/traceability.py": "7967ed51e171ce2991d1aac0058a68ebaf9afc9565aa0c1058fdf5e41fdaf677",
+    "tools/traceability.py": "345650028ff0fc7dfcad476dc744baade48291c7d94151828de676ca584aaf60",
     "tools/validate.py": "2a25d3f4c6d487754f7b73bc0f415809cdf9e8416fe9f651f0302522a373711a",
     "tools/validate_android.py": "2b99f6c395b02a6b8e18cbc960fb689121f0bd192ac4f2866b02a2d50ca39a60"
   },
@@ -182,7 +182,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 0.552,
+      "seconds": 0.514,
       "log": "format.log"
     },
     {
@@ -200,7 +200,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 3.11,
+      "seconds": 11.37,
       "log": "lint.log"
     },
     {
@@ -214,7 +214,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 77.253,
+      "seconds": 89.827,
       "log": "tests.log"
     },
     {
@@ -229,7 +229,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 0.199,
+      "seconds": 153.492,
       "log": "release-build.log"
     },
     {
@@ -241,11 +241,15 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 0.177,
+      "seconds": 0.186,
       "log": "traceability.log"
     }
   ],
   "tests": [
+    {
+      "name": "sources::selection_tests::retained_pdf_commit_failure_does_not_publish_asset_or_change_acquisition",
+      "result": "ok"
+    },
     {
       "name": "sources::selection_tests::selected_revision_transaction_rolls_back_and_preserves_independent_evidence",
       "result": "ok"
@@ -267,11 +271,7 @@
       "result": "ok"
     },
     {
-      "name": "external_asset_backup_is_explicit_authorised_and_revocation_safe",
-      "result": "ok"
-    },
-    {
-      "name": "restore_publication_never_overwrites_live_database_and_reopens",
+      "name": "whole_library_backup_retains_trash_history_membership_undo_and_source_metadata",
       "result": "ok"
     },
     {
@@ -279,7 +279,11 @@
       "result": "ok"
     },
     {
-      "name": "whole_library_backup_retains_trash_history_membership_undo_and_source_metadata",
+      "name": "external_asset_backup_is_explicit_authorised_and_revocation_safe",
+      "result": "ok"
+    },
+    {
+      "name": "restore_publication_never_overwrites_live_database_and_reopens",
       "result": "ok"
     },
     {
@@ -323,23 +327,15 @@
       "result": "ok"
     },
     {
-      "name": "converter_preserves_deliberately_wrong_math_without_solving",
-      "result": "ok"
-    },
-    {
       "name": "offline_help_covers_recovery_and_unsearchable_ink_without_remote_dependency",
       "result": "ok"
     },
     {
+      "name": "converter_preserves_deliberately_wrong_math_without_solving",
+      "result": "ok"
+    },
+    {
       "name": "unsupported_maths_is_reported_and_xml_is_escaped",
-      "result": "ok"
-    },
-    {
-      "name": "undo_creation_preserves_original_observations_and_redo_restores_visibility",
-      "result": "ok"
-    },
-    {
-      "name": "editing_after_undo_discards_redo_branch_but_keeps_source_history",
       "result": "ok"
     },
     {
@@ -355,6 +351,14 @@
       "result": "ok"
     },
     {
+      "name": "undo_creation_preserves_original_observations_and_redo_restores_visibility",
+      "result": "ok"
+    },
+    {
+      "name": "editing_after_undo_discards_redo_branch_but_keeps_source_history",
+      "result": "ok"
+    },
+    {
       "name": "undo_redo_survives_reopen_and_never_rewinds_revisions",
       "result": "ok"
     },
@@ -367,11 +371,11 @@
       "result": "ok"
     },
     {
-      "name": "resource_installation_requires_consent_digest_and_bounded_streaming",
+      "name": "staged_probe_or_commit_failure_keeps_previous_verified_engine",
       "result": "ok"
     },
     {
-      "name": "staged_probe_or_commit_failure_keeps_previous_verified_engine",
+      "name": "resource_installation_requires_consent_digest_and_bounded_streaming",
       "result": "ok"
     },
     {
@@ -379,7 +383,7 @@
       "result": "ok"
     },
     {
-      "name": "batch_acceptance_is_selected_and_atomic_on_stale_members",
+      "name": "another_connection_changing_state_during_probe_prevents_stale_activation",
       "result": "ok"
     },
     {
@@ -387,7 +391,7 @@
       "result": "ok"
     },
     {
-      "name": "another_connection_changing_state_during_probe_prevents_stale_activation",
+      "name": "batch_acceptance_is_selected_and_atomic_on_stale_members",
       "result": "ok"
     },
     {
@@ -399,7 +403,7 @@
       "result": "ok"
     },
     {
-      "name": "legacy_v1_native_remains_readable_and_malformed_v2_membership_is_rejected",
+      "name": "removing_view_preserves_master_ink_membership_and_protection",
       "result": "ok"
     },
     {
@@ -407,31 +411,7 @@
       "result": "ok"
     },
     {
-      "name": "duplicate_titles_keep_distinct_identity_and_metadata_failures_share_status",
-      "result": "ok"
-    },
-    {
       "name": "protected_reassignment_carries_lock_even_when_unassigned",
-      "result": "ok"
-    },
-    {
-      "name": "independent_copy_preserves_ink_but_has_separate_ids_edits_modes_and_status",
-      "result": "ok"
-    },
-    {
-      "name": "reassignment_rejects_stale_review_cross_master_and_aba_history",
-      "result": "ok"
-    },
-    {
-      "name": "failed_extraction_and_reassignment_roll_back_every_membership",
-      "result": "ok"
-    },
-    {
-      "name": "removing_view_preserves_master_ink_membership_and_protection",
-      "result": "ok"
-    },
-    {
-      "name": "linked_append_is_atomic_and_keeps_master_order_and_shared_save_state",
       "result": "ok"
     },
     {
@@ -439,7 +419,19 @@
       "result": "ok"
     },
     {
-      "name": "master_trash_restore_and_purge_preserve_then_remove_exercise_state",
+      "name": "linked_append_is_atomic_and_keeps_master_order_and_shared_save_state",
+      "result": "ok"
+    },
+    {
+      "name": "legacy_v1_native_remains_readable_and_malformed_v2_membership_is_rejected",
+      "result": "ok"
+    },
+    {
+      "name": "reassignment_rejects_stale_review_cross_master_and_aba_history",
+      "result": "ok"
+    },
+    {
+      "name": "independent_copy_preserves_ink_but_has_separate_ids_edits_modes_and_status",
       "result": "ok"
     },
     {
@@ -447,7 +439,19 @@
       "result": "ok"
     },
     {
+      "name": "duplicate_titles_keep_distinct_identity_and_metadata_failures_share_status",
+      "result": "ok"
+    },
+    {
+      "name": "failed_extraction_and_reassignment_roll_back_every_membership",
+      "result": "ok"
+    },
+    {
       "name": "only_confirmed_matching_headings_extract_previously_unassigned_work",
+      "result": "ok"
+    },
+    {
+      "name": "master_trash_restore_and_purge_preserve_then_remove_exercise_state",
       "result": "ok"
     },
     {
@@ -455,19 +459,19 @@
       "result": "ok"
     },
     {
-      "name": "selected_exercise_export_excludes_unrelated_master_content_and_roundtrips",
-      "result": "ok"
-    },
-    {
       "name": "existing_membership_survives_heading_confirmation_removal_rename_and_reopen",
       "result": "ok"
     },
     {
-      "name": "shared_edits_use_one_revision_and_stale_second_connection_cannot_overwrite",
+      "name": "selected_exercise_export_excludes_unrelated_master_content_and_roundtrips",
       "result": "ok"
     },
     {
       "name": "current_native_preserves_exercise_identity_relationships_locks_modes_and_heading_rules",
+      "result": "ok"
+    },
+    {
+      "name": "shared_edits_use_one_revision_and_stale_second_connection_cannot_overwrite",
       "result": "ok"
     },
     {
@@ -491,14 +495,6 @@
       "result": "ok"
     },
     {
-      "name": "byte_budgets_are_independent_and_rejection_does_not_acknowledge_a_save",
-      "result": "ok"
-    },
-    {
-      "name": "asynchronous_writer_retry_tickets_and_lock_scopes_are_enforced",
-      "result": "ok"
-    },
-    {
       "name": "threaded_host_commits_reopens_and_rejects_unknown_version_and_fields",
       "result": "ok"
     },
@@ -507,7 +503,19 @@
       "result": "ok"
     },
     {
+      "name": "byte_budgets_are_independent_and_rejection_does_not_acknowledge_a_save",
+      "result": "ok"
+    },
+    {
       "name": "query_saturation_reserves_edit_admission_and_preserves_edit_undo_order",
+      "result": "ok"
+    },
+    {
+      "name": "asynchronous_writer_retry_tickets_and_lock_scopes_are_enforced",
+      "result": "ok"
+    },
+    {
+      "name": "dropped_receipts_still_drain_on_close_and_observers_see_final_closed_state",
       "result": "ok"
     },
     {
@@ -519,19 +527,7 @@
       "result": "ok"
     },
     {
-      "name": "dropped_receipts_still_drain_on_close_and_observers_see_final_closed_state",
-      "result": "ok"
-    },
-    {
-      "name": "relock_scope_changes_and_failed_authentication_retire_old_capabilities",
-      "result": "ok"
-    },
-    {
       "name": "ordinary_json_cannot_supply_a_review_plan_or_platform_grant",
-      "result": "ok"
-    },
-    {
-      "name": "new_link_selection_does_not_create_source_until_explicit_acceptance_and_uses_preallocated_identity",
       "result": "ok"
     },
     {
@@ -539,19 +535,11 @@
       "result": "ok"
     },
     {
-      "name": "trusted_selection_is_reviewed_and_same_revision_regrant_preserves_source_identity",
+      "name": "new_link_selection_does_not_create_source_until_explicit_acceptance_and_uses_preallocated_identity",
       "result": "ok"
     },
     {
-      "name": "selection_reviews_are_stale_safe_scope_checked_and_cleared_on_relock",
-      "result": "ok"
-    },
-    {
-      "name": "reviewed_pdf_replacement_updates_lineage_and_retires_the_old_live_read",
-      "result": "ok"
-    },
-    {
-      "name": "changed_revision_can_be_reacquired_from_revoked_state_without_silent_anchor_relocation",
+      "name": "relock_scope_changes_and_failed_authentication_retire_old_capabilities",
       "result": "ok"
     },
     {
@@ -559,7 +547,15 @@
       "result": "ok"
     },
     {
+      "name": "selection_reviews_are_stale_safe_scope_checked_and_cleared_on_relock",
+      "result": "ok"
+    },
+    {
       "name": "revocation_and_missing_sources_retire_reads_without_touching_authored_work",
+      "result": "ok"
+    },
+    {
+      "name": "changed_revision_can_be_reacquired_from_revoked_state_without_silent_anchor_relocation",
       "result": "ok"
     },
     {
@@ -567,7 +563,15 @@
       "result": "ok"
     },
     {
+      "name": "reviewed_pdf_replacement_updates_lineage_and_retires_the_old_live_read",
+      "result": "ok"
+    },
+    {
       "name": "bounded_selection_plans_can_be_released_and_cannot_be_supplied_as_json_grants",
+      "result": "ok"
+    },
+    {
+      "name": "trusted_selection_is_reviewed_and_same_revision_regrant_preserves_source_identity",
       "result": "ok"
     },
     {
@@ -575,11 +579,31 @@
       "result": "ok"
     },
     {
+      "name": "staged_retention_cannot_survive_relock_replay_or_wrong_pdf_bytes",
+      "result": "ok"
+    },
+    {
+      "name": "retained_pdf_streaming_is_explicit_atomic_bounded_and_content_checked",
+      "result": "ok"
+    },
+    {
+      "name": "retained_pdf_lease_shares_capacity_and_preserves_old_revision_under_new_source_edition",
+      "result": "ok"
+    },
+    {
+      "name": "retained_pdf_lock_applies_to_metadata_chunks_and_staging_even_with_independent_authority",
+      "result": "ok"
+    },
+    {
+      "name": "independent_pdf_retention_survives_source_revoke_but_not_its_own_revoke_or_locks",
+      "result": "ok"
+    },
+    {
       "name": "invalid_objects_reject_duplicate_ids_ragged_cells_and_nonfinite_axes",
       "result": "ok"
     },
     {
-      "name": "images_cannot_bypass_locks_even_after_replacing_visible_content",
+      "name": "table_cell_edit_preserves_identity_neighbours_and_source_ink",
       "result": "ok"
     },
     {
@@ -587,11 +611,11 @@
       "result": "ok"
     },
     {
-      "name": "canvas_embeds_keep_independent_pinned_cameras_and_reject_cycles",
+      "name": "images_cannot_bypass_locks_even_after_replacing_visible_content",
       "result": "ok"
     },
     {
-      "name": "table_cell_edit_preserves_identity_neighbours_and_source_ink",
+      "name": "canvas_embeds_keep_independent_pinned_cameras_and_reject_cycles",
       "result": "ok"
     },
     {
@@ -607,10 +631,6 @@
       "result": "ok"
     },
     {
-      "name": "stale_edit_and_interrupted_move_do_not_change_saved_state",
-      "result": "ok"
-    },
-    {
       "name": "locked_dependencies_disclose_presence_without_name_or_id",
       "result": "ok"
     },
@@ -623,15 +643,19 @@
       "result": "ok"
     },
     {
-      "name": "trash_dependency_review_restore_and_permanent_broken_link",
-      "result": "ok"
-    },
-    {
       "name": "chronology_filters_by_actual_creation_without_journals",
       "result": "ok"
     },
     {
       "name": "module_moves_check_descendants_cycles_and_depth_atomically",
+      "result": "ok"
+    },
+    {
+      "name": "trash_dependency_review_restore_and_permanent_broken_link",
+      "result": "ok"
+    },
+    {
+      "name": "stale_edit_and_interrupted_move_do_not_change_saved_state",
       "result": "ok"
     },
     {
@@ -655,15 +679,7 @@
       "result": "ok"
     },
     {
-      "name": "both_protected_export_paths_require_fresh_authentication",
-      "result": "ok"
-    },
-    {
       "name": "export_plan_cannot_survive_later_lock_or_source_change",
-      "result": "ok"
-    },
-    {
-      "name": "raw_ink_requires_deliberate_inclusion_and_subset_export_never_follows_links",
       "result": "ok"
     },
     {
@@ -676,6 +692,14 @@
     },
     {
       "name": "hostile_cross_kind_identifier_aliases_are_rejected_before_import",
+      "result": "ok"
+    },
+    {
+      "name": "raw_ink_requires_deliberate_inclusion_and_subset_export_never_follows_links",
+      "result": "ok"
+    },
+    {
+      "name": "both_protected_export_paths_require_fresh_authentication",
       "result": "ok"
     },
     {
@@ -723,10 +747,6 @@
       "result": "ok"
     },
     {
-      "name": "locked_ink_and_proposals_cannot_be_sent_or_reviewed_without_access",
-      "result": "ok"
-    },
-    {
       "name": "panicking_model_probe_becomes_failed_readiness_without_disabling_notes",
       "result": "ok"
     },
@@ -735,7 +755,7 @@
       "result": "ok"
     },
     {
-      "name": "model_switch_and_remove_leave_accepted_content_and_raw_strokes",
+      "name": "locked_ink_and_proposals_cannot_be_sent_or_reviewed_without_access",
       "result": "ok"
     },
     {
@@ -747,6 +767,10 @@
       "result": "ok"
     },
     {
+      "name": "model_switch_and_remove_leave_accepted_content_and_raw_strokes",
+      "result": "ok"
+    },
+    {
       "name": "proposal_review_acceptance_and_source_survive_reopen",
       "result": "ok"
     },
@@ -755,11 +779,11 @@
       "result": "ok"
     },
     {
-      "name": "failed_migration_rolls_back_and_newer_schema_is_not_downgraded",
+      "name": "process_exit_before_and_after_commit_preserves_correct_durable_boundary",
       "result": "ok"
     },
     {
-      "name": "process_exit_before_and_after_commit_preserves_correct_durable_boundary",
+      "name": "failed_migration_rolls_back_and_newer_schema_is_not_downgraded",
       "result": "ok"
     },
     {
@@ -771,11 +795,11 @@
       "result": "ok"
     },
     {
-      "name": "selected_region_receives_only_selected_vector_strokes_and_commits_only_it",
+      "name": "regions_split_merge_without_replacing_observations_and_undo_restores_partition",
       "result": "ok"
     },
     {
-      "name": "regions_split_merge_without_replacing_observations_and_undo_restores_partition",
+      "name": "selected_region_receives_only_selected_vector_strokes_and_commits_only_it",
       "result": "ok"
     },
     {
@@ -799,11 +823,11 @@
       "result": "ok"
     },
     {
-      "name": "source_link_never_bypasses_note_lock_or_creates_network_action",
+      "name": "q383_revocation_removes_caches_preserves_authored_work_and_independent_snapshot",
       "result": "ok"
     },
     {
-      "name": "q383_revocation_removes_caches_preserves_authored_work_and_independent_snapshot",
+      "name": "source_link_never_bypasses_note_lock_or_creates_network_action",
       "result": "ok"
     },
     {
@@ -815,11 +839,15 @@
       "result": "ok"
     },
     {
-      "name": "exact_code_and_incorrect_math_survive_edits_and_restore_as_new_revision",
+      "name": "bad_samples_duplicate_ids_and_unordered_strokes_are_rejected",
       "result": "ok"
     },
     {
-      "name": "bad_samples_duplicate_ids_and_unordered_strokes_are_rejected",
+      "name": "active_use_retirement_keeps_checkpoint_and_originals",
+      "result": "ok"
+    },
+    {
+      "name": "exact_code_and_incorrect_math_survive_edits_and_restore_as_new_revision",
       "result": "ok"
     },
     {
@@ -831,15 +859,11 @@
       "result": "ok"
     },
     {
+      "name": "stale_edits_and_view_toggles_never_mutate_source",
+      "result": "ok"
+    },
+    {
       "name": "mode_defaults_and_inheritance_do_not_convert_existing_ink",
-      "result": "ok"
-    },
-    {
-      "name": "search_matches_literal_accepted_content_never_raw_or_locked_data",
-      "result": "ok"
-    },
-    {
-      "name": "active_use_retirement_keeps_checkpoint_and_originals",
       "result": "ok"
     },
     {
@@ -847,7 +871,7 @@
       "result": "ok"
     },
     {
-      "name": "stale_edits_and_view_toggles_never_mutate_source",
+      "name": "search_matches_literal_accepted_content_never_raw_or_locked_data",
       "result": "ok"
     },
     {
@@ -856,9 +880,9 @@
     }
   ],
   "backend_accepted": false,
-  "finished_utc": "2026-10-23T14:09:57.915158+00:00",
+  "finished_utc": "2026-10-23T14:26:52.048375+00:00",
   "totals": {
-    "passed": 152,
+    "passed": 158,
     "failed": 0,
     "ignored": 0
   }
