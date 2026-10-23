@@ -1,0 +1,33 @@
+/home/linus/Projects/software/note-taking-app/repo/android/backend/src/main/java/org/stemnotebook/backend/NotebookBackend.kt:149: Error: Suspicious indentation: This is indented but is not nested under the previous expression (if (cancelled && str...) [SuspiciousIndentation]
+                    if (cancelled && stroke.sequence <= session.latestSequence) return JournaledCaptureSession.Receipt(ticket, revision, true, false, true)
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    /home/linus/Projects/software/note-taking-app/repo/android/backend/src/main/java/org/stemnotebook/backend/NotebookBackend.kt:146: Previous statement here
+
+   Explanation for issues of type "SuspiciousIndentation":
+   This check looks for cases where the indentation suggests a grouping that
+   isn't actually there in the code. A common example of this would be
+   something like
+   if (column > width)
+       line++
+       column = 0
+   Here, the column = 0 line will be executed every single time, not just if
+   the condition is true.
+
+   Available options:
+
+   **always-run** (default is false):
+   Whether this check should be included while editing.
+
+   While you're editing, it's common to have a temporary situation where you have suspicious indentation scenarios -- e.g. you start typing an `if` statement on the line above something you want to make conditional, and you haven't indented it yet. It can be distracting and misleading to suddenly have both statements light up as errors. Therefore, lint will avoid including this check when running on the fly in the editor, unless it looks like the file has not been recently edited. With this option, you can turn it on in all cases.
+
+   To configure this option, use a `lint.xml` file with an <option> like this:
+
+   ```xml
+   <lint>
+       <issue id="SuspiciousIndentation">
+           <option name="always-run" value="false" />
+       </issue>
+   </lint>
+   ```
+
+1 errors, 0 warnings

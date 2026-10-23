@@ -1,0 +1,1 @@
+Source 1055a11: Rust format/lint/230 tests/release passed; traceability failed because the final fixtures were added after generating the maps. Android completed successfully with 129 tests. These are original failed-attempt artifacts, not acceptance evidence. Maps were regenerated without weakening checks before the next clean-source run.
