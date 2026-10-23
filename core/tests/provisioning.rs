@@ -85,3 +85,55 @@ fn resume_discards_only_unacknowledged_tail_after_simulated_interruption() {
     t.append(3, b"def").unwrap();
     t.finish().unwrap();
 }
+
+#[test]
+fn worker_file_clone_keeps_resource_reserved_after_owner_is_dropped() {
+    use std::io::{Read, Seek, SeekFrom};
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("worker.resource");
+    let bytes = b"synthetic worker resource";
+    std::fs::write(&path, bytes).unwrap();
+    let pool = ResourceLeases::default();
+    let owner = pool.acquire(&path, &resource_digest(bytes)).unwrap();
+    let mut worker = owner.file().unwrap();
+    drop(owner);
+    assert!(matches!(pool.remove(&path), Err(Error::Conflict)));
+    let mut observed = Vec::new();
+    worker.read_to_end(&mut observed).unwrap();
+    assert_eq!(observed, bytes);
+    worker.seek(SeekFrom::Start(0)).unwrap();
+    drop(worker);
+    pool.remove(&path).unwrap();
+    assert!(!path.exists());
+}
+
+#[test]
+fn cloned_worker_reservations_survive_thread_transfer_until_the_last_handle_retires() {
+    use std::{io::Read, sync::mpsc, time::Duration};
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("thread.resource");
+    let bytes = b"synthetic threaded resource";
+    std::fs::write(&path, bytes).unwrap();
+    let pool = ResourceLeases::default();
+    let owner = pool.acquire(&path, &resource_digest(bytes)).unwrap();
+    let worker = owner.file().unwrap();
+    let mut last = worker.file().unwrap();
+    drop(owner);
+    drop(worker);
+    let (ready, waiting) = mpsc::channel();
+    let (release, retire) = mpsc::channel();
+    let thread = std::thread::spawn(move || {
+        let mut observed = Vec::new();
+        last.read_to_end(&mut observed).unwrap();
+        assert_eq!(observed, bytes);
+        ready.send(()).unwrap();
+        retire.recv_timeout(Duration::from_secs(5)).unwrap();
+        drop(last);
+    });
+    waiting.recv_timeout(Duration::from_secs(5)).unwrap();
+    assert!(matches!(pool.clone().remove(&path), Err(Error::Conflict)));
+    release.send(()).unwrap();
+    thread.join().unwrap();
+    pool.remove(&path).unwrap();
+    assert!(!path.exists());
+}

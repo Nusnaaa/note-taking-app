@@ -219,10 +219,16 @@ impl Transfer {
 pub struct ResourceLeases {
     state: Arc<Mutex<BTreeMap<PathBuf, usize>>>,
 }
+/// An owned read handle whose reservation survives transfer to another worker.
+/// Fields drop in declaration order: close the descriptor before releasing the
+/// reservation, so removal cannot race the final descriptor's retirement.
 pub struct ResourceLease {
+    file: std::fs::File,
+    reservation: ResourceReservation,
+}
+struct ResourceReservation {
     state: Arc<Mutex<BTreeMap<PathBuf, usize>>>,
     path: PathBuf,
-    file: std::fs::File,
 }
 impl ResourceLeases {
     pub fn acquire(&self, path: &Path, expected_sha256: &str) -> Result<ResourceLease> {
@@ -242,11 +248,14 @@ impl ResourceLeases {
             return Err(Error::Integrity);
         }
         file.seek(SeekFrom::Start(0))?;
-        *state.entry(path.clone()).or_default() += 1;
+        let count = state.entry(path.clone()).or_default();
+        *count = count.checked_add(1).ok_or(Error::ResourceLimit)?;
         Ok(ResourceLease {
-            state: self.state.clone(),
-            path,
             file,
+            reservation: ResourceReservation {
+                state: self.state.clone(),
+                path,
+            },
         })
     }
     pub fn remove(&self, path: &Path) -> Result<()> {
@@ -260,11 +269,39 @@ impl ResourceLeases {
     }
 }
 impl ResourceLease {
-    pub fn file(&self) -> Result<std::fs::File> {
-        Ok(self.file.try_clone()?)
+    /// Clone a guarded reader, never an untracked owned File. Like File::try_clone,
+    /// descriptors share the underlying seek position; callers coordinate reads.
+    pub fn file(&self) -> Result<Self> {
+        let mut state = self
+            .reservation
+            .state
+            .lock()
+            .map_err(|_| Error::WorkerFailed)?;
+        let file = self.file.try_clone()?;
+        let count = state
+            .get_mut(&self.reservation.path)
+            .ok_or(Error::Integrity)?;
+        *count = count.checked_add(1).ok_or(Error::ResourceLimit)?;
+        Ok(Self {
+            file,
+            reservation: ResourceReservation {
+                state: self.reservation.state.clone(),
+                path: self.reservation.path.clone(),
+            },
+        })
     }
 }
-impl Drop for ResourceLease {
+impl Read for ResourceLease {
+    fn read(&mut self, buffer: &mut [u8]) -> std::io::Result<usize> {
+        self.file.read(buffer)
+    }
+}
+impl Seek for ResourceLease {
+    fn seek(&mut self, position: SeekFrom) -> std::io::Result<u64> {
+        self.file.seek(position)
+    }
+}
+impl Drop for ResourceReservation {
     fn drop(&mut self) {
         if let Ok(mut state) = self.state.lock() {
             if let Some(count) = state.get_mut(&self.path) {

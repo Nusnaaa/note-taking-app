@@ -846,3 +846,21 @@ replay its exact original target/source; it cannot be retargeted. A caller retry
 old session frame probes an existing SQLite receipt before recreating a missing journal
 file, preventing a retired frame from leaving a stale pending destination behind.
 Cross-entity moves and full legacy/incomplete-record retargeting remain open.
+
+
+### Guarded model-resource reader handles
+
+`ResourceLeases.acquire(path, expected_sha256)` continues to verify explicitly supplied
+local resource bytes before admission. `ResourceLease.file()` now returns another
+owned `ResourceLease` implementing Read/Seek, rather than an untracked owned File.
+Each successful clone holds the shared pool reservation through transfer to another
+worker, even if the original lease is dropped. Like File::try_clone, cloned descriptors
+share a seek position and readers must coordinate. The descriptor closes before its
+reservation is released; pool removal conflicts until the last guarded reader retires.
+
+The Rust reader return type changes deliberately; there are no production callers of
+the old raw-file accessor in this backend. No raw owned descriptor extraction is added.
+Workers must use the same shared lease pool. This component fix does not itself wire
+recogniser adapters, mapped native resources, scheduling or isolated-process shutdown
+into the host. Those lifecycle integrations remain open. No resource installation,
+model download, executable plugin loading or handwriting egress occurs here.
