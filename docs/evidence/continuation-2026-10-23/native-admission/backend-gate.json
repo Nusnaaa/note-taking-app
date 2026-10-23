@@ -1,0 +1,17 @@
+{
+  "backend_accepted": false,
+  "production_hi_allowed": false,
+  "reasons": [
+    "A1-EXERCISES",
+    "A2-CAPTURE-HOST",
+    "A3-RICH-OBJECTS",
+    "A4-LIFECYCLE",
+    "A5-PDF-INTEGRATION",
+    "A6-FULL-PORTABILITY",
+    "A7-ANDROID-BOUNDARY",
+    "A7-COVERAGE",
+    "ANDROID_SOURCE_REVISION_MISMATCH",
+    "REQUIREMENT_COVERAGE_INCOMPLETE",
+    "INHERITED_CLAUSE_COVERAGE_INCOMPLETE"
+  ]
+}

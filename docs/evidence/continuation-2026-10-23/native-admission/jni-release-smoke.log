@@ -1,0 +1,4 @@
+$ /tmp/stem-build-tools/jdk-17.0.21+9/bin/java -Xcheck:jni -Djava.library.path=target/release -cp target/jvm-test BoundarySmoke
+exit_code=0
+
+PASS: JNI Unicode, platform-verifier callback, relock, restart, malformed input, closed handles and independent registry access (7)

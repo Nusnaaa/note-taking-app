@@ -1,8 +1,8 @@
 {
-  "started_utc": "2026-10-22T11:08:59.868282+00:00",
-  "source_commit": "653c151bb6a755294a4215853b6a61d5d29f30a0",
+  "started_utc": "2026-10-23T10:26:10.813452+00:00",
+  "source_commit": "588d7d96456531c1d2004c855fa892be85becab3",
   "working_tree_before": "",
-  "full_working_tree_before": " M docs/evidence/latest/lint.log\n M docs/evidence/latest/release-build.log\n M docs/evidence/latest/tests.log\n M docs/evidence/latest/validation.json\n?? docs/evidence/latest/android-elf.log\n?? docs/evidence/latest/android-first-attempt.json\n?? docs/evidence/latest/android-first-attempt.log\n?? docs/evidence/latest/android-gradle.log\n?? docs/evidence/latest/android-native.log\n?? docs/evidence/latest/android-validation.json\n?? docs/evidence/latest/cli-smoke.log\n?? docs/evidence/latest/jni-compile.log\n?? docs/evidence/latest/jni-library.log\n?? docs/evidence/latest/jni-smoke.log",
+  "full_working_tree_before": "",
   "build_environment": {
     "CARGO_INCREMENTAL": "0",
     "CARGO_BUILD_JOBS": "2"
@@ -10,7 +10,7 @@
   "platform": "Linux x86_64",
   "cargo": "cargo 1.90.0 (840b83a10 2025-07-30)",
   "source_sha256": {
-    ".gitignore": "a3be7c19e637146cb7994d6dae78f85ece1b0e1e00d2eb9335531bead11f789e",
+    ".gitignore": "47df1768ba52b16ac4fd14a3042d10ecc149fe248e1ddeb2b100a177d279f9f9",
     "AGENTS.md": "096d49ab5f84e027e21d194a534683b066bc92a5248cc1d82ae1731f2b9572d3",
     "Cargo.lock": "2cf6fcdda6de3477e914f44681a2d46dca4e8f828c216f9b39a3fe1c3766d42e",
     "Cargo.toml": "977a9d2f34416262f15b7d1eb91a2f97f950f6f4b947576e28f0df57cc6acff8",
@@ -35,8 +35,8 @@
     "android/gradle.properties": "ffa11c46b1c6cd65f86aa9c8ddafa56fd440a8a8852b9631f61eb1207bb2e8f9",
     "android/settings.gradle.kts": "6436c45283cacfd750b43e199f4ce8703078f5c240db2d0e64b4d702283973c4",
     "bridge/Cargo.toml": "af12a5ff8d095ac69ab0137f1694d789f862f8d3efc2c0d2c6345cdb7ac31db1",
-    "bridge/src/lib.rs": "36eade218a5eaf51b7011782ab617e1295b4b08cd04d977cfc7698cba7aa73e9",
-    "bridge/tests/java/BoundarySmoke.java": "05cc5951fedca1a49b6e160d28ecbe4b5f16906806e8252216c663f807bb16c5",
+    "bridge/src/lib.rs": "4aa48208f0bbc65cc28aeb1206c21ec95092cb3f7f08a5a6b5fa9ec3e7e6095d",
+    "bridge/tests/java/BoundarySmoke.java": "8120dd5e0066dfa755103e4d0838d2887dab19ca27f377d871a961ccf63b1660",
     "core/Cargo.toml": "fb6f7af0edcfe81d72ddd40707fec658e16e7336cdcaa668085716e79021a5be",
     "core/migrations/001.sql": "99dad6121fe73b423becb107a9b446855adc6fc652f5927a2da2bdb4167de77c",
     "core/migrations/002.sql": "65a83aaece959e6dca07080c3b1d4c24bafd6e4c962dd9ec8ab3874aea137c7d",
@@ -58,7 +58,8 @@
     "core/src/crypto.rs": "090a892bbf649583dda78e915be5de826bd4098b8381133e0a6975e18f4330b4",
     "core/src/export.rs": "5b070a13a1a1a5ce897908f0b77c11d90c66a7d1a541efed28fd9d80b2229d7d",
     "core/src/help.rs": "6e590f88e4d92923f32ce1c9c0557c97a10dff8bb8039b16e4c034de809f4369",
-    "core/src/host.rs": "0ab4d2f14c8fb84cccf959fee11551da18d238709614eebfe053307e781feab2",
+    "core/src/host.rs": "ddc303cfae0b7362288b166255d3f12e9cd54e3da68a142e0fd1902b2933f0a7",
+    "core/src/host/mailbox.rs": "b28b65e2af428499079390df149be5356a3265fcced6d660be72515daa9f6aed",
     "core/src/ink.rs": "bedf7b2bf0fbd065084caefb9711f1b7f4a849fda6d295815cbe847ec3ba7467",
     "core/src/lib.rs": "dd8a3fb56d844e4c1967586e686499b0779319bfa22ea2e888c3bb1eda4b4396",
     "core/src/objects.rs": "071a855f967d86b13f2549667538bf8e90d49003f503d95feed766a52d60440b",
@@ -87,7 +88,7 @@
     "core/tests/exercise_migrations.rs": "4e4a97ab14b1b10f89c01e2b26fc922838bc2814e2c0b332b2cc0f1bc54f2b52",
     "core/tests/exercises.rs": "b6a1d9ed5ba583dd9fbccd5ccbc5d94bd9cef0b7e5cd4016d040d42957106787",
     "core/tests/export.rs": "d1acfbe1f9993519afc273b72ebdb96694222836864773b6746a873c349fa4ae",
-    "core/tests/host.rs": "b7edede0b43941cc6c087d10c8801463c3d6b03ebb0323c60113b3e798a34472",
+    "core/tests/host.rs": "3039ced83a487b5ca1329875da5f4ac58ce05f99725a6d167a2934d1ab78291c",
     "core/tests/objects.rs": "08b41faf90250c5de13cd640328417189a5791be99142aff2903f49e459aafd4",
     "core/tests/organisation.rs": "daa071549362da0af485182073da639094b8653ac2b3b15919e818b8aa2ab5d4",
     "core/tests/pdf_revisions.rs": "a50c148003a6a8ff896331a70e4879eb58dae39f02bbb7a5fe0b433bf5813455",
@@ -139,25 +140,25 @@
     "docs/licensing/dependency-inventory.json": "c86a26e424db68595a545e056ad6726307d9167b564590ea565bba3e08c05c32",
     "docs/spec/approved-v0.5.8.md": "68612d4dc4d0e69c61f0018fbcf67bf779559bcbb120bcd0f6c3f9333f27b7b3",
     "docs/verification/DEFERRED_MANUAL.md": "c694b9fe185c216204dfd72aa6c55d1f8d21e06c431bb50b126bce1a6b514e1c",
-    "docs/verification/HOST_INTEGRATION.md": "4b4c3040d506b5bec875de07f026fd04cefd5d8a8f766a12c8ebfded9e73bcca",
+    "docs/verification/HOST_INTEGRATION.md": "48996879b6009e5478ce72010b4f5131b3bca96aabe9462aa22913e7b76e71b8",
     "docs/verification/TEST_PLAN.md": "4e19164b01557f79866f52e4f9218db32a327c05263e6d45f7f269e9f1264972",
-    "docs/verification/backend-gaps.json": "68c41371e2b0782f71357a24272047f24c14986b3023c612d8bfa29ae962054b",
-    "docs/verification/candidates-current.csv": "a94aa3cec1f5285d308547857070acbbd891564e57b821f2780a91931c85905d",
-    "docs/verification/inherited-current.csv": "3ac7edfedcbcecf603eee3bdb79e44a9419c26d7778221d488af4e02add667a9",
-    "docs/verification/requirements-current.csv": "145e5f6389d4b93be65af6dca37f0a7e9de017db78bcd2bbadd9d1b68b36caa7",
+    "docs/verification/backend-gaps.json": "d792bc2a68f1886f72443d558c1ced2f16a9e1aedf82c54a67894e5ef5f73823",
+    "docs/verification/candidates-current.csv": "b3ddb185afa989fd2e541883fd0f38a64b6093b4def8d5037113e9cdcf3bb677",
+    "docs/verification/inherited-current.csv": "6c66ee881ef9e6568033a3c864f149344498636adaa38ada2a018e4e16905c4d",
+    "docs/verification/requirements-current.csv": "cf5f97061355e31aa49763e968296444306ca26dfa59fb09e372219ad1674c32",
     "docs/verification/traceability-manifest.json": "15d09e00b540a512b8e0b6afd98b06824e93d743d80317963ebe18d91d3adb22",
     "rust-toolchain.toml": "c33d1f0b1b8fda448bea32d7dc867aa64947c87169fd9de7122ffccad1dd80f9",
     "tools/backend_gate.py": "f2e695b770631ef9dcff18125b737665b3153be72f0bb8992007f151fc1e762d",
     "tools/dependency_inventory.py": "51dc9dcd28cab69c8af36b976d65aa67557d6afe8827be162a431d1854232315",
-    "tools/traceability.py": "ecde2b21efb4c204cffc0310210130cc0158e26f726e32986de3a1e2f42b3718",
+    "tools/traceability.py": "48f89d2b5d10160f0b495112b9e4215e25527d10d89aa5011f3447475a99191d",
     "tools/validate.py": "2a25d3f4c6d487754f7b73bc0f415809cdf9e8416fe9f651f0302522a373711a",
-    "tools/validate_android.py": "7239d189bf327f6745e85d7b3195fbee1f116c35e11978a4179d63e52fd811ae"
+    "tools/validate_android.py": "fd4131afa8b59e70f9cc034f551641817aed0ea6d9b8b1147a4ef30ac95be785"
   },
   "checks": [
     {
       "name": "format",
       "command": [
-        "/root/.cargo/bin/cargo",
+        "/tmp/stem-cargo/bin/cargo",
         "fmt",
         "--all",
         "--",
@@ -165,13 +166,13 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 0.28,
+      "seconds": 0.513,
       "log": "format.log"
     },
     {
       "name": "lint",
       "command": [
-        "/root/.cargo/bin/cargo",
+        "/tmp/stem-cargo/bin/cargo",
         "clippy",
         "--workspace",
         "--all-targets",
@@ -183,13 +184,13 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 2.214,
+      "seconds": 0.276,
       "log": "lint.log"
     },
     {
       "name": "tests",
       "command": [
-        "/root/.cargo/bin/cargo",
+        "/tmp/stem-cargo/bin/cargo",
         "test",
         "--workspace",
         "--locked",
@@ -197,13 +198,13 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 38.642,
+      "seconds": 74.138,
       "log": "tests.log"
     },
     {
       "name": "release-build",
       "command": [
-        "/root/.cargo/bin/cargo",
+        "/tmp/stem-cargo/bin/cargo",
         "build",
         "--workspace",
         "--release",
@@ -212,19 +213,19 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 0.14,
+      "seconds": 329.107,
       "log": "release-build.log"
     },
     {
       "name": "traceability",
       "command": [
-        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/usr/bin/python3",
         "tools/traceability.py",
         "--check"
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 0.104,
+      "seconds": 0.174,
       "log": "traceability.log"
     }
   ],
@@ -238,11 +239,15 @@
       "result": "ok"
     },
     {
+      "name": "rich_library_restores_objects_views_anchors_proposals_profiles_and_capture_receipts",
+      "result": "ok"
+    },
+    {
       "name": "backup_requires_deliberate_ink_scope_and_fresh_protected_authentication",
       "result": "ok"
     },
     {
-      "name": "rich_library_restores_objects_views_anchors_proposals_profiles_and_capture_receipts",
+      "name": "external_asset_backup_is_explicit_authorised_and_revocation_safe",
       "result": "ok"
     },
     {
@@ -251,10 +256,6 @@
     },
     {
       "name": "restore_publication_never_overwrites_live_database_and_reopens",
-      "result": "ok"
-    },
-    {
-      "name": "external_asset_backup_is_explicit_authorised_and_revocation_safe",
       "result": "ok"
     },
     {
@@ -274,11 +275,11 @@
       "result": "ok"
     },
     {
-      "name": "observed_samples_are_exact_and_invalid_events_leave_capture_recoverable",
+      "name": "palm_navigation_and_stylus_cancellation_do_not_commit_accidental_ink",
       "result": "ok"
     },
     {
-      "name": "palm_navigation_and_stylus_cancellation_do_not_commit_accidental_ink",
+      "name": "observed_samples_are_exact_and_invalid_events_leave_capture_recoverable",
       "result": "ok"
     },
     {
@@ -298,6 +299,10 @@
       "result": "ok"
     },
     {
+      "name": "code_plaintext_is_exact_and_markdown_fence_cannot_be_closed_by_content",
+      "result": "ok"
+    },
+    {
       "name": "converter_preserves_deliberately_wrong_math_without_solving",
       "result": "ok"
     },
@@ -306,15 +311,11 @@
       "result": "ok"
     },
     {
-      "name": "code_plaintext_is_exact_and_markdown_fence_cannot_be_closed_by_content",
-      "result": "ok"
-    },
-    {
       "name": "offline_help_covers_recovery_and_unsearchable_ink_without_remote_dependency",
       "result": "ok"
     },
     {
-      "name": "editing_after_undo_discards_redo_branch_but_keeps_source_history",
+      "name": "undo_requires_current_locks_and_cannot_remove_protection",
       "result": "ok"
     },
     {
@@ -326,7 +327,7 @@
       "result": "ok"
     },
     {
-      "name": "undo_requires_current_locks_and_cannot_remove_protection",
+      "name": "editing_after_undo_discards_redo_branch_but_keeps_source_history",
       "result": "ok"
     },
     {
@@ -346,15 +347,7 @@
       "result": "ok"
     },
     {
-      "name": "resource_installation_requires_consent_digest_and_bounded_streaming",
-      "result": "ok"
-    },
-    {
       "name": "staged_probe_or_commit_failure_keeps_previous_verified_engine",
-      "result": "ok"
-    },
-    {
-      "name": "another_connection_changing_state_during_probe_prevents_stale_activation",
       "result": "ok"
     },
     {
@@ -362,11 +355,19 @@
       "result": "ok"
     },
     {
-      "name": "installed_provenance_and_profiles_reopen_without_fabricated_runtime_readiness",
+      "name": "resource_installation_requires_consent_digest_and_bounded_streaming",
+      "result": "ok"
+    },
+    {
+      "name": "another_connection_changing_state_during_probe_prevents_stale_activation",
       "result": "ok"
     },
     {
       "name": "batch_acceptance_is_selected_and_atomic_on_stale_members",
+      "result": "ok"
+    },
+    {
+      "name": "installed_provenance_and_profiles_reopen_without_fabricated_runtime_readiness",
       "result": "ok"
     },
     {
@@ -378,31 +379,7 @@
       "result": "ok"
     },
     {
-      "name": "extracting_a_protected_heading_does_not_disclose_its_title",
-      "result": "ok"
-    },
-    {
-      "name": "duplicate_titles_keep_distinct_identity_and_metadata_failures_share_status",
-      "result": "ok"
-    },
-    {
-      "name": "exercise_locks_cover_master_search_history_inference_links_export_and_deletion",
-      "result": "ok"
-    },
-    {
-      "name": "independent_copy_preserves_ink_but_has_separate_ids_edits_modes_and_status",
-      "result": "ok"
-    },
-    {
-      "name": "failed_extraction_and_reassignment_roll_back_every_membership",
-      "result": "ok"
-    },
-    {
-      "name": "flat_and_search_views_follow_visibility_and_permissions_without_copying_content",
-      "result": "ok"
-    },
-    {
-      "name": "linked_append_is_atomic_and_keeps_master_order_and_shared_save_state",
+      "name": "removing_view_preserves_master_ink_membership_and_protection",
       "result": "ok"
     },
     {
@@ -410,11 +387,7 @@
       "result": "ok"
     },
     {
-      "name": "master_trash_restore_and_purge_preserve_then_remove_exercise_state",
-      "result": "ok"
-    },
-    {
-      "name": "reassignment_rejects_stale_review_cross_master_and_aba_history",
+      "name": "flat_and_search_views_follow_visibility_and_permissions_without_copying_content",
       "result": "ok"
     },
     {
@@ -422,7 +395,35 @@
       "result": "ok"
     },
     {
-      "name": "existing_membership_survives_heading_confirmation_removal_rename_and_reopen",
+      "name": "reassignment_rejects_stale_review_cross_master_and_aba_history",
+      "result": "ok"
+    },
+    {
+      "name": "linked_append_is_atomic_and_keeps_master_order_and_shared_save_state",
+      "result": "ok"
+    },
+    {
+      "name": "duplicate_titles_keep_distinct_identity_and_metadata_failures_share_status",
+      "result": "ok"
+    },
+    {
+      "name": "extracting_a_protected_heading_does_not_disclose_its_title",
+      "result": "ok"
+    },
+    {
+      "name": "independent_copy_preserves_ink_but_has_separate_ids_edits_modes_and_status",
+      "result": "ok"
+    },
+    {
+      "name": "exercise_locks_cover_master_search_history_inference_links_export_and_deletion",
+      "result": "ok"
+    },
+    {
+      "name": "master_trash_restore_and_purge_preserve_then_remove_exercise_state",
+      "result": "ok"
+    },
+    {
+      "name": "failed_extraction_and_reassignment_roll_back_every_membership",
       "result": "ok"
     },
     {
@@ -430,19 +431,7 @@
       "result": "ok"
     },
     {
-      "name": "selected_exercise_export_excludes_unrelated_master_content_and_roundtrips",
-      "result": "ok"
-    },
-    {
-      "name": "removing_view_preserves_master_ink_membership_and_protection",
-      "result": "ok"
-    },
-    {
-      "name": "shared_edits_use_one_revision_and_stale_second_connection_cannot_overwrite",
-      "result": "ok"
-    },
-    {
-      "name": "current_native_preserves_exercise_identity_relationships_locks_modes_and_heading_rules",
+      "name": "existing_membership_survives_heading_confirmation_removal_rename_and_reopen",
       "result": "ok"
     },
     {
@@ -450,7 +439,15 @@
       "result": "ok"
     },
     {
-      "name": "pagination_never_bisects_indivisible_work_or_silently_scales",
+      "name": "selected_exercise_export_excludes_unrelated_master_content_and_roundtrips",
+      "result": "ok"
+    },
+    {
+      "name": "current_native_preserves_exercise_identity_relationships_locks_modes_and_heading_rules",
+      "result": "ok"
+    },
+    {
+      "name": "shared_edits_use_one_revision_and_stale_second_connection_cannot_overwrite",
       "result": "ok"
     },
     {
@@ -458,7 +455,15 @@
       "result": "ok"
     },
     {
+      "name": "pagination_never_bisects_indivisible_work_or_silently_scales",
+      "result": "ok"
+    },
+    {
       "name": "diagram_svg_escapes_labels_and_canvas_scope_rejects_hidden_payload",
+      "result": "ok"
+    },
+    {
+      "name": "converted_only_export_never_reads_or_discloses_original_ink",
       "result": "ok"
     },
     {
@@ -466,7 +471,11 @@
       "result": "ok"
     },
     {
-      "name": "converted_only_export_never_reads_or_discloses_original_ink",
+      "name": "byte_budgets_are_independent_and_rejection_does_not_acknowledge_a_save",
+      "result": "ok"
+    },
+    {
+      "name": "verifier_panic_fails_closed_without_killing_the_writer_or_retaining_access",
       "result": "ok"
     },
     {
@@ -478,6 +487,10 @@
       "result": "ok"
     },
     {
+      "name": "query_saturation_reserves_edit_admission_and_preserves_edit_undo_order",
+      "result": "ok"
+    },
+    {
       "name": "host_exercise_edits_share_identity_with_master_and_layout_undo_survives_restart",
       "result": "ok"
     },
@@ -486,11 +499,11 @@
       "result": "ok"
     },
     {
-      "name": "invalid_objects_reject_duplicate_ids_ragged_cells_and_nonfinite_axes",
+      "name": "dropped_receipts_still_drain_on_close_and_observers_see_final_closed_state",
       "result": "ok"
     },
     {
-      "name": "images_cannot_bypass_locks_even_after_replacing_visible_content",
+      "name": "invalid_objects_reject_duplicate_ids_ragged_cells_and_nonfinite_axes",
       "result": "ok"
     },
     {
@@ -498,11 +511,11 @@
       "result": "ok"
     },
     {
-      "name": "protected_canvas_cannot_leak_through_embed_or_group",
+      "name": "images_cannot_bypass_locks_even_after_replacing_visible_content",
       "result": "ok"
     },
     {
-      "name": "canvas_embeds_keep_independent_pinned_cameras_and_reject_cycles",
+      "name": "protected_canvas_cannot_leak_through_embed_or_group",
       "result": "ok"
     },
     {
@@ -510,7 +523,7 @@
       "result": "ok"
     },
     {
-      "name": "view_settings_and_protected_placeholders_reopen_without_secret_text",
+      "name": "canvas_embeds_keep_independent_pinned_cameras_and_reject_cycles",
       "result": "ok"
     },
     {
@@ -518,15 +531,7 @@
       "result": "ok"
     },
     {
-      "name": "delete_review_is_invalidated_by_new_dependency",
-      "result": "ok"
-    },
-    {
-      "name": "stale_edit_and_interrupted_move_do_not_change_saved_state",
-      "result": "ok"
-    },
-    {
-      "name": "app_lock_and_inherited_protection_do_not_grant_via_link_or_move",
+      "name": "view_settings_and_protected_placeholders_reopen_without_secret_text",
       "result": "ok"
     },
     {
@@ -534,7 +539,11 @@
       "result": "ok"
     },
     {
-      "name": "module_moves_check_descendants_cycles_and_depth_atomically",
+      "name": "delete_review_is_invalidated_by_new_dependency",
+      "result": "ok"
+    },
+    {
+      "name": "trash_dependency_review_restore_and_permanent_broken_link",
       "result": "ok"
     },
     {
@@ -542,7 +551,15 @@
       "result": "ok"
     },
     {
-      "name": "trash_dependency_review_restore_and_permanent_broken_link",
+      "name": "app_lock_and_inherited_protection_do_not_grant_via_link_or_move",
+      "result": "ok"
+    },
+    {
+      "name": "stale_edit_and_interrupted_move_do_not_change_saved_state",
+      "result": "ok"
+    },
+    {
+      "name": "module_moves_check_descendants_cycles_and_depth_atomically",
       "result": "ok"
     },
     {
@@ -566,11 +583,15 @@
       "result": "ok"
     },
     {
-      "name": "export_plan_cannot_survive_later_lock_or_source_change",
+      "name": "corrupt_native_import_and_interruption_do_not_touch_existing_documents",
       "result": "ok"
     },
     {
-      "name": "corrupt_native_import_and_interruption_do_not_touch_existing_documents",
+      "name": "hostile_native_relationships_rejected_even_with_recomputed_checksum",
+      "result": "ok"
+    },
+    {
+      "name": "export_plan_cannot_survive_later_lock_or_source_change",
       "result": "ok"
     },
     {
@@ -582,15 +603,11 @@
       "result": "ok"
     },
     {
-      "name": "hostile_native_relationships_rejected_even_with_recomputed_checksum",
+      "name": "raw_ink_requires_deliberate_inclusion_and_subset_export_never_follows_links",
       "result": "ok"
     },
     {
       "name": "concurrent_change_during_export_authentication_invalidates_output",
-      "result": "ok"
-    },
-    {
-      "name": "raw_ink_requires_deliberate_inclusion_and_subset_export_never_follows_links",
       "result": "ok"
     },
     {
@@ -614,15 +631,11 @@
       "result": "ok"
     },
     {
-      "name": "resume_discards_only_unacknowledged_tail_after_simulated_interruption",
-      "result": "ok"
-    },
-    {
       "name": "local_install_resume_retry_and_integrity_precede_publication",
       "result": "ok"
     },
     {
-      "name": "failed_resource_reverification_clears_previous_readiness",
+      "name": "resume_discards_only_unacknowledged_tail_after_simulated_interruption",
       "result": "ok"
     },
     {
@@ -630,7 +643,15 @@
       "result": "ok"
     },
     {
+      "name": "failed_resource_reverification_clears_previous_readiness",
+      "result": "ok"
+    },
+    {
       "name": "readiness_requires_consent_integrity_and_actual_probe",
+      "result": "ok"
+    },
+    {
+      "name": "locked_ink_and_proposals_cannot_be_sent_or_reviewed_without_access",
       "result": "ok"
     },
     {
@@ -642,7 +663,7 @@
       "result": "ok"
     },
     {
-      "name": "locked_ink_and_proposals_cannot_be_sent_or_reviewed_without_access",
+      "name": "model_switch_and_remove_leave_accepted_content_and_raw_strokes",
       "result": "ok"
     },
     {
@@ -651,10 +672,6 @@
     },
     {
       "name": "rejection_and_failed_atomic_accept_leave_ink_untouched",
-      "result": "ok"
-    },
-    {
-      "name": "model_switch_and_remove_leave_accepted_content_and_raw_strokes",
       "result": "ok"
     },
     {
@@ -710,11 +727,11 @@
       "result": "ok"
     },
     {
-      "name": "q383_revocation_removes_caches_preserves_authored_work_and_independent_snapshot",
+      "name": "source_link_never_bypasses_note_lock_or_creates_network_action",
       "result": "ok"
     },
     {
-      "name": "source_link_never_bypasses_note_lock_or_creates_network_action",
+      "name": "q383_revocation_removes_caches_preserves_authored_work_and_independent_snapshot",
       "result": "ok"
     },
     {
@@ -726,7 +743,11 @@
       "result": "ok"
     },
     {
-      "name": "bad_samples_duplicate_ids_and_unordered_strokes_are_rejected",
+      "name": "restore_never_removes_newer_content_lock",
+      "result": "ok"
+    },
+    {
+      "name": "search_matches_literal_accepted_content_never_raw_or_locked_data",
       "result": "ok"
     },
     {
@@ -738,7 +759,11 @@
       "result": "ok"
     },
     {
-      "name": "restore_never_removes_newer_content_lock",
+      "name": "active_use_retirement_keeps_checkpoint_and_originals",
+      "result": "ok"
+    },
+    {
+      "name": "bad_samples_duplicate_ids_and_unordered_strokes_are_rejected",
       "result": "ok"
     },
     {
@@ -746,19 +771,11 @@
       "result": "ok"
     },
     {
-      "name": "search_matches_literal_accepted_content_never_raw_or_locked_data",
-      "result": "ok"
-    },
-    {
-      "name": "active_use_retirement_keeps_checkpoint_and_originals",
+      "name": "stale_edits_and_view_toggles_never_mutate_source",
       "result": "ok"
     },
     {
       "name": "unauthorised_history_retirement_skips_locked_content",
-      "result": "ok"
-    },
-    {
-      "name": "stale_edits_and_view_toggles_never_mutate_source",
       "result": "ok"
     },
     {
@@ -767,9 +784,9 @@
     }
   ],
   "backend_accepted": false,
-  "finished_utc": "2026-10-22T11:09:41.292248+00:00",
+  "finished_utc": "2026-10-23T10:32:55.088590+00:00",
   "totals": {
-    "passed": 134,
+    "passed": 138,
     "failed": 0,
     "ignored": 0
   }
