@@ -1,7 +1,4 @@
 $ /tmp/stem-cargo/bin/cargo build --workspace --release --locked --offline
 exit_code=0
 
-    Blocking waiting for file lock on build directory
-   Compiling stem-core v0.1.0 (/home/linus/Projects/software/note-taking-app/repo/core)
-   Compiling stem-bridge v0.1.0 (/home/linus/Projects/software/note-taking-app/repo/bridge)
-    Finished `release` profile [optimized] target(s) in 2m 33s
+    Finished `release` profile [optimized] target(s) in 0.18s
