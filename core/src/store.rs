@@ -103,7 +103,7 @@ impl Store {
     pub fn memory() -> Result<Self> {
         Self::from_connection(Connection::open_in_memory()?)
     }
-    fn from_connection(mut db: Connection) -> Result<Self> {
+    pub(crate) fn from_connection(mut db: Connection) -> Result<Self> {
         db.busy_timeout(Duration::from_millis(250))?;
         db.execute_batch(
             "PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; \

@@ -122,8 +122,8 @@ remains open.
 
 Ownership fixtures exercise duplicate native hosts and aliases, independent
 libraries, failed initialization, actual subprocess locking/abrupt exit and original
-ink recovery. A duplicated-descriptor unit fixture checks explicit unlock while an
-inherited open file description remains alive. Native close drains through an active
+ink recovery. A SQLite ownership unit fixture verifies exclusive mode across commits and rejected/
+closed duplicate connections without opening extra raw database descriptors. Native close drains through an active
 verifier and queued capture despite surviving Arc references, and rejects self-join
 from a verifier. Standalone JNI checks actual concurrent close waiting while another
 library remains responsive. Actual JNI Android fixtures reject duplicate/root aliases

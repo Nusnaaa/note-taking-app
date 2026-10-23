@@ -23,7 +23,6 @@ mod pdf;
 use crate::sources::PdfSelectionTarget;
 use mailbox::Mailbox;
 pub use mailbox::{HostStatus, StatusSubscription, WriterLimits};
-use ownership::LibraryLease;
 use pdf::PdfState;
 pub use pdf::{PdfCommand, PdfGrantVerifier};
 
@@ -365,15 +364,12 @@ impl Host {
         if path == std::path::Path::new(":memory:") {
             return Err(Error::Invalid("file-backed library path"));
         }
-        let ownership = LibraryLease::acquire(&path)?;
         let input = Arc::clone(&mailbox);
         let (ready_tx, ready_rx) = mpsc::channel();
         let worker = thread::Builder::new()
             .name("stem-writer".into())
             .spawn(move || {
-                // Outlives Store and all admitted work, including shutdown drain.
-                let lease = ownership;
-                let mut store = match Store::open(path) {
+                let mut store = match ownership::open(&path) {
                     Ok(s) => {
                         let _ = ready_tx.send(Ok(()));
                         s
@@ -456,7 +452,7 @@ impl Host {
                 input.close();
                 drop(pdf);
                 drop(store);
-                lease.release()
+                Ok(())
             })?;
         match ready_rx.recv() {
             Ok(Ok(())) => {}

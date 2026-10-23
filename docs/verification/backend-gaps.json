@@ -7,7 +7,7 @@
       "NB-DOC-004",
       "NB-DATA-008"
     ],
-    "work": "Shared exercise membership/edits/status, extraction, reversible reassignment, hiding, protection, independent rich-object copies, flat exercise/search projections and open-in-master navigation are implemented and exposed through the host boundary. Native coalesced content-free host admission subscriptions are implemented. Remaining: caret/selection positions, Android subscriptions and complete operation history/retirement. Native exclusive inode ownership and Android pre-cleanup file leases now enforce one cooperative backend per library through full resource retirement. Save state belongs to the single host Store."
+    "work": "Shared exercise membership/edits/status, extraction, reversible reassignment, hiding, protection, independent rich-object copies, flat exercise/search projections and open-in-master navigation are implemented and exposed through the host boundary. Native coalesced content-free host admission subscriptions are implemented. Remaining: caret/selection positions, Android subscriptions and complete operation history/retirement. SQLite-managed exclusive native ownership and Android pre-cleanup file leases now enforce one cooperative backend per library through full resource retirement. Save state belongs to the single host Store."
   },
   {
     "id": "A2-CAPTURE-HOST",

@@ -1,59 +1,68 @@
-//! Cooperative native-host ownership. The lock follows the database inode, not a
-//! sidecar path, and is explicitly unlocked even if a child inherited the FD.
-use crate::{Error, Result};
-use std::{
-    fs::{File, OpenOptions},
-    path::Path,
-};
+//! SQLite owns both the exclusive connection lease and all of its descriptors.
+//! Opening/closing a separate raw database FD can disturb POSIX SQLite locks.
+use crate::{store::Store, Error, Result};
+use rusqlite::{Connection, ErrorCode};
+use std::{path::Path, time::Duration};
 
-pub(super) struct LibraryLease {
-    file: File,
-    released: bool,
-}
-impl LibraryLease {
-    pub fn acquire(path: &Path) -> Result<Self> {
-        let file = OpenOptions::new()
-            .read(true)
-            .write(true)
-            .create(true)
-            .truncate(false)
-            .open(path)?;
-        file.try_lock().map_err(|_| Error::Unavailable)?;
-        Ok(Self {
-            file,
-            released: false,
-        })
-    }
-    pub fn release(mut self) -> Result<()> {
-        self.file.unlock()?;
-        self.released = true;
-        Ok(())
-    }
-}
-impl Drop for LibraryLease {
-    fn drop(&mut self) {
-        if !self.released {
-            let _ = self.file.unlock();
+pub(super) fn open(path: &Path) -> Result<Store> {
+    let db = Connection::open(path)?;
+    // Claim before migrations or authoring. Exclusive mode retains SQLite's own
+    // database lock across commits; WAL also supports this single-connection mode.
+    db.busy_timeout(Duration::ZERO)?;
+    db.execute_batch(
+        "PRAGMA trusted_schema=OFF; PRAGMA locking_mode=EXCLUSIVE; BEGIN EXCLUSIVE; COMMIT;",
+    )
+    .map_err(|error| match error {
+        rusqlite::Error::SqliteFailure(code, _)
+            if matches!(
+                code.code,
+                ErrorCode::DatabaseBusy | ErrorCode::DatabaseLocked
+            ) =>
+        {
+            Error::Unavailable
         }
-    }
+        other => Error::Storage(other),
+    })?;
+    Store::from_connection(db)
 }
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{security::Access, store::Kind};
     #[test]
-    fn inherited_descriptor_does_not_extend_released_library_ownership() {
+    fn sqlite_managed_ownership_survives_commits_and_failed_duplicate_connections() {
         let root = tempfile::tempdir().unwrap();
         let path = root.path().join("ownership.db");
-        let lease = LibraryLease::acquire(&path).unwrap();
-        let inherited = lease.file.try_clone().unwrap();
-        assert!(LibraryLease::acquire(&path).is_err());
-        drop(lease);
-        // A fork/dup may retain the same open file description. Closing only the
-        // parent's FD would leave that inherited description holding the lock.
-        let reopened = LibraryLease::acquire(&path).unwrap();
-        drop(inherited);
-        assert!(LibraryLease::acquire(&path).is_err());
-        reopened.release().unwrap();
-        LibraryLease::acquire(&path).unwrap().release().unwrap();
+        let mut owner = open(&path).unwrap();
+        let access = Access::public();
+        let note = owner
+            .create(Kind::Note, None, "preserved", &access)
+            .unwrap();
+        assert_eq!(
+            owner
+                .db
+                .pragma_query_value(None, "locking_mode", |r| r.get::<_, String>(0))
+                .unwrap(),
+            "exclusive"
+        );
+        assert!(matches!(open(&path), Err(Error::Unavailable)));
+        let duplicate = Connection::open(&path).unwrap();
+        duplicate.busy_timeout(Duration::ZERO).unwrap();
+        assert!(duplicate
+            .query_row("PRAGMA user_version", [], |r| r.get::<_, i64>(0))
+            .is_err());
+        drop(duplicate);
+        // SQLite's VFS defers unsafe descriptor closure; the owner still works
+        // and remains exclusive after rejected/closed connection attempts.
+        owner
+            .rename(note.id, note.revision, "still preserved", &access)
+            .unwrap();
+        assert!(matches!(open(&path), Err(Error::Unavailable)));
+        drop(owner);
+        let reopened = open(&path).unwrap();
+        assert_eq!(
+            reopened.entity(note.id, &access).unwrap().title,
+            "still preserved"
+        );
     }
 }

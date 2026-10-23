@@ -40,15 +40,14 @@ an admitted authoring/authentication failure for that host lifetime; these count
 are not a replacement for per-ticket SQLite commit receipts. JNI clones a library
 handle under the registry lock and releases that lock before waiting or calling a
 trusted verifier, so separate libraries do not block each other's registry access.
-Native `Host::open` now holds an exclusive OS lock on the database inode before
-opening SQLite. Duplicate Host/JNI opens, including symlink/hard-link aliases, fail
-without truncating the database. Independent libraries remain independent. The
-worker retains ownership through all admitted work; shutdown closes SQLite before
-explicitly unlocking. Explicit unlock matters when a child/duplicated descriptor
-still refers to the same open file description. Initialization failure joins the
-failed writer before returning. This coordinates cooperative Host/JNI entry points;
-the lower-level Store API and arbitrary external SQLite processes are not a separate
-access-control boundary.
+Native `Host::open` claims SQLite-managed exclusive locking and an initial
+transaction before migrations or authoring. Duplicate Host/JNI opens, including
+symlink/hard-link aliases, fail without truncating the database. Independent
+libraries remain independent. The worker retains this connection lease across
+commits and through shutdown drain. SQLite owns all database descriptors and their
+POSIX-lock lifecycle; no extra raw database FD is opened for ownership. Initialization
+failure joins the failed writer before returning. The lower-level Store API remains
+a component API; production panes share the host's authoritative Store.
 
 `Host::close` closes admission and waits for actual drain even while Arc callers
 still exist. Concurrent closes share the same join; repeated closes are safe.
