@@ -326,3 +326,117 @@ fn locked_ink_and_proposals_cannot_be_sent_or_reviewed_without_access() {
     assert!(s.proposal(p.id, &a).is_err());
     assert!(s.accept_proposal(p.id, 0, &a).is_err());
 }
+
+#[test]
+fn stored_proposal_cannot_rebind_protected_output_to_a_public_block() {
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("proposal-binding.db");
+    let mut store = Store::open(&path).unwrap();
+    let public = Access::public();
+    let note = store
+        .create(Kind::Note, None, "proposal fixture", &public)
+        .unwrap();
+    let private = store.append_ink(note.id, vec![stroke(0)], &public).unwrap();
+    let other = store.append_ink(note.id, vec![stroke(1)], &public).unwrap();
+    let original = store.source_ink(private.id, &public).unwrap();
+    let proposal = store
+        .propose(request(&manager(), &store, private.id, &public), &public)
+        .unwrap();
+    let proof = access([Scope::Block(private.id)]);
+    store
+        .set_block_lock(private.id, private.revision, true, &proof)
+        .unwrap();
+    let mut payload = serde_json::to_value(&proposal).unwrap();
+    payload["block"] = serde_json::json!(other.id);
+    let raw = rusqlite::Connection::open(&path).unwrap();
+    raw.execute(
+        "UPDATE proposals SET payload=?1 WHERE id=?2",
+        rusqlite::params![payload.to_string(), proposal.id.to_string()],
+    )
+    .unwrap();
+    assert!(matches!(
+        store.proposal(proposal.id, &public),
+        Err(Error::Denied)
+    ));
+    assert!(matches!(
+        store.proposal(proposal.id, &proof),
+        Err(Error::Integrity)
+    ));
+    assert_eq!(store.source_ink(private.id, &proof).unwrap(), original);
+}
+
+#[test]
+fn stored_proposal_protection_precedes_malformed_payload_parsing() {
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("proposal-malformed.db");
+    let mut store = Store::open(&path).unwrap();
+    let public = Access::public();
+    let note = store
+        .create(Kind::Note, None, "proposal fixture", &public)
+        .unwrap();
+    let block = store.append_ink(note.id, vec![stroke(0)], &public).unwrap();
+    let proposal = store
+        .propose(request(&manager(), &store, block.id, &public), &public)
+        .unwrap();
+    let proof = access([Scope::Block(block.id)]);
+    store
+        .set_block_lock(block.id, block.revision, true, &proof)
+        .unwrap();
+    let raw = rusqlite::Connection::open(&path).unwrap();
+    raw.execute(
+        "UPDATE proposals SET payload='not-json' WHERE id=?1",
+        [proposal.id.to_string()],
+    )
+    .unwrap();
+    assert!(matches!(
+        store.proposal(proposal.id, &public),
+        Err(Error::Denied)
+    ));
+    assert!(matches!(
+        store.proposal(proposal.id, &proof),
+        Err(Error::Json(_))
+    ));
+}
+
+#[test]
+fn stored_proposal_identity_mismatch_cannot_acknowledge_a_correction() {
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("proposal-id.db");
+    let mut store = Store::open(&path).unwrap();
+    let public = Access::public();
+    let note = store
+        .create(Kind::Note, None, "proposal fixture", &public)
+        .unwrap();
+    let block = store.append_ink(note.id, vec![stroke(0)], &public).unwrap();
+    let proposal = store
+        .propose(request(&manager(), &store, block.id, &public), &public)
+        .unwrap();
+    let original = store.source_ink(block.id, &public).unwrap();
+    let mut payload = serde_json::to_value(&proposal).unwrap();
+    payload["id"] = serde_json::json!(stem_core::Id::new());
+    let raw = rusqlite::Connection::open(&path).unwrap();
+    raw.execute(
+        "UPDATE proposals SET payload=?1 WHERE id=?2",
+        rusqlite::params![payload.to_string(), proposal.id.to_string()],
+    )
+    .unwrap();
+    assert!(matches!(
+        store.correct_proposal(
+            proposal.id,
+            Content::Text("explicit correction".into()),
+            &public
+        ),
+        Err(Error::Integrity)
+    ));
+    assert_eq!(store.source_ink(block.id, &public).unwrap(), original);
+    let app = access([Scope::App]);
+    store.set_app_lock(true, &app).unwrap();
+    for id in [proposal.id, stem_core::Id::new()] {
+        assert!(matches!(store.proposal(id, &public), Err(Error::Denied)));
+    }
+    assert!(matches!(
+        store.proposal(proposal.id, &app),
+        Err(Error::Integrity)
+    ));
+    assert_eq!(store.source_ink(block.id, &app).unwrap(), original);
+}

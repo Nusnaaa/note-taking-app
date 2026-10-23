@@ -882,3 +882,18 @@ validated pre-removal hook. Failed/ambiguous native deletion never invokes it. A
 after file unlink still rejects old typed frames, while reporting disposal failure.
 Uncertain filesystem durability after a failed directory sync remains uncertain; no
 power-loss guarantee or global prohibition on deliberate future reimport is inferred.
+
+
+### Stored recognition proposal authority
+
+The Store proposal reader checks the current app lock, then authorises the source
+block named by the SQL relation before reading/parsing private transcription JSON.
+Current block/exercise/ancestor protection therefore precedes malformed-payload errors.
+Payload proposal/source IDs must match the requested SQL key and source relation.
+Mismatch is an integrity error even for a caller authorised to inspect the real source;
+correction/rejection/acceptance cannot treat a payload ID as a different row key.
+
+This is a stored-row binding/corruption defence, not encryption or protection against
+an attacker with arbitrary database read/write access. Existing source fingerprints,
+proposal revision checks and preservation of original ink remain unchanged. A real
+bounded host recognition/proposal job path and eligible recogniser remain open.

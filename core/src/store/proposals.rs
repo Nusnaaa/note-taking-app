@@ -68,6 +68,19 @@ impl Store {
     }
 
     fn read_proposal(db: &Connection, id: Id, access: &Access) -> Result<Proposal> {
+        Self::require_app(db, access)?;
+        let owner: String = db
+            .query_row(
+                "SELECT block FROM proposals WHERE id=?1",
+                [id.to_string()],
+                |row| row.get(0),
+            )
+            .optional()?
+            .ok_or(Error::Unavailable)?;
+        let owner = Id::parse(&owner).map_err(|_| Error::Integrity)?;
+        // SQL owns the relation. Authorise it before parsing derived private
+        // transcription bytes; a payload field cannot nominate a public owner.
+        Self::read_block(db, owner, access)?;
         let payload: String = db
             .query_row(
                 "SELECT payload FROM proposals WHERE id=?1",
@@ -79,7 +92,9 @@ impl Store {
 
         let p: Proposal = serde_json::from_str(&payload)?;
 
-        Self::read_block(db, p.block, access)?;
+        if p.id != id || p.block != owner {
+            return Err(Error::Integrity);
+        }
 
         Ok(p)
     }

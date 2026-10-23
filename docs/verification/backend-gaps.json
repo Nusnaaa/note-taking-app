@@ -41,7 +41,7 @@
       "NB-REC-012",
       "NB-SUP-003"
     ],
-    "work": "Consented resumable local installation, bounded hash verification, durable recogniser/converter staging and probed activation, rollback, defaults and shared resource leases exist. Resource reader clones now retain shared deletion reservations through nested clones and worker-thread transfer, closing descriptors before releasing guards; the previous raw File accessor could escape the lease and has been replaced with guarded Read/Seek handles. Remaining: actual eligible local recogniser, complete resource-lease cleanup integration, isolated worker termination and Android model scheduling. Stored installation is never treated as current runtime readiness."
+    "work": "Consented resumable local installation, bounded hash verification, durable recogniser/converter staging and probed activation, rollback, defaults and shared resource leases exist. Resource reader clones now retain shared deletion reservations through nested clones and worker-thread transfer, closing descriptors before releasing guards; the previous raw File accessor could escape the lease and has been replaced with guarded Read/Seek handles. Stored proposal reads now authorise the authoritative SQL block relation before parsing derived transcription bytes, bind payload identity/source to SQL keys and check app protection before lookup; mismatched/corrupt payloads cannot nominate a public source or falsely acknowledge a correction. Remaining: actual eligible local recogniser, complete resource-lease cleanup integration, isolated worker termination and Android model scheduling. Stored installation is never treated as current runtime readiness."
   },
   {
     "id": "A5-PDF-INTEGRATION",
