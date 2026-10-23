@@ -58,5 +58,33 @@ class MotionCaptureTest {
         event(MotionEvent.ACTION_CANCEL, 50).useEvent { capture.accept(it) }
         assertTrue(capture.interrupt().isEmpty())
     }
+    @Test fun fingerOptInSnapshotsContactAndStylusPreemptsOnlyTentativeFingerInk() {
+        val capture = MotionCapture(fingerInk = true)
+        event(MotionEvent.ACTION_DOWN, 10, MotionEvent.TOOL_TYPE_FINGER).useEvent { capture.accept(it) }
+        val first = capture.checkpoint().single(); assertTrue(first.explicitFinger); assertFalse(first.eraser)
+        capture.setFingerInk(false)
+        event(MotionEvent.ACTION_UP, 20, MotionEvent.TOOL_TYPE_FINGER).useEvent {
+            val completed = capture.accept(it).single(); assertTrue(completed.explicitFinger)
+            assertEquals(first.id, completed.id); assertEquals(listOf(0L, 10_000L), completed.points.map { p -> p.timeUs })
+        }
+        event(MotionEvent.ACTION_DOWN, 30, MotionEvent.TOOL_TYPE_FINGER).useEvent { capture.accept(it) }
+        assertTrue(capture.checkpoint().isEmpty())
+        capture.setFingerInk(true)
+        event(MotionEvent.ACTION_DOWN, 40, MotionEvent.TOOL_TYPE_FINGER).useEvent { capture.accept(it) }
+        // Two pointers in one event: a newly arrived stylus supersedes an active finger.
+        fun mixed(action: Int, time: Long) = MotionEvent.obtain(10, time, action, 2,
+            arrayOf(MotionEvent.PointerProperties().apply { id = 7; toolType = MotionEvent.TOOL_TYPE_FINGER }, MotionEvent.PointerProperties().apply { id = 8; toolType = MotionEvent.TOOL_TYPE_STYLUS }),
+            arrayOf(MotionEvent.PointerCoords().apply { x = 2f; y = 3f }, MotionEvent.PointerCoords().apply { x = 4f; y = 5f }), 0, 0, 1f, 1f, 0, 0, InputDevice.SOURCE_STYLUS, 0)
+        mixed(MotionEvent.ACTION_POINTER_DOWN or (1 shl MotionEvent.ACTION_POINTER_INDEX_SHIFT), 50).useEvent { assertTrue(capture.accept(it).isEmpty()) }
+        val pen = capture.checkpoint().single(); assertFalse(pen.explicitFinger); assertEquals(8, pen.pointer)
+        mixed(MotionEvent.ACTION_POINTER_DOWN, 55).useEvent { assertTrue(capture.accept(it).isEmpty()) }
+        assertEquals(listOf(8), capture.checkpoint().map { it.pointer })
+        mixed(MotionEvent.ACTION_POINTER_UP or (1 shl MotionEvent.ACTION_POINTER_INDEX_SHIFT), 60).useEvent { assertFalse(capture.accept(it).single().explicitFinger) }
+        event(MotionEvent.ACTION_UP, 70, MotionEvent.TOOL_TYPE_FINGER).useEvent { assertTrue(capture.accept(it).isEmpty()) }
+        assertTrue(capture.checkpoint().isEmpty())
+        event(MotionEvent.ACTION_DOWN, 80, MotionEvent.TOOL_TYPE_FINGER).useEvent { capture.accept(it) }
+        event(MotionEvent.ACTION_CANCEL, 90, MotionEvent.TOOL_TYPE_FINGER).useEvent { assertTrue(capture.accept(it).isEmpty()) }
+        assertTrue(capture.interrupt().isEmpty())
+    }
     private inline fun MotionEvent.useEvent(action: (MotionEvent)->Unit) {try {action(this)}finally{recycle()}}
 }

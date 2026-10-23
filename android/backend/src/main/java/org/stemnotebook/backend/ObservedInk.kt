@@ -13,11 +13,11 @@ object ObservedInk {
         return if (history == null) event.getAxisValue(axis, pointer).toDouble()
         else event.getHistoricalAxisValue(axis, pointer, history).toDouble()
     }
-    fun read(event: MotionEvent): List<ObservedPointer> {
+    fun read(event: MotionEvent, includeFingers: Boolean = false): List<ObservedPointer> {
         if (event.actionMasked == MotionEvent.ACTION_CANCEL) return emptyList()
         return (0 until event.pointerCount).mapNotNull { index ->
             val tool = event.getToolType(index)
-            if (tool != MotionEvent.TOOL_TYPE_STYLUS && tool != MotionEvent.TOOL_TYPE_ERASER) return@mapNotNull null
+            if (tool != MotionEvent.TOOL_TYPE_STYLUS && tool != MotionEvent.TOOL_TYPE_ERASER && !(includeFingers && tool == MotionEvent.TOOL_TYPE_FINGER)) return@mapNotNull null
             val points = (0 until event.historySize).map { history ->
                 ObservedPoint(event.getHistoricalX(index, history).toDouble(), event.getHistoricalY(index, history).toDouble(), event.getHistoricalEventTime(history) * 1000,
                     channel(event, index, MotionEvent.AXIS_PRESSURE, history), channel(event, index, MotionEvent.AXIS_TILT, history), channel(event, index, MotionEvent.AXIS_ORIENTATION, history), null)
@@ -29,8 +29,10 @@ object ObservedInk {
 }
 
 /** Bridges Android pointer lifetime, including OS cancellation, to source strokes.
- * Finger contact remains navigation; this adapter never substitutes predicted ink. */
-class MotionCapture(private val accumulator: InkAccumulator = InkAccumulator()) {
+ * Finger ink requires explicit opt-in; stylus arrival cancels tentative finger ink.
+ * Android tool classification is observed, not a device palm-rejection guarantee. */
+class MotionCapture(private val accumulator: InkAccumulator = InkAccumulator(), private var fingerInk: Boolean = false) {
+    fun setFingerInk(enabled: Boolean) { fingerInk = enabled }
     private var originUs: Long? = null
     fun setStyle(value: StrokeStyle?) { accumulator.setStyle(value) }
     fun checkpoint(): List<CapturedStroke> = accumulator.checkpoint()
@@ -40,13 +42,20 @@ class MotionCapture(private val accumulator: InkAccumulator = InkAccumulator()) 
         val actionPointer = event.getPointerId(event.actionIndex)
         val cancelled = Build.VERSION.SDK_INT >= 33 && event.flags and MotionEvent.FLAG_CANCELED != 0
         if (cancelled) accumulator.cancel(actionPointer)
-        for (pointer in ObservedInk.read(event)) {
+        val observed = ObservedInk.read(event, includeFingers = true)
+        val down = event.actionMasked == MotionEvent.ACTION_DOWN || event.actionMasked == MotionEvent.ACTION_POINTER_DOWN
+        val stylusBeginning = down && !cancelled && observed.any { it.id == actionPointer && it.tool != MotionEvent.TOOL_TYPE_FINGER }
+        if (stylusBeginning) accumulator.cancelFingerContacts()
+        for (pointer in observed) {
             if (cancelled && pointer.id == actionPointer) continue
+            val beginning = down && pointer.id == actionPointer
+            val finger = pointer.tool == MotionEvent.TOOL_TYPE_FINGER
+            if (beginning && finger && (!fingerInk || accumulator.hasStylusContact())) continue
+            if (!beginning && pointer.id !in accumulator.pendingPointers()) continue
             if (originUs == null) originUs = pointer.points.first().timeUs
             val points = pointer.points.map { it.copy(timeUs = it.timeUs - originUs!!) }
-            val beginning = (event.actionMasked == MotionEvent.ACTION_DOWN || event.actionMasked == MotionEvent.ACTION_POINTER_DOWN) && pointer.id == actionPointer
             if (beginning) {
-                accumulator.begin(pointer.id, pointer.tool == MotionEvent.TOOL_TYPE_ERASER, points.first())
+                accumulator.begin(pointer.id, pointer.tool == MotionEvent.TOOL_TYPE_ERASER, points.first(), explicitFinger = finger)
                 accumulator.append(pointer.id, points.drop(1))
             } else if (pointer.id in accumulator.pendingPointers()) {
                 accumulator.append(pointer.id, points)

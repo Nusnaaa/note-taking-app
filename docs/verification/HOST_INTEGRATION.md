@@ -796,3 +796,26 @@ Native subset v9 reads v1-v8, rejects authoring under an older tag, and preserve
 view-local presets/backgrounds. Encrypted schema-15 backups restore schemas 8-14;
 older schema tags cannot hide authoring metadata. Absent authoring serialises exactly
 as before, preserving legacy view bytes. Production H.I. remains gated.
+
+
+### Explicit Android finger drawing
+
+`openCaptureSession(entity, coordinateSpace, style, layer, fingerInk=false)` keeps
+finger contact out of source ink by default. A host can supply the current authorised
+`ViewPen.finger_ink` setting explicitly; reading settings does not grant capture access.
+`session.setFingerInk(enabled)` changes eligibility of future contacts only. A finger
+contact already admitted keeps its original header until completion/cancellation.
+
+Opted-in contacts encode the existing native `ExplicitFinger` tool, never `Pen`.
+Stylus/eraser arrival cancels tentative active finger strokes; fingers beginning during
+an active stylus/eraser are ignored. Previously committed finger strokes are unchanged.
+Android cancellation still discards only the corresponding tentative observations;
+lifecycle interruption preserves exact prefixes. This backend policy uses reported
+Android tool types and is not evidence of physical palm rejection or H.I. navigation.
+
+Private active-journal format **STEMAC04** retains v3 layout and replaces its eraser
+boolean with a strict tool byte: 0 Pen, 1 Eraser, 2 ExplicitFinger. Readers accept
+STEMAC01–03 with their original 0/1 meaning and absent older style/layer metadata.
+Rewriting a recovered legacy record uses v4 without inventing finger classification.
+Tool identity is immutable across checkpoint revisions and survives review/replay.
+SQLite/native document formats already support ExplicitFinger and are unchanged.

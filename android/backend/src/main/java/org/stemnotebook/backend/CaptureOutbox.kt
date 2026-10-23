@@ -137,7 +137,7 @@ object CaptureRequest {
                 previous = point.timeUs
                 "{\"x\":${number(point.x)},\"y\":${number(point.y)},\"time_us\":${point.timeUs},\"pressure\":${number(point.pressure)},\"tilt_rad\":${number(point.tiltRad)},\"orientation_rad\":${number(point.orientationRad)},\"buttons\":${point.buttons ?: "null"}}"
             }.joinToString(",")
-            "{\"id\":${quote(stroke.id)},\"capture_session\":${quote(stroke.session)},\"sequence\":${stroke.sequence},\"pointer_id\":${stroke.pointer},\"coordinate_space\":${quote(coordinateSpace)},\"tool\":\"${if (stroke.eraser) "Eraser" else "Pen"}\",\"points\":[$points]$ending$style}"
+            "{\"id\":${quote(stroke.id)},\"capture_session\":${quote(stroke.session)},\"sequence\":${stroke.sequence},\"pointer_id\":${stroke.pointer},\"coordinate_space\":${quote(coordinateSpace)},\"tool\":\"${if (stroke.explicitFinger) "ExplicitFinger" else if (stroke.eraser) "Eraser" else "Pen"}\",\"points\":[$points]$ending$style}"
         }.joinToString(",")
         require(strokes.map { it.id }.toSet().size == strokes.size)
         if (layer != null) {

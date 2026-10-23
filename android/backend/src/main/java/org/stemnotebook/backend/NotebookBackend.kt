@@ -104,12 +104,12 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
     private fun strokeBytes(strokes: List<CapturedStroke>, space: String): Long = inputBytes(space) + strokes.sumOf { 512L + inputBytes(it.id, it.session) + it.points.size.toLong() * 128 }
     fun writerStatus(): BackendAdmissionStatus = executor.snapshot()
     fun observeWriterStatus(): BackendStatusSubscription = executor.subscribe()
-    @Synchronized fun openCaptureSession(entity: UUID, coordinateSpace: String, style: StrokeStyle? = null, layer: CaptureLayer? = null): JournaledCaptureSession {
+    @Synchronized fun openCaptureSession(entity: UUID, coordinateSpace: String, style: StrokeStyle? = null, layer: CaptureLayer? = null, fingerInk: Boolean = false): JournaledCaptureSession {
         check(!closed)
         val encoded = Charsets.UTF_8.newEncoder().onMalformedInput(java.nio.charset.CodingErrorAction.REPORT).onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT).encode(java.nio.CharBuffer.wrap(coordinateSpace))
         require(coordinateSpace.isNotEmpty() && encoded.remaining() <= 256)
         check(captureSessions.size < 16)
-        return JournaledCaptureSession(this, entity, coordinateSpace, style, layer).also { captureSessions += it }
+        return JournaledCaptureSession(this, entity, coordinateSpace, style, layer, fingerInk).also { captureSessions += it }
     }
     @Synchronized internal fun retireCaptureSession(session: JournaledCaptureSession) { captureSessions.remove(session) }
     @Synchronized internal fun checkpointCapture(session: JournaledCaptureSession, stroke: CapturedStroke, revision: Long, cancelled: Boolean): CompletableFuture<JournaledCaptureSession.Receipt> {

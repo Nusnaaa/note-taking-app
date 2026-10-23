@@ -22,7 +22,7 @@ class ActiveCaptureJournalTest {
         val journal = ActiveCaptureJournal(root, legacyLibrary); val before = journal.read(ticket); assertNull(before.stroke.style)
         assertEquals((-0.0).toRawBits(), before.stroke.points.single().x.toRawBits()); assertEquals(0.0, before.stroke.points.single().pressure!!, 0.0)
         journal.recoverActive(); assertNull(journal.read(ticket).stroke.style); assertEquals(before.stroke.points, journal.read(ticket).stroke.points)
-        assertEquals("STEMAC03", String(file.readBytes().copyOfRange(0, 8), Charsets.US_ASCII))
+        assertEquals("STEMAC04", String(file.readBytes().copyOfRange(0, 8), Charsets.US_ASCII))
         assertEquals(0, journal.drain { error("Recovered prefix requires review") })
     }
     @Test fun versionTwoGoldenRecordPreservesStyleWithoutInventingADestination() {
@@ -49,6 +49,27 @@ class ActiveCaptureJournalTest {
         assertThrows(IllegalArgumentException::class.java) { journal.checkpoint(entity, "fixed-space", 1, source.copy(style = chosen.copy(width = 2.0))) }
         val recovered = ActiveCaptureJournal(root, library); recovered.recoverActive(); assertEquals(chosen, recovered.read(ticket).stroke.style)
         recovered.approve(ticket, recovered.checksum(ticket)); assertEquals(1, recovered.drain { assertEquals(chosen, it.stroke.style); assertEquals(source.points, it.stroke.points); true })
+    }
+    @Test fun explicitFingerProvenanceSurvivesRecoveryAndCannotBeReboundToPen() {
+        val root = temporary.newFolder(); val source = stroke().copy(explicitFinger = true); val ticket = UUID.fromString(source.id)
+        val journal = ActiveCaptureJournal(root, library); journal.checkpoint(entity, "fixed-space", 0, source, layer = CaptureLayer.Base)
+        assertThrows(IllegalArgumentException::class.java) { journal.checkpoint(entity, "fixed-space", 1, source.copy(explicitFinger = false), layer = CaptureLayer.Base) }
+        val recovered = ActiveCaptureJournal(root, library); recovered.recoverActive()
+        val entry = recovered.read(ticket); assertTrue(entry.stroke.explicitFinger); assertEquals(source.points, entry.stroke.points); assertEquals(CaptureLayer.Base, entry.layer)
+        recovered.approve(ticket, recovered.checksum(ticket))
+        assertEquals(1, recovered.drain { assertTrue(it.stroke.explicitFinger); assertTrue(CaptureRequest.encode(ticket, entity, "fixed-space", listOf(it.stroke)).contains("ExplicitFinger")); true })
+        assertThrows(IllegalArgumentException::class.java) { source.copy(eraser = true) }
+    }
+    @Test fun versionThreeRetainsPenAndLayerWithoutInventingFingerInput() {
+        val root = temporary.newFolder(); val source = stroke(); val ticket = UUID.fromString(source.id)
+        ActiveCaptureJournal(root, library).checkpoint(entity, "fixed-space", 0, source, layer = CaptureLayer.Base)
+        // v3 and v4 pen/eraser payloads share the same one-byte tool representation.
+        val file = root.listFiles()!!.single(); val bytes = file.readBytes(); bytes[7] = '3'.code.toByte()
+        val payload = bytes.copyOfRange(0, bytes.size - 32)
+        file.writeBytes(payload + java.security.MessageDigest.getInstance("SHA-256").digest(payload))
+        val reopened = ActiveCaptureJournal(root, library); val before = reopened.read(ticket)
+        assertFalse(before.stroke.explicitFinger); assertEquals(source, before.stroke); assertEquals(CaptureLayer.Base, before.layer)
+        reopened.recoverActive(); assertFalse(reopened.read(ticket).stroke.explicitFinger)
     }
     @Test fun checkpointsPreserveExactPrefixAndRejectStaleChangedOrReboundUpdates() {
         val root = temporary.newFolder(); val journal = ActiveCaptureJournal(root, library); val source = stroke(); val ticket = UUID.fromString(source.id)

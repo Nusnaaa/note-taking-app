@@ -30,8 +30,8 @@ class BackendAdmissionIntegrationTest {
     private fun note(backend: NotebookBackend) = UUID.fromString(call(backend, JSONObject().put("op", "Create").put("kind", "Note").put("parent", JSONObject.NULL).put("title", "admission fixture")).getJSONObject("data").getString("id"))
     private fun blocks(entity: UUID) = JSONObject().put("op", "Blocks").put("entity", entity.toString()).put("offset", 0).put("limit", 100)
     private fun stroke() = CapturedStroke(UUID.randomUUID().toString(), UUID.randomUUID().toString(), 0, 7, false, listOf(ObservedPoint(-0.0, 0.125, 0, null, null, null, null)))
-    private fun submit(session: JournaledCaptureSession, action: Int, time: Long): JournaledCaptureSession.Submission {
-        val property = MotionEvent.PointerProperties().apply { id = 7; toolType = MotionEvent.TOOL_TYPE_STYLUS }
+    private fun submit(session: JournaledCaptureSession, action: Int, time: Long, tool: Int = MotionEvent.TOOL_TYPE_STYLUS): JournaledCaptureSession.Submission {
+        val property = MotionEvent.PointerProperties().apply { id = 7; toolType = tool }
         val coordinate = MotionEvent.PointerCoords().apply { x = 0.125f; y = 3.5f; pressure = 0.5f }
         val event = MotionEvent.obtain(10, time, action, 1, arrayOf(property), arrayOf(coordinate), 0, 0, 1f, 1f, 0, 0, InputDevice.SOURCE_STYLUS, 0)
         return try { session.accept(event).single() } finally { event.recycle() }
@@ -57,6 +57,29 @@ class BackendAdmissionIntegrationTest {
             assertEquals(1, call(backend, blocks(entity)).getJSONArray("data").length())
             val source = call(backend, JSONObject().put("op", "SourceInk").put("block", block)).getJSONArray("data").getJSONObject(0)
             assertEquals(original.id, source.getString("id")); assertEquals((-0.0).toRawBits(), source.getJSONArray("points").getJSONObject(0).getDouble("x").toRawBits())
+        } finally { backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
+    }
+    @Test(timeout = 30_000) fun optedInFingerContactsPersistAsFingerAcrossReopenAndSettingsChange() {
+        val context = platform(temporary.newFolder()); var backend = NotebookBackend(context)
+        try {
+            val entity = note(backend)
+            val session = backend.openCaptureSession(entity, "device-pixels", fingerInk = true)
+            submit(session, MotionEvent.ACTION_DOWN, 10, MotionEvent.TOOL_TYPE_FINGER).receipt.get(5, TimeUnit.SECONDS)
+            session.setFingerInk(false)
+            assertTrue(submit(session, MotionEvent.ACTION_UP, 20, MotionEvent.TOOL_TYPE_FINGER).receipt.get(5, TimeUnit.SECONDS).committed)
+            backend.closeFullyAsync().get(5, TimeUnit.SECONDS); backend = NotebookBackend(context)
+            val row = call(backend, blocks(entity)).getJSONArray("data").getJSONObject(0)
+            val source = call(backend, JSONObject().put("op", "SourceInk").put("block", row.getString("id"))).getJSONArray("data").getJSONObject(0)
+            assertEquals("ExplicitFinger", source.getString("tool")); assertEquals(2, source.getJSONArray("points").length())
+            assertEquals(0.125, source.getJSONArray("points").getJSONObject(0).getDouble("x"), 0.0)
+            assertEquals(10_000, source.getJSONArray("points").getJSONObject(1).getLong("time_us"))
+            val default = backend.openCaptureSession(entity, "device-pixels")
+            val properties = MotionEvent.PointerProperties().apply { id = 7; toolType = MotionEvent.TOOL_TYPE_FINGER }
+            for (action in listOf(MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP)) {
+                val event = MotionEvent.obtain(30, 30, action, 1, arrayOf(properties), arrayOf(MotionEvent.PointerCoords().apply { x = 1f; y = 2f }), 0, 0, 1f, 1f, 0, 0, InputDevice.SOURCE_TOUCHSCREEN, 0)
+                try { assertTrue(default.accept(event).isEmpty()) } finally { event.recycle() }
+            }
+            assertEquals(1, call(backend, blocks(entity)).getJSONArray("data").length())
         } finally { backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
     }
     @Test(timeout = 30_000) fun savedPresetsCalibrateFutureContactsAndGuidesRespectExportChoiceAcrossReopen() {
