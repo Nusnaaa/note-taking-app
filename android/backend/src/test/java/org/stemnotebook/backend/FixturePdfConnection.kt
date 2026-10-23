@@ -54,5 +54,8 @@ internal class FixturePdfConnection(private val callbacks: Executor, val mode: S
             if (mode != "never-bind") callbacks.execute { ready(messenger) }
             return true
         }
-        override fun close() { closes.incrementAndGet(); source?.close() }
+        override fun close() {
+            closes.incrementAndGet(); source?.close()
+            if (mode == "close-fails") error("Synthetic disposal failure")
+        }
     }

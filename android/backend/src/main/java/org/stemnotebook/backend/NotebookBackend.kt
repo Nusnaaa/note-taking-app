@@ -13,7 +13,7 @@ import java.util.UUID
 import org.json.JSONObject
 
 /** Owns native lifetime and serialises requests away from the Android main thread. */
-class NotebookBackend internal constructor(context: Context, pdfFactory: (Context, (JSONObject) -> JSONObject) -> PdfWorkspace) : Closeable {
+class NotebookBackend internal constructor(context: Context, pdfFactory: (Context, (JSONObject) -> JSONObject) -> PdfWorkspace, selectionProvider: PdfProvider = PdfProvider(context)) : Closeable {
     constructor(context: Context) : this(context, { platform, native -> PdfWorkspace(platform, native) })
     private val directory = File(context.noBackupFilesDir, "notebook").apply { mkdirs() }
     private val executor = ThreadPoolExecutor(1, 1, 0, TimeUnit.MILLISECONDS, ArrayBlockingQueue(64), ThreadPoolExecutor.AbortPolicy())
@@ -24,6 +24,19 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
     private val pdf = pdfFactory(context) { command ->
         JSONObject(request(JSONObject().put("version", 1).put("command", command).toString()).join())
     }
+    private val selections = PdfSelectionManager(selectionProvider,
+        { target, locator, revision, proof -> prepareSelectionNative(target, locator, revision, proof).join() },
+        { review, confirmed, proof -> finishSelectionNative(review, confirmed, proof).join() },
+        { review -> request(JSONObject().put("version", 1).put("command", JSONObject().put("op", "Pdf").put("command", JSONObject().put("op", "ReleaseSelection").put("review", review.toString()))).toString()); Unit },
+        { target ->
+            val command = when (target) {
+                is PdfSelectionManager.Target.Link -> JSONObject().put("op", "Read").put("id", target.context.toString())
+                is PdfSelectionManager.Target.Relink -> JSONObject().put("op", "Pdf").put("command", JSONObject().put("op", "Source").put("source", target.source.toString()))
+            }
+            val result = JSONObject(request(JSONObject().put("version", 1).put("command", command).toString()).join())
+            if (!result.getBoolean("ok")) throw java.io.IOException("PDF selection context unavailable")
+        },
+    )
     private val outbox = CompletableFuture.supplyAsync({ CaptureOutbox(File(directory, "capture-recovery")) }, executor)
 
     /** The caller chooses and retains this ticket before submission. Rejection
@@ -64,7 +77,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
     @Synchronized fun request(json: String): CompletableFuture<String> {
         check(!closed)
         require(json.length <= 8 * 1024 * 1024)
-        if (affectsPdfPolicy(JSONObject(json).getJSONObject("command"))) pdf.invalidate()
+        if (affectsPdfPolicy(JSONObject(json).getJSONObject("command"))) { pdf.invalidate(); selections.invalidate() }
         return CompletableFuture.supplyAsync({
             releaseReserveIfNeeded()
             NativeBridge.request(handle.join(), json)
@@ -73,7 +86,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
 
     @Synchronized fun authenticate(scopesJson: String, proof: NativeBridge.Verification): CompletableFuture<Void> {
         check(!closed)
-        pdf.invalidate()
+        pdf.invalidate(); selections.invalidate()
         return CompletableFuture.runAsync({ NativeBridge.authenticate(handle.join(), scopesJson, proof) }, executor)
     }
 
@@ -96,10 +109,27 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
         check(!closed)
         return pdf.render(source, page, width, height, timeoutMillis)
     }
+    @Synchronized fun reviewPdfSelection(target: PdfSelectionManager.Target, uri: android.net.Uri, pickerFlags: Int, timeoutMillis: Long = 30_000): PdfSelectionManager.Pending<PdfSelectionManager.Review> {
+        check(!closed)
+        return selections.review(target, uri, pickerFlags, timeoutMillis)
+    }
+    @Synchronized fun acceptPdfSelection(review: PdfSelectionManager.Review, timeoutMillis: Long = 30_000): PdfSelectionManager.Pending<PdfSelectionManager.Receipt> {
+        check(!closed)
+        return selections.accept(review, timeoutMillis)
+    }
+    @Synchronized private fun prepareSelectionNative(target: String, locator: String, revision: String, proof: NativeBridge.PdfGrant): CompletableFuture<JSONObject> {
+        check(!closed)
+        return CompletableFuture.supplyAsync({ JSONObject(NativeBridge.preparePdfSelection(handle.join(), target, locator, revision, proof)) }, executor)
+    }
+    @Synchronized private fun finishSelectionNative(review: String, confirmed: Boolean, proof: NativeBridge.PdfGrant): CompletableFuture<JSONObject> {
+        check(!closed)
+        pdf.invalidate()
+        return CompletableFuture.supplyAsync({ JSONObject(NativeBridge.finishPdfSelection(handle.join(), review, confirmed, proof)) }, executor)
+    }
     private fun affectsPdfPolicy(command: JSONObject): Boolean {
         val op = command.getString("op")
         if (op == "Pdf") return command.getJSONObject("command").getString("op") !in setOf(
-            "Source", "Link", "SetView", "Anchor", "CreateAnchor", "ReconnectAnchor", "ReviewRevision", "PrepareRead", "ValidateRead", "ReleaseRead",
+            "Source", "Link", "SetView", "Anchor", "CreateAnchor", "ReconnectAnchor", "ReviewRevision", "PrepareRead", "ValidateRead", "ReleaseRead", "ReleaseSelection",
         )
         // Conservative for new commands: permissions/containment must never gain
         // a path around preview retirement. Ordinary pen/text edits keep the view.
@@ -119,7 +149,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
     @Synchronized override fun close() {
         if (closed) return
         closed = true
-        pdf.close()
+        pdf.close(); selections.close()
         // Flush accepted requests in order. A separate closer avoids blocking the H.I.
         Thread({
             try {

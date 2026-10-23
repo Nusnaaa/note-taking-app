@@ -90,8 +90,11 @@ bounded private read/revision tokens and source/lock/restart/lineage rules. The 
 pipeline fixtures use the actual desktop JNI library plus synthetic provider and
 Messenger transport to exercise frozen source hashes, live permission rechecks,
 revocation, expiry, low storage and raw-pixel framing. Robolectric pipes are file-backed
-and its dup copies bytes; these are not live-pipe/cross-process/device tests. Trusted
-picker/regrant, managed/historical rendering and complete platform lifecycle acceptance
+and its dup copies bytes; these are not live-pipe/cross-process/device tests. Trusted source-selection fixtures now exercise actual JNI prepare/accept callbacks,
+non-mutating/rejected review, fresh bytes/grant checks, stable-ID regrant from revoked
+state, stale generation/locks and the accepted-commit cancellation boundary. A storage
+fault fixture rolls back source/anchor changes while retaining independent evidence.
+Managed/historical rendering and complete external platform lifecycle acceptance
 remain open.
 
 Backup fixtures exercise password/recovery restoration, Trash/history/membership

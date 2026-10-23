@@ -11,5 +11,6 @@ class JniBackendRunner(testClass: Class<*>) : RobolectricTestRunner(testClass) {
         InstrumentationConfiguration.Builder(super.createClassLoaderConfig(method))
             .doNotAcquireClass("org.stemnotebook.backend.NativeBridge")
             .doNotAcquireClass("org.stemnotebook.backend.NativeBridge\$Verification")
+            .doNotAcquireClass("org.stemnotebook.backend.NativeBridge\$PdfGrant")
             .build()
 }

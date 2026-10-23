@@ -19,10 +19,11 @@ use std::{
 };
 mod mailbox;
 mod pdf;
+use crate::sources::PdfSelectionTarget;
 use mailbox::Mailbox;
 pub use mailbox::{HostStatus, StatusSubscription, WriterLimits};
-pub use pdf::PdfCommand;
 use pdf::PdfState;
+pub use pdf::{PdfCommand, PdfGrantVerifier};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "op", deny_unknown_fields)]
@@ -311,6 +312,19 @@ impl Response {
 }
 
 enum Message {
+    PreparePdf(
+        PdfSelectionTarget,
+        String,
+        String,
+        Box<dyn PdfGrantVerifier>,
+        mpsc::Sender<Result<Value>>,
+    ),
+    FinishPdf(
+        Id,
+        bool,
+        Box<dyn PdfGrantVerifier>,
+        mpsc::Sender<Result<Value>>,
+    ),
     Call(Request, mpsc::Sender<Response>),
     Authenticate(
         BTreeSet<Scope>,
@@ -364,7 +378,44 @@ impl Host {
                 let mut access = Access::public();
                 let mut pdf = PdfState::default();
                 while let Ok(Some(envelope)) = input.next() {
+                    if access.remaining().is_some_and(|d| d.is_zero()) {
+                        access.relock();
+                        pdf.clear();
+                    }
                     match envelope.message {
+                        Message::PreparePdf(target, locator, revision, mut verifier, reply) => {
+                            let result =
+                                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                                    pdf.prepare_selection(
+                                        &store,
+                                        &access,
+                                        target,
+                                        &locator,
+                                        &revision,
+                                        verifier.as_mut(),
+                                    )
+                                }))
+                                .unwrap_or(Err(Error::WorkerFailed));
+                            let _ =
+                                input.complete(envelope.authoring, envelope.bytes, result.is_err());
+                            let _ = reply.send(result);
+                        }
+                        Message::FinishPdf(review, confirmed, mut verifier, reply) => {
+                            let result =
+                                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                                    pdf.finish_selection(
+                                        &mut store,
+                                        &access,
+                                        review,
+                                        confirmed,
+                                        verifier.as_mut(),
+                                    )
+                                }))
+                                .unwrap_or(Err(Error::WorkerFailed));
+                            let _ =
+                                input.complete(envelope.authoring, envelope.bytes, result.is_err());
+                            let _ = reply.send(result);
+                        }
                         Message::Authenticate(scopes, mut auth, reply) => {
                             pdf.clear();
                             let result =
@@ -440,6 +491,40 @@ impl Host {
     }
     pub fn request(&self, json: &str) -> Result<Response> {
         self.submit(json)?.wait()
+    }
+    /// Deliberate platform source selection; neither operation is available through JSON.
+    pub fn prepare_pdf_selection(
+        &self,
+        target: PdfSelectionTarget,
+        locator: String,
+        revision: String,
+        verifier: Box<dyn PdfGrantVerifier>,
+    ) -> Result<Value> {
+        if locator.len() > 4096 || revision.len() > 64 {
+            return Err(Error::Invalid("PDF selection"));
+        }
+        let bytes = 256 + locator.len() + revision.len();
+        let (tx, rx) = mpsc::channel();
+        self.mailbox.admit(
+            Message::PreparePdf(target, locator, revision, verifier, tx),
+            false,
+            bytes,
+        )?;
+        rx.recv().map_err(|_| Error::WorkerFailed)?
+    }
+    pub fn finish_pdf_selection(
+        &self,
+        review: Id,
+        confirmed: bool,
+        verifier: Box<dyn PdfGrantVerifier>,
+    ) -> Result<Value> {
+        let (tx, rx) = mpsc::channel();
+        self.mailbox.admit(
+            Message::FinishPdf(review, confirmed, verifier, tx),
+            true,
+            256,
+        )?;
+        rx.recv().map_err(|_| Error::WorkerFailed)?
     }
     /// Trusted host code supplies a verifier. This is deliberately absent from JSON.
     pub fn authenticate(

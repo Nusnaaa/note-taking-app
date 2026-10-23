@@ -178,23 +178,22 @@ internal class PdfParserClient(private val connectionFactory: (Executor) -> PdfC
             }
             // Control publication never waits for a blocked Binder call or pipe read.
             // Keep the admission slot until these tasks and disposal actually finish.
-            try {
-                cleanup.execute {
-                    try {
-                        try { resources.first?.close() } finally {
-                            try { resources.second?.close() } finally { resources.third?.close() }
-                        }
-                    } catch (_: Exception) { /* result already terminal; no source details */ }
-                    finally { synchronized(state) { disposed = true }; settle() }
+            fun disposeResources() {
+                try {
+                    try { resources.first?.close() } finally {
+                        try { resources.second?.close() } finally { resources.third?.close() }
+                    }
+                } catch (_: Exception) {
+                    // Do not keep creating isolated processes after disposal failed.
+                    fail(IOException("PDF parser disposal failed"))
+                    this@PdfParserClient.close()
+                } finally {
+                    synchronized(state) { disposed = true }
+                    settle()
                 }
-            } catch (_: RejectedExecutionException) {
-                // close() schedules disposal before shutting the executor down.
-                try { resources.first?.close() } finally {
-                    try { resources.second?.close() } finally { resources.third?.close() }
-                }
-                synchronized(state) { disposed = true }
-                settle()
             }
+            try { cleanup.execute { disposeResources() } }
+            catch (_: RejectedExecutionException) { disposeResources() }
         }
         private fun settle() {
             val release = synchronized(state) {

@@ -426,3 +426,242 @@ fn ordinary_json_cannot_supply_a_review_plan_or_platform_grant() {
     assert!(h.request(r#"{"version":1,"command":{"op":"Pdf","command":{"op":"Reacquire","new_platform_grant":true}}}"#).is_err());
     assert!(h.request(r#"{"version":1,"command":{"op":"Pdf","command":{"op":"ReplaceRevision","review":{"source":"private","generation":"1"},"confirmed":true}}}"#).is_err());
 }
+
+struct Grant(bool);
+impl stem_core::host::PdfGrantVerifier for Grant {
+    fn verify(
+        &mut self,
+        _: Id,
+        _: &stem_core::sources::PdfSelectionTarget,
+        locator: &str,
+        revision: &str,
+    ) -> bool {
+        assert!(locator.starts_with("content://"));
+        assert_eq!(revision.len(), 64);
+        self.0
+    }
+}
+fn selection(h: &Host, source: Id, revision: &str) -> Value {
+    h.prepare_pdf_selection(
+        stem_core::sources::PdfSelectionTarget::Relink { source },
+        "content://synthetic/picked".into(),
+        revision.into(),
+        Box::new(Grant(true)),
+    )
+    .unwrap()
+}
+#[test]
+fn trusted_selection_is_reviewed_and_same_revision_regrant_preserves_source_identity() {
+    let d = tempfile::tempdir().unwrap();
+    let h = Host::open(d.path().join("selected.db"), 8).unwrap();
+    let (context, source, revision) = setup(&h);
+    pdf(&h, PdfCommand::Revoke { source });
+    let prepared = selection(&h, source, &revision);
+    assert_eq!(prepared["source"], json!(source));
+    assert_eq!(prepared["changed_revision"], false);
+    assert_eq!(
+        pdf(&h, PdfCommand::Source { source })["availability"],
+        "Revoked"
+    );
+    let restored = h
+        .finish_pdf_selection(id(&prepared, "review"), true, Box::new(Grant(true)))
+        .unwrap();
+    assert_eq!(restored["id"], json!(source));
+    assert_eq!(restored["context"], json!(context));
+    assert_eq!(restored["availability"], "Available");
+    assert_eq!(restored["previous_revisions"], json!([]));
+    assert!(h
+        .finish_pdf_selection(id(&prepared, "review"), true, Box::new(Grant(true)))
+        .is_err());
+}
+#[test]
+fn changed_revision_can_be_reacquired_from_revoked_state_without_silent_anchor_relocation() {
+    let d = tempfile::tempdir().unwrap();
+    let h = Host::open(d.path().join("edition.db"), 8).unwrap();
+    let (context, source, revision) = setup(&h);
+    let block = ok(
+        &h,
+        Command::Append {
+            entity: context,
+            content: Content::Text("original observation".into()),
+        },
+    );
+    let bounds = stem_core::objects::Rect {
+        x: 0.,
+        y: 0.,
+        width: 0.5,
+        height: 0.5,
+    };
+    let anchor = pdf(
+        &h,
+        PdfCommand::CreateAnchor {
+            source,
+            block: id(&block, "id"),
+            page: 3,
+            bounds,
+            pinned: false,
+        },
+    );
+    pdf(&h, PdfCommand::Revoke { source });
+    let prepared = selection(&h, source, &"b".repeat(64));
+    assert_eq!(prepared["changed_revision"], true);
+    assert_eq!(prepared["affected_anchors"], 1);
+    h.finish_pdf_selection(id(&prepared, "review"), true, Box::new(Grant(true)))
+        .unwrap();
+    let changed = pdf(&h, PdfCommand::Source { source });
+    assert_eq!(changed["previous_revisions"], json!([revision]));
+    assert_eq!(changed["revision"], "b".repeat(64));
+    let retained = pdf(
+        &h,
+        PdfCommand::Anchor {
+            anchor: id(&anchor, "id"),
+        },
+    );
+    assert_eq!(retained["page"], 3);
+    assert_eq!(retained["health"], "NeedsReview");
+    assert_eq!(
+        ok(
+            &h,
+            Command::Block {
+                block: id(&block, "id")
+            }
+        ),
+        block
+    );
+}
+#[test]
+fn selection_requires_fresh_verification_on_acceptance_and_rejection_is_single_use() {
+    let d = tempfile::tempdir().unwrap();
+    let h = Host::open(d.path().join("fresh.db"), 8).unwrap();
+    let (_, source, revision) = setup(&h);
+    pdf(&h, PdfCommand::Revoke { source });
+    let denied = h.prepare_pdf_selection(
+        stem_core::sources::PdfSelectionTarget::Relink { source },
+        "content://synthetic/picked".into(),
+        revision.clone(),
+        Box::new(Grant(false)),
+    );
+    assert!(denied.is_err());
+    let prepared = selection(&h, source, &revision);
+    assert!(h
+        .finish_pdf_selection(id(&prepared, "review"), true, Box::new(Grant(false)))
+        .is_err());
+    assert!(h
+        .finish_pdf_selection(id(&prepared, "review"), true, Box::new(Grant(true)))
+        .is_err());
+    assert_eq!(
+        pdf(&h, PdfCommand::Source { source })["availability"],
+        "Revoked"
+    );
+    let prepared = selection(&h, source, &revision);
+    assert!(h
+        .finish_pdf_selection(id(&prepared, "review"), false, Box::new(Grant(true)))
+        .is_err());
+    assert!(h
+        .finish_pdf_selection(id(&prepared, "review"), true, Box::new(Grant(true)))
+        .is_err());
+}
+#[test]
+fn selection_reviews_are_stale_safe_scope_checked_and_cleared_on_relock() {
+    let d = tempfile::tempdir().unwrap();
+    let h = Host::open(d.path().join("stale-selection.db"), 8).unwrap();
+    let (context, source, revision) = setup(&h);
+    let prepared = selection(&h, source, &revision);
+    ok(
+        &h,
+        Command::Append {
+            entity: context,
+            content: Content::Text("new work".into()),
+        },
+    );
+    assert!(h
+        .finish_pdf_selection(id(&prepared, "review"), true, Box::new(Grant(true)))
+        .is_err());
+    let prepared = selection(&h, source, &revision);
+    ok(&h, Command::Relock {});
+    assert!(h
+        .finish_pdf_selection(id(&prepared, "review"), true, Box::new(Grant(true)))
+        .is_err());
+    h.authenticate(
+        [Scope::Entity(context)].into_iter().collect(),
+        Box::new(TestAuth(true)),
+    )
+    .unwrap();
+    let rev = ok(&h, Command::Read { id: context })["revision"]
+        .as_u64()
+        .unwrap();
+    ok(
+        &h,
+        Command::SetLock {
+            entity: context,
+            revision: rev,
+            locked: true,
+        },
+    );
+    ok(&h, Command::Relock {});
+    assert!(h
+        .prepare_pdf_selection(
+            stem_core::sources::PdfSelectionTarget::Relink { source },
+            "content://synthetic/picked".into(),
+            revision,
+            Box::new(Grant(true))
+        )
+        .is_err());
+}
+#[test]
+fn new_link_selection_does_not_create_source_until_explicit_acceptance_and_uses_preallocated_identity(
+) {
+    let d = tempfile::tempdir().unwrap();
+    let h = Host::open(d.path().join("new-selection.db"), 8).unwrap();
+    let n = ok(
+        &h,
+        Command::Create {
+            kind: Kind::Note,
+            parent: None,
+            title: "owner".into(),
+        },
+    );
+    let review = h
+        .prepare_pdf_selection(
+            stem_core::sources::PdfSelectionTarget::Link {
+                context: id(&n, "id"),
+            },
+            "content://synthetic/selected".into(),
+            "a".repeat(64),
+            Box::new(Grant(true)),
+        )
+        .unwrap();
+    let source = id(&review, "source");
+    denied(&h, PdfCommand::Source { source });
+    let accepted = h
+        .finish_pdf_selection(id(&review, "review"), true, Box::new(Grant(true)))
+        .unwrap();
+    assert_eq!(accepted["id"], json!(source));
+    assert_eq!(accepted["acquisition"], "ExternalLink");
+}
+#[test]
+fn bounded_selection_plans_can_be_released_and_cannot_be_supplied_as_json_grants() {
+    let d = tempfile::tempdir().unwrap();
+    let h = Host::open(d.path().join("bound-selection.db"), 8).unwrap();
+    let (_, source, revision) = setup(&h);
+    let mut plans = Vec::new();
+    for _ in 0..32 {
+        plans.push(selection(&h, source, &revision));
+    }
+    assert!(h
+        .prepare_pdf_selection(
+            stem_core::sources::PdfSelectionTarget::Relink { source },
+            "content://synthetic/picked".into(),
+            revision.clone(),
+            Box::new(Grant(true))
+        )
+        .is_err());
+    pdf(
+        &h,
+        PdfCommand::ReleaseSelection {
+            review: id(&plans[0], "review"),
+        },
+    );
+    selection(&h, source, &revision);
+    assert!(h.request(r#"{"version":1,"command":{"op":"Pdf","command":{"op":"FinishSelection","review":"00000000-0000-0000-0000-000000000000","confirmed":true,"new_platform_grant":true}}}"#).is_err());
+}

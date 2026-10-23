@@ -84,7 +84,7 @@ def main():
         assert packaged[:6]==b'\x7fELF\x02\x01' and int.from_bytes(packaged[18:20],'little')==183
     report['aar_sha256']=hashlib.sha256(aar.read_bytes()).hexdigest()
     report['packaged_arm64_library_bytes']=len(packaged)
-    report['android_tests']=totals;report['jni_assertions']=7;report['merged_manifest_policy']='PASS';report['native_sha256']=hashlib.sha256(native.read_bytes()).hexdigest()
+    report['android_tests']=totals;report['jni_assertions']=8;report['merged_manifest_policy']='PASS';report['native_sha256']=hashlib.sha256(native.read_bytes()).hexdigest()
     report['manifest_scope']='AAR merge contract only: INTERNET removal marker, no backup/transfer, no cleartext, isolated non-exported PDF service. Final APK/device enforcement NOT RUN.'
     report['finished_utc']=datetime.datetime.now(datetime.timezone.utc).isoformat();save();print(json.dumps(totals))
     return 0

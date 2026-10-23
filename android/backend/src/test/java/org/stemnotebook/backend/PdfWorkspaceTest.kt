@@ -51,14 +51,14 @@ class PdfWorkspaceTest {
         val context = object : ContextWrapper(RuntimeEnvironment.getApplication()) { override fun getNoBackupFilesDir(): File = root }
         val calls = AtomicInteger(0)
         val opens = AtomicInteger(0)
-        val backend = NotebookBackend(context) { _, native ->
+        val backend = NotebookBackend(context, pdfFactory = { _, native ->
             PdfWorkspace(cache, PdfProvider({ _, _ ->
                 if (denySecondOpen && opens.incrementAndGet() > 1) throw SecurityException("Synthetic permission loss")
                 ParcelFileDescriptor.open(source, ParcelFileDescriptor.MODE_READ_ONLY)
             }, {}, {}), PdfParserClient { callbacks ->
                 calls.incrementAndGet(); FixturePdfConnection(callbacks, "ok")
             }) { request -> intercept(request); native(request) }
-        }
+        })
         val note = command(backend, JSONObject().put("op", "Create").put("kind", "Note").put("parent", JSONObject.NULL).put("title", "synthetic PDF study"))
         val entity = UUID.fromString(note.getJSONObject("data").getString("id"))
         val linked = command(backend, pdf("Link", JSONObject().put("context", entity.toString()).put("locator", "content://synthetic/study").put("revision", digest(source.readBytes()))))

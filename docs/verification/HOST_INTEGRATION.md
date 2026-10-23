@@ -109,13 +109,45 @@ read-only and native revision/access are revalidated before frame publication.
 
 The native JSON v1 `Pdf` command group exposes Source, Link, SetView, MarkMissing,
 Revoke, Anchor, CreateAnchor, ReconnectAnchor, ReviewRevision, ReplaceRevision,
-PrepareRead, ValidateRead and ReleaseRead. Use `{"op":"Pdf","command":{"op":...}}`
+PrepareRead, ValidateRead, ReleaseRead and ReleaseSelection. Use `{"op":"Pdf","command":{"op":...}}`
 inside the usual request. Prepared read leases and revision-review tokens refer to
 private bounded host state (32 each, at most five minutes); reviews are single-use,
 and read validity is additionally bounded by remaining authentication lifetime.
 Ordinary requests cannot supply a review plan or a `new_platform_grant` flag.
 Relock/access changes clear prepared capabilities. Changing source revisions keeps
 anchor lineage and requires an explicit prepared review rather than guessing a page.
+
+Trusted source selection uses `reviewPdfSelection(Target.Link(context) or
+Target.Relink(source), pickedUri, pickerFlags)` and a separate explicit
+`acceptPdfSelection(review)`. The returned objects are not serialisable grants.
+Provider opening and signature/SHA-256 observation run on one bounded optional
+worker with timeouts and cooperative cancellation. Preparation does not write a
+source or retain a persistent provider grant. Rejection/expiry/relock retires the
+review. Acceptance reopens and rehashes the chosen source; changed bytes, permission
+loss, stale native generation or current locks reject the old proposal. Persistable
+read access is requested only after explicit acceptance and only when the picker
+provided its flag; write access is never requested. System grant retention and SQLite
+commit are separate boundaries: a failed database save may leave a deliberately
+retained platform read grant, never a falsely acknowledged source save.
+
+Separate trusted JNI prepare/finish methods verify a fresh one-use observation
+callback, bound to destination, locator and hash. They do not perform provider I/O
+on the native writer. Private native selection reviews are bounded to 32/five minutes,
+are single-use and check current library/generation/access. Both same-revision and
+changed-revision selection can recover a revoked or restored source while retaining
+its ID. A changed edition preserves prior revisions and marks affected anchors
+historical or needing review rather than relocating annotations. Independent retained
+evidence and authored working survive. New links have a proposed ID before commit,
+so an ambiguous process interruption can be reconciled by that identity.
+
+Before native commit acceptance, cancellation prevents the observation proof from
+authorising a late write. Once the writer accepts the fresh proof for an explicitly
+confirmed commit, cancellation no longer invents a failure or rolls back a successful
+save: the caller waits for the actual receipt/error. That receipt contains the known
+source ID, not a cached private locator/title. Provider failure is published even if
+provider retirement or the selection deadline thread is blocked; admission remains
+reserved until resources actually retire. The parser client also fails closed after
+a disposal/unbind failure rather than admitting unbounded additional processes.
 
 The parser binds to a fresh isolated service instance. Only a duplicated read-only
 FD, page, viewport dimensions, request token and pixel format cross this boundary;
@@ -136,9 +168,10 @@ failed reply/write. This is PDF viewing, never a raster handwriting-recognition 
 Automated fixtures use actual desktop JNI with simulated Android/provider/Messenger
 boundaries. Robolectric's pipe/dup shadow uses regular files/copies, so these tests
 are not live kernel-pipe or cross-process/device evidence. The module explicitly
-pins Build Tools 35.0.0. Trusted picker/regrant/restore, managed-copy/historical read
-paths, complete permission/lifecycle/navigation cases and actual service/device
-execution remain open. Already drawn external H.I. pixels must be hidden/redrawn
+pins Build Tools 35.0.0. Managed-copy/historical read paths, complete external permission/lifecycle/navigation
+cases and actual service/device execution remain open. Picker/regrant paths are
+backend contracts and synthetic platform/JNI fixtures, not actual device picker or
+grant-persistence acceptance. Already drawn external H.I. pixels must be hidden/redrawn
 when a frame is retired; this library does not implement production H.I.
 
 ## Rendering and processing

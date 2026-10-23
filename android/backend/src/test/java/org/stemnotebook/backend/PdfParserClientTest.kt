@@ -107,4 +107,22 @@ class PdfParserClientTest {
         }
     }
 
+    @Test(timeout = 15_000) fun rejectedDisposalAndFailedUnbindCloseDescriptorsAndDoNotAdmitAnotherProcess() {
+        lateinit var binding: FixturePdfConnection
+        val client = PdfParserClient { callbacks -> FixturePdfConnection(callbacks, "close-fails").also { binding = it } }
+        // A success/cancel race can shut this executor between ownership handoff
+        // and execute(). Reproduce the rejected handoff with real owned descriptors.
+        org.robolectric.util.ReflectionHelpers.getField<java.util.concurrent.ThreadPoolExecutor>(client, "cleanup").shutdown()
+        input().use { fd ->
+            try {
+                assertThrows(IOException::class.java) { client.render(fd, 0, 2, 2, 5_000).await() }
+                eventually { client.pendingCount() == 0 }
+                assertEquals(1, binding.closes.get())
+                assertThrows(IllegalStateException::class.java) { binding.output!!.fd }
+                assertThrows(IllegalStateException::class.java) { client.render(fd, 0, 2, 2) }
+                assertTrue(fd.fd >= 0)
+            } finally { client.close() }
+        }
+    }
+
 }

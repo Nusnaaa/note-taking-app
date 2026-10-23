@@ -2,7 +2,7 @@
 //! can be manufactured by deserialising an ordinary request.
 use crate::{
     security::Access,
-    sources::{Availability, PdfView, RevisionReview},
+    sources::{Availability, PdfSelectionPlan, PdfSelectionTarget, PdfView, RevisionReview},
     store::Store,
     Error, Id, Result,
 };
@@ -16,6 +16,9 @@ use std::{
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "op", deny_unknown_fields)]
 pub enum PdfCommand {
+    ReleaseSelection {
+        review: Id,
+    },
     Source {
         source: Id,
     },
@@ -89,6 +92,21 @@ struct ReadLease {
     revision: String,
     created: Instant,
 }
+pub trait PdfGrantVerifier: Send {
+    /// Trusted application code verifies a fresh, immutable provider observation.
+    /// This callback must be bounded host bookkeeping, never provider I/O.
+    fn verify(
+        &mut self,
+        challenge: Id,
+        target: &PdfSelectionTarget,
+        locator: &str,
+        revision: &str,
+    ) -> bool;
+}
+struct Selection {
+    plan: PdfSelectionPlan,
+    created: Instant,
+}
 struct Review {
     plan: RevisionReview,
     created: Instant,
@@ -97,6 +115,7 @@ struct Review {
 pub(super) struct PdfState {
     reads: BTreeMap<Id, ReadLease>,
     reviews: BTreeMap<Id, Review>,
+    selections: BTreeMap<Id, Selection>,
 }
 const CAPACITY: usize = 32;
 const LIFETIME: Duration = Duration::from_secs(300);
@@ -111,16 +130,83 @@ impl PdfState {
     pub fn clear(&mut self) {
         self.reads.clear();
         self.reviews.clear();
+        self.selections.clear();
     }
     fn retire_expired(&mut self) {
+        self.selections
+            .retain(|_, plan| plan.created.elapsed() < LIFETIME);
         self.reads
             .retain(|_, plan| plan.created.elapsed() < LIFETIME);
         self.reviews
             .retain(|_, plan| plan.created.elapsed() < LIFETIME);
     }
+    pub fn prepare_selection(
+        &mut self,
+        s: &Store,
+        a: &Access,
+        target: PdfSelectionTarget,
+        locator: &str,
+        revision: &str,
+        verifier: &mut dyn PdfGrantVerifier,
+    ) -> Result<Value> {
+        self.retire_expired();
+        if self.selections.len() >= CAPACITY {
+            return Err(Error::ResourceLimit);
+        }
+        let plan = s.prepare_pdf_selection(target, locator, revision, a)?;
+        if !verifier.verify(
+            Id::new(),
+            plan.target(),
+            &plan.proposed().locator,
+            &plan.proposed().revision,
+        ) {
+            return Err(Error::Denied);
+        }
+        s.check_pdf_selection(&plan, a)?;
+        let token = Id::new();
+        let result = json!({"review":token,"source":plan.proposed().id,"changed_revision":plan.changed_revision(),"affected_anchors":plan.affected_anchors});
+        self.selections.insert(
+            token,
+            Selection {
+                plan,
+                created: Instant::now(),
+            },
+        );
+        Ok(result)
+    }
+    pub fn finish_selection(
+        &mut self,
+        s: &mut Store,
+        a: &Access,
+        review: Id,
+        confirmed: bool,
+        verifier: &mut dyn PdfGrantVerifier,
+    ) -> Result<Value> {
+        self.retire_expired();
+        let selection = self.selections.remove(&review).ok_or(Error::Unavailable)?;
+        if !confirmed {
+            return Err(Error::ReviewRequired);
+        }
+        s.check_pdf_selection(&selection.plan, a)?;
+        if !verifier.verify(
+            Id::new(),
+            selection.plan.target(),
+            &selection.plan.proposed().locator,
+            &selection.plan.proposed().revision,
+        ) {
+            return Err(Error::Denied);
+        }
+        let source = s.finish_pdf_selection(selection.plan, a)?;
+        self.clear();
+        Ok(serde_json::to_value(source)?)
+    }
     pub fn execute(&mut self, s: &mut Store, a: &Access, command: PdfCommand) -> Result<Value> {
         self.retire_expired();
         Ok(match command {
+            PdfCommand::ReleaseSelection { review } => {
+                self.selections.remove(&review);
+                Value::Null
+            }
             PdfCommand::Source { source } => serde_json::to_value(s.source(source, a)?)?,
             PdfCommand::Link {
                 context,

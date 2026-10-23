@@ -44,6 +44,24 @@ public final class BoundarySmoke {
             NativeBridge.close(blockedHandle);
             NativeBridge.close(otherHandle);
         }
-        System.out.println("PASS: JNI Unicode, platform-verifier callback, relock, restart, malformed input, closed handles and independent registry access (7)");
+        long selectionHandle=NativeBridge.open(Files.createTempDirectory("stem-jni-source-selection").resolve("notebook.db").toString());
+        try {
+            String note=NativeBridge.request(selectionHandle,request);
+            var sourceOwner=Pattern.compile("\"id\":\"([^\"]+)\"").matcher(note);check(sourceOwner.find());
+            String target="{\"kind\":\"Link\",\"context\":\""+sourceOwner.group(1)+"\"}";
+            String uri="content://synthetic/selected";String revision="a".repeat(64);
+            var verified=new java.util.concurrent.atomic.AtomicInteger();
+            NativeBridge.PdfGrant proof=(challenge,requested,locator,hash) -> {
+                check(!challenge.isEmpty() && requested.equals(target) && locator.equals(uri) && hash.equals(revision));verified.incrementAndGet();return true;
+            };
+            String prepared=NativeBridge.preparePdfSelection(selectionHandle,target,uri,revision,proof);
+            var review=Pattern.compile("\"review\":\"([^\"]+)\"").matcher(prepared);check(review.find());
+            String accepted=NativeBridge.finishPdfSelection(selectionHandle,review.group(1),true,proof);
+            check(accepted.contains(uri) && verified.get()==2);
+            try { NativeBridge.finishPdfSelection(selectionHandle,review.group(1),true,proof);throw new AssertionError(); } catch(IllegalStateException expected) { }
+            try { NativeBridge.preparePdfSelection(selectionHandle,target,uri,revision,(c,t,l,r) -> {throw new IllegalArgumentException("private provider diagnostic");});throw new AssertionError(); } catch(IllegalStateException expected) {check(!expected.getMessage().contains("private"));}
+        } finally {NativeBridge.close(selectionHandle);}
+        System.out.println("PASS: JNI Unicode, platform-verifier callback, relock, restart, malformed input, closed handles, independent registry access and fresh source-selection proof (8)");
+
     }
 }

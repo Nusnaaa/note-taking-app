@@ -163,3 +163,136 @@ pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_authenticate(
         fail(&mut env)
     }
 }
+
+struct JavaPdfGrant {
+    vm: jni::JavaVM,
+    proof: jni::objects::GlobalRef,
+}
+impl stem_core::host::PdfGrantVerifier for JavaPdfGrant {
+    fn verify(
+        &mut self,
+        challenge: stem_core::Id,
+        target: &stem_core::sources::PdfSelectionTarget,
+        locator: &str,
+        revision: &str,
+    ) -> bool {
+        let Ok(mut env) = self.vm.attach_current_thread() else {
+            return false;
+        };
+        let Ok(target) = serde_json::to_string(target) else {
+            return false;
+        };
+        let values = [
+            challenge.to_string(),
+            target,
+            locator.to_owned(),
+            revision.to_owned(),
+        ];
+        let strings = values
+            .iter()
+            .map(|s| env.new_string(s))
+            .collect::<std::result::Result<Vec<_>, _>>();
+        let Ok(strings) = strings else {
+            return false;
+        };
+        let arguments = strings
+            .iter()
+            .map(|s| jni::objects::JValue::Object(s.as_ref()))
+            .collect::<Vec<_>>();
+        let result = env
+            .call_method(
+                self.proof.as_obj(),
+                "verify",
+                "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z",
+                &arguments,
+            )
+            .and_then(|r| r.z());
+        if env.exception_check().unwrap_or(true) {
+            let _ = env.exception_clear();
+            return false;
+        }
+        result.unwrap_or(false)
+    }
+}
+fn bounded_string(env: &mut JNIEnv<'_>, value: &JString<'_>, maximum: i32) -> Option<String> {
+    if env
+        .call_method(value, "length", "()I", &[])
+        .ok()?
+        .i()
+        .ok()?
+        > maximum
+    {
+        return None;
+    }
+    Some(env.get_string(value).ok()?.into())
+}
+#[no_mangle]
+pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_preparePdfSelection(
+    mut env: JNIEnv<'_>,
+    _: JClass<'_>,
+    handle: jlong,
+    target: JString<'_>,
+    locator: JString<'_>,
+    revision: JString<'_>,
+    proof: jni::objects::JObject<'_>,
+) -> jstring {
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> Option<jstring> {
+        let target = bounded_string(&mut env, &target, 1024)?;
+        let target: stem_core::sources::PdfSelectionTarget = serde_json::from_str(&target).ok()?;
+        let locator = bounded_string(&mut env, &locator, 4096)?;
+        let revision = bounded_string(&mut env, &revision, 64)?;
+        let verifier = JavaPdfGrant {
+            vm: env.get_java_vm().ok()?,
+            proof: env.new_global_ref(proof).ok()?,
+        };
+        let host = Arc::clone(hosts().lock().ok()?.get(&handle)?);
+        let review = host
+            .prepare_pdf_selection(target, locator, revision, Box::new(verifier))
+            .ok()?;
+        Some(
+            env.new_string(serde_json::to_string(&review).ok()?)
+                .ok()?
+                .into_raw(),
+        )
+    }));
+    match result {
+        Ok(Some(value)) => value,
+        _ => {
+            fail(&mut env);
+            std::ptr::null_mut()
+        }
+    }
+}
+#[no_mangle]
+pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_finishPdfSelection(
+    mut env: JNIEnv<'_>,
+    _: JClass<'_>,
+    handle: jlong,
+    review: JString<'_>,
+    confirmed: jni::sys::jboolean,
+    proof: jni::objects::JObject<'_>,
+) -> jstring {
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> Option<jstring> {
+        let review = stem_core::Id::parse(&bounded_string(&mut env, &review, 36)?).ok()?;
+        let verifier = JavaPdfGrant {
+            vm: env.get_java_vm().ok()?,
+            proof: env.new_global_ref(proof).ok()?,
+        };
+        let host = Arc::clone(hosts().lock().ok()?.get(&handle)?);
+        let source = host
+            .finish_pdf_selection(review, confirmed != 0, Box::new(verifier))
+            .ok()?;
+        Some(
+            env.new_string(serde_json::to_string(&source).ok()?)
+                .ok()?
+                .into_raw(),
+        )
+    }));
+    match result {
+        Ok(Some(value)) => value,
+        _ => {
+            fail(&mut env);
+            std::ptr::null_mut()
+        }
+    }
+}
