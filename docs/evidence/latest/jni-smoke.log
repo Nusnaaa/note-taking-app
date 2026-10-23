@@ -2,4 +2,4 @@ $ /tmp/stem-build-tools/jdk-17.0.21+9/bin/java -Xcheck:jni -Djava.library.path=t
 exit_code=0
 
 Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/stem-android-user
-PASS: JNI Unicode, platform-verifier callback, relock, restart, malformed input, closed handles, independent registry access and fresh source-selection proof (8)
+PASS: JNI Unicode, platform-verifier callback, relock, restart, malformed input, closed handles, independent registry access fresh source-selection proof and concurrent close drain (9)
