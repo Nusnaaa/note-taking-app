@@ -1,8 +1,8 @@
 {
-  "started_utc": "2026-10-23T17:03:06.213261+00:00",
-  "source_commit": "6a824bbc39eb232a3fed0ec1492ea189328c56b5",
+  "started_utc": "2026-10-23T17:15:51.863411+00:00",
+  "source_commit": "3f499f9d02e634d35d0ff31db2f403e14c853028",
   "working_tree_before": "",
-  "full_working_tree_before": " M docs/evidence/latest/android-elf.log\n M docs/evidence/latest/android-gradle.log\n M docs/evidence/latest/android-native.log\n M docs/evidence/latest/android-validation.json\n M docs/evidence/latest/jni-library.log\n M docs/evidence/latest/jni-smoke.log\n?? docs/evidence/continuation-2026-10-23/active-capture-journal/",
+  "full_working_tree_before": "",
   "build_environment": {
     "CARGO_INCREMENTAL": "0",
     "CARGO_BUILD_JOBS": "2"
@@ -19,12 +19,13 @@
     "android/backend/gradle.lockfile": "cbec11f0c961a5a5bfe6aab69d9bf761a8b8e27bc19034fd5b8eb6589005941e",
     "android/backend/src/main/AndroidManifest.xml": "e6c3baa8a6e88d578962c679301f3d53cd4cb2eb39351457e47c0915cb368a24",
     "android/backend/src/main/java/org/stemnotebook/backend/ActiveCaptureJournal.kt": "db1b3143817307e8497a442c97b8c416908b2b8ea54182b8444a9621cf417837",
+    "android/backend/src/main/java/org/stemnotebook/backend/BackendWriter.kt": "b575c502c87a40b28463f81741299619242df323a08deb71acd37b50a3d78250",
     "android/backend/src/main/java/org/stemnotebook/backend/CaptureOutbox.kt": "eebf2d33ba94fc456ee38efdd3b3532119618536a951163d53893c839afdc6be",
     "android/backend/src/main/java/org/stemnotebook/backend/InkAccumulator.kt": "08d07a95c33ce277fe48ea404cd7f8f3e684e74ec7af09f01b7a0d010c727dc9",
     "android/backend/src/main/java/org/stemnotebook/backend/JournaledCaptureSession.kt": "2183ad379f2fc349f00dabd7c7257517b5a187cce3d6a2e316b9e759f389fdfc",
     "android/backend/src/main/java/org/stemnotebook/backend/LibraryOwnership.kt": "664e17e6fd36cd95e00ed10acf2f15d24c1efaed86cc7594f36ad038c59f8647",
     "android/backend/src/main/java/org/stemnotebook/backend/NativeBridge.java": "bf0d8acaedb40ef9577ce6bcd1d4d7c246a27809bb1588663728ad55bbe4e904",
-    "android/backend/src/main/java/org/stemnotebook/backend/NotebookBackend.kt": "98fe7103aaea555b367a612b369ccb2d7c5e5314c4292786b197f076c0167e0f",
+    "android/backend/src/main/java/org/stemnotebook/backend/NotebookBackend.kt": "f8d39820d252d877fce8efa29680228c70d614e5e91a3af529dc6490de7d0f34",
     "android/backend/src/main/java/org/stemnotebook/backend/ObservedInk.kt": "b416e8beb5a37e0b1d6cd93b0b17857716aa0a2476fa086688f83790865d6552",
     "android/backend/src/main/java/org/stemnotebook/backend/PdfConnection.kt": "c7b5c61bc5d209f70a2867c8942d606556daf29a04a28e48872d1bd68af5504f",
     "android/backend/src/main/java/org/stemnotebook/backend/PdfParserClient.kt": "ae4fd736f00d29be432ffc4bb60d5443ba9bf9ca5a06ac3f83e2fe9c9b1c8214",
@@ -37,7 +38,9 @@
     "android/backend/src/main/res/xml/backup_rules.xml": "9dc73ebd39e95acff8a4c69fe70c054e82a1148459cfc684a8252678c83ffa91",
     "android/backend/src/main/res/xml/data_extraction_rules.xml": "ac3e390093eeb9ee64b598412c4b5baf2033972647f4d8354d19fb0e85ffea98",
     "android/backend/src/test/java/org/stemnotebook/backend/ActiveCaptureJournalTest.kt": "e1589170db7ffed4e3e50c5c430d7a74f5a8059ef6c48558bf159183d8fe544a",
+    "android/backend/src/test/java/org/stemnotebook/backend/BackendAdmissionIntegrationTest.kt": "b66e6b009e4c0fa4b384abd0117b56701a23c671e7a0f0f164b3dce683f15167",
     "android/backend/src/test/java/org/stemnotebook/backend/BackendOwnershipTest.kt": "ea9243a72af948a4887ea97deb464813b41cbda23b2d277834a846e4544d9bc2",
+    "android/backend/src/test/java/org/stemnotebook/backend/BackendWriterTest.kt": "14f6c8c5bd1c6ca8a7c565b9d1ff63304de6529f178438e4692ae5137511604c",
     "android/backend/src/test/java/org/stemnotebook/backend/CaptureOutboxTest.kt": "a3ea3da6aece40932cd0e01b181002db0cd69d2ba25b27f7b760c30b9ba35211",
     "android/backend/src/test/java/org/stemnotebook/backend/FixturePdfConnection.kt": "18109d1f2020732cf9aa7c4fb7393fbbcd05609a8ab7991d0b3b2b3d670cf62c",
     "android/backend/src/test/java/org/stemnotebook/backend/InkAccumulatorTest.kt": "ff8171ce3fe14458be5da6d6d60aedc9a8e35456c3db432c91ea0df28e288813",
@@ -167,17 +170,17 @@
     "docs/licensing/dependency-inventory.json": "c86a26e424db68595a545e056ad6726307d9167b564590ea565bba3e08c05c32",
     "docs/spec/approved-v0.5.8.md": "68612d4dc4d0e69c61f0018fbcf67bf779559bcbb120bcd0f6c3f9333f27b7b3",
     "docs/verification/DEFERRED_MANUAL.md": "c694b9fe185c216204dfd72aa6c55d1f8d21e06c431bb50b126bce1a6b514e1c",
-    "docs/verification/HOST_INTEGRATION.md": "a954c4df20b01f7ce7d0f608a16951745a0772aa8924a0881f7dcd2635322cc7",
-    "docs/verification/TEST_PLAN.md": "75c33c575632d11d8b0ff022ec29d6676fdee5a90651eff0840ecfac0e8c5a36",
-    "docs/verification/backend-gaps.json": "9a3c1eb2bde61b1fd04dbad2179ccf78f0bfb1883ce31adba7db52047a0dd3c2",
-    "docs/verification/candidates-current.csv": "264128b32e32338e631309e491268886bbf98b8d978742bd31062f0653fb57aa",
-    "docs/verification/inherited-current.csv": "c5964c253f33fcc66ba961ae5af566ccefd284ce1a73fbf908eb10a5b75d429f",
-    "docs/verification/requirements-current.csv": "2de48ed34ef20b2426fe2ce99b177e2431400a8eb728378efdc543c11d45adc8",
+    "docs/verification/HOST_INTEGRATION.md": "50a88846939fa076047208b5809fb5548cc744acd244e32cdcfad316ca40f29b",
+    "docs/verification/TEST_PLAN.md": "047c2d9ecf508e7310f5417ca3792c64f1a2ff0a522b618f765b323081d1b240",
+    "docs/verification/backend-gaps.json": "7c89c95331797ce6db5a6e1b511b7524bc99470bbae42a754f171ed5a4dfb47b",
+    "docs/verification/candidates-current.csv": "70e50fa84231c805abdea1dc9e58672ea11c18412c425455081933514fa69c79",
+    "docs/verification/inherited-current.csv": "9fea29576919eac2e32ddd637362e7e39b193a56aec6a29fc3b78e5a0ffe03db",
+    "docs/verification/requirements-current.csv": "69d11d79fb15ddd5f39b6e1ca2ffc6c9e744d811fddd5e4f00bfd4fa1572bc5e",
     "docs/verification/traceability-manifest.json": "15d09e00b540a512b8e0b6afd98b06824e93d743d80317963ebe18d91d3adb22",
     "rust-toolchain.toml": "c33d1f0b1b8fda448bea32d7dc867aa64947c87169fd9de7122ffccad1dd80f9",
     "tools/backend_gate.py": "f2e695b770631ef9dcff18125b737665b3153be72f0bb8992007f151fc1e762d",
     "tools/dependency_inventory.py": "51dc9dcd28cab69c8af36b976d65aa67557d6afe8827be162a431d1854232315",
-    "tools/traceability.py": "f8fe61c94154f2c15486b6a58ed7d702af7916a7a3d8dfb3b3a347e4269aea32",
+    "tools/traceability.py": "389406b4e8f8d8e918b752b8bbbda8b84a3c792ac25afd1cedaa21f1fefc30c5",
     "tools/validate.py": "2a25d3f4c6d487754f7b73bc0f415809cdf9e8416fe9f651f0302522a373711a",
     "tools/validate_android.py": "54269646d3c5eefaba3b410e5727ecef2eb49b26d18fc86291ea90ccdc4b79d5"
   },
@@ -193,7 +196,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 0.533,
+      "seconds": 0.712,
       "log": "format.log"
     },
     {
@@ -211,7 +214,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 2.874,
+      "seconds": 3.483,
       "log": "lint.log"
     },
     {
@@ -225,7 +228,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 120.588,
+      "seconds": 116.913,
       "log": "tests.log"
     },
     {
@@ -240,7 +243,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 0.236,
+      "seconds": 0.209,
       "log": "release-build.log"
     },
     {
@@ -252,7 +255,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 0.242,
+      "seconds": 0.201,
       "log": "traceability.log"
     }
   ],
@@ -286,15 +289,15 @@
       "result": "ok"
     },
     {
-      "name": "malformed_authenticated_backup_is_rejected_before_exposing_restored_store",
-      "result": "ok"
-    },
-    {
       "name": "restore_publication_never_overwrites_live_database_and_reopens",
       "result": "ok"
     },
     {
       "name": "external_asset_backup_is_explicit_authorised_and_revocation_safe",
+      "result": "ok"
+    },
+    {
+      "name": "malformed_authenticated_backup_is_rejected_before_exposing_restored_store",
       "result": "ok"
     },
     {
@@ -346,11 +349,11 @@
       "result": "ok"
     },
     {
-      "name": "offline_help_covers_recovery_and_unsearchable_ink_without_remote_dependency",
+      "name": "converter_preserves_deliberately_wrong_math_without_solving",
       "result": "ok"
     },
     {
-      "name": "converter_preserves_deliberately_wrong_math_without_solving",
+      "name": "offline_help_covers_recovery_and_unsearchable_ink_without_remote_dependency",
       "result": "ok"
     },
     {
@@ -358,11 +361,11 @@
       "result": "ok"
     },
     {
-      "name": "pruning_without_protected_block_access_keeps_its_undo_history",
+      "name": "undo_creation_preserves_original_observations_and_redo_restores_visibility",
       "result": "ok"
     },
     {
-      "name": "undo_creation_preserves_original_observations_and_redo_restores_visibility",
+      "name": "pruning_without_protected_block_access_keeps_its_undo_history",
       "result": "ok"
     },
     {
@@ -390,10 +393,6 @@
       "result": "ok"
     },
     {
-      "name": "resource_installation_requires_consent_digest_and_bounded_streaming",
-      "result": "ok"
-    },
-    {
       "name": "staged_probe_or_commit_failure_keeps_previous_verified_engine",
       "result": "ok"
     },
@@ -402,15 +401,19 @@
       "result": "ok"
     },
     {
+      "name": "resource_installation_requires_consent_digest_and_bounded_streaming",
+      "result": "ok"
+    },
+    {
+      "name": "batch_acceptance_is_selected_and_atomic_on_stale_members",
+      "result": "ok"
+    },
+    {
       "name": "another_connection_changing_state_during_probe_prevents_stale_activation",
       "result": "ok"
     },
     {
       "name": "installed_provenance_and_profiles_reopen_without_fabricated_runtime_readiness",
-      "result": "ok"
-    },
-    {
-      "name": "batch_acceptance_is_selected_and_atomic_on_stale_members",
       "result": "ok"
     },
     {
@@ -430,35 +433,7 @@
       "result": "ok"
     },
     {
-      "name": "removing_view_preserves_master_ink_membership_and_protection",
-      "result": "ok"
-    },
-    {
-      "name": "extracting_a_protected_heading_does_not_disclose_its_title",
-      "result": "ok"
-    },
-    {
-      "name": "independent_copy_preserves_ink_but_has_separate_ids_edits_modes_and_status",
-      "result": "ok"
-    },
-    {
-      "name": "master_trash_restore_and_purge_preserve_then_remove_exercise_state",
-      "result": "ok"
-    },
-    {
-      "name": "linked_append_is_atomic_and_keeps_master_order_and_shared_save_state",
-      "result": "ok"
-    },
-    {
-      "name": "exercise_locks_cover_master_search_history_inference_links_export_and_deletion",
-      "result": "ok"
-    },
-    {
       "name": "legacy_v1_native_remains_readable_and_malformed_v2_membership_is_rejected",
-      "result": "ok"
-    },
-    {
-      "name": "failed_extraction_and_reassignment_roll_back_every_membership",
       "result": "ok"
     },
     {
@@ -466,7 +441,27 @@
       "result": "ok"
     },
     {
+      "name": "removing_view_preserves_master_ink_membership_and_protection",
+      "result": "ok"
+    },
+    {
+      "name": "failed_extraction_and_reassignment_roll_back_every_membership",
+      "result": "ok"
+    },
+    {
       "name": "duplicate_titles_keep_distinct_identity_and_metadata_failures_share_status",
+      "result": "ok"
+    },
+    {
+      "name": "exercise_locks_cover_master_search_history_inference_links_export_and_deletion",
+      "result": "ok"
+    },
+    {
+      "name": "linked_append_is_atomic_and_keeps_master_order_and_shared_save_state",
+      "result": "ok"
+    },
+    {
+      "name": "independent_copy_preserves_ink_but_has_separate_ids_edits_modes_and_status",
       "result": "ok"
     },
     {
@@ -474,11 +469,11 @@
       "result": "ok"
     },
     {
-      "name": "reassignment_requires_preview_confirmation_and_undo_preserves_new_content",
+      "name": "master_trash_restore_and_purge_preserve_then_remove_exercise_state",
       "result": "ok"
     },
     {
-      "name": "existing_membership_survives_heading_confirmation_removal_rename_and_reopen",
+      "name": "extracting_a_protected_heading_does_not_disclose_its_title",
       "result": "ok"
     },
     {
@@ -494,6 +489,14 @@
       "result": "ok"
     },
     {
+      "name": "reassignment_requires_preview_confirmation_and_undo_preserves_new_content",
+      "result": "ok"
+    },
+    {
+      "name": "existing_membership_survives_heading_confirmation_removal_rename_and_reopen",
+      "result": "ok"
+    },
+    {
       "name": "pagination_never_bisects_indivisible_work_or_silently_scales",
       "result": "ok"
     },
@@ -502,11 +505,11 @@
       "result": "ok"
     },
     {
-      "name": "converted_only_export_never_reads_or_discloses_original_ink",
+      "name": "diagram_svg_escapes_labels_and_canvas_scope_rejects_hidden_payload",
       "result": "ok"
     },
     {
-      "name": "diagram_svg_escapes_labels_and_canvas_scope_rejects_hidden_payload",
+      "name": "converted_only_export_never_reads_or_discloses_original_ink",
       "result": "ok"
     },
     {
@@ -518,11 +521,11 @@
       "result": "ok"
     },
     {
-      "name": "threaded_host_commits_reopens_and_rejects_unknown_version_and_fields",
+      "name": "reentrant_close_from_verifier_fails_without_self_join_or_retained_access",
       "result": "ok"
     },
     {
-      "name": "verifier_panic_fails_closed_without_killing_the_writer_or_retaining_access",
+      "name": "threaded_host_commits_reopens_and_rejects_unknown_version_and_fields",
       "result": "ok"
     },
     {
@@ -530,11 +533,7 @@
       "result": "ok"
     },
     {
-      "name": "asynchronous_writer_retry_tickets_and_lock_scopes_are_enforced",
-      "result": "ok"
-    },
-    {
-      "name": "reentrant_close_from_verifier_fails_without_self_join_or_retained_access",
+      "name": "verifier_panic_fails_closed_without_killing_the_writer_or_retaining_access",
       "result": "ok"
     },
     {
@@ -542,15 +541,11 @@
       "result": "ok"
     },
     {
-      "name": "query_saturation_reserves_edit_admission_and_preserves_edit_undo_order",
-      "result": "ok"
-    },
-    {
       "name": "active_call_and_shutdown_drain_hold_ownership_until_original_ink_is_committed",
       "result": "ok"
     },
     {
-      "name": "concurrent_host_calls_return_distinct_committed_content",
+      "name": "query_saturation_reserves_edit_admission_and_preserves_edit_undo_order",
       "result": "ok"
     },
     {
@@ -558,11 +553,11 @@
       "result": "ok"
     },
     {
-      "name": "host_exercise_edits_share_identity_with_master_and_layout_undo_survives_restart",
+      "name": "asynchronous_writer_retry_tickets_and_lock_scopes_are_enforced",
       "result": "ok"
     },
     {
-      "name": "dropped_receipts_still_drain_on_close_and_observers_see_final_closed_state",
+      "name": "host_exercise_edits_share_identity_with_master_and_layout_undo_survives_restart",
       "result": "ok"
     },
     {
@@ -570,11 +565,27 @@
       "result": "ok"
     },
     {
+      "name": "dropped_receipts_still_drain_on_close_and_observers_see_final_closed_state",
+      "result": "ok"
+    },
+    {
+      "name": "concurrent_host_calls_return_distinct_committed_content",
+      "result": "ok"
+    },
+    {
       "name": "ordinary_json_cannot_supply_a_review_plan_or_platform_grant",
       "result": "ok"
     },
     {
+      "name": "rejecting_a_prepared_revision_consumes_it_without_changing_the_source",
+      "result": "ok"
+    },
+    {
       "name": "new_link_selection_does_not_create_source_until_explicit_acceptance_and_uses_preallocated_identity",
+      "result": "ok"
+    },
+    {
+      "name": "bounded_selection_plans_can_be_released_and_cannot_be_supplied_as_json_grants",
       "result": "ok"
     },
     {
@@ -586,19 +597,11 @@
       "result": "ok"
     },
     {
-      "name": "rejecting_a_prepared_revision_consumes_it_without_changing_the_source",
-      "result": "ok"
-    },
-    {
-      "name": "revocation_and_missing_sources_retire_reads_without_touching_authored_work",
-      "result": "ok"
-    },
-    {
       "name": "selection_reviews_are_stale_safe_scope_checked_and_cleared_on_relock",
       "result": "ok"
     },
     {
-      "name": "changed_revision_can_be_reacquired_from_revoked_state_without_silent_anchor_relocation",
+      "name": "read_and_revision_tokens_are_bounded_private_and_revision_checked",
       "result": "ok"
     },
     {
@@ -610,19 +613,11 @@
       "result": "ok"
     },
     {
-      "name": "bounded_selection_plans_can_be_released_and_cannot_be_supplied_as_json_grants",
+      "name": "changed_revision_can_be_reacquired_from_revoked_state_without_silent_anchor_relocation",
       "result": "ok"
     },
     {
-      "name": "trusted_selection_is_reviewed_and_same_revision_regrant_preserves_source_identity",
-      "result": "ok"
-    },
-    {
-      "name": "staged_retention_cannot_survive_relock_replay_or_wrong_pdf_bytes",
-      "result": "ok"
-    },
-    {
-      "name": "read_and_revision_tokens_are_bounded_private_and_revision_checked",
+      "name": "revocation_and_missing_sources_retire_reads_without_touching_authored_work",
       "result": "ok"
     },
     {
@@ -630,11 +625,19 @@
       "result": "ok"
     },
     {
-      "name": "retained_pdf_lease_shares_capacity_and_preserves_old_revision_under_new_source_edition",
+      "name": "retained_pdf_streaming_is_explicit_atomic_bounded_and_content_checked",
       "result": "ok"
     },
     {
-      "name": "retained_pdf_streaming_is_explicit_atomic_bounded_and_content_checked",
+      "name": "staged_retention_cannot_survive_relock_replay_or_wrong_pdf_bytes",
+      "result": "ok"
+    },
+    {
+      "name": "trusted_selection_is_reviewed_and_same_revision_regrant_preserves_source_identity",
+      "result": "ok"
+    },
+    {
+      "name": "retained_pdf_lease_shares_capacity_and_preserves_old_revision_under_new_source_edition",
       "result": "ok"
     },
     {
@@ -674,7 +677,7 @@
       "result": "ok"
     },
     {
-      "name": "protected_canvas_cannot_leak_through_embed_or_group",
+      "name": "table_cell_edit_preserves_identity_neighbours_and_source_ink",
       "result": "ok"
     },
     {
@@ -682,7 +685,7 @@
       "result": "ok"
     },
     {
-      "name": "table_cell_edit_preserves_identity_neighbours_and_source_ink",
+      "name": "protected_canvas_cannot_leak_through_embed_or_group",
       "result": "ok"
     },
     {
@@ -690,19 +693,11 @@
       "result": "ok"
     },
     {
-      "name": "view_settings_and_protected_placeholders_reopen_without_secret_text",
-      "result": "ok"
-    },
-    {
       "name": "native_v3_roundtrip_preserves_assets_layout_groups_and_embeds_with_new_ids",
       "result": "ok"
     },
     {
-      "name": "stale_edit_and_interrupted_move_do_not_change_saved_state",
-      "result": "ok"
-    },
-    {
-      "name": "delete_review_is_invalidated_by_new_dependency",
+      "name": "view_settings_and_protected_placeholders_reopen_without_secret_text",
       "result": "ok"
     },
     {
@@ -710,7 +705,11 @@
       "result": "ok"
     },
     {
-      "name": "module_moves_check_descendants_cycles_and_depth_atomically",
+      "name": "delete_review_is_invalidated_by_new_dependency",
+      "result": "ok"
+    },
+    {
+      "name": "app_lock_and_inherited_protection_do_not_grant_via_link_or_move",
       "result": "ok"
     },
     {
@@ -718,7 +717,11 @@
       "result": "ok"
     },
     {
-      "name": "app_lock_and_inherited_protection_do_not_grant_via_link_or_move",
+      "name": "stale_edit_and_interrupted_move_do_not_change_saved_state",
+      "result": "ok"
+    },
+    {
+      "name": "module_moves_check_descendants_cycles_and_depth_atomically",
       "result": "ok"
     },
     {
@@ -746,7 +749,7 @@
       "result": "ok"
     },
     {
-      "name": "both_protected_export_paths_require_fresh_authentication",
+      "name": "corrupt_native_import_and_interruption_do_not_touch_existing_documents",
       "result": "ok"
     },
     {
@@ -758,11 +761,11 @@
       "result": "ok"
     },
     {
-      "name": "corrupt_native_import_and_interruption_do_not_touch_existing_documents",
+      "name": "hostile_cross_kind_identifier_aliases_are_rejected_before_import",
       "result": "ok"
     },
     {
-      "name": "hostile_cross_kind_identifier_aliases_are_rejected_before_import",
+      "name": "both_protected_export_paths_require_fresh_authentication",
       "result": "ok"
     },
     {
@@ -802,11 +805,11 @@
       "result": "ok"
     },
     {
-      "name": "failed_resource_reverification_clears_previous_readiness",
+      "name": "incompatible_raster_egress_and_unreviewed_licence_are_rejected",
       "result": "ok"
     },
     {
-      "name": "incompatible_raster_egress_and_unreviewed_licence_are_rejected",
+      "name": "failed_resource_reverification_clears_previous_readiness",
       "result": "ok"
     },
     {
@@ -826,15 +829,15 @@
       "result": "ok"
     },
     {
-      "name": "rejection_and_failed_atomic_accept_leave_ink_untouched",
-      "result": "ok"
-    },
-    {
       "name": "stale_inference_and_stale_proposal_cannot_overwrite_corrections",
       "result": "ok"
     },
     {
       "name": "model_switch_and_remove_leave_accepted_content_and_raw_strokes",
+      "result": "ok"
+    },
+    {
+      "name": "rejection_and_failed_atomic_accept_leave_ink_untouched",
       "result": "ok"
     },
     {
@@ -862,11 +865,11 @@
       "result": "ok"
     },
     {
-      "name": "selected_region_receives_only_selected_vector_strokes_and_commits_only_it",
+      "name": "regions_split_merge_without_replacing_observations_and_undo_restores_partition",
       "result": "ok"
     },
     {
-      "name": "regions_split_merge_without_replacing_observations_and_undo_restores_partition",
+      "name": "selected_region_receives_only_selected_vector_strokes_and_commits_only_it",
       "result": "ok"
     },
     {
@@ -906,31 +909,7 @@
       "result": "ok"
     },
     {
-      "name": "interrupted_capture_rolls_back_block_strokes_and_document_revision",
-      "result": "ok"
-    },
-    {
       "name": "bad_samples_duplicate_ids_and_unordered_strokes_are_rejected",
-      "result": "ok"
-    },
-    {
-      "name": "restore_never_removes_newer_content_lock",
-      "result": "ok"
-    },
-    {
-      "name": "exact_code_and_incorrect_math_survive_edits_and_restore_as_new_revision",
-      "result": "ok"
-    },
-    {
-      "name": "unauthorised_history_retirement_skips_locked_content",
-      "result": "ok"
-    },
-    {
-      "name": "stale_edits_and_view_toggles_never_mutate_source",
-      "result": "ok"
-    },
-    {
-      "name": "mode_defaults_and_inheritance_do_not_convert_existing_ink",
       "result": "ok"
     },
     {
@@ -938,7 +917,31 @@
       "result": "ok"
     },
     {
+      "name": "mode_defaults_and_inheritance_do_not_convert_existing_ink",
+      "result": "ok"
+    },
+    {
+      "name": "exact_code_and_incorrect_math_survive_edits_and_restore_as_new_revision",
+      "result": "ok"
+    },
+    {
       "name": "search_matches_literal_accepted_content_never_raw_or_locked_data",
+      "result": "ok"
+    },
+    {
+      "name": "interrupted_capture_rolls_back_block_strokes_and_document_revision",
+      "result": "ok"
+    },
+    {
+      "name": "restore_never_removes_newer_content_lock",
+      "result": "ok"
+    },
+    {
+      "name": "stale_edits_and_view_toggles_never_mutate_source",
+      "result": "ok"
+    },
+    {
+      "name": "unauthorised_history_retirement_skips_locked_content",
       "result": "ok"
     },
     {
@@ -947,7 +950,7 @@
     }
   ],
   "backend_accepted": false,
-  "finished_utc": "2026-10-23T17:05:10.746732+00:00",
+  "finished_utc": "2026-10-23T17:17:53.456635+00:00",
   "totals": {
     "passed": 172,
     "failed": 0,
