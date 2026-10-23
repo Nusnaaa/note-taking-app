@@ -570,3 +570,104 @@ fn schema10_upgrade_keeps_legacy_view_payload_byte_for_byte_and_absent_bookmark_
         .unwrap();
     assert_eq!(before, after);
 }
+
+#[test]
+fn view_discovery_reopens_saved_positions_and_filters_fresh_block_protection() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("discover.db");
+    let a = Access::public();
+    let mut s = Store::open(&path).unwrap();
+    let n = s.create(Kind::Note, None, "saved views", &a).unwrap();
+    let b = s
+        .append_content(n.id, Content::Text("abc".into()), &a)
+        .unwrap();
+    let private = s
+        .save_view(view(n.id, text(&b, 0), text(&b, 2)), None, &a)
+        .unwrap();
+    let mut plain = private.clone();
+    plain.id = Id::new();
+    plain.bookmark = None;
+    let plain = s.save_view(plain, None, &a).unwrap();
+    let mut expected = vec![private.id, plain.id];
+    expected.sort();
+    drop(s);
+    let mut s = Store::open(&path).unwrap();
+    assert_eq!(s.views(n.id, None, 0, 512, &a).unwrap(), expected);
+    assert_eq!(s.views(n.id, None, 1, 1, &a).unwrap(), expected[1..]);
+    assert!(s.views(n.id, None, 0, 0, &a).unwrap().is_empty());
+    let protected = access([Scope::Block(b.id)]);
+    s.set_block_lock(b.id, 0, true, &protected).unwrap();
+    assert_eq!(s.views(n.id, None, 0, 512, &a).unwrap(), vec![plain.id]);
+    assert!(s.views(n.id, None, 1, 512, &a).unwrap().is_empty());
+    assert_eq!(s.views(n.id, None, 0, 512, &protected).unwrap(), expected);
+    assert!(matches!(s.restore_view(private.id, &a), Err(Error::Denied)));
+    assert!(matches!(
+        s.views(n.id, None, 0, 513, &a),
+        Err(Error::ResourceLimit)
+    ));
+    let review = s.review_deletion(n.id, &protected).unwrap();
+    s.trash(review, true, &protected).unwrap();
+    assert!(s.views(n.id, None, 0, 512, &a).is_err());
+}
+
+#[test]
+fn view_restore_and_discovery_reject_misbound_persistent_identity() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("view-identity.db");
+    let a = Access::public();
+    let mut s = Store::open(&path).unwrap();
+    let n = s.create(Kind::Note, None, "n", &a).unwrap();
+    let b = s
+        .append_content(n.id, Content::Text("a".into()), &a)
+        .unwrap();
+    let v = s
+        .save_view(view(n.id, text(&b, 0), text(&b, 1)), None, &a)
+        .unwrap();
+    drop(s);
+    let db = rusqlite::Connection::open(&path).unwrap();
+    db.execute(
+        "UPDATE view_settings SET payload=json_set(payload,'$.id',?1) WHERE id=?2",
+        [Id::new().to_string(), v.id.to_string()],
+    )
+    .unwrap();
+    drop(db);
+    let s = Store::open(&path).unwrap();
+    assert!(matches!(s.restore_view(v.id, &a), Err(Error::Integrity)));
+    assert!(matches!(
+        s.views(n.id, None, 0, 512, &a),
+        Err(Error::Integrity)
+    ));
+}
+
+#[test]
+fn view_discovery_separates_master_and_exercise_and_rechecks_app_lock() {
+    let a = Access::public();
+    let mut s = Store::memory().unwrap();
+    let n = s.create(Kind::Note, None, "n", &a).unwrap();
+    let other = s.create(Kind::Note, None, "other", &a).unwrap();
+    let b = s
+        .append_content(n.id, Content::Text("a".into()), &a)
+        .unwrap();
+    let exercise = s.create_exercise(n.id, "part", &[b.id], &a).unwrap();
+    let master = s
+        .save_view(view(n.id, text(&b, 0), text(&b, 1)), None, &a)
+        .unwrap();
+    let mut child = master.clone();
+    child.id = Id::new();
+    child.exercise = Some(exercise.id);
+    let child = s.save_view(child, None, &a).unwrap();
+    assert_eq!(s.views(n.id, None, 0, 10, &a).unwrap(), vec![master.id]);
+    assert_eq!(
+        s.views(n.id, Some(exercise.id), 0, 10, &a).unwrap(),
+        vec![child.id]
+    );
+    assert!(matches!(
+        s.views(other.id, Some(exercise.id), 0, 10, &a),
+        Err(Error::Invalid(_))
+    ));
+    assert!(s.views(other.id, None, 0, 10, &a).unwrap().is_empty());
+    let app = access([Scope::App]);
+    s.set_app_lock(true, &app).unwrap();
+    assert!(matches!(s.views(n.id, None, 0, 10, &a), Err(Error::Denied)));
+    assert_eq!(s.views(n.id, None, 0, 10, &app).unwrap(), vec![master.id]);
+}

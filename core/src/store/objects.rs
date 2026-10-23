@@ -681,14 +681,8 @@ impl Store {
                 )
                 .optional()?;
             let old: Option<ViewSettings> = old.as_deref().map(serde_json::from_str).transpose()?;
-            if let Some(previous) = &old {
-                Self::bookmark_state(db, previous, access)?;
-                if let Some(exercise) = previous.exercise {
-                    Self::read_exercise(db, exercise, access)?;
-                }
-                if let Some(anchor) = previous.anchor {
-                    Self::read_block(db, anchor, access)?;
-                }
+            if old.is_some() {
+                Self::read_view_db(db, view.id, access)?;
             }
             if old.as_ref().map(|v| v.revision) != expected
                 || old
@@ -718,25 +712,82 @@ impl Store {
         })
     }
 
+    /// Discover existing views without exposing identifiers behind current locks.
+    /// Offset counts authorised views only; callers restore the chosen view afresh.
+    pub fn views(
+        &self,
+        entity: Id,
+        exercise: Option<Id>,
+        offset: u32,
+        limit: u32,
+        access: &Access,
+    ) -> Result<Vec<Id>> {
+        Self::authorise(&self.db, entity, access, false)?;
+        if let Some(exercise) = exercise {
+            if Self::read_exercise(&self.db, exercise, access)?.master != entity {
+                return Err(Error::Invalid("view master"));
+            }
+        }
+        if limit > 512 || offset > 100_000 {
+            return Err(Error::ResourceLimit);
+        }
+        if limit == 0 {
+            return Ok(Vec::new());
+        }
+        let mut statement = self
+            .db
+            .prepare("SELECT id FROM view_settings WHERE entity=?1 ORDER BY id LIMIT 100001")?;
+        let rows = statement.query_map([entity.to_string()], |r| r.get::<_, String>(0))?;
+        let mut visible = 0;
+        let mut result = Vec::new();
+        for (scanned, row) in rows.enumerate() {
+            if scanned == 100_000 {
+                return Err(Error::ResourceLimit);
+            }
+            let id = Id::parse(&row?)?;
+            let view = match Self::read_view_db(&self.db, id, access) {
+                Ok(view) => view,
+                Err(Error::Denied | Error::Unavailable) => continue,
+                Err(error) => return Err(error),
+            };
+            if view.settings.exercise != exercise {
+                continue;
+            }
+            if visible >= offset {
+                result.push(id);
+                if result.len() == limit as usize {
+                    break;
+                }
+            }
+            visible += 1;
+        }
+        Ok(result)
+    }
+
     pub fn view(&self, id: Id, access: &Access) -> Result<ViewSettings> {
         Ok(Self::read_view_db(&self.db, id, access)?.settings)
     }
     pub(crate) fn read_view_db(db: &Connection, id: Id, access: &Access) -> Result<RestoredView> {
-        let json: String = db
+        let (entity, json): (String, String) = db
             .query_row(
-                "SELECT payload FROM view_settings WHERE id=?1",
+                "SELECT entity,payload FROM view_settings WHERE id=?1",
                 [id.to_string()],
-                |r| r.get(0),
+                |r| Ok((r.get(0)?, r.get(1)?)),
             )
             .optional()?
             .ok_or(Error::Unavailable)?;
 
         let v: ViewSettings = serde_json::from_str(&json)?;
         v.validate()?;
+        if v.id != id || v.entity.to_string() != entity {
+            return Err(Error::Integrity);
+        }
         Self::authorise(db, v.entity, access, false)?;
 
         if let Some(e) = v.exercise {
-            Self::read_exercise(db, e, access)?;
+            if Self::read_exercise(db, e, access)?.master != v.entity {
+                return Err(Error::Integrity);
+            }
         }
 
         if let Some(b) = v.anchor {

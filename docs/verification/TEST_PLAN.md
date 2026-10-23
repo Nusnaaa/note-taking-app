@@ -225,3 +225,8 @@ JNI/Robolectric workflow sets defaults/overrides, reads both projections and und
 an override without changing source defaults. The initial backup fixture exposed the
 canvas-keyed payload reader case; the validator now checks that explicit key instead
 of assuming an id column. No tests bypass source protection or enable production H.I.
+
+Saved-view discovery fixtures cover restart without workspace references, visible-only
+pagination, fresh block/app locks, master/exercise separation and stored identity
+corruption. The actual JNI workspace-reopen fixture discovers its saved view before
+restoring the pane. This does not close complete authoring configuration acceptance.

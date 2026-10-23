@@ -560,3 +560,19 @@ observations in their authoritative block. Engine results remain pending proposa
 until explicit acceptance. Mock tests do not establish model accuracy. Resumable
 resource transfers and leases are available in `provisioning.rs`; integration into the
 complete Android model manager is unfinished.
+
+## Discovering saved writing views
+
+`Views {entity, exercise, offset, limit}` returns existing authorised view IDs in
+stable ID order. `exercise: null` selects master views only; an exercise ID selects
+that exercise's views and must belong to the entity. Restore the chosen ID with
+`RestoreView` for fresh access checks and explicit bookmark current/review state.
+No view or default position is created by discovery. Closed views remain discoverable
+after restart independently of last-workspace panes.
+
+Pagination counts visible views only and omits identifiers whose anchor/bookmark or
+exercise is currently inaccessible. It returns at most 512 IDs, scans at most 100,000
+candidates per request, and rejects offsets above 100,000. These are implementation
+capacities, not performance guarantees. Start again when views or access change;
+separate requests do not form a frozen snapshot. Stored key/owner/payload disagreement
+fails as integrity corruption rather than returning a different view.

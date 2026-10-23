@@ -72,6 +72,8 @@ class BackendAdmissionIntegrationTest {
             assertEquals(1, call(backend, command).getJSONObject("data").getInt("revision"))
             assertFalse(JSONObject(backend.request(wire(command)).get(5, TimeUnit.SECONDS)).getBoolean("ok"))
             backend.closeFullyAsync().get(5, TimeUnit.SECONDS); backend = NotebookBackend(context)
+            val found = call(backend, JSONObject().put("op", "Views").put("entity", entity.toString()).put("exercise", JSONObject.NULL).put("offset", 0).put("limit", 10)).getJSONArray("data")
+            assertEquals(1, found.length()); assertEquals(view.toString(), found.getString(0))
             val restored = call(backend, JSONObject().put("op", "RestoreWorkspace")).getJSONObject("data")
             assertEquals(slot.toString(), restored.getString("active")); assertEquals("Vertical", restored.getString("axis"))
             val ready = restored.getJSONArray("panes").getJSONObject(0).getJSONObject("state").getJSONObject("View")

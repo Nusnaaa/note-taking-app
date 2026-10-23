@@ -194,6 +194,12 @@ pub enum Command {
     View {
         view: Id,
     },
+    Views {
+        entity: Id,
+        exercise: Option<Id>,
+        offset: u32,
+        limit: u32,
+    },
     RestoreView {
         view: Id,
     },
@@ -553,6 +559,7 @@ impl Host {
                 | Command::CanvasLayers { .. }
                 | Command::CanvasScene { .. }
                 | Command::Embed { .. }
+                | Command::Views { .. }
                 | Command::View { .. }
                 | Command::RestoreView { .. }
                 | Command::RestoreWorkspace
@@ -802,6 +809,12 @@ fn execute(s: &mut Store, a: &mut Access, pdf: &mut PdfState, r: Request) -> Res
                 s.remove_embed(embed, a)?;
                 Value::Null
             }
+            Command::Views {
+                entity,
+                exercise,
+                offset,
+                limit,
+            } => serde_json::to_value(s.views(entity, exercise, offset, limit, a)?)?,
             Command::View { view } => serde_json::to_value(s.view(view, a)?)?,
             Command::RestoreWorkspace => serde_json::to_value(s.restore_workspace(a)?)?,
             Command::SaveWorkspace {
