@@ -237,3 +237,12 @@ and absence of ordinary read/capture access to tombstones. Android JNI tests use
 explicit synthetic persisted retired-target states (not the still-unexposed deletion
 host workflow), verify review authentication/relock/discard and reject replay; journal
 fixtures include sealed blocked records and exclude active contacts.
+
+Deletion host fixtures cover explicit confirmation, immutable action kind, library
+generation checks, expired/bounded/released/host-local reviews, relock/authentication
+retirement, hidden dependency redaction, revision-bound restore and source retention
+across reopen. Core fixtures cover mixed trashed/purged descendants, commit rollback
+and current Trash permissions/pagination. Android actual-JNI tests now execute real
+Trash/restore/permanent deletion, preserve negative-zero source samples through
+restore and retire source on purge; retired-target recovery setup also uses the real
+host commands rather than synthetic persisted flags.

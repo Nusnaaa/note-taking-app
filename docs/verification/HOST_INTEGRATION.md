@@ -605,5 +605,52 @@ outbox and corrupt/incomplete records still need their own full recovery workflo
 
 Core subtree purge now preflights every descendant's current access/content protection
 before changing any ancestor to a tombstone; all deletion remains one transaction.
-Host-facing Trash/restore/permanent-deletion review workflows remain to be exposed;
-this increment does not authorise serialisable caller-forged deletion review objects.
+Host-facing deletion uses the opaque review workflow below; caller-forged serialized
+DeletionReview objects are never accepted.
+
+## Trash and permanent deletion
+
+1. `PrepareDeletion {entity, permanent:false}` reviews ordinary deletion to Trash.
+   It returns a host-local opaque `review` token, the action kind, dependency-presence
+   flag and IDs of currently visible dependants. Protected referencing IDs/titles are
+   omitted; a boolean can still report dependencies. Full subtree content authority
+   is required. Preparation changes no document data.
+2. `ConfirmDeletion {review, confirmed:true}` consumes that review, checks the exact
+   reviewed library generation and current subtree authority, and commits one atomic
+   operation. Explicit confirmation is required even without dependencies. False
+   confirmation leaves the review available; any true confirmation attempt consumes
+   it, including stale/denied/faulted attempts. Prepare again after an error. The
+   response with ok=true is the commit acknowledgement; an ambiguous transport reply
+   requires inspecting current Trash state rather than assuming success or failure.
+3. `TrashEntries {offset,limit}` discovers explicitly trashed, non-purged entities
+   with current entity/app/ancestor access. Visible-only pagination uses stable ID
+   order, at most 512 entries and 100,000 scanned candidates/offset. An inherited
+   Trash state does not manufacture a separate entry. Pages are not frozen snapshots.
+4. `RestoreEntity {entity,revision}` restores the listed entity only at that exact
+   revision and advances it. Restore ancestors first; independently trashed children
+   remain trashed. It does not rewrite content, bypass locks, restore purged content
+   or act as edit Undo/history/whole-library backup recovery.
+5. For deliberate permanent deletion, prepare with `permanent:true` for an explicitly
+   trashed target, review dependencies again, then confirm that token. Purge atomically
+   retires subtree content/assets/detailed undo while keeping honest tombstone IDs.
+   It is not an overwrite of a separate healthy recovered library.
+
+Use `ReleaseDeletion {review}` to cancel a review. Tokens are non-persistent, expire
+after 300 seconds and are limited to 32 outstanding per host. They are cleared by
+authentication replacement, relock/expiry and protection/containment/undo changes;
+reopen or a different host cannot use them. Other committed changes invalidate their
+generation. These limits are implementation capacities, not performance promises.
+Review bounds are 100,000 subtree identities and 4,096 visible dependant IDs; oversized
+reviews fail, never silently truncate consent. The recursive identity query can still
+allocate before that size check; these bounds do not claim constant RSS or latency.
+
+Trash/purge handle independently trashed and already-purged descendants coherently;
+purge preflights remaining live payload authority before tombstoning ancestors. Source
+ink stays intact through Trash/restore and is retired only by authorised permanent
+deletion. Ordinary source/preview access is revoked while trashed; native and Android
+PDF leases/previews retire conservatively on deletion confirmation and restore.
+
+Private pending capture drafts are separate recovery evidence. Deletion never silently
+discards or retargets them; the scoped review/discard path above remains available.
+A combined deletion preview showing pending-draft disposition is still open, as are
+complete all-operation history, recovery and device privacy acceptance.

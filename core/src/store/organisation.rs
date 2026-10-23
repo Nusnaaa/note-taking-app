@@ -26,6 +26,7 @@ pub enum Order {
 pub struct DeletionReview {
     target: Id,
     generation: String,
+    permanent: bool,
     pub has_dependencies: bool,
     pub visible_dependants: Vec<Id>,
 }
@@ -351,11 +352,32 @@ impl Store {
         })
     }
     pub fn review_deletion(&self, id: Id, access: &Access) -> Result<DeletionReview> {
-        Self::authorise(&self.db, id, access, false)?;
+        self.review_deletion_mode(id, false, access)
+    }
+    pub fn review_purge(&self, id: Id, access: &Access) -> Result<DeletionReview> {
+        self.review_deletion_mode(id, true, access)
+    }
+    fn review_deletion_mode(
+        &self,
+        id: Id,
+        permanent: bool,
+        access: &Access,
+    ) -> Result<DeletionReview> {
+        let root = Self::authorise(&self.db, id, access, permanent)?;
+        if permanent && !root.trashed {
+            return Err(Error::Invalid("permanent deletion requires Trash"));
+        }
+        let targets = Self::subtree(&self.db, id)?;
+        if targets.len() > 100_000 {
+            return Err(Error::ResourceLimit);
+        }
         let mut has_dependencies = false;
         let mut visible = BTreeSet::new();
-        for target in Self::subtree(&self.db, id)? {
-            Self::authorise(&self.db, target, access, false)?;
+        for target in targets {
+            if Self::raw_entity(&self.db, target)?.purged {
+                continue;
+            }
+            Self::authorise(&self.db, target, access, true)?;
             Self::require_content_access(&self.db, target, access)?;
             has_dependencies |= self.db.query_row(
                 "SELECT EXISTS(SELECT 1 FROM exercises WHERE master=?1)",
@@ -363,22 +385,80 @@ impl Store {
                 |r| r.get::<_, bool>(0),
             )?;
             let mut stmt = self.db.prepare(
-                "SELECT origin FROM links WHERE target=?1 UNION SELECT host FROM embeds \
-                WHERE source=?1",
+                "SELECT origin FROM links WHERE target=?1 UNION SELECT host FROM embeds WHERE source=?1",
             )?;
             for o in stmt.query_map([target.to_string()], |r| r.get::<_, String>(0))? {
                 has_dependencies = true;
                 let origin = Id::parse(&o?)?;
                 if Self::authorise(&self.db, origin, access, false).is_ok() {
                     visible.insert(origin);
+                    if visible.len() > 4096 {
+                        return Err(Error::ResourceLimit);
+                    }
                 }
             }
         }
         Ok(DeletionReview {
             target: id,
             generation: Self::setting(&self.db, "generation")?,
+            permanent,
             has_dependencies,
             visible_dependants: visible.into_iter().collect(),
+        })
+    }
+    /// Lists explicitly trashed entities; inherited Trash does not manufacture entries.
+    pub fn trash_entries(&self, offset: u32, limit: u32, access: &Access) -> Result<Vec<Entity>> {
+        Self::require_app(&self.db, access)?;
+        if offset > 100_000 || limit > 512 {
+            return Err(Error::ResourceLimit);
+        }
+        if limit == 0 {
+            return Ok(Vec::new());
+        }
+        let mut stmt = self.db.prepare("SELECT id FROM entities WHERE json_extract(payload,'$.trashed')=1 AND json_extract(payload,'$.purged')=0 ORDER BY id LIMIT 100001")?;
+        let rows = stmt.query_map([], |r| r.get::<_, String>(0))?;
+        let mut visible = 0;
+        let mut result = Vec::new();
+        for (scanned, row) in rows.enumerate() {
+            if scanned == 100_000 {
+                return Err(Error::ResourceLimit);
+            }
+            let id = Id::parse(&row?)?;
+            let entity = match Self::authorise(&self.db, id, access, true) {
+                Ok(entity) => entity,
+                Err(Error::Denied | Error::Unavailable) => continue,
+                Err(error) => return Err(error),
+            };
+            if entity.id != id || !entity.trashed || entity.purged {
+                return Err(Error::Integrity);
+            }
+            if visible >= offset {
+                result.push(entity);
+                if result.len() == limit as usize {
+                    break;
+                }
+            }
+            visible += 1;
+        }
+        Ok(result)
+    }
+    pub fn purge_reviewed(
+        &mut self,
+        review: DeletionReview,
+        confirmed: bool,
+        access: &Access,
+    ) -> Result<()> {
+        self.write(|db| {
+            if !review.permanent {
+                return Err(Error::Invalid("deletion review kind"));
+            }
+            if !confirmed {
+                return Err(Error::ReviewRequired);
+            }
+            if Self::setting(db, "generation")? != review.generation {
+                return Err(Error::Conflict);
+            }
+            Self::purge_db(db, review.target, access)
         })
     }
     pub fn trash(
@@ -388,6 +468,9 @@ impl Store {
         access: &Access,
     ) -> Result<()> {
         self.write(|db| {
+            if review.permanent {
+                return Err(Error::Invalid("deletion review kind"));
+            }
             if Self::setting(db, "generation")? != review.generation {
                 return Err(Error::Conflict);
             }
@@ -396,75 +479,146 @@ impl Store {
             }
             // Authentication can expire after review without changing generation.
             for target in Self::subtree(db, review.target)? {
-                Self::authorise(db, target, access, false)?;
+                if Self::raw_entity(db, target)?.purged {
+                    continue;
+                }
+                Self::authorise(db, target, access, true)?;
                 Self::require_content_access(db, target, access)?;
             }
             let mut e = Self::authorise(db, review.target, access, false)?;
             e.trashed = true;
-            e.revision += 1;
+            e.revision = e
+                .revision
+                .checked_add(1)
+                .filter(|v| *v <= i64::MAX as u64)
+                .ok_or(Error::ResourceLimit)?;
             e.modified_ms = now_ms();
             Self::save_entity(db, &e)
         })
     }
     pub fn restore(&mut self, id: Id, access: &Access) -> Result<()> {
+        self.restore_expected(id, None, access)
+    }
+    pub fn restore_revision(&mut self, id: Id, expected: u64, access: &Access) -> Result<()> {
+        self.restore_expected(id, Some(expected), access)
+    }
+    fn restore_expected(&mut self, id: Id, expected: Option<u64>, access: &Access) -> Result<()> {
         self.write(|db| {
             let mut e = Self::authorise(db, id, access, true)?;
+            if expected.is_some_and(|r| r != e.revision) {
+                return Err(Error::Conflict);
+            }
             if !e.trashed {
                 return Err(Error::Invalid("Trash state"));
             }
             Self::check_parent(db, e.kind, id, e.parent, access)?;
             e.trashed = false;
-            e.revision += 1;
+            e.revision = e
+                .revision
+                .checked_add(1)
+                .filter(|v| *v <= i64::MAX as u64)
+                .ok_or(Error::ResourceLimit)?;
             e.modified_ms = now_ms();
             Self::save_entity(db, &e)
         })
     }
     pub fn purge(&mut self, id: Id, access: &Access) -> Result<()> {
-        self.write(|db|{
-            let e=Self::authorise(db,id,access,true)?;
-            if !e.trashed{return Err(Error::Invalid("permanent deletion requires Trash"));}
-            // Authorise the complete subtree before any ancestor becomes a
-            // tombstone. Otherwise child checks see that just-purged ancestor
-            // and incorrectly roll back a valid multi-entity purge.
-            let mut items = Vec::new();
-            for i in Self::subtree(db,id)? {
-                let item=Self::authorise(db,i,access,true)?;
-                Self::require_content_access(db,i,access)?;
-                items.push(item);
+        self.write(|db| Self::purge_db(db, id, access))
+    }
+    fn purge_db(db: &Connection, id: Id, access: &Access) -> Result<()> {
+        let e = Self::authorise(db, id, access, true)?;
+        if !e.trashed {
+            return Err(Error::Invalid("permanent deletion requires Trash"));
+        }
+        // Authorise the complete subtree before any ancestor becomes a
+        // tombstone. Otherwise child checks see that just-purged ancestor
+        // and incorrectly roll back a valid multi-entity purge.
+        let mut items = Vec::new();
+        for i in Self::subtree(db, id)? {
+            if Self::raw_entity(db, i)?.purged {
+                continue;
             }
-            for mut item in items {
-                let i=item.id;
-                // Detailed undo payloads are content too; tombstones must not retain them.
-                db.execute("DELETE FROM canvas_layers WHERE canvas=?1",[i.to_string()])?;
-                db.execute("DELETE FROM edit_operations WHERE entity=?1",[i.to_string()])?;
-                db.execute("DELETE FROM pdf_anchors WHERE block IN(SELECT id FROM blocks WHERE entity=?1)",[i.to_string()])?;
-                db.execute("DELETE FROM capture_receipts WHERE block IN(SELECT id FROM blocks WHERE entity=?1)",[i.to_string()])?;
-                db.execute("DELETE FROM layouts WHERE block IN(SELECT id FROM blocks WHERE entity=?1)",[i.to_string()])?;
-                for table in ["image_assets","object_groups","view_settings"]{db.execute(&format!("DELETE FROM {table} WHERE entity=?1"),[i.to_string()])?;}
-                db.execute("DELETE FROM embeds WHERE host=?1",[i.to_string()])?;
-                db.execute("DELETE FROM exercise_members WHERE exercise IN(SELECT id FROM exercises \
-                WHERE master=?1)",[i.to_string()])?;
-                db.execute("DELETE FROM membership_versions WHERE block IN(SELECT id FROM blocks WHERE \
-                entity=?1)",[i.to_string()])?;
-                db.execute("DELETE FROM confirmed_headings WHERE block IN(SELECT id FROM blocks WHERE \
-                entity=?1)",[i.to_string()])?;
-                db.execute("DELETE FROM membership_operations WHERE master=?1",[i.to_string()])?;
-                db.execute("DELETE FROM exercise_rules WHERE master=?1",[i.to_string()])?;
-                db.execute("DELETE FROM exercises WHERE master=?1",[i.to_string()])?;
-                // Keep tombstone identities for honest broken references; purge payloads.
-                for table in ["strokes","history","proposals"] {
-                    db.execute(&format!("DELETE FROM {table} WHERE block IN(SELECT id FROM blocks WHERE entity=?1)"),[i.to_string()])?;
-                }
-                db.execute("DELETE FROM source_assets WHERE source IN(SELECT id FROM sources WHERE context=?1)",[i.to_string()])?;
-                db.execute("DELETE FROM sources WHERE context=?1",[i.to_string()])?;
-                db.execute("DELETE FROM blocks WHERE entity=?1",[i.to_string()])?;
-                db.execute("DELETE FROM links WHERE origin=?1",[i.to_string()])?;
-                // Frozen link checkpoints must not keep purged titles/content accessible.
-                db.execute("UPDATE links SET checkpoint='{}' WHERE target=?1",[i.to_string()])?;
-                item.title.clear();item.purged=true;item.trashed=true;item.revision+=1;Self::save_entity(db,&item)?;
+            let item = Self::authorise(db, i, access, true)?;
+            Self::require_content_access(db, i, access)?;
+            items.push(item);
+        }
+        for mut item in items {
+            let i = item.id;
+            // Detailed undo payloads are content too; tombstones must not retain them.
+            db.execute("DELETE FROM canvas_layers WHERE canvas=?1", [i.to_string()])?;
+            db.execute(
+                "DELETE FROM edit_operations WHERE entity=?1",
+                [i.to_string()],
+            )?;
+            db.execute(
+                "DELETE FROM pdf_anchors WHERE block IN(SELECT id FROM blocks WHERE entity=?1)",
+                [i.to_string()],
+            )?;
+            db.execute("DELETE FROM capture_receipts WHERE block IN(SELECT id FROM blocks WHERE entity=?1)",[i.to_string()])?;
+            db.execute(
+                "DELETE FROM layouts WHERE block IN(SELECT id FROM blocks WHERE entity=?1)",
+                [i.to_string()],
+            )?;
+            for table in ["image_assets", "object_groups", "view_settings"] {
+                db.execute(
+                    &format!("DELETE FROM {table} WHERE entity=?1"),
+                    [i.to_string()],
+                )?;
             }
-            Ok(())
-        })
+            db.execute("DELETE FROM embeds WHERE host=?1", [i.to_string()])?;
+            db.execute(
+                "DELETE FROM exercise_members WHERE exercise IN(SELECT id FROM exercises \
+                WHERE master=?1)",
+                [i.to_string()],
+            )?;
+            db.execute(
+                "DELETE FROM membership_versions WHERE block IN(SELECT id FROM blocks WHERE \
+                entity=?1)",
+                [i.to_string()],
+            )?;
+            db.execute(
+                "DELETE FROM confirmed_headings WHERE block IN(SELECT id FROM blocks WHERE \
+                entity=?1)",
+                [i.to_string()],
+            )?;
+            db.execute(
+                "DELETE FROM membership_operations WHERE master=?1",
+                [i.to_string()],
+            )?;
+            db.execute(
+                "DELETE FROM exercise_rules WHERE master=?1",
+                [i.to_string()],
+            )?;
+            db.execute("DELETE FROM exercises WHERE master=?1", [i.to_string()])?;
+            // Keep tombstone identities for honest broken references; purge payloads.
+            for table in ["strokes", "history", "proposals"] {
+                db.execute(
+                    &format!(
+                        "DELETE FROM {table} WHERE block IN(SELECT id FROM blocks WHERE entity=?1)"
+                    ),
+                    [i.to_string()],
+                )?;
+            }
+            db.execute("DELETE FROM source_assets WHERE source IN(SELECT id FROM sources WHERE context=?1)",[i.to_string()])?;
+            db.execute("DELETE FROM sources WHERE context=?1", [i.to_string()])?;
+            db.execute("DELETE FROM blocks WHERE entity=?1", [i.to_string()])?;
+            db.execute("DELETE FROM links WHERE origin=?1", [i.to_string()])?;
+            // Frozen link checkpoints must not keep purged titles/content accessible.
+            db.execute(
+                "UPDATE links SET checkpoint='{}' WHERE target=?1",
+                [i.to_string()],
+            )?;
+            item.title.clear();
+            item.purged = true;
+            item.trashed = true;
+            item.revision = item
+                .revision
+                .checked_add(1)
+                .filter(|v| *v <= i64::MAX as u64)
+                .ok_or(Error::ResourceLimit)?;
+            Self::save_entity(db, &item)?;
+        }
+        Ok(())
     }
     pub fn set_global_mode(&mut self, mode: WritingMode, access: &Access) -> Result<()> {
         self.write(|db| {

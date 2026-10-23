@@ -158,23 +158,19 @@ class JournaledCaptureIntegrationTest {
     }
 
     @Test(timeout = 30_000)
-    @org.robolectric.annotation.SQLiteMode(org.robolectric.annotation.SQLiteMode.Mode.NATIVE)
-    fun syntheticRetiredTargetsRequireFreshScopedReviewAndPermitDiscardWithoutReplay() {
+    fun retiredTargetsRequireFreshScopedReviewAndPermitDiscardWithoutReplay() {
         for (purged in listOf(false, true)) {
             val root = temporary.newFolder(); val context = platform(root); val seed = NotebookBackend(context); val entity = note(seed)
+            val trash = call(seed, JSONObject().put("op", "PrepareDeletion").put("entity", entity.toString()).put("permanent", false)).getJSONObject("data").getString("review")
+            call(seed, JSONObject().put("op", "ConfirmDeletion").put("review", trash).put("confirmed", true))
+            if (purged) {
+                val purge = call(seed, JSONObject().put("op", "PrepareDeletion").put("entity", entity.toString()).put("permanent", true)).getJSONObject("data").getString("review")
+                call(seed, JSONObject().put("op", "ConfirmDeletion").put("review", purge).put("confirmed", true))
+            }
             seed.closeFullyAsync().get(5, TimeUnit.SECONDS)
             val database = File(root, "notebook/library.db")
             val handle = NativeBridge.open(database.absolutePath)
             val identity = try { UUID.fromString(NativeBridge.captureLibraryIdentity(handle)) } finally { NativeBridge.close(handle) }
-            // Persistent retired-target fixture; Rust tests execute actual Trash/purge transactions.
-            android.database.sqlite.SQLiteDatabase.openDatabase(database.absolutePath, null, android.database.sqlite.SQLiteDatabase.OPEN_READWRITE).use { db ->
-                db.rawQuery("SELECT payload FROM entities WHERE id=?", arrayOf(entity.toString())).use { cursor ->
-                    check(cursor.moveToFirst())
-                    val payload = JSONObject(cursor.getString(0)).put("trashed", true).put("purged", purged)
-                    if (purged) payload.put("title", "")
-                    db.execSQL("UPDATE entities SET payload=? WHERE id=?", arrayOf(payload.toString(), entity.toString()))
-                }
-            }
             val source = CapturedStroke(UUID.randomUUID().toString(), UUID.randomUUID().toString(), 0, 7, false, listOf(ObservedPoint(-0.0, 2.0, 10, null, null, null, null)), StrokeEnd.InProgress)
             val ticket = UUID.fromString(source.id)
             ActiveCaptureJournal(File(root, "notebook/active-capture"), identity).checkpoint(entity, "fixed-space", 0, source)

@@ -318,7 +318,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
             "Assets", "PrepareAssetRead", "ReadAssetChunk", "ValidateAssetRead", "Source", "Anchor", "PrepareRead", "ValidateRead", "ReviewRevision",
         )
         return op in setOf(
-            "CaptureRecoveryAccess", "CanvasLayers", "CanvasScene", "CaptureReceipt", "Block", "Mode", "OpenInMaster", "Layout", "Group", "Embed", "Views", "View", "RestoreView", "RestoreWorkspace", "Links", "List", "Read", "Blocks", "Search", "Exercises", "ExerciseBlocks", "SourceInk", "History", "FlatExercises", "SearchViews", "Status",
+            "TrashEntries", "CaptureRecoveryAccess", "CanvasLayers", "CanvasScene", "CaptureReceipt", "Block", "Mode", "OpenInMaster", "Layout", "Group", "Embed", "Views", "View", "RestoreView", "RestoreWorkspace", "Links", "List", "Read", "Blocks", "Search", "Exercises", "ExerciseBlocks", "SourceInk", "History", "FlatExercises", "SearchViews", "Status",
         )
     }
     private fun affectsPdfPolicy(command: JSONObject): Boolean {
@@ -332,7 +332,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
             "Block", "Mode", "SetMode", "AppendTo", "CaptureTo", "Append", "Capture", "Edit", "EditRegion", "Partition", "SplitRegion", "MergeRegions",
             "SetHeading", "SetVisible", "SetDisplay", "TransformSelection", "EraseStrokes", "RestoreRevision", "Layout", "SetLayout", "EditCell", "EditDiagramPart",
             "RestoreView", "RestoreWorkspace", "SaveWorkspace", "CreateGroup", "Group", "TransformGroup", "Ungroup", "Embed", "CreateEmbed", "EditEmbed", "DuplicateEmbed", "RemoveEmbed", "Views", "View", "SaveView",
-            "CaptureRecoveryAccess", "CaptureReceipt", "AddLink", "Links", "RemoveLink", "List", "Create", "Read", "Blocks", "Search", "Exercises", "ExerciseBlocks", "SourceInk", "History", "FlatExercises", "SearchViews", "Status",
+            "TrashEntries", "PrepareDeletion", "ReleaseDeletion", "CaptureRecoveryAccess", "CaptureReceipt", "AddLink", "Links", "RemoveLink", "List", "Create", "Read", "Blocks", "Search", "Exercises", "ExerciseBlocks", "SourceInk", "History", "FlatExercises", "SearchViews", "Status",
             "CreateExercise", "RenameExercise", "ExerciseVisibility", "OpenInMaster", "Rename",
         )
     }

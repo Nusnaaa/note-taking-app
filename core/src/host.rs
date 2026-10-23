@@ -20,6 +20,8 @@ use std::{
     sync::{mpsc, Arc, Mutex},
     thread,
 };
+mod deletion;
+use deletion::DeletionState;
 mod mailbox;
 mod ownership;
 mod pdf;
@@ -32,6 +34,25 @@ pub use pdf::{PdfCommand, PdfGrantVerifier};
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "op", deny_unknown_fields)]
 pub enum Command {
+    PrepareDeletion {
+        entity: Id,
+        permanent: bool,
+    },
+    ConfirmDeletion {
+        review: Id,
+        confirmed: bool,
+    },
+    ReleaseDeletion {
+        review: Id,
+    },
+    TrashEntries {
+        offset: u32,
+        limit: u32,
+    },
+    RestoreEntity {
+        entity: Id,
+        revision: u64,
+    },
     CaptureRecoveryAccess {
         entity: Id,
     },
@@ -425,10 +446,12 @@ impl Host {
                 };
                 let mut access = Access::public();
                 let mut pdf = PdfState::default();
+                let mut deletion = DeletionState::default();
                 while let Ok(Some(envelope)) = input.next() {
                     if access.remaining().is_some_and(|d| d.is_zero()) {
                         access.relock();
                         pdf.clear();
+                        deletion.clear();
                     }
                     match envelope.message {
                         Message::Identity(reply) => {
@@ -474,6 +497,7 @@ impl Host {
                         }
                         Message::Authenticate(scopes, mut auth, reply) => {
                             pdf.clear();
+                            deletion.clear();
                             let result =
                                 std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                                     Access::authenticate(auth.as_mut(), scopes)
@@ -491,7 +515,13 @@ impl Host {
                         Message::Call(request, reply) => {
                             let result =
                                 std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                                    execute(&mut store, &mut access, &mut pdf, *request)
+                                    execute(
+                                        &mut store,
+                                        &mut access,
+                                        &mut pdf,
+                                        &mut deletion,
+                                        *request,
+                                    )
                                 }))
                                 .unwrap_or_else(|_| Response::error(Error::WorkerFailed));
                             let _ = input.complete(envelope.authoring, envelope.bytes, !result.ok);
@@ -553,7 +583,8 @@ impl Host {
         let request: Request = serde_json::from_str(json)?;
         let authoring = !matches!(
             &request.command,
-            Command::CaptureRecoveryAccess { .. }
+            Command::TrashEntries { .. }
+                | Command::CaptureRecoveryAccess { .. }
                 | Command::CaptureReceipt { .. }
                 | Command::Block { .. }
                 | Command::Mode { .. }
@@ -646,13 +677,20 @@ impl Drop for Host {
     }
 }
 
-fn execute(s: &mut Store, a: &mut Access, pdf: &mut PdfState, r: Request) -> Response {
+fn execute(
+    s: &mut Store,
+    a: &mut Access,
+    pdf: &mut PdfState,
+    deletion: &mut DeletionState,
+    r: Request,
+) -> Response {
     if r.version != 1 {
         return Response::error(Error::Unsupported);
     }
     if a.remaining().is_some_and(|remaining| remaining.is_zero()) {
         a.relock();
         pdf.clear();
+        deletion.clear();
     }
     if matches!(
         &r.command,
@@ -666,9 +704,34 @@ fn execute(s: &mut Store, a: &mut Access, pdf: &mut PdfState, r: Request) -> Res
             | Command::Redo { .. }
     ) {
         pdf.clear();
+        deletion.clear();
+    }
+    if matches!(
+        &r.command,
+        Command::ConfirmDeletion { .. } | Command::RestoreEntity { .. }
+    ) {
+        pdf.clear();
     }
     let result = (|| -> Result<Value> {
         Ok(match r.command {
+            Command::PrepareDeletion { entity, permanent } => {
+                deletion.prepare(s, a, entity, permanent)?
+            }
+            Command::ConfirmDeletion { review, confirmed } => {
+                deletion.confirm(s, a, review, confirmed)?;
+                Value::Null
+            }
+            Command::ReleaseDeletion { review } => {
+                deletion.release(review);
+                Value::Null
+            }
+            Command::TrashEntries { offset, limit } => {
+                serde_json::to_value(s.trash_entries(offset, limit, a)?)?
+            }
+            Command::RestoreEntity { entity, revision } => {
+                s.restore_revision(entity, revision, a)?;
+                Value::Null
+            }
             Command::CaptureRecoveryAccess { entity } => {
                 json!({"state": s.capture_recovery_access(entity, a)?})
             }

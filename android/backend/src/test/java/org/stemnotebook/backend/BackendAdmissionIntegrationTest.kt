@@ -58,6 +58,29 @@ class BackendAdmissionIntegrationTest {
             call(backend, JSONObject().put("op", "Undo").put("entity", host.toString())); assertEquals(ids[1], visible())
         } finally { backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
     }
+    @Test(timeout = 20_000) fun realTrashRestoreAndPermanentDeletionPreserveThenRetireObservedInk() {
+        val context = platform(temporary.newFolder()); var backend = NotebookBackend(context)
+        try {
+            val entity = note(backend); val original = stroke()
+            backend.capture(UUID.randomUUID(), entity, "fixed-space", listOf(original)).get(5, TimeUnit.SECONDS)
+            fun prepare(permanent: Boolean) = call(backend, JSONObject().put("op", "PrepareDeletion").put("entity", entity.toString()).put("permanent", permanent)).getJSONObject("data").getString("review")
+            fun confirm(review: String) = call(backend, JSONObject().put("op", "ConfirmDeletion").put("review", review).put("confirmed", true))
+            val review = prepare(false)
+            assertFalse(JSONObject(backend.request(wire(JSONObject().put("op", "ConfirmDeletion").put("review", review).put("confirmed", false))).get(5, TimeUnit.SECONDS)).getBoolean("ok"))
+            confirm(review)
+            backend.closeFullyAsync().get(5, TimeUnit.SECONDS); backend = NotebookBackend(context)
+            val entries = call(backend, JSONObject().put("op", "TrashEntries").put("offset", 0).put("limit", 10)).getJSONArray("data")
+            assertEquals(1, entries.length()); assertEquals(entity.toString(), entries.getJSONObject(0).getString("id"))
+            val revision = entries.getJSONObject(0).getLong("revision")
+            call(backend, JSONObject().put("op", "RestoreEntity").put("entity", entity.toString()).put("revision", revision))
+            val block = call(backend, blocks(entity)).getJSONArray("data").getJSONObject(0).getString("id")
+            val source = call(backend, JSONObject().put("op", "SourceInk").put("block", block)).getJSONArray("data").getJSONObject(0)
+            assertEquals(original.id, source.getString("id")); assertEquals((-0.0).toRawBits(), source.getJSONArray("points").getJSONObject(0).getDouble("x").toRawBits())
+            confirm(prepare(false)); confirm(prepare(true))
+            assertEquals(0, call(backend, JSONObject().put("op", "TrashEntries").put("offset", 0).put("limit", 10)).getJSONArray("data").length())
+            assertFalse(JSONObject(backend.request(wire(JSONObject().put("op", "SourceInk").put("block", block))).get(5, TimeUnit.SECONDS)).getBoolean("ok"))
+        } finally { backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
+    }
     @Test(timeout = 20_000) fun workspaceFindsSavedPaneAndToolAfterFullBackendReopen() {
         val context = platform(temporary.newFolder()); var backend = NotebookBackend(context)
         try {
