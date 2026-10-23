@@ -53,11 +53,15 @@ class PdfWorkspace internal constructor(
         directory.listFiles()?.filter { it.name.startsWith("pdf-") && it.name.endsWith(".pending") }?.forEach { check(it.delete()) }
     }
     fun render(source: UUID, page: Int, width: Int, height: Int, timeoutMillis: Long = 30_000): PendingFrame {
+        return submit(source, false, page, width, height, timeoutMillis)
+    }
+    fun renderAsset(asset: UUID, page: Int, width: Int, height: Int, timeoutMillis: Long = 30_000): PendingFrame = submit(asset, true, page, width, height, timeoutMillis)
+    private fun submit(source: UUID, asset: Boolean, page: Int, width: Int, height: Int, timeoutMillis: Long): PendingFrame {
         PdfPixels.validate(width, height); require(page >= 0 && timeoutMillis in 1..120_000)
         val operation = synchronized(lock) {
             check(!closed)
             if (current != null) throw RejectedExecutionException("PDF source pipeline busy")
-            Operation(source, page, width, height, timeoutMillis, epoch).also { current = it }
+            Operation(source, asset, page, width, height, timeoutMillis, epoch).also { current = it }
         }
         operation.start()
         return PendingFrame(operation)
@@ -90,7 +94,7 @@ class PdfWorkspace internal constructor(
     }
     /** Owns a revocable viewport, not an export capability. No Bitmap escapes this
      * object. A later publication or policy change retires the earlier frame. */
-    class Frame internal constructor(bitmap: android.graphics.Bitmap, val pages: Int, val sourceRevision: String, private var expires: Long) : Closeable {
+    class Frame internal constructor(bitmap: android.graphics.Bitmap, val pages: Int, val sourceRevision: String, private var expires: Long, val retainedAsset: UUID? = null, val historical: Boolean = false) : Closeable {
         private val lock = Any()
         private var pixels: android.graphics.Bitmap? = bitmap
         private var expiry: ScheduledFuture<*>? = null
@@ -111,7 +115,7 @@ class PdfWorkspace internal constructor(
         val retired: Boolean get() = synchronized(lock) { current() == null }
         override fun close() { synchronized(lock) { pixels?.recycle(); pixels = null; expiry?.cancel(false) } }
     }
-    internal inner class Operation(private val source: UUID, private val page: Int, private val width: Int, private val height: Int, private val timeoutMillis: Long, private val generation: Long) {
+    internal inner class Operation(private val source: UUID, private val asset: Boolean, private val page: Int, private val width: Int, private val height: Int, private val timeoutMillis: Long, private val generation: Long) {
         private val state = Any()
         private val ready = CountDownLatch(1)
         private var failure: Exception? = null
@@ -145,46 +149,72 @@ class PdfWorkspace internal constructor(
             try {
                 checkpoint()
                 val preparing = System.nanoTime()
-                val plan = command("PrepareRead", JSONObject().put("source", source.toString()))
+                val plan = if (asset) command("PrepareAssetRead", JSONObject().put("asset", source.toString())) else command("PrepareRead", JSONObject().put("source", source.toString()))
                 lease = plan.getString("lease")
-                val expected = plan.getString("revision")
+                val metadata = if (asset) plan.getJSONObject("asset") else plan
+                val expected = metadata.getString(if (asset) "digest" else "revision")
+                val sourceRevision = metadata.getString(if (asset) "source_revision" else "revision")
+                val historical = asset && !metadata.isNull("retention")
+                fun validate(): JSONObject = command(if (asset) "ValidateAssetRead" else "ValidateRead", JSONObject().put("lease", lease).put(if (asset) "observed_digest" else "observed_revision", expected))
                 val validity = plan.getLong("valid_for_ms")
                 if (validity <= 0) throw CancellationException("PDF source access expired")
                 val expires = preparing + TimeUnit.MILLISECONDS.toNanos(validity.coerceAtMost(300_000))
                 val expiry = deadlines.schedule({ fail(CancellationException("PDF source access expired")) }, maxOf(0, expires - System.nanoTime()), TimeUnit.NANOSECONDS)
                 synchronized(state) { if (failure != null) expiry.cancel(false) else policyDeadline = expiry }
                 checkpoint()
-                val uri = android.net.Uri.parse(plan.getString("locator"))
-                val pending = provider.openReadOnly(uri, remaining())
-                val cancelOpening = synchronized(state) { opening = pending; failure != null }
-                if (cancelOpening) pending.cancel()
-                checkpoint()
-                val fd = pending.await()
-                synchronized(state) { opening = null; reading = fd }
-                checkpoint()
+                val uri = if (asset) null else android.net.Uri.parse(plan.getString("locator"))
                 val file = File.createTempFile("pdf-", ".pending", directory)
                 synchronized(state) { cache = file }
                 val hash = MessageDigest.getInstance("SHA-256")
-                ParcelFileDescriptor.AutoCloseInputStream(fd).use { input ->
-                    FileOutputStream(file).use { output ->
-                        val chunk = ByteArray(65536)
-                        var bytes = 0L
-                        while (true) {
-                            checkpoint()
-                            val count = input.read(chunk)
-                            if (count < 0) break
-                            bytes += count
-                            if (bytes > 16L * 1024 * 1024 * 1024 || StatFs(directory.path).availableBytes < 8L * 1024 * 1024 + count) throw IOException("PDF temporary storage unavailable")
-                            hash.update(chunk, 0, count); output.write(chunk, 0, count)
-                        }
-                        output.fd.sync()
+                FileOutputStream(file).use { output ->
+                    var bytes = 0L
+                    fun write(chunk: ByteArray, count: Int) {
+                        checkpoint()
+                        bytes += count
+                        if (bytes > 16L * 1024 * 1024 * 1024 || StatFs(directory.path).availableBytes < 8L * 1024 * 1024 + count) throw IOException("PDF temporary storage unavailable")
+                        hash.update(chunk, 0, count); output.write(chunk, 0, count)
                     }
+                    if (asset) {
+                        val length = metadata.getLong("length")
+                        if (length !in 5..64L * 1024 * 1024) throw IOException("PDF asset size unavailable")
+                        while (bytes < length) {
+                            checkpoint()
+                            val count = minOf(65536L, length - bytes).toInt()
+                            val chunk = command("ReadAssetChunk", JSONObject().put("lease", lease).put("offset", bytes).put("length", count))
+                            val values = chunk.getJSONArray("bytes")
+                            if (chunk.getLong("offset") != bytes || values.length() != count) throw IOException("PDF asset chunk unavailable")
+                            val buffer = ByteArray(count) { index ->
+                                val value = values.getInt(index)
+                                if (value !in 0..255) throw IOException("PDF asset chunk unavailable")
+                                value.toByte()
+                            }
+                            write(buffer, count)
+                        }
+                    } else {
+                        val pending = provider.openReadOnly(uri!!, remaining())
+                        val cancelOpening = synchronized(state) { opening = pending; failure != null }
+                        if (cancelOpening) pending.cancel()
+                        checkpoint()
+                        val fd = pending.await()
+                        synchronized(state) { opening = null; reading = fd }
+                        checkpoint()
+                        ParcelFileDescriptor.AutoCloseInputStream(fd).use { input ->
+                            val chunk = ByteArray(65536)
+                            while (true) {
+                                checkpoint()
+                                val count = input.read(chunk)
+                                if (count < 0) break
+                                write(chunk, count)
+                            }
+                        }
+                        synchronized(state) { reading = null }
+                    }
+                    output.fd.sync()
                 }
-                synchronized(state) { reading = null }
                 val observed = hash.digest().joinToString("") { "%02x".format(it.toInt() and 255) }
                 if (!observed.equals(expected, ignoreCase = true)) throw IOException("PDF revision changed; review required")
                 checkpoint()
-                command("ValidateRead", JSONObject().put("lease", lease).put("observed_revision", observed))
+                validate()
                 ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY).use { frozen ->
                     check(file.delete())
                     synchronized(state) { cache = null }
@@ -196,20 +226,22 @@ class PdfWorkspace internal constructor(
                     val parsed = request.await()
                     synchronized(state) { parsing = null }
                     // Keep ownership private until the final native validation.
-                    pendingFrame = Frame(parsed.bitmap, parsed.pages, observed, Long.MAX_VALUE)
+                    pendingFrame = Frame(parsed.bitmap, parsed.pages, sourceRevision, Long.MAX_VALUE, if (asset) source else null, historical)
                 }
                 checkpoint()
                 // An old open descriptor is not evidence that the provider still
                 // permits live access. Re-open read-only before publishing pixels.
-                val grant = provider.openReadOnly(uri, remaining())
-                val cancelGrant = synchronized(state) { opening = grant; failure != null }
-                if (cancelGrant) grant.cancel()
-                checkpoint()
-                grant.await().close()
-                synchronized(state) { opening = null }
-                checkpoint()
+                if (!asset) {
+                    val grant = provider.openReadOnly(uri!!, remaining())
+                    val cancelGrant = synchronized(state) { opening = grant; failure != null }
+                    if (cancelGrant) grant.cancel()
+                    checkpoint()
+                    grant.await().close()
+                    synchronized(state) { opening = null }
+                    checkpoint()
+                }
                 val validating = System.nanoTime()
-                val checked = command("ValidateRead", JSONObject().put("lease", lease).put("observed_revision", observed))
+                val checked = validate()
                 val until = validating + TimeUnit.MILLISECONDS.toNanos(checked.getLong("valid_for_ms").coerceIn(0, 300_000))
                 // Apply an earlier deadline to the same privately owned bitmap.
                 pendingFrame!!.limitValidity(until)

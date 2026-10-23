@@ -168,11 +168,54 @@ failed reply/write. This is PDF viewing, never a raster handwriting-recognition 
 Automated fixtures use actual desktop JNI with simulated Android/provider/Messenger
 boundaries. Robolectric's pipe/dup shadow uses regular files/copies, so these tests
 are not live kernel-pipe or cross-process/device evidence. The module explicitly
-pins Build Tools 35.0.0. Managed-copy/historical read paths, complete external permission/lifecycle/navigation
+pins Build Tools 35.0.0. Complete external permission/lifecycle/navigation
 cases and actual service/device execution remain open. Picker/regrant paths are
 backend contracts and synthetic platform/JNI fixtures, not actual device picker or
 grant-persistence acceptance. Already drawn external H.I. pixels must be hidden/redrawn
 when a frame is retired; this library does not implement production H.I.
+
+### Retained PDF assets
+
+Explicit native `Pdf` commands now support managed copies and independently
+authorised full-PDF snapshots. `BeginRetention` takes `source`, `class`
+(`ManagedCopy` or `HistoricalSnapshot`), nullable `authority`, `export_allowed`,
+`consented` and exact `length`. Historical retention and any export permission
+require a separate nonblank authority; this text records a deliberate retention
+decision and never manufactures copyright or platform permission. No provider
+access or automatic source copying is implied by a source link.
+
+The returned private `transfer` accepts sequential `AppendRetention` chunks
+(`offset`, numeric-byte-array `bytes`, maximum 65,536 bytes). `FinishRetention`
+requires explicit `confirmed: true`, exact length, PDF signature and SHA-256 match
+to the still-current source. Rejection, bad chunks, stale source policy or relock
+consume/retire the transfer. `ReleaseRetention` is idempotent. Staging has one
+64 MiB maximum in-memory reservation per native host, expires after five minutes
+on the next host operation, and never writes a partial asset to the library or
+backup. These are engineering bounds, not measured tablet limits. A failed save
+has no success receipt; after an ambiguous outcome reauthenticate and inspect
+`Assets` rather than blindly creating another copy. A typed Android acquisition
+adapter for these retention choices remains to be connected to the picker workflow.
+
+`Assets {source}` lists checked metadata (maximum 256 rows per source; excess
+fails closed). `PrepareAssetRead {asset}` returns a private read lease and metadata.
+`ReadAssetChunk {lease,offset,length}` reads at most 65,536 bytes, checking current
+context access and the exact asset metadata each time. `ValidateAssetRead` takes
+`observed_digest` and rechecks policy/hash; `ReleaseRead` also retires asset leases.
+Live and retained read leases share the same 32-capability bound and five-minute/
+authentication lifetime. Disposable caches are never eligible for retained-PDF
+reading. Managed copies without independent authority remain usable while a source
+is missing, but are purged on source revocation or replacement. Independently
+retained assets preserve captured source revision and permission provenance.
+`RevokeRetention {asset}` withdraws that separate authority and deletes its bytes.
+
+`NotebookBackend.renderRetainedPdf` reads checked chunks into the disposable private
+cache, verifies their complete digest, unlinks the frozen file before isolated
+parsing, and validates the lease again before publishing. No external provider is
+opened. Frames expose the retained asset ID, captured `sourceRevision` and
+`historical` flag (independent retention is displayed as historical evidence).
+Retirement, expiry, relock and retention revocation use the same private bitmap
+ownership as live reads. Already drawn H.I. pixels still require eventual H.I.
+hide/redraw handling; no production H.I. is implemented here.
 
 ## Rendering and processing
 

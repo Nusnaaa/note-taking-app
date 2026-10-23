@@ -7,6 +7,7 @@ import android.graphics.Canvas
 import android.graphics.RectF
 import android.os.ParcelFileDescriptor
 import org.json.JSONObject
+import org.json.JSONArray
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
@@ -39,30 +40,110 @@ class PdfWorkspaceTest {
         while (!condition() && System.nanoTime() < until) Thread.sleep(5)
         assertTrue(condition())
     }
-    private class Fixture(val backend: NotebookBackend, val source: File, val cache: File, val parserCalls: AtomicInteger, val context: UUID, val reference: UUID) : AutoCloseable {
+    private class Fixture(val backend: NotebookBackend, val source: File, val cache: File, val parserCalls: AtomicInteger, val context: UUID, val reference: UUID, val providerOpens: AtomicInteger) : AutoCloseable {
         override fun close() { backend.closeAsync().get(5, TimeUnit.SECONDS) }
     }
-    private fun fixture(denySecondOpen: Boolean = false, intercept: (JSONObject) -> Unit = {}): Fixture {
+    private fun fixture(denySecondOpen: Boolean = false, retainedBytes: Int = 0, corruptChunkMode: Int = 0, intercept: (JSONObject) -> Unit = {}): Fixture {
         val root = temporary.newFolder()
         val cache = File(root, "cache").apply { mkdirs() }
         ShadowStatFs.registerStats(cache, 1_000_000, 1_000_000, 1_000_000)
         ShadowStatFs.registerStats(File(root, "notebook"), 1_000_000, 1_000_000, 1_000_000)
-        val source = File(root, "synthetic.pdf").apply { writeText("%PDF-synthetic revision fixture") }
+        val source = File(root, "synthetic.pdf").apply { writeText("%PDF-synthetic revision fixture"); if (retainedBytes > 0) appendBytes(ByteArray(retainedBytes) { (it % 251).toByte() }) }
         val context = object : ContextWrapper(RuntimeEnvironment.getApplication()) { override fun getNoBackupFilesDir(): File = root }
         val calls = AtomicInteger(0)
         val opens = AtomicInteger(0)
         val backend = NotebookBackend(context, pdfFactory = { _, native ->
             PdfWorkspace(cache, PdfProvider({ _, _ ->
-                if (denySecondOpen && opens.incrementAndGet() > 1) throw SecurityException("Synthetic permission loss")
+                if (opens.incrementAndGet() > 1 && denySecondOpen) throw SecurityException("Synthetic permission loss")
                 ParcelFileDescriptor.open(source, ParcelFileDescriptor.MODE_READ_ONLY)
             }, {}, {}), PdfParserClient { callbacks ->
                 calls.incrementAndGet(); FixturePdfConnection(callbacks, "ok")
-            }) { request -> intercept(request); native(request) }
+            }) { request ->
+                intercept(request)
+                val response = native(request)
+                if (request.getJSONObject("command").getString("op") == "ReadAssetChunk" && response.getBoolean("ok")) {
+                    val data = response.getJSONObject("data"); val bytes = data.getJSONArray("bytes")
+                    when (corruptChunkMode) {
+                        1 -> bytes.put(0, bytes.getInt(0) xor 1)
+                        2 -> bytes.remove(0)
+                        3 -> data.put("offset", data.getLong("offset") + 1)
+                        4 -> bytes.put(0, 256)
+                    }
+                }
+                response
+            }
         })
         val note = command(backend, JSONObject().put("op", "Create").put("kind", "Note").put("parent", JSONObject.NULL).put("title", "synthetic PDF study"))
         val entity = UUID.fromString(note.getJSONObject("data").getString("id"))
         val linked = command(backend, pdf("Link", JSONObject().put("context", entity.toString()).put("locator", "content://synthetic/study").put("revision", digest(source.readBytes()))))
-        return Fixture(backend, source, cache, calls, entity, UUID.fromString(linked.getJSONObject("data").getString("id")))
+        return Fixture(backend, source, cache, calls, entity, UUID.fromString(linked.getJSONObject("data").getString("id")), opens)
+    }
+    private fun retain(f: Fixture, independent: Boolean, historical: Boolean = false): UUID {
+        val bytes = f.source.readBytes()
+        val started = command(f.backend, pdf("BeginRetention", JSONObject().put("source", f.reference.toString())
+            .put("class", if (historical) "HistoricalSnapshot" else "ManagedCopy")
+            .put("authority", if (independent) "explicit independent retention" else JSONObject.NULL)
+            .put("export_allowed", false).put("consented", true).put("length", bytes.size)))
+        val transfer = started.getJSONObject("data").getString("transfer")
+        bytes.toList().chunked(65536).forEachIndexed { index, values ->
+            command(f.backend, pdf("AppendRetention", JSONObject().put("transfer", transfer).put("offset", index * 65536)
+                .put("bytes", JSONArray(values.map { it.toInt() and 255 }))))
+        }
+        val result = command(f.backend, pdf("FinishRetention", JSONObject().put("transfer", transfer).put("confirmed", true)))
+        return UUID.fromString(result.getJSONObject("data").getString("id"))
+    }
+    @Test(timeout = 30_000) fun managedCopyRendersInChunksWithoutOpeningProviderAndSurvivesMissingSource() {
+        fixture(retainedBytes = 150_000).use { f ->
+            val asset = retain(f, false)
+            command(f.backend, pdf("MarkMissing", JSONObject().put("source", f.reference.toString())))
+            val frame = f.backend.renderRetainedPdf(asset, 0, 2, 2, 10_000).await()
+            assertEquals(asset, frame.retainedAsset); assertFalse(frame.historical)
+            assertEquals(digest(f.source.readBytes()), frame.sourceRevision)
+            assertEquals(0, f.providerOpens.get()); assertEquals(1, f.parserCalls.get())
+            assertTrue(f.cache.listFiles()!!.isEmpty())
+            command(f.backend, pdf("Revoke", JSONObject().put("source", f.reference.toString())))
+            assertTrue(frame.retired)
+            assertThrows(IOException::class.java) { f.backend.renderRetainedPdf(asset, 0, 2, 2, 10_000).await() }
+        }
+    }
+    @Test(timeout = 20_000) fun independentHistoricalPdfSurvivesSourceRevocationAndRetiresOnRetentionRevocation() {
+        fixture().use { f ->
+            val asset = retain(f, true, historical = true)
+            command(f.backend, pdf("Revoke", JSONObject().put("source", f.reference.toString())))
+            val frame = f.backend.renderRetainedPdf(asset, 0, 2, 2, 10_000).await()
+            assertEquals(asset, frame.retainedAsset); assertTrue(frame.historical)
+            assertEquals(0, f.providerOpens.get())
+            command(f.backend, JSONObject().put("op", "Append").put("entity", f.context.toString()).put("content", JSONObject().put("type", "Text").put("value", "independent notes")))
+            assertFalse(frame.retired)
+            command(f.backend, pdf("RevokeRetention", JSONObject().put("asset", asset.toString())))
+            assertTrue(frame.retired)
+            assertThrows(IOException::class.java) { f.backend.renderRetainedPdf(asset, 0, 2, 2, 10_000).await() }
+        }
+    }
+    @Test(timeout = 20_000) fun retentionRevocationDuringFinalValidationCannotPublishPixels() {
+        val validations = AtomicInteger(0); val entered = CountDownLatch(1); val release = CountDownLatch(1)
+        val f = fixture { request ->
+            if (request.getJSONObject("command").getString("op") == "ValidateAssetRead" && validations.incrementAndGet() == 2) {
+                entered.countDown(); release.await()
+            }
+        }
+        try {
+            val asset = retain(f, true)
+            val pending = f.backend.renderRetainedPdf(asset, 0, 2, 2, 10_000)
+            assertTrue(entered.await(5, TimeUnit.SECONDS))
+            command(f.backend, pdf("RevokeRetention", JSONObject().put("asset", asset.toString())))
+            assertThrows(CancellationException::class.java) { pending.await() }
+            release.countDown(); eventually { f.cache.listFiles()!!.isEmpty() }
+        } finally { release.countDown(); f.close() }
+    }
+    @Test(timeout = 30_000) fun malformedOrCorruptedRetainedChunksNeverReachParser() {
+        for (mode in 1..4) fixture(corruptChunkMode = mode).use { f ->
+            val asset = retain(f, true)
+            assertThrows(IOException::class.java) { f.backend.renderRetainedPdf(asset, 0, 2, 2, 10_000).await() }
+            eventually { f.cache.listFiles()!!.isEmpty() }
+            assertEquals(0, f.parserCalls.get()); assertEquals(0, f.providerOpens.get())
+            command(f.backend, JSONObject().put("op", "Append").put("entity", f.context.toString()).put("content", JSONObject().put("type", "Text").put("value", "still writable")))
+        }
     }
     @Test(timeout = 20_000) fun actualJniPipelinePreservesInkAndRetiresPreviewBeforeRelockOrRevocation() {
         fixture().use { f ->

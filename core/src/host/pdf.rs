@@ -2,7 +2,10 @@
 //! can be manufactured by deserialising an ordinary request.
 use crate::{
     security::Access,
-    sources::{Availability, PdfSelectionPlan, PdfSelectionTarget, PdfView, RevisionReview},
+    sources::{
+        AssetClass, Availability, PdfSelectionPlan, PdfSelectionTarget, PdfView, RetentionChoice,
+        RevisionReview, Source, SourceAsset,
+    },
     store::Store,
     Error, Id, Result,
 };
@@ -16,6 +19,44 @@ use std::{
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "op", deny_unknown_fields)]
 pub enum PdfCommand {
+    Assets {
+        source: Id,
+    },
+    BeginRetention {
+        source: Id,
+        class: AssetClass,
+        authority: Option<String>,
+        export_allowed: bool,
+        consented: bool,
+        length: u64,
+    },
+    AppendRetention {
+        transfer: Id,
+        offset: u64,
+        bytes: Vec<u8>,
+    },
+    FinishRetention {
+        transfer: Id,
+        confirmed: bool,
+    },
+    ReleaseRetention {
+        transfer: Id,
+    },
+    RevokeRetention {
+        asset: Id,
+    },
+    PrepareAssetRead {
+        asset: Id,
+    },
+    ReadAssetChunk {
+        lease: Id,
+        offset: u64,
+        length: u32,
+    },
+    ValidateAssetRead {
+        lease: Id,
+        observed_digest: String,
+    },
     ReleaseSelection {
         review: Id,
     },
@@ -77,7 +118,11 @@ impl PdfCommand {
     pub(super) fn is_query(&self) -> bool {
         matches!(
             self,
-            Self::Source { .. }
+            Self::Assets { .. }
+                | Self::PrepareAssetRead { .. }
+                | Self::ReadAssetChunk { .. }
+                | Self::ValidateAssetRead { .. }
+                | Self::Source { .. }
                 | Self::Anchor { .. }
                 | Self::PrepareRead { .. }
                 | Self::ValidateRead { .. }
@@ -91,6 +136,32 @@ struct ReadLease {
     locator: String,
     revision: String,
     created: Instant,
+}
+struct AssetReadLease {
+    info: SourceAsset,
+    created: Instant,
+}
+struct RetentionTransfer {
+    source: Source,
+    class: AssetClass,
+    authority: Option<String>,
+    export_allowed: bool,
+    length: u64,
+    bytes: Vec<u8>,
+    created: Instant,
+}
+impl RetentionTransfer {
+    fn check(&self, s: &Store, a: &Access) -> Result<()> {
+        let now = s.source(self.source.id, a)?;
+        if now.context != self.source.context
+            || now.locator != self.source.locator
+            || now.revision != self.source.revision
+            || now.availability != Availability::Available
+        {
+            return Err(Error::Conflict);
+        }
+        Ok(())
+    }
 }
 pub trait PdfGrantVerifier: Send {
     /// Trusted application code verifies a fresh, immutable provider observation.
@@ -114,6 +185,8 @@ struct Review {
 #[derive(Default)]
 pub(super) struct PdfState {
     reads: BTreeMap<Id, ReadLease>,
+    asset_reads: BTreeMap<Id, AssetReadLease>,
+    transfers: BTreeMap<Id, RetentionTransfer>,
     reviews: BTreeMap<Id, Review>,
     selections: BTreeMap<Id, Selection>,
 }
@@ -129,10 +202,15 @@ fn validity_ms(created: Instant, access: &Access) -> u64 {
 impl PdfState {
     pub fn clear(&mut self) {
         self.reads.clear();
+        self.asset_reads.clear();
+        self.transfers.clear();
         self.reviews.clear();
         self.selections.clear();
     }
     fn retire_expired(&mut self) {
+        self.asset_reads
+            .retain(|_, v| v.created.elapsed() < LIFETIME);
+        self.transfers.retain(|_, v| v.created.elapsed() < LIFETIME);
         self.selections
             .retain(|_, plan| plan.created.elapsed() < LIFETIME);
         self.reads
@@ -203,6 +281,164 @@ impl PdfState {
     pub fn execute(&mut self, s: &mut Store, a: &Access, command: PdfCommand) -> Result<Value> {
         self.retire_expired();
         Ok(match command {
+            PdfCommand::Assets { source } => serde_json::to_value(s.pdf_assets(source, a)?)?,
+            PdfCommand::BeginRetention {
+                source,
+                class,
+                authority,
+                export_allowed,
+                consented,
+                length,
+            } => {
+                if !consented
+                    || class == AssetClass::LiveCache
+                    || authority
+                        .as_ref()
+                        .is_some_and(|v| v.trim().is_empty() || v.len() > 4096)
+                    || (class == AssetClass::HistoricalSnapshot || export_allowed)
+                        && authority.is_none()
+                {
+                    return Err(Error::Denied);
+                }
+                if !self.transfers.is_empty() || !(5..=64 * 1024 * 1024).contains(&length) {
+                    return Err(Error::ResourceLimit);
+                }
+                let source = s.source(source, a)?;
+                if source.availability != Availability::Available {
+                    return Err(Error::Denied);
+                }
+                let mut bytes = Vec::new();
+                bytes
+                    .try_reserve_exact(length as usize)
+                    .map_err(|_| Error::ResourceLimit)?;
+                let token = Id::new();
+                self.transfers.insert(
+                    token,
+                    RetentionTransfer {
+                        source,
+                        class,
+                        authority,
+                        export_allowed,
+                        length,
+                        bytes,
+                        created: Instant::now(),
+                    },
+                );
+                json!({"transfer":token,"maximum_chunk":65536})
+            }
+            PdfCommand::AppendRetention {
+                transfer,
+                offset,
+                bytes,
+            } => {
+                let result = (|| -> Result<Value> {
+                    let plan = self
+                        .transfers
+                        .get_mut(&transfer)
+                        .ok_or(Error::Unavailable)?;
+                    plan.check(s, a)?;
+                    if bytes.is_empty()
+                        || bytes.len() > 65536
+                        || offset != plan.bytes.len() as u64
+                        || offset + bytes.len() as u64 > plan.length
+                    {
+                        return Err(Error::Invalid("PDF transfer chunk"));
+                    }
+                    plan.bytes.extend_from_slice(&bytes);
+                    Ok(json!({"offset":plan.bytes.len()}))
+                })();
+                if result.is_err() {
+                    self.transfers.remove(&transfer);
+                }
+                result?
+            }
+            PdfCommand::FinishRetention {
+                transfer,
+                confirmed,
+            } => {
+                let plan = self.transfers.remove(&transfer).ok_or(Error::Unavailable)?;
+                if !confirmed {
+                    return Err(Error::ReviewRequired);
+                }
+                plan.check(s, a)?;
+                if plan.bytes.len() as u64 != plan.length
+                    || !plan.bytes.starts_with(b"%PDF-")
+                    || !crate::digest(&plan.bytes).eq_ignore_ascii_case(&plan.source.revision)
+                {
+                    return Err(Error::Integrity);
+                }
+                let asset = s.retain_source_bytes(
+                    plan.source.id,
+                    &plan.bytes,
+                    RetentionChoice {
+                        class: plan.class,
+                        authority: plan.authority.as_deref(),
+                        export_allowed: plan.export_allowed,
+                        consented: true,
+                    },
+                    a,
+                )?;
+                serde_json::to_value(s.pdf_asset(asset, a)?)?
+            }
+            PdfCommand::ReleaseRetention { transfer } => {
+                self.transfers.remove(&transfer);
+                Value::Null
+            }
+            PdfCommand::RevokeRetention { asset } => {
+                self.clear();
+                s.revoke_retention(asset, a)?;
+                Value::Null
+            }
+            PdfCommand::PrepareAssetRead { asset } => {
+                if self.reads.len() + self.asset_reads.len() >= CAPACITY {
+                    return Err(Error::ResourceLimit);
+                }
+                let info = s.pdf_asset(asset, a)?;
+                let lease = Id::new();
+                let created = Instant::now();
+                let value =
+                    json!({"lease":lease,"asset":info,"valid_for_ms":validity_ms(created,a)});
+                self.asset_reads
+                    .insert(lease, AssetReadLease { info, created });
+                value
+            }
+            PdfCommand::ReadAssetChunk {
+                lease,
+                offset,
+                length,
+            } => {
+                let result = (|| -> Result<Value> {
+                    let plan = self.asset_reads.get(&lease).ok_or(Error::Unavailable)?;
+                    if s.pdf_asset(plan.info.id, a)? != plan.info {
+                        return Err(Error::Conflict);
+                    }
+                    let bytes = s.pdf_asset_chunk(plan.info.id, offset, length, a)?;
+                    Ok(json!({"offset":offset,"bytes":bytes}))
+                })();
+                if result.is_err() {
+                    self.asset_reads.remove(&lease);
+                }
+                result?
+            }
+            PdfCommand::ValidateAssetRead {
+                lease,
+                observed_digest,
+            } => {
+                let result = (|| -> Result<Value> {
+                    let plan = self.asset_reads.get(&lease).ok_or(Error::Unavailable)?;
+                    if s.pdf_asset(plan.info.id, a)? != plan.info {
+                        return Err(Error::Conflict);
+                    }
+                    if !observed_digest.eq_ignore_ascii_case(&plan.info.digest) {
+                        return Err(Error::Integrity);
+                    }
+                    Ok(json!({"valid_for_ms":validity_ms(plan.created,a)}))
+                })();
+                if result.is_err() {
+                    self.asset_reads.remove(&lease);
+                }
+                result?
+            }
             PdfCommand::ReleaseSelection { review } => {
                 self.selections.remove(&review);
                 Value::Null
@@ -265,12 +501,14 @@ impl PdfState {
                 // Even a failed/rejected acceptance consumes the prepared review.
                 let review = self.reviews.remove(&review).ok_or(Error::Unavailable)?;
                 self.reads.clear();
+                self.asset_reads.clear();
+                self.transfers.clear();
                 s.replace_pdf_revision(review.plan, confirmed, a)?;
                 self.reviews.clear();
                 Value::Null
             }
             PdfCommand::PrepareRead { source } => {
-                if self.reads.len() >= CAPACITY {
+                if self.reads.len() + self.asset_reads.len() >= CAPACITY {
                     return Err(Error::ResourceLimit);
                 }
                 let source = s.source(source, a)?;
@@ -319,6 +557,7 @@ impl PdfState {
             }
             PdfCommand::ReleaseRead { lease } => {
                 self.reads.remove(&lease);
+                self.asset_reads.remove(&lease);
                 Value::Null
             }
         })

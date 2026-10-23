@@ -109,6 +109,10 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
         check(!closed)
         return pdf.render(source, page, width, height, timeoutMillis)
     }
+    @Synchronized fun renderRetainedPdf(asset: UUID, page: Int, width: Int, height: Int, timeoutMillis: Long = 30_000): PdfWorkspace.PendingFrame {
+        check(!closed)
+        return pdf.renderAsset(asset, page, width, height, timeoutMillis)
+    }
     @Synchronized fun reviewPdfSelection(target: PdfSelectionManager.Target, uri: android.net.Uri, pickerFlags: Int, timeoutMillis: Long = 30_000): PdfSelectionManager.Pending<PdfSelectionManager.Review> {
         check(!closed)
         return selections.review(target, uri, pickerFlags, timeoutMillis)
@@ -129,7 +133,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
     private fun affectsPdfPolicy(command: JSONObject): Boolean {
         val op = command.getString("op")
         if (op == "Pdf") return command.getJSONObject("command").getString("op") !in setOf(
-            "Source", "Link", "SetView", "Anchor", "CreateAnchor", "ReconnectAnchor", "ReviewRevision", "PrepareRead", "ValidateRead", "ReleaseRead", "ReleaseSelection",
+            "Source", "Link", "SetView", "Anchor", "CreateAnchor", "ReconnectAnchor", "ReviewRevision", "PrepareRead", "ValidateRead", "ReleaseRead", "ReleaseSelection", "Assets", "PrepareAssetRead", "ReadAssetChunk", "ValidateAssetRead", "BeginRetention", "AppendRetention", "FinishRetention", "ReleaseRetention",
         )
         // Conservative for new commands: permissions/containment must never gain
         // a path around preview retirement. Ordinary pen/text edits keep the view.

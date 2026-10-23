@@ -97,6 +97,18 @@ pub struct SourceBytes {
     pub source_revision: String,
 }
 
+/// Bounded metadata; bytes are read independently through checked chunks.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct SourceAsset {
+    pub id: Id,
+    pub source: Id,
+    pub class: AssetClass,
+    pub retention: Option<Retention>,
+    pub length: u64,
+    pub digest: String,
+    pub source_revision: String,
+}
+
 /// Explicit, reviewable retention decision supplied by the trusted host.
 pub struct RetentionChoice<'a> {
     pub class: AssetClass,
@@ -272,6 +284,10 @@ impl Store {
             return Err(Error::Denied);
         }
 
+        if authority.is_some_and(|v| v.len() > 4096 || (!v.is_empty() && v.trim().is_empty())) {
+            return Err(Error::Invalid("retention authority"));
+        }
+
         self.write(|db| {
             let mut s = Self::read_source(db, id, access)?;
 
@@ -320,6 +336,100 @@ impl Store {
 
             Ok(asset)
         })
+    }
+
+    /// Lists retained PDF assets only. Disposable previews are never a PDF read source.
+    pub fn pdf_assets(&self, source: Id, access: &Access) -> Result<Vec<SourceAsset>> {
+        Self::read_source(&self.db, source, access)?;
+        let mut statement = self
+            .db
+            .prepare("SELECT id FROM source_assets WHERE source=?1 ORDER BY id LIMIT 257")?;
+        let ids = statement
+            .query_map([source.to_string()], |r| r.get::<_, String>(0))?
+            .collect::<std::result::Result<Vec<_>, _>>()?;
+        if ids.len() > 256 {
+            return Err(Error::ResourceLimit);
+        }
+        let mut result = Vec::new();
+        for id in ids {
+            match self.pdf_asset(Id::parse(&id)?, access) {
+                Ok(asset) => result.push(asset),
+                Err(Error::Denied | Error::Unsupported) => {}
+                Err(error) => return Err(error),
+            }
+        }
+        Ok(result)
+    }
+    pub fn pdf_asset(&self, asset: Id, access: &Access) -> Result<SourceAsset> {
+        let (source, class, authority, length, hash, prefix): (String, String, Option<String>, i64, String, Vec<u8>) = self.db.query_row(
+            "SELECT source,class,authority,length(bytes),digest,substr(bytes,1,5) FROM source_assets WHERE id=?1",
+            [asset.to_string()], |r| Ok((r.get(0)?,r.get(1)?,r.get(2)?,r.get(3)?,r.get(4)?,r.get(5)?)))
+            .optional()?.ok_or(Error::Unavailable)?;
+        let source = Self::read_source(&self.db, Id::parse(&source)?, access)?;
+        let class: AssetClass = serde_json::from_str(&class)?;
+        let retention: Option<Retention> =
+            authority.as_deref().map(serde_json::from_str).transpose()?;
+        if class == AssetClass::LiveCache {
+            return Err(Error::Unsupported);
+        }
+        if source.availability == Availability::Revoked && retention.is_none() {
+            return Err(Error::Denied);
+        }
+        if class == AssetClass::HistoricalSnapshot && retention.is_none() {
+            return Err(Error::Denied);
+        }
+        if retention
+            .as_ref()
+            .is_some_and(|r| r.authority.trim().is_empty() || r.authority.len() > 4096)
+        {
+            return Err(Error::Denied);
+        }
+        if prefix != b"%PDF-" {
+            return Err(Error::Unsupported);
+        }
+        if !(5..=64 * 1024 * 1024).contains(&length)
+            || hash.len() != 64
+            || !hash.bytes().all(|v| v.is_ascii_hexdigit())
+        {
+            return Err(Error::Integrity);
+        }
+        let revision = retention
+            .as_ref()
+            .map(|r| r.source_revision.clone())
+            .unwrap_or_else(|| source.revision.clone());
+        if retention.is_none() && !hash.eq_ignore_ascii_case(&source.revision) {
+            return Err(Error::ReviewRequired);
+        }
+        Ok(SourceAsset {
+            id: asset,
+            source: source.id,
+            class,
+            retention,
+            length: length as u64,
+            digest: hash,
+            source_revision: revision,
+        })
+    }
+    pub fn pdf_asset_chunk(
+        &self,
+        asset: Id,
+        offset: u64,
+        length: u32,
+        access: &Access,
+    ) -> Result<Vec<u8>> {
+        if length == 0 || length > 64 * 1024 {
+            return Err(Error::ResourceLimit);
+        }
+        let info = self.pdf_asset(asset, access)?;
+        if offset > info.length {
+            return Err(Error::Invalid("PDF asset offset"));
+        }
+        let bytes = self.db.query_row(
+            "SELECT substr(bytes,?2,?3) FROM source_assets WHERE id=?1",
+            rusqlite::params![asset.to_string(), offset as i64 + 1, length],
+            |r| r.get(0),
+        )?;
+        Ok(bytes)
     }
 
     pub fn revoke_source(&mut self, id: Id, access: &Access) -> Result<()> {
@@ -901,6 +1011,50 @@ mod selection_tests {
         objects::Rect,
         store::{FailurePoint, Kind},
     };
+    #[test]
+    fn retained_pdf_commit_failure_does_not_publish_asset_or_change_acquisition() {
+        let a = Access::public();
+        let mut s = Store::memory().unwrap();
+        let note = s.create(Kind::Note, None, "synthetic", &a).unwrap();
+        let block = s
+            .append_content(note.id, Content::Text("independent work".into()), &a)
+            .unwrap();
+        let bytes = b"%PDF-atomic managed copy";
+        let source = s
+            .link_pdf(note.id, "content://synthetic/pdf", &digest(bytes), &a)
+            .unwrap();
+        s.inject_failure(FailurePoint::BeforeCommit);
+        assert!(s
+            .retain_source_bytes(
+                source.id,
+                bytes,
+                RetentionChoice {
+                    class: AssetClass::ManagedCopy,
+                    authority: None,
+                    export_allowed: false,
+                    consented: true
+                },
+                &a
+            )
+            .is_err());
+        assert!(s.pdf_assets(source.id, &a).unwrap().is_empty());
+        assert_eq!(s.source(source.id, &a).unwrap(), source);
+        assert_eq!(s.block(block.id, &a).unwrap(), block);
+        let asset = s
+            .retain_source_bytes(
+                source.id,
+                bytes,
+                RetentionChoice {
+                    class: AssetClass::ManagedCopy,
+                    authority: None,
+                    export_allowed: false,
+                    consented: true,
+                },
+                &a,
+            )
+            .unwrap();
+        assert_eq!(s.pdf_asset_chunk(asset, 0, 65536, &a).unwrap(), bytes);
+    }
     #[test]
     fn selected_revision_transaction_rolls_back_and_preserves_independent_evidence() {
         let a = Access::public();

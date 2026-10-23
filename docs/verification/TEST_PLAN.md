@@ -94,8 +94,15 @@ and its dup copies bytes; these are not live-pipe/cross-process/device tests. Tr
 non-mutating/rejected review, fresh bytes/grant checks, stable-ID regrant from revoked
 state, stale generation/locks and the accepted-commit cancellation boundary. A storage
 fault fixture rolls back source/anchor changes while retaining independent evidence.
-Managed/historical rendering and complete external platform lifecycle acceptance
-remain open.
+Retained-source fixtures now exercise explicit nonpersistent staged retention,
+chunk/total admission bounds, wrong bytes/order, rejection/relock/restart, shared
+live/retained lease capacity, old-edition provenance and scoped access despite
+independent authority. Actual JNI Android fixtures render managed copies after
+provider loss, historical snapshots after live revocation, reject tampered/dropped/
+misaddressed/out-of-range chunks before parsing, and retire frames during retention
+revocation/final validation. Provider opens are asserted absent on retained reads.
+Typed picker-to-retention acquisition and complete external platform lifecycle
+acceptance remain open.
 
 Backup fixtures exercise password/recovery restoration, Trash/history/membership
 undo, rich object/view/anchor/profile/proposal/capture state, authorised source assets,

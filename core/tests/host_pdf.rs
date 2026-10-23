@@ -665,3 +665,407 @@ fn bounded_selection_plans_can_be_released_and_cannot_be_supplied_as_json_grants
     selection(&h, source, &revision);
     assert!(h.request(r#"{"version":1,"command":{"op":"Pdf","command":{"op":"FinishSelection","review":"00000000-0000-0000-0000-000000000000","confirmed":true,"new_platform_grant":true}}}"#).is_err());
 }
+
+fn retained_pdf(h: &Host, source: Id, bytes: &[u8], independent: bool) -> Value {
+    use stem_core::sources::AssetClass;
+    let prepared = pdf(
+        h,
+        PdfCommand::BeginRetention {
+            source,
+            class: AssetClass::ManagedCopy,
+            authority: independent.then(|| "explicit independent offline retention".into()),
+            export_allowed: false,
+            consented: true,
+            length: bytes.len() as u64,
+        },
+    );
+    let transfer = id(&prepared, "transfer");
+    for (index, chunk) in bytes.chunks(65536).enumerate() {
+        pdf(
+            h,
+            PdfCommand::AppendRetention {
+                transfer,
+                offset: (index * 65536) as u64,
+                bytes: chunk.to_vec(),
+            },
+        );
+    }
+    pdf(
+        h,
+        PdfCommand::FinishRetention {
+            transfer,
+            confirmed: true,
+        },
+    )
+}
+fn pdf_fixture(h: &Host) -> (Id, Id, Vec<u8>) {
+    use sha2::{Digest, Sha256};
+    let (context, _, _) = setup(h);
+    let mut bytes = b"%PDF-1.7 synthetic chunk fixture".to_vec();
+    bytes.extend((0..150_000).map(|v| (v % 251) as u8));
+    let source = pdf(
+        h,
+        PdfCommand::Link {
+            context,
+            locator: "content://synthetic/retained".into(),
+            revision: format!("{:x}", Sha256::digest(&bytes)),
+        },
+    );
+    (context, id(&source, "id"), bytes)
+}
+#[test]
+fn retained_pdf_streaming_is_explicit_atomic_bounded_and_content_checked() {
+    use stem_core::sources::AssetClass;
+    let d = tempfile::tempdir().unwrap();
+    let h = Host::open(d.path().join("retained.db"), 8).unwrap();
+    let (_, source, bytes) = pdf_fixture(&h);
+    denied(
+        &h,
+        PdfCommand::BeginRetention {
+            source,
+            class: AssetClass::ManagedCopy,
+            authority: None,
+            export_allowed: false,
+            consented: false,
+            length: bytes.len() as u64,
+        },
+    );
+    denied(
+        &h,
+        PdfCommand::BeginRetention {
+            source,
+            class: AssetClass::HistoricalSnapshot,
+            authority: None,
+            export_allowed: false,
+            consented: true,
+            length: bytes.len() as u64,
+        },
+    );
+    let plan = pdf(
+        &h,
+        PdfCommand::BeginRetention {
+            source,
+            class: AssetClass::ManagedCopy,
+            authority: None,
+            export_allowed: false,
+            consented: true,
+            length: bytes.len() as u64,
+        },
+    );
+    assert!(pdf(&h, PdfCommand::Assets { source })
+        .as_array()
+        .unwrap()
+        .is_empty());
+    let transfer = id(&plan, "transfer");
+    denied(
+        &h,
+        PdfCommand::AppendRetention {
+            transfer,
+            offset: 1,
+            bytes: vec![1],
+        },
+    );
+    denied(
+        &h,
+        PdfCommand::FinishRetention {
+            transfer,
+            confirmed: true,
+        },
+    );
+    let retained = retained_pdf(&h, source, &bytes, true);
+    let asset = id(&retained, "id");
+    assert_eq!(retained["length"], bytes.len());
+    assert_eq!(
+        pdf(&h, PdfCommand::Source { source })["acquisition"],
+        "ManagedCopy"
+    );
+    let lease = id(&pdf(&h, PdfCommand::PrepareAssetRead { asset }), "lease");
+    let mut observed = Vec::new();
+    while observed.len() < bytes.len() {
+        let part = pdf(
+            &h,
+            PdfCommand::ReadAssetChunk {
+                lease,
+                offset: observed.len() as u64,
+                length: 65536,
+            },
+        );
+        observed.extend(
+            part["bytes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|v| v.as_u64().unwrap() as u8),
+        );
+    }
+    assert_eq!(observed, bytes);
+    pdf(
+        &h,
+        PdfCommand::ValidateAssetRead {
+            lease,
+            observed_digest: retained["digest"].as_str().unwrap().into(),
+        },
+    );
+    denied(
+        &h,
+        PdfCommand::ReadAssetChunk {
+            lease,
+            offset: 0,
+            length: 65537,
+        },
+    );
+    denied(
+        &h,
+        PdfCommand::ValidateAssetRead {
+            lease,
+            observed_digest: retained["digest"].as_str().unwrap().into(),
+        },
+    );
+    let lease = id(&pdf(&h, PdfCommand::PrepareAssetRead { asset }), "lease");
+    denied(
+        &h,
+        PdfCommand::ValidateAssetRead {
+            lease,
+            observed_digest: "0".repeat(64),
+        },
+    );
+    denied(
+        &h,
+        PdfCommand::ReadAssetChunk {
+            lease,
+            offset: 0,
+            length: 1,
+        },
+    );
+}
+#[test]
+fn independent_pdf_retention_survives_source_revoke_but_not_its_own_revoke_or_locks() {
+    let d = tempfile::tempdir().unwrap();
+    let path = d.path().join("independent.db");
+    let h = Host::open(path.clone(), 8).unwrap();
+    let (context, source, bytes) = pdf_fixture(&h);
+    let live = id(&retained_pdf(&h, source, &bytes, false), "id");
+    let retained = retained_pdf(&h, source, &bytes, true);
+    let asset = id(&retained, "id");
+    let observed = stroke(0);
+    let ink = ok(
+        &h,
+        Command::Capture {
+            ticket: Id::new(),
+            entity: context,
+            strokes: vec![observed.clone()],
+        },
+    );
+    pdf(&h, PdfCommand::Revoke { source });
+    denied(&h, PdfCommand::PrepareAssetRead { asset: live });
+    let plan = pdf(&h, PdfCommand::PrepareAssetRead { asset });
+    let lease = id(&plan, "lease");
+    assert_eq!(
+        plan["asset"]["retention"]["authority"],
+        "explicit independent offline retention"
+    );
+    assert_eq!(
+        ok(
+            &h,
+            Command::SourceInk {
+                block: id(&ink, "id")
+            }
+        ),
+        json!([observed])
+    );
+    ok(&h, Command::Relock {});
+    denied(
+        &h,
+        PdfCommand::ReadAssetChunk {
+            lease,
+            offset: 0,
+            length: 1,
+        },
+    );
+    let lease = id(&pdf(&h, PdfCommand::PrepareAssetRead { asset }), "lease");
+    drop(h);
+    let h = Host::open(path, 8).unwrap();
+    denied(
+        &h,
+        PdfCommand::ReadAssetChunk {
+            lease,
+            offset: 0,
+            length: 1,
+        },
+    );
+    pdf(&h, PdfCommand::PrepareAssetRead { asset });
+    pdf(&h, PdfCommand::RevokeRetention { asset });
+    denied(&h, PdfCommand::PrepareAssetRead { asset });
+    assert_eq!(
+        ok(
+            &h,
+            Command::SourceInk {
+                block: id(&ink, "id")
+            }
+        ),
+        json!([observed])
+    );
+}
+#[test]
+fn staged_retention_cannot_survive_relock_replay_or_wrong_pdf_bytes() {
+    use stem_core::sources::AssetClass;
+    let d = tempfile::tempdir().unwrap();
+    let h = Host::open(d.path().join("stage.db"), 8).unwrap();
+    let (_, source, bytes) = pdf_fixture(&h);
+    let begin = || PdfCommand::BeginRetention {
+        source,
+        class: AssetClass::ManagedCopy,
+        authority: None,
+        export_allowed: false,
+        consented: true,
+        length: 5,
+    };
+    let transfer = id(&pdf(&h, begin()), "transfer");
+    denied(&h, begin());
+    pdf(
+        &h,
+        PdfCommand::AppendRetention {
+            transfer,
+            offset: 0,
+            bytes: b"%PDF-".to_vec(),
+        },
+    );
+    denied(
+        &h,
+        PdfCommand::FinishRetention {
+            transfer,
+            confirmed: true,
+        },
+    );
+    assert!(pdf(&h, PdfCommand::Assets { source })
+        .as_array()
+        .unwrap()
+        .is_empty());
+    let transfer = id(&pdf(&h, begin()), "transfer");
+    ok(&h, Command::Relock {});
+    denied(
+        &h,
+        PdfCommand::AppendRetention {
+            transfer,
+            offset: 0,
+            bytes: bytes[..5].to_vec(),
+        },
+    );
+    let transfer = id(&pdf(&h, begin()), "transfer");
+    pdf(&h, PdfCommand::ReleaseRetention { transfer });
+    pdf(&h, PdfCommand::ReleaseRetention { transfer });
+    denied(
+        &h,
+        PdfCommand::FinishRetention {
+            transfer,
+            confirmed: true,
+        },
+    );
+}
+
+#[test]
+fn retained_pdf_lease_shares_capacity_and_preserves_old_revision_under_new_source_edition() {
+    let d = tempfile::tempdir().unwrap();
+    let h = Host::open(d.path().join("editions.db"), 8).unwrap();
+    let (_, source, bytes) = pdf_fixture(&h);
+    let saved = retained_pdf(&h, source, &bytes, true);
+    let asset = id(&saved, "id");
+    let mut leases = Vec::new();
+    for index in 0..32 {
+        let response = if index % 2 == 0 {
+            pdf(&h, PdfCommand::PrepareRead { source })
+        } else {
+            pdf(&h, PdfCommand::PrepareAssetRead { asset })
+        };
+        leases.push(id(&response, "lease"));
+    }
+    denied(&h, PdfCommand::PrepareRead { source });
+    denied(&h, PdfCommand::PrepareAssetRead { asset });
+    for lease in leases {
+        pdf(&h, PdfCommand::ReleaseRead { lease });
+    }
+    let revision = pdf(
+        &h,
+        PdfCommand::ReviewRevision {
+            source,
+            locator: "content://synthetic/new-edition".into(),
+            revision: "e".repeat(64),
+        },
+    );
+    pdf(
+        &h,
+        PdfCommand::ReplaceRevision {
+            review: id(&revision, "review"),
+            confirmed: true,
+        },
+    );
+    let plan = pdf(&h, PdfCommand::PrepareAssetRead { asset });
+    assert_eq!(plan["asset"]["source_revision"], saved["source_revision"]);
+    assert_ne!(
+        plan["asset"]["source_revision"],
+        pdf(&h, PdfCommand::Source { source })["revision"]
+    );
+}
+#[test]
+fn retained_pdf_lock_applies_to_metadata_chunks_and_staging_even_with_independent_authority() {
+    use stem_core::sources::AssetClass;
+    let d = tempfile::tempdir().unwrap();
+    let h = Host::open(d.path().join("locks.db"), 8).unwrap();
+    let (context, source, bytes) = pdf_fixture(&h);
+    let saved = retained_pdf(&h, source, &bytes, true);
+    let asset = id(&saved, "id");
+    let staged = pdf(
+        &h,
+        PdfCommand::BeginRetention {
+            source,
+            class: AssetClass::ManagedCopy,
+            authority: None,
+            export_allowed: false,
+            consented: true,
+            length: bytes.len() as u64,
+        },
+    );
+    let transfer = id(&staged, "transfer");
+    let lease = id(&pdf(&h, PdfCommand::PrepareAssetRead { asset }), "lease");
+    h.authenticate(
+        [Scope::Entity(context)].into_iter().collect(),
+        Box::new(TestAuth(true)),
+    )
+    .unwrap();
+    let entity = ok(&h, Command::Read { id: context });
+    ok(
+        &h,
+        Command::SetLock {
+            entity: context,
+            revision: entity["revision"].as_u64().unwrap(),
+            locked: true,
+        },
+    );
+    denied(
+        &h,
+        PdfCommand::ReadAssetChunk {
+            lease,
+            offset: 0,
+            length: 1,
+        },
+    );
+    denied(
+        &h,
+        PdfCommand::AppendRetention {
+            transfer,
+            offset: 0,
+            bytes: bytes[..5].to_vec(),
+        },
+    );
+    pdf(&h, PdfCommand::PrepareAssetRead { asset });
+    ok(&h, Command::Relock {});
+    denied(&h, PdfCommand::Assets { source });
+    denied(&h, PdfCommand::PrepareAssetRead { asset });
+    denied(&h, PdfCommand::RevokeRetention { asset });
+    h.authenticate(
+        [Scope::Entity(context)].into_iter().collect(),
+        Box::new(TestAuth(true)),
+    )
+    .unwrap();
+    pdf(&h, PdfCommand::PrepareAssetRead { asset });
+}
