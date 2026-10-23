@@ -241,6 +241,7 @@ fn view_settings_and_protected_placeholders_reopen_without_secret_text() {
         colour_rgba: [0, 1, 2, 255],
         finger_ink: false,
         anchor: Some(b.id),
+        authoring: None,
         bookmark: None,
         revision: 0,
     };
@@ -299,7 +300,7 @@ fn native_v3_roundtrip_preserves_assets_layout_groups_and_embeds_with_new_ids() 
         .unwrap()
         .bytes;
     let d = NativeDocument::decode(&bytes).unwrap();
-    assert_eq!(d.version, 8);
+    assert_eq!(d.version, 9);
     assert_eq!(d.attachments.assets.len(), 1);
     assert_eq!(d.attachments.embeds.len(), 1);
     let mut target = Store::memory().unwrap();

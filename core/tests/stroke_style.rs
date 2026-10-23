@@ -99,7 +99,7 @@ fn source_style_and_receipt_survive_edits_reopen_native_copy_and_legacy_format_v
     assert_eq!(s.source_ink(b.id, &a).unwrap(), vec![original.clone()]);
     let bytes = export(&s, n.id);
     let mut doc = NativeDocument::decode(&bytes).unwrap();
-    assert_eq!(doc.version, 8);
+    assert_eq!(doc.version, 9);
     doc.version = 6;
     assert!(doc.validate().is_err());
     doc.blocks[0].strokes[0].style = None;
@@ -175,7 +175,7 @@ fn legacy_source_payload_hash_and_receipt_are_not_rewritten_by_schema13_upgrade(
     db.pragma_update(None, "user_version", 12).unwrap();
     drop(db);
     let mut s = Store::open(&path).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 14);
+    assert_eq!(s.schema_version().unwrap(), 15);
     s.append_capture(
         ticket,
         WritingTarget::Entity(n.id),

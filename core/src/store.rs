@@ -1,6 +1,7 @@
 //! Single-writer SQLite authority with optimistic revision checks for every edit.
 //! FULL synchronous WAL commits are acknowledgements of SQLite's durable boundary,
 //! not guarantees about uncommitted events or faulty storage hardware.
+mod authoring;
 mod capture_recovery;
 mod editing;
 mod engines;
@@ -97,6 +98,7 @@ const V4: &str = include_str!("../migrations/004.sql");
 const V5: &str = include_str!("../migrations/005.sql");
 const V6: &str = include_str!("../migrations/006.sql");
 const V7: &str = include_str!("../migrations/007.sql");
+const V15: &str = include_str!("../migrations/015.sql");
 const V14: &str = include_str!("../migrations/014.sql");
 const V13: &str = include_str!("../migrations/013.sql");
 const V12: &str = include_str!("../migrations/012.sql");
@@ -119,7 +121,7 @@ impl Store {
                 PRAGMA trusted_schema=OFF;",
         )?;
         let version: i64 = db.pragma_query_value(None, "user_version", |r| r.get(0))?;
-        if !(0..=14).contains(&version) {
+        if !(0..=15).contains(&version) {
             return Err(Error::Unsupported);
         }
         let tx = db.transaction_with_behavior(TransactionBehavior::Immediate)?;
@@ -164,6 +166,9 @@ impl Store {
         }
         if version < 14 {
             tx.execute_batch(V14)?;
+        }
+        if version < 15 {
+            tx.execute_batch(V15)?;
         }
         tx.commit()?;
         Ok(Self {
@@ -362,6 +367,10 @@ pub use workspace::{
 
 pub use layers::{
     CanvasLayer, CanvasLayers, CanvasScene, CanvasSceneContent, CanvasSceneItem, LayerRef,
+};
+
+pub use authoring::{
+    AuthoringSettings, GuideBackground, GuideKind, PenPreset, ViewGuideSnapshot, ViewPenSnapshot,
 };
 
 #[cfg(test)]

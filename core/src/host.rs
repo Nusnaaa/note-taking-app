@@ -34,6 +34,28 @@ pub use pdf::{PdfCommand, PdfGrantVerifier};
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "op", deny_unknown_fields)]
 pub enum Command {
+    ConfigureView {
+        view: Id,
+        expected: u64,
+        authoring: Option<crate::store::AuthoringSettings>,
+    },
+    ApplyViewPreset {
+        view: Id,
+        expected: u64,
+        preset: Id,
+    },
+    ViewPen {
+        view: Id,
+        coordinate_space: String,
+        units_per_mm: f64,
+    },
+    ViewGuides {
+        view: Id,
+        bounds: Rect,
+        coordinate_space: String,
+        units_per_mm: f64,
+        for_export: bool,
+    },
     PrepareDeletion {
         entity: Id,
         permanent: bool,
@@ -586,7 +608,9 @@ impl Host {
         let request: Request = serde_json::from_str(json)?;
         let authoring = !matches!(
             &request.command,
-            Command::TrashEntries { .. }
+            Command::ViewPen { .. }
+                | Command::ViewGuides { .. }
+                | Command::TrashEntries { .. }
                 | Command::CaptureRecoveryAccess { .. }
                 | Command::CaptureReceipt { .. }
                 | Command::Block { .. }
@@ -717,6 +741,35 @@ fn execute(
     }
     let result = (|| -> Result<Value> {
         Ok(match r.command {
+            Command::ConfigureView {
+                view,
+                expected,
+                authoring,
+            } => serde_json::to_value(s.configure_view(view, expected, authoring, a)?)?,
+            Command::ApplyViewPreset {
+                view,
+                expected,
+                preset,
+            } => serde_json::to_value(s.apply_view_preset(view, expected, preset, a)?)?,
+            Command::ViewPen {
+                view,
+                coordinate_space,
+                units_per_mm,
+            } => serde_json::to_value(s.view_pen(view, &coordinate_space, units_per_mm, a)?)?,
+            Command::ViewGuides {
+                view,
+                bounds,
+                coordinate_space,
+                units_per_mm,
+                for_export,
+            } => serde_json::to_value(s.view_guides(
+                view,
+                bounds,
+                &coordinate_space,
+                units_per_mm,
+                for_export,
+                a,
+            )?)?,
             Command::PrepareDeletion { entity, permanent } => {
                 deletion.prepare(s, a, entity, permanent)?
             }

@@ -100,12 +100,22 @@ pub struct ViewSettings {
     pub anchor: Option<Id>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub bookmark: Option<SelectionBookmark>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub authoring: Option<Box<AuthoringSettings>>,
     pub revision: u64,
 }
 
 impl ViewSettings {
     pub fn validate(&self) -> Result<()> {
         self.camera.validate()?;
+        if let Some(a) = &self.authoring {
+            a.validate()?;
+            if a.selected().is_some_and(|p| {
+                p.width_mm != self.pen_width_mm || p.colour_rgba != self.colour_rgba
+            }) {
+                return Err(Error::Invalid("selected preset appearance"));
+            }
+        }
         if let Some(bookmark) = &self.bookmark {
             bookmark.validate_shape()?;
         }

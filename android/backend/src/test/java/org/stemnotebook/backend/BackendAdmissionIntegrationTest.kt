@@ -59,6 +59,40 @@ class BackendAdmissionIntegrationTest {
             assertEquals(original.id, source.getString("id")); assertEquals((-0.0).toRawBits(), source.getJSONArray("points").getJSONObject(0).getDouble("x").toRawBits())
         } finally { backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
     }
+    @Test(timeout = 30_000) fun savedPresetsCalibrateFutureContactsAndGuidesRespectExportChoiceAcrossReopen() {
+        val context = platform(temporary.newFolder()); var backend = NotebookBackend(context)
+        try {
+            val entity = note(backend); val view = UUID.randomUUID(); val first = UUID.randomUUID(); val second = UUID.randomUUID()
+            val settings = JSONObject().put("id", view.toString()).put("entity", entity.toString()).put("exercise", JSONObject.NULL)
+                .put("camera", JSONObject().put("centre_x", 4).put("centre_y", -2).put("zoom", 3).put("rotation_rad", 0.5))
+                .put("pen_width_mm", 0.5).put("colour_rgba", org.json.JSONArray(listOf(0, 0, 0, 255))).put("finger_ink", false).put("anchor", JSONObject.NULL).put("revision", 0)
+            call(backend, JSONObject().put("op", "SaveView").put("view", settings).put("expected", JSONObject.NULL))
+            fun preset(id: UUID, width: Double, red: Int) = JSONObject().put("id", id.toString()).put("name", "preset").put("width_mm", width).put("colour_rgba", org.json.JSONArray(listOf(red, 128, 255, 64)))
+            val guides = JSONObject().put("kind", "Graph").put("spacing_mm", 5).put("line_width_mm", 0.2).put("origin_mm", org.json.JSONArray(listOf(0, 0))).put("colour_rgba", org.json.JSONArray(listOf(100, 100, 100, 128))).put("paper_rgba", org.json.JSONArray(listOf(255, 255, 255, 255))).put("include_in_export", false)
+            val authoring = JSONObject().put("presets", org.json.JSONArray().put(preset(first, 0.6, 17)).put(preset(second, 1.2, 200))).put("selected_preset", first.toString()).put("background", guides)
+            call(backend, JSONObject().put("op", "ConfigureView").put("view", view.toString()).put("expected", 0).put("authoring", authoring))
+            fun snapshot(): StrokeStyle {
+                val value = call(backend, JSONObject().put("op", "ViewPen").put("view", view.toString()).put("coordinate_space", "device-pixels").put("units_per_mm", 4)).getJSONObject("data").getJSONObject("style")
+                val rgba = value.getJSONArray("colour_rgba"); return StrokeStyle(rgba.getInt(0), rgba.getInt(1), rgba.getInt(2), rgba.getInt(3), value.getDouble("width"))
+            }
+            val session = backend.openCaptureSession(entity, "device-pixels", snapshot())
+            submit(session, MotionEvent.ACTION_DOWN, 10).receipt.get(5, TimeUnit.SECONDS)
+            call(backend, JSONObject().put("op", "ApplyViewPreset").put("view", view.toString()).put("expected", 1).put("preset", second.toString()))
+            session.setStyle(snapshot()); submit(session, MotionEvent.ACTION_UP, 20).receipt.get(5, TimeUnit.SECONDS)
+            submit(session, MotionEvent.ACTION_DOWN, 30).receipt.get(5, TimeUnit.SECONDS); submit(session, MotionEvent.ACTION_UP, 40).receipt.get(5, TimeUnit.SECONDS)
+            val rows = call(backend, blocks(entity)).getJSONArray("data")
+            for ((index, width) in listOf(2.4, 4.8).withIndex()) {
+                val ink = call(backend, JSONObject().put("op", "SourceInk").put("block", rows.getJSONObject(index).getString("id"))).getJSONArray("data").getJSONObject(0)
+                assertEquals(width, ink.getJSONObject("style").getDouble("width"), 0.0); assertEquals(0.125, ink.getJSONArray("points").getJSONObject(0).getDouble("x"), 0.0)
+            }
+            val query = JSONObject().put("op", "ViewGuides").put("view", view.toString()).put("coordinate_space", "device-pixels").put("units_per_mm", 4).put("for_export", false).put("bounds", JSONObject().put("x", 0).put("y", 0).put("width", 100).put("height", 80))
+            assertTrue(call(backend, query).getJSONObject("data").getString("svg").contains("<pattern")); query.put("for_export", true)
+            assertTrue(call(backend, query).getJSONObject("data").isNull("svg"))
+            backend.closeFullyAsync().get(5, TimeUnit.SECONDS); backend = NotebookBackend(context)
+            val restored = call(backend, JSONObject().put("op", "RestoreView").put("view", view.toString())).getJSONObject("data").getJSONObject("settings")
+            assertEquals(second.toString(), restored.getJSONObject("authoring").getString("selected_preset")); assertEquals(3.0, restored.getJSONObject("camera").getDouble("zoom"), 0.0)
+        } finally { backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
+    }
     @Test(timeout = 20_000) fun independentEmbedLayersCrossActualJniWithoutChangingCanvasDefaults() {
         val backend = NotebookBackend(platform(temporary.newFolder()))
         try {

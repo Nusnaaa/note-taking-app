@@ -60,3 +60,13 @@ the store. Permanent deletion also retires the entity's detailed undo payloads.
 Schema-8 input upgrades with empty authoring journals; historical actions are not invented.
 All other limits above remain, including the 64 MiB payload and in-memory restore.
 Schemas other than 8 and 9 are rejected. This supersedes the earlier schema-8-only limit.
+
+## Schema 15 authoring extension
+
+Current snapshots mark schema 15. Optional per-view presets and guide backgrounds
+are carried in the existing view_settings JSON payload; row widths/tables and crypto
+envelope do not change. Migration 015 changes only the schema marker and leaves old
+payload bytes untouched. Restore supports schemas 8–14 with authoring absent, and
+uses native v9 validation for schema 15. Populated authoring under an older schema
+or native version is rejected. See [native subset v9](native-subset-v9.md) for the
+complete authoring field contract and view-local preset identity rules.

@@ -798,6 +798,7 @@ fn host_restores_revision_bound_selection_without_silently_rebinding_after_edit(
         colour_rgba: [0, 0, 0, 255],
         finger_ink: false,
         anchor: None,
+        authoring: None,
         bookmark: Some(SelectionBookmark {
             anchor: caret.clone(),
             focus: caret,
@@ -858,6 +859,7 @@ fn host_workspace_discovers_last_view_after_reopen_without_serializing_locked_ta
         colour_rgba: [0, 0, 0, 255],
         finger_ink: false,
         anchor: None,
+        authoring: None,
         bookmark: None,
         revision: 0,
     };

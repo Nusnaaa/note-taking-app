@@ -271,3 +271,11 @@ and legacy outbox, active-prefix invalidation, unrelated/incomplete/unknown rete
 relock rejection and post-commit cleanup failure reporting. Legacy pending records in
 the mixed-store fixture are injected while the app writer is idle to simulate records
 awaiting acknowledgement; no production untrusted file writer is introduced.
+
+Authoring configuration fixtures cover preset selection/CAS/rollback, explicit source
+calibration, camera/selection/raw-ink invariance, stale bookmark preservation without
+consuming document Undo, fresh protection, all guide kinds/XML escaping/export omission
+and density rejection, view-local native copy, schema-15 backup, older-tag rejection
+and byte-preserving schema-14 upgrade. Actual JNI tests apply presets during an active
+contact, verify only future-contact styles change, preserve measured coordinates, query
+export omission and restore the selected preset/camera after full backend reopen.

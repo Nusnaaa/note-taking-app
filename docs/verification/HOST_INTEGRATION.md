@@ -754,3 +754,45 @@ remain document-only and retain private recovery evidence by default. Production
 should use the combined typed review. Legacy records not recognised as Entity Capture
 are retained; full legacy/incomplete content review/recovery remains open. Existing
 record/byte capacities bound this workflow, with no constant-RSS or latency claim.
+
+## Per-view presets, calibration and guide backgrounds
+
+ViewSettings optionally contains authoring: {presets, selected_preset, background}.
+Presets have view-local IDs, name, width_mm and RGBA. At most 32 are accepted; names
+are nonblank and at most 256 UTF-8 bytes, widths finite and in (0,100] mm, and selected
+IDs must exist. These capacities are not performance SLOs. SaveView validates selected
+appearance against current pen fields. ConfigureView {view,expected,authoring} applies
+the selected preset atomically; ApplyViewPreset {view,expected,preset} selects one.
+Clearing the marker keeps the current custom appearance. Missing IDs, stale revisions
+and invalid values reject without silent repair/clamping.
+
+Preference changes preserve camera, anchor, finger setting and exact bookmark bytes,
+including a stale bookmark's NeedsReview status. They do not consume an edit-Undo
+step or edit existing strokes. Fresh view/entity/exercise/anchor/bookmark authority
+still applies. Reopen/selected native copy/encrypted backup retain configuration.
+View-local preset IDs remain local when a view is copied; global view/entity IDs remap.
+
+ViewPen {view,coordinate_space,units_per_mm} returns an authorised configuration
+snapshot and StrokeStyle with width = pen_width_mm * the caller's explicit scale.
+The host supplies calibration for its named source coordinates; no DPI, accuracy or
+physical device mapping is guessed or measured here. Invalid/nonfinite/overflow or
+out-of-range widths reject. Apply a new snapshot to future contacts using the existing
+setStyle behavior; active headers and raw measured points stay unchanged. Pressure
+response, eraser configuration and full device calibration acceptance remain open.
+
+Backgrounds specify Blank/Ruled/Dotted/Graph, positive spacing_mm <=1000, positive
+line_width_mm <=spacing, finite origin_mm, guide/paper RGBA and include_in_export.
+ViewGuides {view,bounds,coordinate_space,units_per_mm,for_export} returns a standalone
+SVG component in those source bounds, with explicit revision/configured/omission
+metadata. SVG patterns bound output size; logical guide density is capped at one
+million lines/dots. Input coordinate-space labels are XML escaped. Missing legacy
+configuration yields no invented background; for_export with include_in_export=false
+yields no SVG. Blank may still include a chosen paper fill. Guide output never reads
+or embeds source strokes. Full scene/PDF export does not automatically composite
+this component; that renderer integration remains open.
+
+Schema 15 marks the optional authoring extension without rewriting existing payloads.
+Native subset v9 reads v1-v8, rejects authoring under an older tag, and preserves
+view-local presets/backgrounds. Encrypted schema-15 backups restore schemas 8-14;
+older schema tags cannot hide authoring metadata. Absent authoring serialises exactly
+as before, preserving legacy view bytes. Production H.I. remains gated.
