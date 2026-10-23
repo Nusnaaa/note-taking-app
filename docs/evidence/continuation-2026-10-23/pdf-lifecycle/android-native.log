@@ -1,0 +1,4 @@
+$ /tmp/stem-cargo/bin/cargo build -p stem-bridge --target aarch64-linux-android --release --locked --offline
+exit_code=0
+
+    Finished `release` profile [optimized] target(s) in 0.15s
