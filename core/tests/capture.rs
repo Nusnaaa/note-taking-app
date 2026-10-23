@@ -149,3 +149,33 @@ fn emergency_reserve_is_written_released_and_never_overwrites_existing_file() {
     assert_eq!(reserve.release().unwrap(), 131072);
     assert!(!path.exists());
 }
+
+#[test]
+fn capture_receipt_probe_checks_current_scope_target_and_original_stroke() {
+    let mut s = Store::memory().unwrap();
+    let a = Access::public();
+    let n = s.create(Kind::Note, None, "receipt", &a).unwrap();
+    let ticket = Id::new();
+    assert!(!s.capture_committed(ticket, n.id, &a).unwrap());
+    let block = s
+        .append_capture(ticket, WritingTarget::Entity(n.id), vec![stroke(0)], &a)
+        .unwrap();
+    assert!(s.capture_committed(ticket, n.id, &a).unwrap());
+    let other = s.create(Kind::Note, None, "other", &a).unwrap();
+    assert!(matches!(
+        s.capture_committed(ticket, other.id, &a),
+        Err(Error::Conflict)
+    ));
+    s.set_lock(
+        n.id,
+        s.entity(n.id, &a).unwrap().revision,
+        true,
+        &access([stem_core::security::Scope::Entity(n.id)]),
+    )
+    .unwrap();
+    assert!(matches!(
+        s.capture_committed(ticket, n.id, &a),
+        Err(Error::Denied)
+    ));
+    assert!(s.source_ink(block.id, &a).is_err());
+}

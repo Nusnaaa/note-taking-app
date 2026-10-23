@@ -12,8 +12,8 @@ sealed class StrokeEnd {
 data class CapturedStroke(val id: String, val session: String, val sequence: Long, val pointer: Int, val eraser: Boolean, val points: List<ObservedPoint>, val end: StrokeEnd = StrokeEnd.Completed)
 /** Source compatibility for the previous completed-only capture adapter. */
 typealias CompletedStroke = CapturedStroke
-class InkAccumulator(private val maximumPoints: Int = 100_000) {
-    private val session = UUID.randomUUID().toString()
+class InkAccumulator(private val maximumPoints: Int = 100_000, sessionId: UUID = UUID.randomUUID()) {
+    private val session = sessionId.toString()
     private var sequence = 0L
     private data class Active(val id: String, val sequence: Long, val pointer: Int, val eraser: Boolean, val points: MutableList<ObservedPoint>)
     private val active = mutableMapOf<Int, Active>()

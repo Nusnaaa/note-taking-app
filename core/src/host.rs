@@ -29,6 +29,10 @@ pub use pdf::{PdfCommand, PdfGrantVerifier};
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "op", deny_unknown_fields)]
 pub enum Command {
+    CaptureReceipt {
+        ticket: Id,
+        entity: Id,
+    },
     Pdf {
         command: PdfCommand,
     },
@@ -313,6 +317,7 @@ impl Response {
 }
 
 enum Message {
+    Identity(mpsc::Sender<Result<String>>),
     PreparePdf(
         PdfSelectionTarget,
         String,
@@ -388,6 +393,14 @@ impl Host {
                         pdf.clear();
                     }
                     match envelope.message {
+                        Message::Identity(reply) => {
+                            let result = Store::setting(&store.db, "library_id")
+                                .and_then(|v| Id::parse(&v))
+                                .map(|v| v.to_string());
+                            let _ =
+                                input.complete(envelope.authoring, envelope.bytes, result.is_err());
+                            let _ = reply.send(result);
+                        }
                         Message::PreparePdf(target, locator, revision, mut verifier, reply) => {
                             let result =
                                 std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
@@ -486,6 +499,12 @@ impl Host {
         }
         Ok(())
     }
+    /// Opaque private host identity for recovery binding; grants no content access.
+    pub fn capture_library_identity(&self) -> Result<String> {
+        let (tx, rx) = mpsc::channel();
+        self.mailbox.admit(Message::Identity(tx), false, 32)?;
+        rx.recv().map_err(|_| Error::WorkerFailed)?
+    }
     pub fn subscribe_status(&self) -> StatusSubscription {
         self.mailbox.subscribe()
     }
@@ -496,7 +515,8 @@ impl Host {
         let request: Request = serde_json::from_str(json)?;
         let authoring = !matches!(
             &request.command,
-            Command::Block { .. }
+            Command::CaptureReceipt { .. }
+                | Command::Block { .. }
                 | Command::Mode { .. }
                 | Command::OpenInMaster { .. }
                 | Command::Layout { .. }
@@ -605,6 +625,9 @@ fn execute(s: &mut Store, a: &mut Access, pdf: &mut PdfState, r: Request) -> Res
     }
     let result = (|| -> Result<Value> {
         Ok(match r.command {
+            Command::CaptureReceipt { ticket, entity } => {
+                json!({"committed":s.capture_committed(ticket,entity,a)?})
+            }
             Command::Pdf { command } => pdf.execute(s, a, command)?,
             Command::Block { block } => serde_json::to_value(s.block(block, a)?)?,
             Command::SetMode { entity, mode } => {

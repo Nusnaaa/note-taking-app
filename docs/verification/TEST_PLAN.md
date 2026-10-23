@@ -145,5 +145,20 @@ while downgraded containers reject it. Legacy schema-8/9 and native v1-v4 reader
 remain covered. Android accumulator/MotionEvent fixtures distinguish lifecycle
 interruption from rejected platform contacts; actual JNI capture/reopen verifies
 one observed prefix, its interruption reason and exact measured-zero/raw doubles.
-Automatic durable active-prefix journaling/recovery is still open, and no physical
+The journaled session integration below adds durable active-prefix recovery; Android
+priority/resource completion and physical-device acceptance remain open. No physical
 pen interruption or save-latency guarantee is established.
+
+
+Durable active-journal fixtures cover exact prefix updates, stale/rebound headers,
+checksums, quotas/no eviction, cancellation, review-before-publishing, exact replay
+after ambiguous native acknowledgement, foreign-library rejection, retained torn
+files and independent-session progress. A real JVM child halts after file sync,
+rename and directory sync; reopening reconciles valid records and preserves observed
+bits as reviewable interrupted evidence. Actual JNI session fixtures distinguish
+checkpoint/commit receipts, reject stale contact resurrection, seal on full close,
+review/discard with fresh permission, write beside blocked protected recovery, and
+prove cancelled observer futures cannot drop admitted journaled/legacy ink. Native
+fixtures verify receipt scope/target and private identity without granting access.
+These are process/filesystem/desktop-JNI tests with synthetic MotionEvents, not
+physical power-loss, pen-latency or Android device acceptance.

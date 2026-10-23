@@ -1,0 +1,204 @@
+package org.stemnotebook.backend
+
+import java.io.*
+import java.nio.channels.FileChannel
+import java.nio.charset.CodingErrorAction
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+import java.nio.file.StandardOpenOption
+import java.security.MessageDigest
+import java.util.UUID
+
+/** Private recovery storage, not document persistence. Caller serialises all access.
+ * Every authoritative record is immutable-by-revision and checksum protected. */
+internal class ActiveCaptureJournal(
+    private val directory: File,
+    private val library: UUID,
+    private val maximumBytes: Long = 32L * 1024 * 1024,
+    private val maximumRecords: Int = 256,
+    private val fault: (String) -> Unit = {},
+) {
+    internal data class Entry(val ordinal: Long, val library: UUID, val entity: UUID, val space: String, val revision: Long, val stroke: CapturedStroke, val cancelled: Boolean = false, val review: Boolean = false) {
+        val ticket: UUID get() = UUID.fromString(stroke.id)
+    }
+    private var failed = false
+    init {
+        require(maximumBytes in 1..256L * 1024 * 1024 && maximumRecords in 1..4096)
+        val existed = directory.isDirectory
+        check(existed || directory.mkdirs()); require(!Files.isSymbolicLink(directory.toPath()))
+        if (!existed) {
+            syncDirectory()
+            directory.absoluteFile.parentFile?.let { parent -> FileChannel.open(parent.toPath(), StandardOpenOption.READ).use { it.force(true) } }
+        }
+        validateFiles()
+        recoverTemporaries()
+        validateFiles()
+    }
+    fun contains(ticket: UUID): Boolean = fileFor(ticket) != null
+    fun pendingCount(): Int = records().size
+    fun reviewTickets(): List<UUID> = records().map { decode(readBytes(it)) }.filter { it.review && !it.cancelled }.map { it.ticket }
+    fun reviewCount(): Int = records().count { decode(readBytes(it)).review }
+    fun incompleteCount(): Int = ownFiles().count { it.name.endsWith(".incomplete") }
+    fun read(ticket: UUID): Entry = decode(readBytes(fileFor(ticket) ?: throw IOException("Capture checkpoint unavailable"))).also { require(it.library == library) }
+    fun checksum(ticket: UUID): String = MessageDigest.getInstance("SHA-256").digest(readBytes(checkNotNull(fileFor(ticket)))).joinToString("") { "%02x".format(it.toInt() and 255) }
+    fun checkpoint(entity: UUID, space: String, revision: Long, stroke: CapturedStroke, cancelled: Boolean = false): Entry {
+        check(!failed)
+        val ticket = UUID.fromString(stroke.id); val existing = fileFor(ticket)?.let { decode(readBytes(it)) }
+        val ordinal = existing?.ordinal ?: records().lastOrNull()?.name?.substringBefore('-')?.toLong()?.let { check(it < Long.MAX_VALUE); it + 1 } ?: 0L
+        val proposed = Entry(ordinal, library, entity, space, revision, stroke, cancelled, stroke.end == StrokeEnd.Interrupted(StrokeInterruption.Recovery))
+        validate(proposed)
+        if (existing != null) validateExtension(existing, proposed)
+        publish(proposed)
+        return proposed
+    }
+    /** A surviving active prefix is reviewable evidence, never an invented completion. */
+    fun recoverActive() {
+        for (file in records()) {
+            val entry = decode(readBytes(file))
+            if (entry.cancelled) { remove(file); continue }
+            if (entry.stroke.end == StrokeEnd.InProgress) {
+                check(entry.revision < Long.MAX_VALUE)
+                publish(entry.copy(revision = entry.revision + 1, stroke = entry.stroke.copy(end = StrokeEnd.Interrupted(StrokeInterruption.Recovery)), review = true))
+            }
+        }
+    }
+    fun approve(ticket: UUID, expectedChecksum: String) {
+        require(checksum(ticket) == expectedChecksum)
+        val entry = read(ticket); require(entry.review && !entry.cancelled && entry.revision < Long.MAX_VALUE)
+        publish(entry.copy(revision = entry.revision + 1, review = false))
+    }
+    fun discardReview(ticket: UUID, expectedChecksum: String) {
+        require(checksum(ticket) == expectedChecksum && read(ticket).review)
+        remove(checkNotNull(fileFor(ticket)))
+    }
+    /** Preserve each session's order; blocked recovery never stalls unrelated input. */
+    fun drain(send: (Entry) -> Boolean): Int {
+        var committed = 0
+        val blocked = mutableSetOf<String>()
+        for (file in records()) {
+            val entry = decode(readBytes(file))
+            if (entry.cancelled) { remove(file); continue }
+            if (entry.stroke.session in blocked) continue
+            if (entry.review || entry.stroke.end == StrokeEnd.InProgress || !send(entry)) { blocked += entry.stroke.session; continue }
+            fault("after-native-reply")
+            remove(file); committed++
+        }
+        return committed
+    }
+    private fun validateExtension(old: Entry, next: Entry) {
+        require(old.ordinal == next.ordinal && old.library == next.library && old.entity == next.entity && old.space == next.space)
+        require(old.stroke.copy(points = emptyList(), end = StrokeEnd.InProgress) == next.stroke.copy(points = emptyList(), end = StrokeEnd.InProgress))
+        require(next.revision >= old.revision)
+        if (next.revision == old.revision) { require(old == next); return }
+        require(!old.cancelled && old.stroke.end == StrokeEnd.InProgress)
+        require(next.stroke.points.size >= old.stroke.points.size && next.stroke.points.take(old.stroke.points.size) == old.stroke.points)
+    }
+    private fun publish(entry: Entry) {
+        check(!failed); validate(entry)
+        val destination = File(directory, name(entry)); val bytes = encode(entry)
+        val files = records(); require(files.size + (if (destination.exists()) 0 else 1) <= maximumRecords)
+        require(ownFiles().sumOf { it.length() } - (if (destination.exists()) destination.length() else 0L) + bytes.size <= maximumBytes)
+        val temporary = File.createTempFile("active-", ".pending", directory)
+        try {
+            FileOutputStream(temporary).use { it.write(bytes); it.fd.sync() }
+            fault("after-file-sync")
+            Files.move(temporary.toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
+            fault("after-rename"); syncDirectory(); fault("after-directory-sync")
+        } finally {
+            if (temporary.exists() && !temporary.delete()) { failed = true; throw IOException("Capture checkpoint cleanup failed") }
+        }
+    }
+    private fun recoverTemporaries() {
+        val temporary = ownFiles().filter { it.name.endsWith(".pending") }
+        for (file in temporary) {
+            val candidate = try { decode(readBytes(file)) } catch (_: Exception) {
+                Files.move(file.toPath(), File(directory, file.name.removeSuffix(".pending") + ".incomplete").toPath(), StandardCopyOption.ATOMIC_MOVE)
+                syncDirectory(); continue
+            }
+            require(candidate.library == library) { "Capture checkpoint belongs to another library" }
+            val old = fileFor(candidate.ticket)?.let { decode(readBytes(it)) }
+            if (old != null) {
+                if (candidate.revision < old.revision) { validateExtension(candidate, old); remove(file); continue }
+                validateExtension(old, candidate)
+            }
+            Files.move(file.toPath(), File(directory, name(candidate)).toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
+            syncDirectory()
+        }
+    }
+    private fun remove(file: File) { check(file.delete()); fault("after-delete"); syncDirectory() }
+    private fun name(entry: Entry) = "${entry.ordinal.toString().padStart(19, '0')}-${entry.ticket}.prefix"
+    private fun fileFor(ticket: UUID): File? = records().singleOrNull { it.name.endsWith("-$ticket.prefix") }
+    private fun ownFiles(): List<File> = (directory.listFiles() ?: throw IOException("Capture checkpoint storage unavailable")).filter {
+        it.name.endsWith(".prefix") || (it.name.startsWith("active-") && (it.name.endsWith(".pending") || it.name.endsWith(".incomplete")))
+    }.onEach { require(it.isFile && !Files.isSymbolicLink(it.toPath())) }
+    private fun validateFiles() {
+        val files = ownFiles(); require(files.size <= maximumRecords * 2 + 1 && files.sumOf { it.length() } <= maximumBytes + MAX_RECORD)
+        val ids = mutableSetOf<UUID>(); val ordinals = mutableSetOf<Long>()
+        for (file in records()) {
+            val entry = decode(readBytes(file)); require(entry.library == library && file.name == name(entry) && ids.add(entry.ticket) && ordinals.add(entry.ordinal))
+        }
+    }
+    private fun records(): List<File> = ownFiles().filter { it.name.endsWith(".prefix") }.sortedBy { it.name }.also { require(it.size <= maximumRecords) }
+    private fun syncDirectory() { FileChannel.open(directory.toPath(), StandardOpenOption.READ).use { it.force(true) } }
+    private fun readBytes(file: File): ByteArray {
+        require(!Files.isSymbolicLink(file.toPath()) && file.length() in 40..MAX_RECORD)
+        return file.inputStream().use { input ->
+            val bytes = ByteArrayOutputStream(); val buffer = ByteArray(65536)
+            while (true) { val n = input.read(buffer); if (n < 0) break; require(bytes.size() + n <= MAX_RECORD); bytes.write(buffer, 0, n) }
+            bytes.toByteArray()
+        }
+    }
+    companion object {
+        private const val MAX_RECORD = 6L * 1024 * 1024
+        private val MAGIC = "STEMAC01".toByteArray(Charsets.US_ASCII)
+        private fun validate(entry: Entry) {
+            require(entry.ordinal >= 0 && entry.revision >= 0 && entry.stroke.sequence >= 0 && entry.stroke.pointer >= 0)
+            UUID.fromString(entry.stroke.id); UUID.fromString(entry.stroke.session)
+            val encodedSpace = Charsets.UTF_8.newEncoder().onMalformedInput(CodingErrorAction.REPORT).onUnmappableCharacter(CodingErrorAction.REPORT).encode(java.nio.CharBuffer.wrap(entry.space))
+            require(entry.space.isNotEmpty() && encodedSpace.remaining() <= 256 && entry.stroke.points.size in 1..100_000)
+            var previous = 0L
+            for (p in entry.stroke.points) {
+                require(p.x.isFinite() && p.y.isFinite() && p.timeUs >= previous && (p.buttons == null || p.buttons >= 0))
+                require(listOf(p.pressure, p.tiltRad, p.orientationRad).filterNotNull().all { it.isFinite() }); previous = p.timeUs
+            }
+            require(!entry.cancelled || (entry.stroke.end == StrokeEnd.InProgress && !entry.review))
+            require(!entry.review || entry.stroke.end == StrokeEnd.Interrupted(StrokeInterruption.Recovery))
+        }
+        private fun encode(entry: Entry): ByteArray {
+            val buffer = ByteArrayOutputStream()
+            DataOutputStream(buffer).use { out ->
+                fun uuid(value: UUID) { out.writeLong(value.mostSignificantBits); out.writeLong(value.leastSignificantBits) }
+                out.write(MAGIC); out.writeLong(entry.ordinal); uuid(entry.library); uuid(entry.entity); out.writeLong(entry.revision)
+                val s = entry.stroke; uuid(UUID.fromString(s.id)); uuid(UUID.fromString(s.session)); out.writeLong(s.sequence); out.writeInt(s.pointer); out.writeBoolean(s.eraser)
+                out.writeByte(when (s.end) { StrokeEnd.InProgress -> 0; StrokeEnd.Completed -> 1; is StrokeEnd.Interrupted -> when (s.end.reason) { StrokeInterruption.Lifecycle -> 2; StrokeInterruption.Recovery -> 3 } })
+                out.writeBoolean(entry.cancelled); out.writeBoolean(entry.review)
+                val space = entry.space.toByteArray(Charsets.UTF_8); out.writeInt(space.size); out.write(space); out.writeInt(s.points.size)
+                for (p in s.points) {
+                    out.writeLong(p.x.toRawBits()); out.writeLong(p.y.toRawBits()); out.writeLong(p.timeUs)
+                    var flags = 0; if (p.pressure != null) flags = flags or 1; if (p.tiltRad != null) flags = flags or 2; if (p.orientationRad != null) flags = flags or 4; if (p.buttons != null) flags = flags or 8
+                    out.writeByte(flags); p.pressure?.let { out.writeLong(it.toRawBits()) }; p.tiltRad?.let { out.writeLong(it.toRawBits()) }; p.orientationRad?.let { out.writeLong(it.toRawBits()) }; p.buttons?.let { out.writeInt(it) }
+                }
+            }
+            val payload = buffer.toByteArray(); return payload + MessageDigest.getInstance("SHA-256").digest(payload)
+        }
+        private fun decode(bytes: ByteArray): Entry {
+            require(bytes.size in 40..MAX_RECORD.toInt()); val payload = bytes.copyOfRange(0, bytes.size - 32)
+            require(MessageDigest.isEqual(bytes.copyOfRange(bytes.size - 32, bytes.size), MessageDigest.getInstance("SHA-256").digest(payload)))
+            val input = DataInputStream(ByteArrayInputStream(payload))
+            fun uuid() = UUID(input.readLong(), input.readLong())
+            fun flag(): Boolean { val value = input.readUnsignedByte(); require(value in 0..1); return value == 1 }
+            require(ByteArray(8).also { input.readFully(it) }.contentEquals(MAGIC))
+            val ordinal = input.readLong(); val library = uuid(); val entity = uuid(); val revision = input.readLong(); val id = uuid(); val session = uuid(); val sequence = input.readLong(); val pointer = input.readInt(); val eraser = flag()
+            val end = when (input.readUnsignedByte()) { 0 -> StrokeEnd.InProgress; 1 -> StrokeEnd.Completed; 2 -> StrokeEnd.Interrupted(StrokeInterruption.Lifecycle); 3 -> StrokeEnd.Interrupted(StrokeInterruption.Recovery); else -> throw IOException("Capture checkpoint state invalid") }
+            val cancelled = flag(); val review = flag(); val length = input.readInt(); require(length in 1..256)
+            val encoded = ByteArray(length).also { input.readFully(it) }; val space = Charsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT).onUnmappableCharacter(CodingErrorAction.REPORT).decode(java.nio.ByteBuffer.wrap(encoded)).toString()
+            val count = input.readInt(); require(count in 1..100_000)
+            val points = List(count) {
+                val x = Double.fromBits(input.readLong()); val y = Double.fromBits(input.readLong()); val time = input.readLong(); val flags = input.readUnsignedByte(); require(flags in 0..15)
+                ObservedPoint(x, y, time, if (flags and 1 != 0) Double.fromBits(input.readLong()) else null, if (flags and 2 != 0) Double.fromBits(input.readLong()) else null, if (flags and 4 != 0) Double.fromBits(input.readLong()) else null, if (flags and 8 != 0) input.readInt() else null)
+            }
+            require(input.available() == 0)
+            return Entry(ordinal, library, entity, space, revision, CapturedStroke(id.toString(), session.toString(), sequence, pointer, eraser, points, end), cancelled, review).also { validate(it) }
+        }
+    }
+}

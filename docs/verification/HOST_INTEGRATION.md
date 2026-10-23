@@ -83,8 +83,8 @@ Android's generic DTO is now `CapturedStroke`; `CompletedStroke` remains a sourc
 alias for existing callers. `CaptureRequest` rejects active prefixes and carries
 explicit interrupted provenance through the existing JNI capture command. Ordinary
 completion retains the previous wire encoding. `MotionCapture.interrupt` is the
-backend lifecycle seam; automatic checkpoint journaling and app lifecycle recovery
-remain to be integrated. Calling `checkpoint` alone is never a durable-save receipt.
+backend lifecycle seam; the journaled session below connects checkpoint storage and lifecycle recovery.
+Calling the accumulator's `checkpoint` alone is never a durable-save receipt.
 
 SQLite schema 10 introduces the versioned source termination field without rewriting
 legacy payloads. Native subset v5 carries interrupted provenance and reads v1-v4
@@ -93,6 +93,55 @@ Encrypted logical backup schema 10 restores schemas 8/9 with completed legacy
 sources and preserves interrupted provenance/receipts in schema 10. Unknown/active
 termination or downgraded containers fail closed. This remains the implemented
 native subset; complete PDF-linked portability and scalable whole backup are open.
+
+### Durable journaled capture sessions
+
+`openCaptureSession(entity, coordinateSpace)` returns a backend-bound input session.
+Its `accept(MotionEvent)` returns immutable observations plus per-stroke futures.
+`Receipt.checkpointed` acknowledges durable recovery storage (or a verified earlier
+commit); `committed` additionally
+acknowledges the SQLite capture receipt. Neither a completed future nor a raw snapshot
+alone means the document was saved. A rejected submission retains its observations
+in the returned value for explicit `retry`. `interrupt` seals current observed
+prefixes with Lifecycle provenance; full backend close also freezes and attempts all
+live sessions after draining already admitted work. A failed closing checkpoint is
+reported while unrelated sessions still get their own sealing attempt. Caller-owned
+interrupted observations remain available when the filesystem cannot accept them.
+
+The journal is private in `noBackupFilesDir`, bound to the native library UUID,
+entity, coordinate space, stable stroke/session identities and monotonic revision.
+Its versioned binary records preserve IEEE double bits and unavailable channels,
+use SHA-256 integrity checks and exact prefix validation, fsync file/rename/directory
+boundaries, and sync new directory ancestry before acknowledgement. Default bounds
+are 32 MiB/256 records, 6 MiB per record and one atomic replacement temporary. These
+are engineering limits, not measured device/RSS or save-latency guarantees. No old
+record is evicted to admit newer input. Valid interrupted temporaries are reconciled
+by revision/prefix; torn unacknowledged temporaries remain separate `.incomplete`
+evidence and raise attention. Invalid authoritative or foreign-library records fail
+closed without deletion or implicit rebinding. These files are not portable backups.
+
+Native capture receipts and session sequence admission reject stale active frames
+that would recreate committed or discarded contacts. Platform cancellations have
+explicit durable discard handling and never publish tentative ink. Replay preserves
+each session's order; active/unreviewed/failed sessions do not obstruct unrelated
+completed input. Legacy outbox replay remains supported; its integer replay count is not a per-ticket
+commit acknowledgement. Use the scoped `CaptureReceipt` query or the journaled
+session's explicit `committed` receipt for that decision. Cancelling an observation
+future does not cancel an admitted writer action, including legacy captures, generic
+requests and recovery decisions. API rejection still leaves data with the caller.
+
+Startup reconciles the journal and replays already sealed/confirmed records. Surviving
+active prefixes become `Interrupted(Recovery)` evidence requiring review, not invented
+completions or silently published palm contacts. `interruptedCaptureTickets` filters
+by current native context access. `reviewInterruptedCapture` requires current access;
+accept/discard requires explicit confirmation, the same backend owner, a fresh
+checksum and another access check. Native commit rechecks permissions too. Unlocking
+retries already confirmed work without treating successful authentication as successful
+persistence. Opaque JNI recovery identity is available for binding while locked and
+grants no document access; `CaptureReceipt` is itself scoped. `captureRecoveryState`
+exposes counts/attention without raw strokes. Detailed all-operation retirement,
+Android priority/byte admission/status integration and physical-device interruptions
+remain open; pending/rejected data is never given a zero-loss guarantee.
 
 ## Android backend library
 

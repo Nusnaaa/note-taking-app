@@ -6,6 +6,7 @@ public final class BoundarySmoke {
     public static void main(String[] args) throws Exception {
         String path=Files.createTempDirectory("stem-jni").resolve("notebook.db").toString();
         long handle=NativeBridge.open(path);
+        String identity=NativeBridge.captureLibraryIdentity(handle);check(!identity.isEmpty());
         String request="{\"version\":1,\"command\":{\"op\":\"Create\",\"kind\":\"Note\",\"parent\":null,\"title\":\"λ 日本 😀\"}}";
         String created=NativeBridge.request(handle,request);
         check(created.contains("\"ok\":true") && created.contains("λ 日本 😀"));
@@ -16,7 +17,7 @@ public final class BoundarySmoke {
         NativeBridge.request(handle,"{\"version\":1,\"command\":{\"op\":\"Relock\"}}");
         String read="{\"version\":1,\"command\":{\"op\":\"Read\",\"id\":\""+id+"\"}}";
         check(NativeBridge.request(handle,read).contains("authentication required"));
-        NativeBridge.close(handle);handle=NativeBridge.open(path);
+        NativeBridge.close(handle);handle=NativeBridge.open(path);check(identity.equals(NativeBridge.captureLibraryIdentity(handle)));
         check(NativeBridge.request(handle,read).contains("authentication required"));
         try { NativeBridge.request(handle,"malformed private payload");throw new AssertionError(); } catch(IllegalStateException expected) {check(!expected.getMessage().contains("private"));}
         NativeBridge.close(handle);
@@ -69,7 +70,7 @@ public final class BoundarySmoke {
             try { NativeBridge.finishPdfSelection(selectionHandle,review.group(1),true,proof);throw new AssertionError(); } catch(IllegalStateException expected) { }
             try { NativeBridge.preparePdfSelection(selectionHandle,target,uri,revision,(c,t,l,r) -> {throw new IllegalArgumentException("private provider diagnostic");});throw new AssertionError(); } catch(IllegalStateException expected) {check(!expected.getMessage().contains("private"));}
         } finally {NativeBridge.close(selectionHandle);}
-        System.out.println("PASS: JNI Unicode, platform-verifier callback, relock, restart, malformed input, closed handles, independent registry access fresh source-selection proof and concurrent close drain (9)");
+        System.out.println("PASS: JNI Unicode, platform-verifier callback, relock, restart, malformed input, closed handles, independent registry access fresh source-selection proof and concurrent close drain and recovery identity (10)");
 
     }
 }

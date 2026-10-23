@@ -720,3 +720,37 @@ fn reentrant_close_from_verifier_fails_without_self_join_or_retained_access() {
     let reopened = Host::open(path, 8).unwrap();
     request(&reopened, Command::Status {});
 }
+
+#[test]
+fn recovery_identity_is_stable_but_never_grants_content_or_receipt_access() {
+    let root = tempfile::tempdir().unwrap();
+    let path = root.path().join("recovery-identity.db");
+    let h = Host::open(path.clone(), 8).unwrap();
+    let identity = h.capture_library_identity().unwrap();
+    let note = request(
+        &h,
+        Command::Create {
+            kind: stem_core::store::Kind::Note,
+            parent: None,
+            title: "protected recovery".into(),
+        },
+    );
+    let entity = stem_core::Id::parse(note["id"].as_str().unwrap()).unwrap();
+    h.authenticate([Scope::App].into_iter().collect(), Box::new(TestAuth(true)))
+        .unwrap();
+    request(&h, Command::SetAppLock { enabled: true });
+    request(&h, Command::Relock {});
+    assert_eq!(h.capture_library_identity().unwrap(), identity);
+    assert!(!h.request(&encode(Command::Read { id: entity })).unwrap().ok);
+    assert!(
+        !h.request(&encode(Command::CaptureReceipt {
+            ticket: stem_core::Id::new(),
+            entity
+        }))
+        .unwrap()
+        .ok
+    );
+    drop(h);
+    let h = Host::open(path, 8).unwrap();
+    assert_eq!(h.capture_library_identity().unwrap(), identity);
+}

@@ -50,6 +50,26 @@ pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_open(
     }
 }
 #[no_mangle]
+pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_captureLibraryIdentity(
+    mut env: JNIEnv<'_>,
+    _: JClass<'_>,
+    handle: jlong,
+) -> jstring {
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> Option<jstring> {
+        let host = Arc::clone(hosts().lock().ok()?.get(&handle)?);
+        let identity = host.capture_library_identity().ok()?;
+        Some(env.new_string(identity).ok()?.into_raw())
+    }));
+    match result {
+        Ok(Some(value)) => value,
+        _ => {
+            fail(&mut env);
+            std::ptr::null_mut()
+        }
+    }
+}
+
+#[no_mangle]
 pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_request(
     mut env: JNIEnv<'_>,
     _: JClass<'_>,

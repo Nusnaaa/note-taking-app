@@ -4,6 +4,8 @@ public final class NativeBridge {
     static { System.loadLibrary("stem_bridge"); }
     private NativeBridge() {}
     public static native long open(String absoluteDatabasePath);
+    /** Private opaque recovery binding; never grants content access. */
+    public static native String captureLibraryIdentity(long handle);
     public static native String request(long handle, String request);
     public interface Verification { boolean verify(String challenge); }
     public static native void authenticate(long handle, String scopes, Verification verification);

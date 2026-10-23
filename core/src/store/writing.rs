@@ -261,6 +261,26 @@ impl Store {
         content.validate()?;
         self.append_block(target, content, vec![], None, access)
     }
+    pub fn capture_committed(&self, ticket: Id, entity: Id, access: &Access) -> Result<bool> {
+        let context = Self::authorise(&self.db, entity, access, false)?;
+        if !context.kind.is_surface() {
+            return Err(Error::Invalid("capture surface"));
+        }
+        let block: Option<String> = self
+            .db
+            .query_row(
+                "SELECT block FROM capture_receipts WHERE ticket=?1",
+                [ticket.to_string()],
+                |r| r.get(0),
+            )
+            .optional()?;
+        let Some(block) = block else { return Ok(false) };
+        let block = Self::read_block(&self.db, Id::parse(&block)?, access)?;
+        if block.entity != entity {
+            return Err(Error::Conflict);
+        }
+        Ok(true)
+    }
     /// A receipt is committed in the same transaction as source ink. Retrying an
     /// acknowledged or ambiguous delivery cannot duplicate a stroke.
     pub fn append_capture(
