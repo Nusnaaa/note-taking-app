@@ -51,6 +51,14 @@ fn staged_probe_or_commit_failure_keeps_previous_verified_engine() {
         .unwrap();
     s.select_engine(Task::Prose, "synthetic", &mut m, &a)
         .unwrap();
+    let note = s
+        .create(Kind::Note, None, "pinned replacement fixture", &a)
+        .unwrap();
+    let block = s.append_ink(note.id, vec![stroke(0)], &a).unwrap();
+    let control = JobControl::new(Duration::from_secs(5)).unwrap();
+    let before_probe = m
+        .prepare_recognition(s.ink_snapshot(block.id, &a).unwrap(), Task::Prose, None)
+        .unwrap();
     let next = s
         .stage_engine(descriptor("2"), None, dir.path(), 100, true, &a)
         .unwrap();
@@ -62,14 +70,23 @@ fn staged_probe_or_commit_failure_keeps_previous_verified_engine() {
         old.id
     );
     assert_eq!(m.descriptors()[0].version, "1");
+    assert!(before_probe.run(&control).is_ok());
+    let before_commit = m
+        .prepare_recognition(s.ink_snapshot(block.id, &a).unwrap(), Task::Prose, None)
+        .unwrap();
     s.inject_failure(FailurePoint::BeforeCommit);
     assert!(s
         .activate_engine(next.id, &mut m, Box::new(Fake(true)), 100, &a)
         .is_err());
     assert_eq!(m.descriptors()[0].version, "1");
+    assert!(before_commit.run(&control).is_ok());
+    let before_swap = m
+        .prepare_recognition(s.ink_snapshot(block.id, &a).unwrap(), Task::Prose, None)
+        .unwrap();
     s.activate_engine(next.id, &mut m, Box::new(Fake(true)), 100, &a)
         .unwrap();
     assert_eq!(m.descriptors()[0].version, "2");
+    assert!(matches!(before_swap.run(&control), Err(Error::Cancelled)));
     s.activate_engine(old.id, &mut m, Box::new(Fake(true)), 100, &a)
         .unwrap();
     assert_eq!(m.descriptors()[0].version, "1");

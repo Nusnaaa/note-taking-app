@@ -897,3 +897,33 @@ This is a stored-row binding/corruption defence, not encryption or protection ag
 an attacker with arbitrary database read/write access. Existing source fingerprints,
 proposal revision checks and preservation of original ink remain unchanged. A real
 bounded host recognition/proposal job path and eligible recogniser remain open.
+
+
+### Owned recognition and conversion work
+
+Manager.prepare_recognition and prepare_conversion return move-only work with owned
+input, immutable descriptor provenance and a pinned verified adapter. The manager is
+not borrowed while Work.run executes, so the owner can change defaults/remove/swap
+versions without holding a manager lock around inference. Preparing recognition binds
+the selected current engine; changing the default does not silently choose a different
+engine for that work. Conversion format callbacks execute inside the worker panic
+boundary, not during preparation. Existing synchronous convenience methods delegate
+to the same worker path.
+
+Entry removal, successful replacement, explicit readiness revalidation and manager
+shutdown invalidate that entry's old epoch. Linked JobControl checks retain caller
+cancellation/deadline and any parent epochs; cooperative adapters observe invalidation,
+and a late successful return is still rejected. A failed staged replacement probe or
+SQLite commit leaves the previous verified entry/work valid. Explicit failed
+revalidation instead clears its prior Ready state and cancels old work.
+
+The adapter/resource lifetime remains pinned until the work actually retires. Logical
+cancellation does not claim hard termination of a non-cooperative native runtime or
+release its resource reservations early. The host must reserve worker/memory capacity
+before preparing work and freshly authorise/revision-check source before publication;
+this API is not a queue, permission grant or new JSON request. Store.propose still
+creates a pending review, and acceptance remains explicit with immutable original ink.
+
+Bounded host/JNI job transport, current-scope cancellation integration, real eligible
+recognisers and isolated-worker termination/scheduling remain open. No model, SDK,
+certificate, weights, executable plugin or network permission is introduced here.

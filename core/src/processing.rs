@@ -65,6 +65,7 @@ pub enum Readiness {
 pub struct JobControl {
     cancelled: Arc<AtomicBool>,
     deadline: Instant,
+    validity: Vec<Arc<AtomicBool>>,
 }
 impl JobControl {
     pub fn new(budget: Duration) -> Result<Self> {
@@ -74,13 +75,30 @@ impl JobControl {
         Ok(Self {
             cancelled: Arc::new(AtomicBool::new(false)),
             deadline,
+            validity: Vec::new(),
         })
+    }
+    fn linked(&self, validity: Arc<AtomicBool>) -> Self {
+        let mut linked = self.clone();
+        if !linked
+            .validity
+            .iter()
+            .any(|epoch| Arc::ptr_eq(epoch, &validity))
+        {
+            linked.validity.push(validity);
+        }
+        linked
     }
     pub fn cancel(&self) {
         self.cancelled.store(true, Ordering::Release);
     }
     pub fn check(&self) -> Result<()> {
-        if self.cancelled.load(Ordering::Acquire) {
+        if self.cancelled.load(Ordering::Acquire)
+            || self
+                .validity
+                .iter()
+                .any(|epoch| !epoch.load(Ordering::Acquire))
+        {
             return Err(Error::Cancelled);
         }
         if Instant::now() >= self.deadline {
@@ -140,18 +158,57 @@ pub trait Converter: Send + Sync {
 }
 
 enum Adapter {
-    Recogniser(Box<dyn Recogniser>),
-    Converter(Box<dyn Converter>),
+    Recogniser(Arc<dyn Recogniser>),
+    Converter(Arc<dyn Converter>),
 }
 struct Entry {
     descriptor: Descriptor,
     adapter: Adapter,
     readiness: Readiness,
+    validity: Arc<AtomicBool>,
+}
+impl Entry {
+    fn new(descriptor: Descriptor, adapter: Adapter, readiness: Readiness) -> Self {
+        let validity = Arc::new(AtomicBool::new(readiness == Readiness::Ready));
+        Self {
+            descriptor,
+            adapter,
+            readiness,
+            validity,
+        }
+    }
+    fn retire(&self) {
+        self.validity.store(false, Ordering::Release);
+    }
 }
 #[derive(Default)]
 pub struct Manager {
     entries: BTreeMap<String, Entry>,
     defaults: BTreeMap<Task, String>,
+}
+impl Drop for Manager {
+    fn drop(&mut self) {
+        for entry in self.entries.values() {
+            entry.retire();
+        }
+    }
+}
+
+/// An owned snapshot and pinned verified runtime. Not a serialisable grant or a
+/// worker queue: the host reserves its worker/resources before preparing work.
+pub struct RecognitionWork {
+    snapshot: InkSnapshot,
+    task: Task,
+    descriptor: Descriptor,
+    adapter: Arc<dyn Recogniser>,
+    validity: Arc<AtomicBool>,
+}
+pub struct ConversionWork {
+    content: Content,
+    target: Format,
+    descriptor: Descriptor,
+    adapter: Arc<dyn Converter>,
+    validity: Arc<AtomicBool>,
 }
 
 /// Source binding and engine provenance accompany output into the core proposal.
@@ -207,11 +264,11 @@ impl Manager {
         }
         self.entries.insert(
             descriptor.id.clone(),
-            Entry {
+            Entry::new(
                 descriptor,
-                adapter: Adapter::Recogniser(adapter),
-                readiness: Readiness::Missing,
-            },
+                Adapter::Recogniser(Arc::from(adapter)),
+                Readiness::Missing,
+            ),
         );
         Ok(())
     }
@@ -229,11 +286,11 @@ impl Manager {
         }
         self.entries.insert(
             descriptor.id.clone(),
-            Entry {
+            Entry::new(
                 descriptor,
-                adapter: Adapter::Converter(adapter),
-                readiness: Readiness::Missing,
-            },
+                Adapter::Converter(Arc::from(adapter)),
+                Readiness::Missing,
+            ),
         );
         Ok(())
     }
@@ -253,6 +310,8 @@ impl Manager {
         // Re-verification starts fail-closed. A failed resource check cannot leave
         // stale Ready state from a previous activation. Updates will later stage
         // separate old/new entries; this operation revalidates this exact entry.
+        entry.retire();
+        entry.validity = Arc::new(AtomicBool::new(false));
         entry.readiness = Readiness::Failed;
         if let Some(expected) = &entry.descriptor.resource_sha256 {
             if resource.is_none_or(|r| digest(r) != *expected) {
@@ -273,6 +332,7 @@ impl Manager {
                     .and_then(|r| r)
             }
         };
+        entry.validity.store(result.is_ok(), Ordering::Release);
         entry.readiness = if result.is_ok() {
             Readiness::Ready
         } else {
@@ -308,12 +368,37 @@ impl Manager {
         Ok(e)
     }
     pub fn remove(&mut self, id: &str) -> Result<()> {
-        self.entries.remove(id).ok_or(Error::EngineUnavailable)?;
+        self.entries
+            .remove(id)
+            .ok_or(Error::EngineUnavailable)?
+            .retire();
         self.defaults.retain(|_, v| v != id);
         Ok(())
     }
-    /// Call on a worker, never the capture/UI thread. Late results are discarded,
-    /// but a non-cooperative native runtime needs process isolation to stop its CPU.
+    /// Pin a ready version without borrowing the manager throughout inference.
+    /// Dropping/removing/replacing/reverifying its entry invalidates this work.
+    pub fn prepare_recognition(
+        &self,
+        snapshot: InkSnapshot,
+        task: Task,
+        override_id: Option<&str>,
+    ) -> Result<RecognitionWork> {
+        let id = override_id
+            .or_else(|| self.defaults.get(&task).map(String::as_str))
+            .ok_or(Error::EngineUnavailable)?;
+        let entry = self.recogniser_for(task, id)?;
+        let Adapter::Recogniser(adapter) = &entry.adapter else {
+            return Err(Error::EngineUnavailable);
+        };
+        Ok(RecognitionWork {
+            snapshot,
+            task,
+            descriptor: entry.descriptor.clone(),
+            adapter: Arc::clone(adapter),
+            validity: Arc::clone(&entry.validity),
+        })
+    }
+    /// Existing synchronous convenience; callers still execute on a worker.
     pub fn recognise(
         &self,
         snapshot: InkSnapshot,
@@ -322,15 +407,56 @@ impl Manager {
         control: &JobControl,
     ) -> Result<CompletedRecognition> {
         control.check()?;
-        let id = override_id
-            .or_else(|| self.defaults.get(&task).map(String::as_str))
-            .ok_or(Error::EngineUnavailable)?;
-        let e = self.recogniser_for(task, id)?;
-        let Adapter::Recogniser(adapter) = &e.adapter else {
+        self.prepare_recognition(snapshot, task, override_id)?
+            .run(control)
+    }
+    pub fn prepare_conversion(
+        &self,
+        id: &str,
+        content: Content,
+        target: Format,
+    ) -> Result<ConversionWork> {
+        content.validate()?;
+        let entry = self.entries.get(id).ok_or(Error::EngineUnavailable)?;
+        if entry.readiness != Readiness::Ready {
+            return Err(Error::EngineUnavailable);
+        }
+        let Adapter::Converter(adapter) = &entry.adapter else {
             return Err(Error::EngineUnavailable);
         };
+        Ok(ConversionWork {
+            content,
+            target,
+            descriptor: entry.descriptor.clone(),
+            adapter: Arc::clone(adapter),
+            validity: Arc::clone(&entry.validity),
+        })
+    }
+    pub fn convert(
+        &self,
+        id: &str,
+        content: &Content,
+        target: Format,
+        control: &JobControl,
+    ) -> Result<Converted> {
+        control.check()?;
+        self.prepare_conversion(id, content.clone(), target)?
+            .run(control)
+    }
+}
+
+impl RecognitionWork {
+    pub fn descriptor(&self) -> &Descriptor {
+        &self.descriptor
+    }
+    /// Consumes the job on its reserved worker. Epoch cancellation reaches the
+    /// adapter's ordinary control checks; ignoring it still requires isolation.
+    pub fn run(self, control: &JobControl) -> Result<CompletedRecognition> {
+        let control = control.linked(Arc::clone(&self.validity));
+        control.check()?;
+        let task = self.task;
         let output = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            adapter.recognise(&snapshot, task, control)
+            self.adapter.recognise(&self.snapshot, task, &control)
         }))
         .map_err(|_| Error::WorkerFailed)??;
         control.check()?;
@@ -358,32 +484,25 @@ impl Manager {
             }
         }
         Ok(CompletedRecognition {
-            snapshot,
-            descriptor: e.descriptor.clone(),
+            snapshot: self.snapshot,
+            descriptor: self.descriptor,
             output,
         })
     }
-    pub fn convert(
-        &self,
-        id: &str,
-        content: &Content,
-        target: Format,
-        control: &JobControl,
-    ) -> Result<Converted> {
+}
+impl ConversionWork {
+    pub fn descriptor(&self) -> &Descriptor {
+        &self.descriptor
+    }
+    pub fn run(self, control: &JobControl) -> Result<Converted> {
+        let control = control.linked(Arc::clone(&self.validity));
         control.check()?;
-        content.validate()?;
-        let e = self.entries.get(id).ok_or(Error::EngineUnavailable)?;
-        if e.readiness != Readiness::Ready {
-            return Err(Error::EngineUnavailable);
-        }
-        let Adapter::Converter(c) = &e.adapter else {
-            return Err(Error::EngineUnavailable);
-        };
-        if !c.formats().contains(&target) {
-            return Err(Error::Unsupported);
-        }
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            c.convert(content, target, control)
+            if !self.adapter.formats().contains(&self.target) {
+                return Err(Error::Unsupported);
+            }
+            control.check()?;
+            self.adapter.convert(&self.content, self.target, &control)
         }))
         .map_err(|_| Error::WorkerFailed)??;
         control.check()?;
@@ -395,7 +514,7 @@ impl Manager {
 /// adapter probe. It cannot be constructed by notebook data or a model output.
 pub(crate) struct PreparedRecogniser {
     descriptor: Descriptor,
-    adapter: Box<dyn Recogniser>,
+    adapter: Arc<dyn Recogniser>,
 }
 impl Manager {
     pub(crate) fn prepare_replacement(
@@ -423,20 +542,22 @@ impl Manager {
         let id = ready.descriptor.id.clone();
         self.defaults
             .retain(|task, value| value != &id || ready.descriptor.tasks.contains(task));
-        self.entries.insert(
+        if let Some(previous) = self.entries.insert(
             id,
-            Entry {
-                descriptor: ready.descriptor,
-                adapter: Adapter::Recogniser(ready.adapter),
-                readiness: Readiness::Ready,
-            },
-        );
+            Entry::new(
+                ready.descriptor,
+                Adapter::Recogniser(ready.adapter),
+                Readiness::Ready,
+            ),
+        ) {
+            previous.retire();
+        }
     }
 }
 
 pub(crate) struct PreparedConverter {
     descriptor: Descriptor,
-    adapter: Box<dyn Converter>,
+    adapter: Arc<dyn Converter>,
 }
 impl Manager {
     pub(crate) fn prepare_converter(
@@ -463,13 +584,15 @@ impl Manager {
     pub(crate) fn commit_converter(&mut self, ready: PreparedConverter) {
         let id = ready.descriptor.id.clone();
         self.defaults.retain(|_, value| value != &id);
-        self.entries.insert(
+        if let Some(previous) = self.entries.insert(
             id,
-            Entry {
-                descriptor: ready.descriptor,
-                adapter: Adapter::Converter(ready.adapter),
-                readiness: Readiness::Ready,
-            },
-        );
+            Entry::new(
+                ready.descriptor,
+                Adapter::Converter(ready.adapter),
+                Readiness::Ready,
+            ),
+        ) {
+            previous.retire();
+        }
     }
 }
