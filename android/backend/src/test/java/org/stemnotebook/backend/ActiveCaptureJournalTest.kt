@@ -72,6 +72,21 @@ class ActiveCaptureJournalTest {
         assertEquals(1, reopened.drain { assertEquals(source, it.stroke); deliveries++; committed.add(it.stroke.id); true })
         assertEquals(2, deliveries); assertEquals(1, committed.size)
     }
+    @Test fun sealedBlockedRecordsAreReviewableWithoutChangingTheirObservedEndingOrRequiringApprovalMutation() {
+        val journal = ActiveCaptureJournal(temporary.newFolder(), library)
+        val source = stroke().copy(end = StrokeEnd.Completed); val ticket = UUID.fromString(source.id)
+        journal.checkpoint(entity, "fixed-space", 0, source)
+        assertEquals(listOf(ticket), journal.reviewTickets()); assertEquals(0, journal.drain { false })
+        val checksum = journal.checksum(ticket); journal.approve(ticket, checksum)
+        assertEquals(checksum, journal.checksum(ticket)); assertEquals(source, journal.read(ticket).stroke)
+        assertThrows(IllegalArgumentException::class.java) { journal.discardReview(ticket, "stale") }
+        journal.discardReview(ticket, checksum); assertEquals(0, journal.pendingCount())
+        val active = stroke(); val activeTicket = UUID.fromString(active.id)
+        journal.checkpoint(entity, "fixed-space", 0, active)
+        assertTrue(journal.reviewTickets().isEmpty())
+        assertThrows(IllegalArgumentException::class.java) { journal.discardReview(activeTicket, journal.checksum(activeTicket)) }
+        assertThrows(IllegalArgumentException::class.java) { journal.approve(activeTicket, journal.checksum(activeTicket)) }
+    }
     @Test fun cancellationNeverSubmitsTentativeContactAndQuotaDoesNotEvictOlderInk() {
         val root = temporary.newFolder(); val source = stroke(); val journal = ActiveCaptureJournal(root, library, maximumRecords = 1)
         journal.checkpoint(entity, "fixed-space", 0, source)

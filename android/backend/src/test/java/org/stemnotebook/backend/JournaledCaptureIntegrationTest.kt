@@ -157,6 +157,48 @@ class JournaledCaptureIntegrationTest {
         } finally { backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
     }
 
+    @Test(timeout = 30_000)
+    @org.robolectric.annotation.SQLiteMode(org.robolectric.annotation.SQLiteMode.Mode.NATIVE)
+    fun syntheticRetiredTargetsRequireFreshScopedReviewAndPermitDiscardWithoutReplay() {
+        for (purged in listOf(false, true)) {
+            val root = temporary.newFolder(); val context = platform(root); val seed = NotebookBackend(context); val entity = note(seed)
+            seed.closeFullyAsync().get(5, TimeUnit.SECONDS)
+            val database = File(root, "notebook/library.db")
+            val handle = NativeBridge.open(database.absolutePath)
+            val identity = try { UUID.fromString(NativeBridge.captureLibraryIdentity(handle)) } finally { NativeBridge.close(handle) }
+            // Persistent retired-target fixture; Rust tests execute actual Trash/purge transactions.
+            android.database.sqlite.SQLiteDatabase.openDatabase(database.absolutePath, null, android.database.sqlite.SQLiteDatabase.OPEN_READWRITE).use { db ->
+                db.rawQuery("SELECT payload FROM entities WHERE id=?", arrayOf(entity.toString())).use { cursor ->
+                    check(cursor.moveToFirst())
+                    val payload = JSONObject(cursor.getString(0)).put("trashed", true).put("purged", purged)
+                    if (purged) payload.put("title", "")
+                    db.execSQL("UPDATE entities SET payload=? WHERE id=?", arrayOf(payload.toString(), entity.toString()))
+                }
+            }
+            val source = CapturedStroke(UUID.randomUUID().toString(), UUID.randomUUID().toString(), 0, 7, false, listOf(ObservedPoint(-0.0, 2.0, 10, null, null, null, null)), StrokeEnd.InProgress)
+            val ticket = UUID.fromString(source.id)
+            ActiveCaptureJournal(File(root, "notebook/active-capture"), identity).checkpoint(entity, "fixed-space", 0, source)
+            val backend = NotebookBackend(context)
+            try {
+                assertTrue(backend.interruptedCaptureTickets().get(5, TimeUnit.SECONDS).isEmpty())
+                assertThrows(ExecutionException::class.java) { backend.reviewInterruptedCapture(ticket).get(5, TimeUnit.SECONDS) }
+                val scope = "[{\"Entity\":\"$entity\"}]"
+                backend.authenticate(scope) { true }.get(5, TimeUnit.SECONDS)
+                assertEquals(listOf(ticket), backend.interruptedCaptureTickets().get(5, TimeUnit.SECONDS))
+                val review = backend.reviewInterruptedCapture(ticket).get(5, TimeUnit.SECONDS)
+                assertEquals(if (purged) NotebookBackend.CaptureTargetState.Purged else NotebookBackend.CaptureTargetState.Trashed, review.targetState)
+                assertEquals(source.points, review.stroke.points)
+                assertThrows(ExecutionException::class.java) { backend.acceptInterruptedCapture(review, true).get(5, TimeUnit.SECONDS) }
+                assertEquals(1, backend.pendingCaptures().get(5, TimeUnit.SECONDS).toInt())
+                call(backend, JSONObject().put("op", "Relock"))
+                assertThrows(ExecutionException::class.java) { backend.discardInterruptedCapture(review, true).get(5, TimeUnit.SECONDS) }
+                backend.authenticate(scope) { true }.get(5, TimeUnit.SECONDS)
+                backend.discardInterruptedCapture(review, true).get(5, TimeUnit.SECONDS)
+                assertEquals(0, backend.pendingCaptures().get(5, TimeUnit.SECONDS).toInt())
+            } finally { backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
+        }
+    }
+
     @Test(timeout = 20_000) fun cancellingObservationFuturesCannotDropAdmittedCheckpointOrLegacyInk() {
         val root = temporary.newFolder(); val backend = NotebookBackend(platform(root)); val entity = note(backend)
         val entered = java.util.concurrent.CountDownLatch(1); val release = java.util.concurrent.CountDownLatch(1)

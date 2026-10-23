@@ -423,9 +423,17 @@ impl Store {
         self.write(|db|{
             let e=Self::authorise(db,id,access,true)?;
             if !e.trashed{return Err(Error::Invalid("permanent deletion requires Trash"));}
+            // Authorise the complete subtree before any ancestor becomes a
+            // tombstone. Otherwise child checks see that just-purged ancestor
+            // and incorrectly roll back a valid multi-entity purge.
+            let mut items = Vec::new();
             for i in Self::subtree(db,id)? {
-                let mut item=Self::authorise(db,i,access,true)?;
+                let item=Self::authorise(db,i,access,true)?;
                 Self::require_content_access(db,i,access)?;
+                items.push(item);
+            }
+            for mut item in items {
+                let i=item.id;
                 // Detailed undo payloads are content too; tombstones must not retain them.
                 db.execute("DELETE FROM canvas_layers WHERE canvas=?1",[i.to_string()])?;
                 db.execute("DELETE FROM edit_operations WHERE entity=?1",[i.to_string()])?;

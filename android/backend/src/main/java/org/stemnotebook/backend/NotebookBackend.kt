@@ -161,22 +161,24 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
         check(!closed)
         return submitAdmitted({ val journal = activeJournal.join(); CaptureRecoveryState(outbox.join().pendingCount() + journal.pendingCount(), journal.incompleteCount(), recoveryAttention || journal.incompleteCount() != 0 || journal.reviewCount() != 0) }, executor, authoring = false)
     }
-    class CaptureRecoveryReview internal constructor(internal val owner: NotebookBackend, val ticket: UUID, val entity: UUID, val coordinateSpace: String, val stroke: CapturedStroke, internal val checksum: String)
+    enum class CaptureTargetState { Active, Trashed, Purged }
+    class CaptureRecoveryReview internal constructor(internal val owner: NotebookBackend, val ticket: UUID, val entity: UUID, val coordinateSpace: String, val stroke: CapturedStroke, val targetState: CaptureTargetState, internal val checksum: String)
+    private fun recoveryAccess(entity: UUID): CaptureTargetState = CaptureTargetState.valueOf(nativeCaptureCommand(JSONObject().put("op", "CaptureRecoveryAccess").put("entity", entity.toString())).getString("state"))
     @Synchronized fun interruptedCaptureTickets(): CompletableFuture<List<UUID>> {
         check(!closed)
         return submitAdmitted({
             val journal = activeJournal.join()
             journal.reviewTickets().filter { ticket ->
-                try { nativeCaptureCommand(JSONObject().put("op", "Read").put("id", journal.read(ticket).entity.toString())); true } catch (_: Exception) { false }
+                try { recoveryAccess(journal.read(ticket).entity); true } catch (_: Exception) { false }
             }
         }, executor, authoring = false)
     }
     @Synchronized fun reviewInterruptedCapture(ticket: UUID): CompletableFuture<CaptureRecoveryReview> {
         check(!closed)
         return submitAdmitted({
-            val journal = activeJournal.join(); val entry = journal.read(ticket); require(entry.review && !entry.cancelled)
-            nativeCaptureCommand(JSONObject().put("op", "Read").put("id", entry.entity.toString()))
-            CaptureRecoveryReview(this, ticket, entry.entity, entry.space, entry.stroke, journal.checksum(ticket))
+            val journal = activeJournal.join(); val entry = journal.read(ticket); require(entry.stroke.end != StrokeEnd.InProgress && !entry.cancelled)
+            val state = recoveryAccess(entry.entity)
+            CaptureRecoveryReview(this, ticket, entry.entity, entry.space, entry.stroke, state, journal.checksum(ticket))
         }, executor, authoring = false)
     }
     @Synchronized fun acceptInterruptedCapture(review: CaptureRecoveryReview, confirmed: Boolean): CompletableFuture<Int> {
@@ -193,7 +195,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
         check(!closed && review.owner === this); require(confirmed)
         val ticket = review.ticket; val entity = review.entity; val checksum = review.checksum
         return submitAdmittedVoid({
-            nativeCaptureCommand(JSONObject().put("op", "Read").put("id", entity.toString()))
+            recoveryAccess(entity)
             activeJournal.join().discardReview(ticket, checksum)
         }, executor, bytes = inputBytes(checksum))
     }
@@ -316,7 +318,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
             "Assets", "PrepareAssetRead", "ReadAssetChunk", "ValidateAssetRead", "Source", "Anchor", "PrepareRead", "ValidateRead", "ReviewRevision",
         )
         return op in setOf(
-            "CanvasLayers", "CanvasScene", "CaptureReceipt", "Block", "Mode", "OpenInMaster", "Layout", "Group", "Embed", "Views", "View", "RestoreView", "RestoreWorkspace", "Links", "List", "Read", "Blocks", "Search", "Exercises", "ExerciseBlocks", "SourceInk", "History", "FlatExercises", "SearchViews", "Status",
+            "CaptureRecoveryAccess", "CanvasLayers", "CanvasScene", "CaptureReceipt", "Block", "Mode", "OpenInMaster", "Layout", "Group", "Embed", "Views", "View", "RestoreView", "RestoreWorkspace", "Links", "List", "Read", "Blocks", "Search", "Exercises", "ExerciseBlocks", "SourceInk", "History", "FlatExercises", "SearchViews", "Status",
         )
     }
     private fun affectsPdfPolicy(command: JSONObject): Boolean {
@@ -330,7 +332,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
             "Block", "Mode", "SetMode", "AppendTo", "CaptureTo", "Append", "Capture", "Edit", "EditRegion", "Partition", "SplitRegion", "MergeRegions",
             "SetHeading", "SetVisible", "SetDisplay", "TransformSelection", "EraseStrokes", "RestoreRevision", "Layout", "SetLayout", "EditCell", "EditDiagramPart",
             "RestoreView", "RestoreWorkspace", "SaveWorkspace", "CreateGroup", "Group", "TransformGroup", "Ungroup", "Embed", "CreateEmbed", "EditEmbed", "DuplicateEmbed", "RemoveEmbed", "Views", "View", "SaveView",
-            "CaptureReceipt", "AddLink", "Links", "RemoveLink", "List", "Create", "Read", "Blocks", "Search", "Exercises", "ExerciseBlocks", "SourceInk", "History", "FlatExercises", "SearchViews", "Status",
+            "CaptureRecoveryAccess", "CaptureReceipt", "AddLink", "Links", "RemoveLink", "List", "Create", "Read", "Blocks", "Search", "Exercises", "ExerciseBlocks", "SourceInk", "History", "FlatExercises", "SearchViews", "Status",
             "CreateExercise", "RenameExercise", "ExerciseVisibility", "OpenInMaster", "Rename",
         )
     }

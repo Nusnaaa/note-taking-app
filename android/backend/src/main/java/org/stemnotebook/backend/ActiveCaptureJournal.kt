@@ -36,7 +36,7 @@ internal class ActiveCaptureJournal(
     }
     fun contains(ticket: UUID): Boolean = fileFor(ticket) != null
     fun pendingCount(): Int = records().size
-    fun reviewTickets(): List<UUID> = records().map { decode(readBytes(it)) }.filter { it.review && !it.cancelled }.map { it.ticket }
+    fun reviewTickets(): List<UUID> = records().map { decode(readBytes(it)) }.filter { it.stroke.end != StrokeEnd.InProgress && !it.cancelled }.map { it.ticket }
     fun reviewCount(): Int = records().count { decode(readBytes(it)).review }
     fun incompleteCount(): Int = ownFiles().count { it.name.endsWith(".incomplete") }
     fun read(ticket: UUID): Entry = decode(readBytes(fileFor(ticket) ?: throw IOException("Capture checkpoint unavailable"))).also { require(it.library == library) }
@@ -64,11 +64,15 @@ internal class ActiveCaptureJournal(
     }
     fun approve(ticket: UUID, expectedChecksum: String) {
         require(checksum(ticket) == expectedChecksum)
-        val entry = read(ticket); require(entry.review && !entry.cancelled && entry.revision < Long.MAX_VALUE)
-        publish(entry.copy(revision = entry.revision + 1, review = false))
+        val entry = read(ticket); require(entry.stroke.end != StrokeEnd.InProgress && !entry.cancelled)
+        if (entry.review) {
+            require(entry.revision < Long.MAX_VALUE)
+            publish(entry.copy(revision = entry.revision + 1, review = false))
+        }
     }
     fun discardReview(ticket: UUID, expectedChecksum: String) {
-        require(checksum(ticket) == expectedChecksum && read(ticket).review)
+        require(checksum(ticket) == expectedChecksum)
+        val entry = read(ticket); require(entry.stroke.end != StrokeEnd.InProgress && !entry.cancelled)
         remove(checkNotNull(fileFor(ticket)))
     }
     /** Preserve each session's order; blocked recovery never stalls unrelated input. */

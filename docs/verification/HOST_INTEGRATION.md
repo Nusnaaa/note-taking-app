@@ -576,3 +576,34 @@ candidates per request, and rejects offsets above 100,000. These are implementat
 capacities, not performance guarantees. Start again when views or access change;
 separate requests do not form a frozen snapshot. Stored key/owner/payload disagreement
 fails as integrity corruption rather than returning a different view.
+
+## Recovery evidence for retired targets
+
+`CaptureRecoveryAccess {entity}` returns only `state: Active|Trashed|Purged`; it
+does not return document metadata or grant content/capture access. Normal read and
+capture commands still reject trashed/purged targets. Recovery authority checks app
+and all current/inherited entity locks, including purged ancestor tombstones. Any
+retired target additionally requires a fresh target-specific Entity authentication
+grant, even when it used to be public. Missing/misbound identities fail closed.
+
+Android `interruptedCaptureTickets`/`reviewInterruptedCapture` now cover all sealed
+pending journal records, including completed/lifecycle captures blocked by saving,
+and expose the reviewed `targetState`. Active live contacts are excluded. Review
+retains exact observed ending, style, coordinate space and samples. Explicit discard
+checks fresh recovery authority and the reviewed record checksum before deleting only
+that recovery copy. It neither undoes an ambiguous document commit nor bans a later
+explicit resubmission by the original caller. It does not discard other session
+records. Confirmation is required. Live source payloads are not returned by the
+recovery-access command.
+
+Accept still requires normal current document authority before journal approval/replay.
+A retired target cannot be silently restored, retargeted or replayed. After an explicit
+Trash restore, the unchanged draft may be reviewed/accepted normally. Purged drafts
+remain reviewable/discardable under the scoped proof. Recovery is private bounded
+no-backup storage, not an export or encrypted working-database claim. Legacy capture
+outbox and corrupt/incomplete records still need their own full recovery workflows.
+
+Core subtree purge now preflights every descendant's current access/content protection
+before changing any ancestor to a tombstone; all deletion remains one transaction.
+Host-facing Trash/restore/permanent-deletion review workflows remain to be exposed;
+this increment does not authorise serialisable caller-forged deletion review objects.

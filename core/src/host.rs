@@ -32,6 +32,9 @@ pub use pdf::{PdfCommand, PdfGrantVerifier};
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "op", deny_unknown_fields)]
 pub enum Command {
+    CaptureRecoveryAccess {
+        entity: Id,
+    },
     CaptureReceipt {
         ticket: Id,
         entity: Id,
@@ -550,7 +553,8 @@ impl Host {
         let request: Request = serde_json::from_str(json)?;
         let authoring = !matches!(
             &request.command,
-            Command::CaptureReceipt { .. }
+            Command::CaptureRecoveryAccess { .. }
+                | Command::CaptureReceipt { .. }
                 | Command::Block { .. }
                 | Command::Mode { .. }
                 | Command::OpenInMaster { .. }
@@ -665,6 +669,9 @@ fn execute(s: &mut Store, a: &mut Access, pdf: &mut PdfState, r: Request) -> Res
     }
     let result = (|| -> Result<Value> {
         Ok(match r.command {
+            Command::CaptureRecoveryAccess { entity } => {
+                json!({"state": s.capture_recovery_access(entity, a)?})
+            }
             Command::CaptureReceipt { ticket, entity } => {
                 json!({"committed":s.capture_committed(ticket,entity,a)?})
             }

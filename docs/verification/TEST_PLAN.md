@@ -230,3 +230,10 @@ Saved-view discovery fixtures cover restart without workspace references, visibl
 pagination, fresh block/app locks, master/exercise separation and stored identity
 corruption. The actual JNI workspace-reopen fixture discovers its saved view before
 restoring the pane. This does not close complete authoring configuration acceptance.
+
+Retired capture recovery fixtures exercise actual core subtree Trash/purge/reopen,
+app/ancestor/target authority, protected source preservation on denied/faulted purge,
+and absence of ordinary read/capture access to tombstones. Android JNI tests use
+explicit synthetic persisted retired-target states (not the still-unexposed deletion
+host workflow), verify review authentication/relock/discard and reject replay; journal
+fixtures include sealed blocked records and exclude active contacts.

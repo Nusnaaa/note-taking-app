@@ -1,6 +1,7 @@
 //! Single-writer SQLite authority with optimistic revision checks for every edit.
 //! FULL synchronous WAL commits are acknowledgements of SQLite's durable boundary,
 //! not guarantees about uncommitted events or faulty storage hardware.
+mod capture_recovery;
 mod editing;
 mod engines;
 mod exercises;
@@ -337,6 +338,7 @@ impl Store {
     }
 }
 
+pub use capture_recovery::CaptureTargetState;
 pub use engines::{EngineVersion, Installation};
 pub use exercises::{
     Exercise, ExtractionCandidate, ExtractionPlan, MembershipChange, MembershipOperation,
