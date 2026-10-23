@@ -2,5 +2,7 @@ $ /tmp/stem-cargo/bin/cargo clippy --workspace --all-targets --locked --offline 
 exit_code=0
 
     Checking stem-core v0.1.0 (/home/linus/Projects/software/note-taking-app/repo/core)
+    Checking jni-sys v0.3.1
+    Checking jni v0.21.1
     Checking stem-bridge v0.1.0 (/home/linus/Projects/software/note-taking-app/repo/bridge)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 15.84s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 15.64s

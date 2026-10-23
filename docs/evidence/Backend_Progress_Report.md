@@ -1,9 +1,9 @@
 # Phase A progress — authoring, Android boundary and backend testing
 
 > Current continuation status — 23 October 2026: backend acceptance remains NOT MET
-> and production H.I. is not authorised. The latest validated source is `efb1437`;
-> see [canvas-layer evidence](Canvas_Layers_2026-10-23.md) and
-> [continuation provenance](Backend_Continuation_2026-10-23.md). Its 201 Rust tests,
+> and production H.I. is not authorised. The latest validated source is `aadfcec`;
+> see [saved-view discovery evidence](Saved_View_Discovery_2026-10-23.md) and
+> [continuation provenance](Backend_Continuation_2026-10-23.md). Its 204 Rust tests,
 > 107 Android tests, ten JNI groups and matching exact-source validation passed.
 > The 22 October report below is historical; its original `latest/` artifacts are
 > recoverable at `83b80b7`. The current `latest/` directory records the newer run.
