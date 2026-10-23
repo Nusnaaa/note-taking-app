@@ -1,6 +1,6 @@
 {
-  "started_utc": "2026-10-23T18:18:21.397769+00:00",
-  "source_commit": "907d198d3eb9b8453413a4045708d0297a0ab94b",
+  "started_utc": "2026-10-23T19:08:15.152912+00:00",
+  "source_commit": "efb14370a0cf6128cb619e0b9a34cd682ecbbb6f",
   "working_tree_before": "",
   "full_working_tree_before": "",
   "build_environment": {
@@ -25,7 +25,7 @@
     "android/backend/src/main/java/org/stemnotebook/backend/JournaledCaptureSession.kt": "c918869f8cb24b8526211915104bab6f0d88b8656988b3b2c0222e3a1429f901",
     "android/backend/src/main/java/org/stemnotebook/backend/LibraryOwnership.kt": "664e17e6fd36cd95e00ed10acf2f15d24c1efaed86cc7594f36ad038c59f8647",
     "android/backend/src/main/java/org/stemnotebook/backend/NativeBridge.java": "bf0d8acaedb40ef9577ce6bcd1d4d7c246a27809bb1588663728ad55bbe4e904",
-    "android/backend/src/main/java/org/stemnotebook/backend/NotebookBackend.kt": "bbefba10c5442563ca4ed09665c1f2b7ab68f6070607dae66a5b4ae967240e87",
+    "android/backend/src/main/java/org/stemnotebook/backend/NotebookBackend.kt": "be7ea4a1a114cda3cb14f3799535667b7d39b7dbe66acb2e12a4790f90f71251",
     "android/backend/src/main/java/org/stemnotebook/backend/ObservedInk.kt": "2d4c116e5019a42b83f96ec7dbcf756828f76489929db0557e4017cb9d9ba339",
     "android/backend/src/main/java/org/stemnotebook/backend/PdfConnection.kt": "c7b5c61bc5d209f70a2867c8942d606556daf29a04a28e48872d1bd68af5504f",
     "android/backend/src/main/java/org/stemnotebook/backend/PdfParserClient.kt": "ae4fd736f00d29be432ffc4bb60d5443ba9bf9ca5a06ac3f83e2fe9c9b1c8214",
@@ -38,7 +38,7 @@
     "android/backend/src/main/res/xml/backup_rules.xml": "9dc73ebd39e95acff8a4c69fe70c054e82a1148459cfc684a8252678c83ffa91",
     "android/backend/src/main/res/xml/data_extraction_rules.xml": "ac3e390093eeb9ee64b598412c4b5baf2033972647f4d8354d19fb0e85ffea98",
     "android/backend/src/test/java/org/stemnotebook/backend/ActiveCaptureJournalTest.kt": "66c9d38cd19ce48291a0faab67f52f1fe643fbe0be10e9de0f47c2f72bc847c8",
-    "android/backend/src/test/java/org/stemnotebook/backend/BackendAdmissionIntegrationTest.kt": "2465422db331747c9bb5d71e40aa4ae77befc0ef4b7662305e97e9dfd81949b5",
+    "android/backend/src/test/java/org/stemnotebook/backend/BackendAdmissionIntegrationTest.kt": "4c3eb3fb0d91d9e59ab298210a49c5fe5296e0ce2e816db6ca6f5d4ed1d7d11e",
     "android/backend/src/test/java/org/stemnotebook/backend/BackendOwnershipTest.kt": "ea9243a72af948a4887ea97deb464813b41cbda23b2d277834a846e4544d9bc2",
     "android/backend/src/test/java/org/stemnotebook/backend/BackendWriterTest.kt": "14f6c8c5bd1c6ca8a7c565b9d1ff63304de6529f178438e4692ae5137511604c",
     "android/backend/src/test/java/org/stemnotebook/backend/CaptureOutboxTest.kt": "a3ea3da6aece40932cd0e01b181002db0cd69d2ba25b27f7b760c30b9ba35211",
@@ -76,8 +76,9 @@
     "core/migrations/011.sql": "8ce5e1af207625bc00517304643e019f010cdfae816a5347f15a148ec34587ec",
     "core/migrations/012.sql": "5e0d893f28dccbadc59df9aa641532e6e962ce2225804d8566672ee7588bceef",
     "core/migrations/013.sql": "eb1883aee00a81f0bc8e15a449ad33170d8167b3bbc2dafec12ce2c63d15757b",
-    "core/src/attachments.rs": "ea2445c4e868bfa995a1bdbc79649473019bec0add0434fe067f7912221f6d4f",
-    "core/src/backup.rs": "25bb403b070cef2084ede9fc0118024b50faba9202cd045a3029af13eac65f7d",
+    "core/migrations/014.sql": "8526cb69c4da2add90f60161f3da93d3a8541aebaf5ebf9914625c1175832be7",
+    "core/src/attachments.rs": "f44d8206e8fb225d4047e11f73da9d0623e53ac1fdd74a87a8c0055ed291ae46",
+    "core/src/backup.rs": "19db333fe1b25d4945f8332f68b76dab760c2d2d67dee4bf95430691ce243b5c",
     "core/src/bin/notebook_cli.rs": "26271e2457fe8d3fc1b72a61eb1463bf8e775e5d4929fea5d90235b6d299ff03",
     "core/src/bin/recovery_probe.rs": "f3e86f9fb8114498e56003199357ceb03bcc0e11a1b9257ac1e6325fe2ba23e9",
     "core/src/bin/render_probe.rs": "e82dac37876ef085a1066f169375d6195a0edf1f46f5c28f1b8124e7ed651326",
@@ -85,58 +86,60 @@
     "core/src/content.rs": "771dbbbf70512a8786ec3fe012f30f778c9eb8efb5a669a04c5601bb694f82e9",
     "core/src/converters.rs": "45577c77224a9a960a33242b8d9c29b779cf18ff94f09a13f2b3efac4ad7ac09",
     "core/src/crypto.rs": "090a892bbf649583dda78e915be5de826bd4098b8381133e0a6975e18f4330b4",
-    "core/src/export.rs": "1dc0bdae093f8cb62657eeddce537e79a0423f80250cfe35e5d04f9c81c9598f",
+    "core/src/export.rs": "2364239249b1f3acf2854a72abdf2b5a0f6cc75c33a995daec2969136e7eeeda",
     "core/src/help.rs": "6e590f88e4d92923f32ce1c9c0557c97a10dff8bb8039b16e4c034de809f4369",
-    "core/src/host.rs": "3f19b15212db82f235b4335f4aaad8d8ae8f975534dbd37bd6fa3bbc514b771e",
+    "core/src/host.rs": "9759982bc11846e1ed2c8f787a020eb951042553a196a96bb1ce9c199f309579",
     "core/src/host/mailbox.rs": "b28b65e2af428499079390df149be5356a3265fcced6d660be72515daa9f6aed",
     "core/src/host/ownership.rs": "ecd6aebbf8c718383c4e8f11011113edc7f7509fc2f78db5473f07c0cfd4a83a",
     "core/src/host/pdf.rs": "a2234618fcfa05e273402a57eecacb515e517eba27d17211e0dfe5d8b9fdc8da",
     "core/src/ink.rs": "044b07bdcaa83f929e765dc9d4b086aa3dae19e0a5dfb965da12bfd4d0b6ede9",
     "core/src/lib.rs": "dd8a3fb56d844e4c1967586e686499b0779319bfa22ea2e888c3bb1eda4b4396",
     "core/src/objects.rs": "071a855f967d86b13f2549667538bf8e90d49003f503d95feed766a52d60440b",
-    "core/src/portable.rs": "5700928afe1a996e9245063db938e68a0f5cd043654d98943ffed829eb6e0774",
+    "core/src/portable.rs": "81e69c7180306742fc5a2b38280883c5ec7e7c0e1f73e982e21a15d83198dabe",
     "core/src/processing.rs": "445db89b3382614cc74ef5f0c789a63136a519dfedfb48001f3d1fd1af26b0f3",
     "core/src/provisioning.rs": "79939df42ac8e3f020124c742164cc11b1e307f80c36671d06e588d437a34745",
     "core/src/render.rs": "49efca3a4d906df3c25036e1ab664e089f584b4aca8ff54f0de73a4f2e167cf0",
     "core/src/security.rs": "e890170726ecf8a7cd2bf2bf34774e386e16b22e53cf244f35d51e630923770a",
     "core/src/sources.rs": "54574b289cdb178e0cae3cb6b730a55bbe6689434675b3e79f2f53bef3a48a0d",
-    "core/src/store.rs": "b264f4862ad3f8bc4aea1c375f530a6217dd14dc1c4ec92352f854ba2b690530",
-    "core/src/store/editing.rs": "c0fd282625698f21b0c50aeeade8f2bb24fff10526f618a4f40b26024e240ac7",
+    "core/src/store.rs": "555118c5f592d62297b52fd32265510ba4ad6160c81e718f9e95564bc546f881",
+    "core/src/store/editing.rs": "d03103b1a05b26f717cd9334bf20added600b5c0bbc2b9fb81ea435e55619c73",
     "core/src/store/engines.rs": "4cf6d0470c5450a0c95e24287b80e5d04e8376a134738011bbfe6021d85b3673",
-    "core/src/store/exercises.rs": "34007e15996775ae41ce93f5c0ad588dec6a2dd4220f7a869106182062a5fd6e",
+    "core/src/store/exercises.rs": "c6c4dd01a96bc85e71c7c17d613672a9a1d0f02d159f6aa92d33b53d8ea93fb8",
+    "core/src/store/layers.rs": "7cfef42049121b1128982834f20bd45134267956ce2b8f7c000bd420f4df536d",
     "core/src/store/navigation.rs": "314577d93e5602151ecb6270bac5f2874f316d86d254ce1d90ea5e760dbe30f3",
-    "core/src/store/objects.rs": "88b42e047f8e205c8fc44210eb2d872b3f20c75f4de20432ae79a197cbaf672e",
-    "core/src/store/organisation.rs": "2bbbcb708fbf5417a659e5ce462fca90d42e08fde6d00ad9d3d1cbc040c16349",
+    "core/src/store/objects.rs": "36aa3d118f909f72967466fedbd1b9ecba8a020d25d5122beff2d8d01adeb786",
+    "core/src/store/organisation.rs": "eb10dcd319a01b022b99a932f3f51b9a6a6308fc5382d6b07cc2d637a6926d70",
     "core/src/store/positions.rs": "037883d298aa212c3c8edefa26de76d3ca054673cb332b8b76473f034b38cd02",
     "core/src/store/proposals.rs": "2d73ff55ba9e79d0029bd4a70cc7909047d007a848da71d7bd654dc610a2c79f",
     "core/src/store/regions.rs": "ef657c642542176573dfe72977e4bcaca575dbbdca9235f4444d7d7a06b63d16",
     "core/src/store/workspace.rs": "9a69cffa6c09565c8fa96855f17eec723167954aa66b26acde45040dfd624a26",
-    "core/src/store/writing.rs": "6d61a91e04554db10980d03d570211d40fc6726cf0cf203fd7225cc7070e7bbd",
-    "core/tests/backup.rs": "6f3ad0209fde8f56d5f48460baf853b06cd0af4e336c2f01f595d2535677ab0e",
+    "core/src/store/writing.rs": "d289d3f82dda6e0b46d2064c1e15b7100ad351ee3f66c34ef95abe6aed6c6d56",
+    "core/tests/backup.rs": "402566660c30aba0edf7d32cc1275d965de033bf1741e6a98c2db9edc92d3030",
     "core/tests/capture.rs": "07ff499ab18ead9a03e15cb31f292e5a8d39d1ae4dd25a7eb2cdbc6aef7a7dff",
     "core/tests/common/mod.rs": "4257fc12f3f78d69ac8da4a7586ae2984216936feb53ace2836c01b013ee1a58",
     "core/tests/converters.rs": "804296aa85a721207230cd5f710b41eb851904a3de3bd73bf6b4de46a8379a91",
     "core/tests/editing.rs": "60c13a9f8fb6fa7fdcdbd14617b56ca0ece6e6e737ba9d5f09d598180388f747",
     "core/tests/engines.rs": "26e1817dfc7c38bd3b3e879410ddb798edab6777868b13fdae266740c30d486a",
-    "core/tests/exercise_migrations.rs": "3221ea5f49fbfdb19d5adbbca555c86dcc9866769c614bcf81ea5e0dcea912fd",
-    "core/tests/exercises.rs": "43fc0e868f4f0a268c97338810a12eb8fb3a766d6a89a7592cf23233fcf9b473",
+    "core/tests/exercise_migrations.rs": "561f13e6887c7c5fe81c543cf9261b16f5d9d4c65c29837b62d70004982aaabb",
+    "core/tests/exercises.rs": "a3e6cd39dc56dd9d0a9015ccf5fe4282aa83011eb62e86390dc9ab2deba7f8c4",
     "core/tests/export.rs": "d1acfbe1f9993519afc273b72ebdb96694222836864773b6746a873c349fa4ae",
     "core/tests/host.rs": "1ec82bea453463c0b4c7352ae8381077f91775493bb0133f139771e0436d5986",
     "core/tests/host_pdf.rs": "04a2868e327f8210b68a581fbe2032bd09d1fbe5cd0b17a08a687e501df6f038",
-    "core/tests/interrupted_capture.rs": "2b0bd8719520f3e8a702b372983096ccc6783cd306e2a06b68aaf525e6f4c3bd",
-    "core/tests/objects.rs": "d71bcf689cdf66669263f2256f226a82cd92d0607c85de7ad3132107681fd080",
+    "core/tests/interrupted_capture.rs": "967904465731de4d46a064c0fd77432479185136f2f0a6591ee057245e86329f",
+    "core/tests/layers.rs": "fa95d5ec64f773b98c13794d6f71972feea9d57a545f34b478f235df1a8e8000",
+    "core/tests/objects.rs": "6173efa95d71cda746405dbb3dd15ccdfcfcb38546ae0eb6a9869095c99efbb1",
     "core/tests/organisation.rs": "daa071549362da0af485182073da639094b8653ac2b3b15919e818b8aa2ab5d4",
     "core/tests/pdf_revisions.rs": "a50c148003a6a8ff896331a70e4879eb58dae39f02bbb7a5fe0b433bf5813455",
     "core/tests/portable.rs": "204225c15c8cdb1c6171002b14c1fd526ef02e4c0abc3996fb71e48990996ffe",
-    "core/tests/positions.rs": "3af4b30e17bda3249c9e673d3570dc1f8f392ad328b6b7a6ddc13e46c39a2cb0",
+    "core/tests/positions.rs": "d22f95c85ee2b083831e00371196582d526ec2976b397b1b954d8cc11ada3c12",
     "core/tests/provisioning.rs": "a4b199bc7e8a07a869de371a8117f79d703dc9dbfba1b8e7c1152a3f2439e23c",
     "core/tests/recognition.rs": "bd1551ba19e5dc87f9323d3aab5e9cfeb31abf21cab2fca994ea8f091545a3c3",
-    "core/tests/recovery.rs": "b939ab876d6f4ac44efbe2b4adc1009e8c3b75a7db7efb52f418fff71eacfb6a",
+    "core/tests/recovery.rs": "033c2608a31b14b080a0a852c4feb130365e0ab900a09f8eb11acc62d6e7a20c",
     "core/tests/regions.rs": "a49f05d5b3e1d425abcd0fccb15dea283951d6a391306dc702582de4109091b3",
     "core/tests/render.rs": "7b92eb55f450e24fd24940b3e876b90828632171546fab2271b16708919a4bb7",
     "core/tests/sources.rs": "442dd7fa2ad1b671666c87a3ba291ccfac7fce6719c265be7170dd2f81904b6a",
-    "core/tests/stroke_style.rs": "ff9bbdc3abebb53f320d727d4cd1b535712f15aebc5b9c05bc5dd91a76f5bae8",
-    "core/tests/workspace.rs": "fad6f73b9d3981ab1a664bbfb594cca1b02550ff694c8752179d0dcbce9cd7ee",
+    "core/tests/stroke_style.rs": "f6365cd6a836fa69c759537cb525c61c8559b5a6b02855fe0448dba5aef2da9f",
+    "core/tests/workspace.rs": "8a60c7836f88ec89f45cc95a0327b1f5e8e6e7c676a4cd83626b90f5a37f7d3a",
     "core/tests/writing.rs": "c9d11c88e293853cd4bcecb42ea8d9777a803aa1fdba348264ed045657785b0c",
     "docs/decisions/ADR-001-core-foundation.md": "90df43a72b8deacb2d9cf168cd268ad9e73331e8c9a131ecef493d2b45f16f9c",
     "docs/decisions/ADR-002-portability-and-privacy-boundaries.md": "b44f45c688f0d83443b88c272911b22e99e65b254af1e58aa8b01505d50d5e6d",
@@ -178,17 +181,17 @@
     "docs/licensing/dependency-inventory.json": "c86a26e424db68595a545e056ad6726307d9167b564590ea565bba3e08c05c32",
     "docs/spec/approved-v0.5.8.md": "68612d4dc4d0e69c61f0018fbcf67bf779559bcbb120bcd0f6c3f9333f27b7b3",
     "docs/verification/DEFERRED_MANUAL.md": "c694b9fe185c216204dfd72aa6c55d1f8d21e06c431bb50b126bce1a6b514e1c",
-    "docs/verification/HOST_INTEGRATION.md": "4bd1f90560d84b1dc43a9eaf39b43b1a8c081bb19f2ccd40040b51a31a46e42c",
-    "docs/verification/TEST_PLAN.md": "36f8da800e6e9f6e3ca34884f43ea997ed25b328622ff245e8773b97024533c1",
-    "docs/verification/backend-gaps.json": "a6b7e219a3ff8b4aae0f5ff56808ea1881318517737f020289b533c6061c3850",
-    "docs/verification/candidates-current.csv": "bb18aa15dfd7222a96c3ad07ed09e6a45b0398fae06cfc1785031ac64cf50435",
-    "docs/verification/inherited-current.csv": "e5d91caae38a7567209f91d21cdbc91a50cd3e36d8791d06daf67c58c0202a30",
-    "docs/verification/requirements-current.csv": "249002009f2e851fe806cb1e8b69eb61d84a3bc737f8d46afe7e00d13cda9c3d",
+    "docs/verification/HOST_INTEGRATION.md": "856a61c85e6fff30fba9841c20a254e959e1de3fd46ccd0294d8e94ba8a745e1",
+    "docs/verification/TEST_PLAN.md": "2d22c9c5289fd7a613aaefb36d3c99b40afbe3b5527747db2d00f0c7e41ae7e5",
+    "docs/verification/backend-gaps.json": "ea882f14f2bc9703e81e209287d162a5ae27b2647bb6c93d26ce74f0ed862378",
+    "docs/verification/candidates-current.csv": "a271cdcc6ad92da4528ff8422d90bdbc321b860a3640882922303e42c53afd5d",
+    "docs/verification/inherited-current.csv": "39c2ad51cfd295dea0dd0d767ef90aeb5340774bc17c769c69df338e9fe3a36e",
+    "docs/verification/requirements-current.csv": "6987a51a5b326f25052afc40222e2279cfc02288826c21f3d2fc85fb9f5d7e8e",
     "docs/verification/traceability-manifest.json": "15d09e00b540a512b8e0b6afd98b06824e93d743d80317963ebe18d91d3adb22",
     "rust-toolchain.toml": "c33d1f0b1b8fda448bea32d7dc867aa64947c87169fd9de7122ffccad1dd80f9",
     "tools/backend_gate.py": "f2e695b770631ef9dcff18125b737665b3153be72f0bb8992007f151fc1e762d",
     "tools/dependency_inventory.py": "51dc9dcd28cab69c8af36b976d65aa67557d6afe8827be162a431d1854232315",
-    "tools/traceability.py": "6a7f4bba25db482a9d76fb36c806ef60eb5ffe96b3d382218a17d662fad2b52c",
+    "tools/traceability.py": "adaabbc0e485838fdca1c012c135b0393444eea834fff4d55f0982664ea5ffa1",
     "tools/validate.py": "2a25d3f4c6d487754f7b73bc0f415809cdf9e8416fe9f651f0302522a373711a",
     "tools/validate_android.py": "54269646d3c5eefaba3b410e5727ecef2eb49b26d18fc86291ea90ccdc4b79d5"
   },
@@ -204,7 +207,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 0.606,
+      "seconds": 0.745,
       "log": "format.log"
     },
     {
@@ -222,7 +225,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 0.527,
+      "seconds": 15.969,
       "log": "lint.log"
     },
     {
@@ -236,7 +239,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 228.397,
+      "seconds": 339.569,
       "log": "tests.log"
     },
     {
@@ -251,7 +254,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 157.662,
+      "seconds": 163.099,
       "log": "release-build.log"
     },
     {
@@ -263,7 +266,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 0.249,
+      "seconds": 0.286,
       "log": "traceability.log"
     }
   ],
@@ -301,11 +304,11 @@
       "result": "ok"
     },
     {
-      "name": "whole_library_backup_retains_trash_history_membership_undo_and_source_metadata",
+      "name": "malformed_authenticated_backup_is_rejected_before_exposing_restored_store",
       "result": "ok"
     },
     {
-      "name": "malformed_authenticated_backup_is_rejected_before_exposing_restored_store",
+      "name": "whole_library_backup_retains_trash_history_membership_undo_and_source_metadata",
       "result": "ok"
     },
     {
@@ -325,11 +328,11 @@
       "result": "ok"
     },
     {
-      "name": "palm_navigation_and_stylus_cancellation_do_not_commit_accidental_ink",
+      "name": "observed_samples_are_exact_and_invalid_events_leave_capture_recoverable",
       "result": "ok"
     },
     {
-      "name": "observed_samples_are_exact_and_invalid_events_leave_capture_recoverable",
+      "name": "palm_navigation_and_stylus_cancellation_do_not_commit_accidental_ink",
       "result": "ok"
     },
     {
@@ -369,19 +372,19 @@
       "result": "ok"
     },
     {
-      "name": "undo_creation_preserves_original_observations_and_redo_restores_visibility",
-      "result": "ok"
-    },
-    {
-      "name": "undo_requires_current_locks_and_cannot_remove_protection",
-      "result": "ok"
-    },
-    {
       "name": "pruning_without_protected_block_access_keeps_its_undo_history",
       "result": "ok"
     },
     {
       "name": "editing_after_undo_discards_redo_branch_but_keeps_source_history",
+      "result": "ok"
+    },
+    {
+      "name": "undo_creation_preserves_original_observations_and_redo_restores_visibility",
+      "result": "ok"
+    },
+    {
+      "name": "undo_requires_current_locks_and_cannot_remove_protection",
       "result": "ok"
     },
     {
@@ -397,15 +400,11 @@
       "result": "ok"
     },
     {
-      "name": "converters_have_durable_staged_lifecycle_and_failed_probe_preserves_previous",
-      "result": "ok"
-    },
-    {
       "name": "staged_probe_or_commit_failure_keeps_previous_verified_engine",
       "result": "ok"
     },
     {
-      "name": "resource_installation_requires_consent_digest_and_bounded_streaming",
+      "name": "converters_have_durable_staged_lifecycle_and_failed_probe_preserves_previous",
       "result": "ok"
     },
     {
@@ -417,11 +416,15 @@
       "result": "ok"
     },
     {
-      "name": "installed_provenance_and_profiles_reopen_without_fabricated_runtime_readiness",
+      "name": "resource_installation_requires_consent_digest_and_bounded_streaming",
       "result": "ok"
     },
     {
       "name": "another_connection_changing_state_during_probe_prevents_stale_activation",
+      "result": "ok"
+    },
+    {
+      "name": "installed_provenance_and_profiles_reopen_without_fabricated_runtime_readiness",
       "result": "ok"
     },
     {
@@ -437,6 +440,14 @@
       "result": "ok"
     },
     {
+      "name": "extracting_a_protected_heading_does_not_disclose_its_title",
+      "result": "ok"
+    },
+    {
+      "name": "reassignment_rejects_stale_review_cross_master_and_aba_history",
+      "result": "ok"
+    },
+    {
       "name": "protected_reassignment_carries_lock_even_when_unassigned",
       "result": "ok"
     },
@@ -445,11 +456,7 @@
       "result": "ok"
     },
     {
-      "name": "linked_append_is_atomic_and_keeps_master_order_and_shared_save_state",
-      "result": "ok"
-    },
-    {
-      "name": "reassignment_rejects_stale_review_cross_master_and_aba_history",
+      "name": "failed_extraction_and_reassignment_roll_back_every_membership",
       "result": "ok"
     },
     {
@@ -457,27 +464,23 @@
       "result": "ok"
     },
     {
-      "name": "independent_copy_preserves_ink_but_has_separate_ids_edits_modes_and_status",
-      "result": "ok"
-    },
-    {
-      "name": "failed_extraction_and_reassignment_roll_back_every_membership",
-      "result": "ok"
-    },
-    {
       "name": "duplicate_titles_keep_distinct_identity_and_metadata_failures_share_status",
       "result": "ok"
     },
     {
-      "name": "extracting_a_protected_heading_does_not_disclose_its_title",
-      "result": "ok"
-    },
-    {
-      "name": "exercise_locks_cover_master_search_history_inference_links_export_and_deletion",
+      "name": "linked_append_is_atomic_and_keeps_master_order_and_shared_save_state",
       "result": "ok"
     },
     {
       "name": "master_trash_restore_and_purge_preserve_then_remove_exercise_state",
+      "result": "ok"
+    },
+    {
+      "name": "independent_copy_preserves_ink_but_has_separate_ids_edits_modes_and_status",
+      "result": "ok"
+    },
+    {
+      "name": "exercise_locks_cover_master_search_history_inference_links_export_and_deletion",
       "result": "ok"
     },
     {
@@ -497,11 +500,11 @@
       "result": "ok"
     },
     {
-      "name": "current_native_preserves_exercise_identity_relationships_locks_modes_and_heading_rules",
+      "name": "shared_edits_use_one_revision_and_stale_second_connection_cannot_overwrite",
       "result": "ok"
     },
     {
-      "name": "shared_edits_use_one_revision_and_stale_second_connection_cannot_overwrite",
+      "name": "current_native_preserves_exercise_identity_relationships_locks_modes_and_heading_rules",
       "result": "ok"
     },
     {
@@ -525,11 +528,11 @@
       "result": "ok"
     },
     {
-      "name": "failed_host_initialisation_releases_ownership_before_returning",
+      "name": "byte_budgets_are_independent_and_rejection_does_not_acknowledge_a_save",
       "result": "ok"
     },
     {
-      "name": "byte_budgets_are_independent_and_rejection_does_not_acknowledge_a_save",
+      "name": "failed_host_initialisation_releases_ownership_before_returning",
       "result": "ok"
     },
     {
@@ -537,11 +540,7 @@
       "result": "ok"
     },
     {
-      "name": "reentrant_close_from_verifier_fails_without_self_join_or_retained_access",
-      "result": "ok"
-    },
-    {
-      "name": "host_restores_revision_bound_selection_without_silently_rebinding_after_edit",
+      "name": "query_saturation_reserves_edit_admission_and_preserves_edit_undo_order",
       "result": "ok"
     },
     {
@@ -549,7 +548,15 @@
       "result": "ok"
     },
     {
-      "name": "query_saturation_reserves_edit_admission_and_preserves_edit_undo_order",
+      "name": "host_restores_revision_bound_selection_without_silently_rebinding_after_edit",
+      "result": "ok"
+    },
+    {
+      "name": "reentrant_close_from_verifier_fails_without_self_join_or_retained_access",
+      "result": "ok"
+    },
+    {
+      "name": "concurrent_host_calls_return_distinct_committed_content",
       "result": "ok"
     },
     {
@@ -561,7 +568,7 @@
       "result": "ok"
     },
     {
-      "name": "concurrent_host_calls_return_distinct_committed_content",
+      "name": "active_call_and_shutdown_drain_hold_ownership_until_original_ink_is_committed",
       "result": "ok"
     },
     {
@@ -570,10 +577,6 @@
     },
     {
       "name": "host_ownership_is_cross_process_and_abrupt_exit_recovers_original_ink",
-      "result": "ok"
-    },
-    {
-      "name": "active_call_and_shutdown_drain_hold_ownership_until_original_ink_is_committed",
       "result": "ok"
     },
     {
@@ -589,19 +592,11 @@
       "result": "ok"
     },
     {
-      "name": "ordinary_json_cannot_supply_a_review_plan_or_platform_grant",
-      "result": "ok"
-    },
-    {
       "name": "new_link_selection_does_not_create_source_until_explicit_acceptance_and_uses_preallocated_identity",
       "result": "ok"
     },
     {
-      "name": "rejecting_a_prepared_revision_consumes_it_without_changing_the_source",
-      "result": "ok"
-    },
-    {
-      "name": "selection_requires_fresh_verification_on_acceptance_and_rejection_is_single_use",
+      "name": "ordinary_json_cannot_supply_a_review_plan_or_platform_grant",
       "result": "ok"
     },
     {
@@ -609,11 +604,7 @@
       "result": "ok"
     },
     {
-      "name": "changed_revision_can_be_reacquired_from_revoked_state_without_silent_anchor_relocation",
-      "result": "ok"
-    },
-    {
-      "name": "revocation_and_missing_sources_retire_reads_without_touching_authored_work",
+      "name": "rejecting_a_prepared_revision_consumes_it_without_changing_the_source",
       "result": "ok"
     },
     {
@@ -621,7 +612,19 @@
       "result": "ok"
     },
     {
+      "name": "selection_requires_fresh_verification_on_acceptance_and_rejection_is_single_use",
+      "result": "ok"
+    },
+    {
+      "name": "revocation_and_missing_sources_retire_reads_without_touching_authored_work",
+      "result": "ok"
+    },
+    {
       "name": "live_read_lease_survives_pen_and_view_changes_but_not_release_or_restart",
+      "result": "ok"
+    },
+    {
+      "name": "changed_revision_can_be_reacquired_from_revoked_state_without_silent_anchor_relocation",
       "result": "ok"
     },
     {
@@ -645,11 +648,11 @@
       "result": "ok"
     },
     {
-      "name": "retained_pdf_lock_applies_to_metadata_chunks_and_staging_even_with_independent_authority",
+      "name": "retained_pdf_lease_shares_capacity_and_preserves_old_revision_under_new_source_edition",
       "result": "ok"
     },
     {
-      "name": "retained_pdf_lease_shares_capacity_and_preserves_old_revision_under_new_source_edition",
+      "name": "retained_pdf_lock_applies_to_metadata_chunks_and_staging_even_with_independent_authority",
       "result": "ok"
     },
     {
@@ -685,11 +688,39 @@
       "result": "ok"
     },
     {
-      "name": "invalid_objects_reject_duplicate_ids_ragged_cells_and_nonfinite_axes",
+      "name": "malformed_membership_aliases_and_fresh_protection_cannot_leak_or_change_layers",
       "result": "ok"
     },
     {
-      "name": "images_cannot_bypass_locks_even_after_replacing_visible_content",
+      "name": "scene_orders_layers_then_z_and_paginates_without_dropping_nested_reference_placeholders",
+      "result": "ok"
+    },
+    {
+      "name": "defaults_and_independent_embed_overrides_preserve_source_and_report_missing_layers",
+      "result": "ok"
+    },
+    {
+      "name": "legacy_canvas_migrates_to_an_implicit_base_without_rewriting_original_payloads",
+      "result": "ok"
+    },
+    {
+      "name": "native_copy_remaps_layer_and_embed_overrides_and_derivatives_respect_default_visibility",
+      "result": "ok"
+    },
+    {
+      "name": "layer_undo_redo_and_failure_are_atomic_and_revisions_never_reset_to_zero",
+      "result": "ok"
+    },
+    {
+      "name": "scene_byte_pages_have_explicit_continuations_and_never_load_denied_payloads_into_results",
+      "result": "ok"
+    },
+    {
+      "name": "encrypted_backup_preserves_layer_undo_and_rejects_downgraded_current_and_historical_extensions",
+      "result": "ok"
+    },
+    {
+      "name": "invalid_objects_reject_duplicate_ids_ragged_cells_and_nonfinite_axes",
       "result": "ok"
     },
     {
@@ -697,11 +728,11 @@
       "result": "ok"
     },
     {
-      "name": "table_cell_edit_preserves_identity_neighbours_and_source_ink",
+      "name": "images_cannot_bypass_locks_even_after_replacing_visible_content",
       "result": "ok"
     },
     {
-      "name": "canvas_embeds_keep_independent_pinned_cameras_and_reject_cycles",
+      "name": "table_cell_edit_preserves_identity_neighbours_and_source_ink",
       "result": "ok"
     },
     {
@@ -713,15 +744,11 @@
       "result": "ok"
     },
     {
+      "name": "canvas_embeds_keep_independent_pinned_cameras_and_reject_cycles",
+      "result": "ok"
+    },
+    {
       "name": "native_v3_roundtrip_preserves_assets_layout_groups_and_embeds_with_new_ids",
-      "result": "ok"
-    },
-    {
-      "name": "locked_dependencies_disclose_presence_without_name_or_id",
-      "result": "ok"
-    },
-    {
-      "name": "stale_edit_and_interrupted_move_do_not_change_saved_state",
       "result": "ok"
     },
     {
@@ -729,11 +756,19 @@
       "result": "ok"
     },
     {
-      "name": "delete_review_is_invalidated_by_new_dependency",
+      "name": "app_lock_and_inherited_protection_do_not_grant_via_link_or_move",
       "result": "ok"
     },
     {
-      "name": "app_lock_and_inherited_protection_do_not_grant_via_link_or_move",
+      "name": "stale_edit_and_interrupted_move_do_not_change_saved_state",
+      "result": "ok"
+    },
+    {
+      "name": "locked_dependencies_disclose_presence_without_name_or_id",
+      "result": "ok"
+    },
+    {
+      "name": "delete_review_is_invalidated_by_new_dependency",
       "result": "ok"
     },
     {
@@ -757,15 +792,11 @@
       "result": "ok"
     },
     {
-      "name": "revision_change_is_atomic_stale_safe_and_cannot_change_locked_annotations",
-      "result": "ok"
-    },
-    {
       "name": "source_revision_review_preserves_work_and_requires_anchor_reconnection",
       "result": "ok"
     },
     {
-      "name": "hostile_native_relationships_rejected_even_with_recomputed_checksum",
+      "name": "revision_change_is_atomic_stale_safe_and_cannot_change_locked_annotations",
       "result": "ok"
     },
     {
@@ -773,15 +804,11 @@
       "result": "ok"
     },
     {
+      "name": "hostile_native_relationships_rejected_even_with_recomputed_checksum",
+      "result": "ok"
+    },
+    {
       "name": "corrupt_native_import_and_interruption_do_not_touch_existing_documents",
-      "result": "ok"
-    },
-    {
-      "name": "hostile_cross_kind_identifier_aliases_are_rejected_before_import",
-      "result": "ok"
-    },
-    {
-      "name": "concurrent_change_during_export_authentication_invalidates_output",
       "result": "ok"
     },
     {
@@ -789,7 +816,15 @@
       "result": "ok"
     },
     {
+      "name": "hostile_cross_kind_identifier_aliases_are_rejected_before_import",
+      "result": "ok"
+    },
+    {
       "name": "raw_ink_requires_deliberate_inclusion_and_subset_export_never_follows_links",
+      "result": "ok"
+    },
+    {
+      "name": "concurrent_change_during_export_authentication_invalidates_output",
       "result": "ok"
     },
     {
@@ -817,11 +852,11 @@
       "result": "ok"
     },
     {
-      "name": "schema10_upgrade_keeps_legacy_view_payload_byte_for_byte_and_absent_bookmark_is_not_invented",
+      "name": "unicode_selection_reopens_and_changed_content_requires_explicit_fresh_bookmark",
       "result": "ok"
     },
     {
-      "name": "unicode_selection_reopens_and_changed_content_requires_explicit_fresh_bookmark",
+      "name": "schema10_upgrade_keeps_legacy_view_payload_byte_for_byte_and_absent_bookmark_is_not_invented",
       "result": "ok"
     },
     {
@@ -865,7 +900,7 @@
       "result": "ok"
     },
     {
-      "name": "cancel_timeout_and_worker_panic_discard_results",
+      "name": "locked_ink_and_proposals_cannot_be_sent_or_reviewed_without_access",
       "result": "ok"
     },
     {
@@ -873,7 +908,7 @@
       "result": "ok"
     },
     {
-      "name": "locked_ink_and_proposals_cannot_be_sent_or_reviewed_without_access",
+      "name": "cancel_timeout_and_worker_panic_discard_results",
       "result": "ok"
     },
     {
@@ -909,11 +944,11 @@
       "result": "ok"
     },
     {
-      "name": "regions_split_merge_without_replacing_observations_and_undo_restores_partition",
+      "name": "selected_region_receives_only_selected_vector_strokes_and_commits_only_it",
       "result": "ok"
     },
     {
-      "name": "selected_region_receives_only_selected_vector_strokes_and_commits_only_it",
+      "name": "regions_split_merge_without_replacing_observations_and_undo_restores_partition",
       "result": "ok"
     },
     {
@@ -933,15 +968,15 @@
       "result": "ok"
     },
     {
+      "name": "q383_revocation_removes_caches_preserves_authored_work_and_independent_snapshot",
+      "result": "ok"
+    },
+    {
       "name": "link_default_managed_copy_requires_consent_and_matching_bytes",
       "result": "ok"
     },
     {
       "name": "source_link_never_bypasses_note_lock_or_creates_network_action",
-      "result": "ok"
-    },
-    {
-      "name": "q383_revocation_removes_caches_preserves_authored_work_and_independent_snapshot",
       "result": "ok"
     },
     {
@@ -969,11 +1004,11 @@
       "result": "ok"
     },
     {
-      "name": "optimistic_layout_checks_and_rollback_preserve_the_previous_workspace",
+      "name": "fresh_protection_redacts_targets_and_keep_can_resize_only_existing_private_slots",
       "result": "ok"
     },
     {
-      "name": "fresh_protection_redacts_targets_and_keep_can_resize_only_existing_private_slots",
+      "name": "optimistic_layout_checks_and_rollback_preserve_the_previous_workspace",
       "result": "ok"
     },
     {
@@ -1005,11 +1040,11 @@
       "result": "ok"
     },
     {
-      "name": "active_use_retirement_keeps_checkpoint_and_originals",
+      "name": "interrupted_capture_rolls_back_block_strokes_and_document_revision",
       "result": "ok"
     },
     {
-      "name": "unauthorised_history_retirement_skips_locked_content",
+      "name": "search_matches_literal_accepted_content_never_raw_or_locked_data",
       "result": "ok"
     },
     {
@@ -1021,7 +1056,7 @@
       "result": "ok"
     },
     {
-      "name": "interrupted_capture_rolls_back_block_strokes_and_document_revision",
+      "name": "unauthorised_history_retirement_skips_locked_content",
       "result": "ok"
     },
     {
@@ -1033,7 +1068,7 @@
       "result": "ok"
     },
     {
-      "name": "search_matches_literal_accepted_content_never_raw_or_locked_data",
+      "name": "active_use_retirement_keeps_checkpoint_and_originals",
       "result": "ok"
     },
     {
@@ -1042,9 +1077,9 @@
     }
   ],
   "backend_accepted": false,
-  "finished_utc": "2026-10-23T18:24:48.901108+00:00",
+  "finished_utc": "2026-10-23T19:16:54.893257+00:00",
   "totals": {
-    "passed": 193,
+    "passed": 201,
     "failed": 0,
     "ignored": 0
   }
