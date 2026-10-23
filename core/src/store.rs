@@ -7,6 +7,7 @@ mod exercises;
 mod navigation;
 mod objects;
 mod organisation;
+mod positions;
 mod proposals;
 mod regions;
 mod writing;
@@ -93,6 +94,7 @@ const V4: &str = include_str!("../migrations/004.sql");
 const V5: &str = include_str!("../migrations/005.sql");
 const V6: &str = include_str!("../migrations/006.sql");
 const V7: &str = include_str!("../migrations/007.sql");
+const V11: &str = include_str!("../migrations/011.sql");
 const V10: &str = include_str!("../migrations/010.sql");
 const V9: &str = include_str!("../migrations/009.sql");
 const V8: &str = include_str!("../migrations/008.sql");
@@ -111,7 +113,7 @@ impl Store {
                 PRAGMA trusted_schema=OFF;",
         )?;
         let version: i64 = db.pragma_query_value(None, "user_version", |r| r.get(0))?;
-        if !(0..=10).contains(&version) {
+        if !(0..=11).contains(&version) {
             return Err(Error::Unsupported);
         }
         let tx = db.transaction_with_behavior(TransactionBehavior::Immediate)?;
@@ -144,6 +146,9 @@ impl Store {
         }
         if version < 10 {
             tx.execute_batch(V10)?;
+        }
+        if version < 11 {
+            tx.execute_batch(V11)?;
         }
         tx.commit()?;
         Ok(Self {
@@ -328,6 +333,11 @@ pub use objects::{Camera, Embed, Layout, MasterLocation, ObjectGroup, SurfaceIte
 pub use organisation::{DeletionReview, Link, LinkState, Order};
 pub use proposals::{Proposal, ProposalState};
 pub use writing::{Block, Display, HistoryEntry, InkSnapshot, Region};
+
+pub use positions::{
+    BookmarkState, CaretPoint, CaretTarget, GraphLabel, InlinePoint, RestoredView,
+    SelectionBookmark,
+};
 
 #[cfg(test)]
 mod storage_tests {

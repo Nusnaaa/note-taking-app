@@ -90,6 +90,42 @@ does not establish physical pen latency or device resource acceptance.
 The CLI has no authentication bypass. This optional developer harness does not replace
 or require the owner's deferred handwriting/model tests on a complete runnable app.
 
+## Revision-bound caret and selection bookmarks
+
+Saved views now optionally retain an anchor/focus `SelectionBookmark`. Equal points
+represent a caret; direction and cross-block endpoints are preserved. Every point
+names a block and its exact revision, an optional recognition region, and a typed
+target. Text/numeric/code and labels use Unicode scalar offsets (not byte, UTF-16
+or grapheme indices). Maths targets name a local presentation-node ID: leaf offsets
+count scalars, while composite offsets name boundaries in ordered children. No AST
+interpretation, text normalization, solving or repair occurs. Typed targets also
+cover table-cell text/maths, diagram labels, graph axis/unit/series labels, image
+captions, whole-content boundaries and visible observed ink samples. Source ink
+remains independently immutable; a bookmark contains references, never copied text.
+
+`SaveView` requires current visible blocks, valid targets, matching revisions and
+current view/exercise/block authority, plus the existing optimistic view revision.
+A later content/protection revision or exercise reassignment does not silently clamp,
+move or retarget the saved position. `RestoreView` returns settings plus `None`,
+`Current` or `NeedsReview` bookmark state. Apply the bookmark only for `Current`.
+`View` remains a stored-settings retrieval API, not permission to apply a bookmark
+without checking current state/revisions. Fresh block/exercise protection still gates
+all returned bookmark metadata and replacement, including clearing an old bookmark.
+Saved positions in independent master/exercise views remain independent. Settings
+writes do not modify content revisions or observations. Explicitly clearing or saving
+a freshly reviewed current position replaces the bookmark transactionally.
+
+Schema 11 adds optional bookmark payloads without rewriting existing saved views or
+source data. Native subset v6 preserves them and reads v1-v5; older native tags cannot
+claim bookmark extensions. Import remaps global block/region/source IDs; maths/cell/
+part/series IDs remain scoped to their copied immutable content. Stale metadata stays
+review-required after copy, and cannot become current through later monotonic edits.
+Encrypted backup schema 11 preserves current/stale bookmarks and restores schemas
+8/9/10; older backup tags reject the extension. Selection-only native exports include
+only views whose bookmark endpoints are inside the selected block boundary. Full
+workspace/last-document/pane discovery and all-operation history remain open. These
+are backend position contracts, not production caret rendering or gesture behavior.
+
 ## Observed prefixes and stroke termination
 
 Raw source strokes now distinguish `Completed`, `InProgress`, and
@@ -117,8 +153,8 @@ Calling the accumulator's `checkpoint` alone is never a durable-save receipt.
 SQLite schema 10 introduces the versioned source termination field without rewriting
 legacy payloads. Native subset v5 carries interrupted provenance and reads v1-v4
 completed sources; older native version tags cannot conceal the new semantics.
-Encrypted logical backup schema 10 restores schemas 8/9 with completed legacy
-sources and preserves interrupted provenance/receipts in schema 10. Unknown/active
+Encrypted logical backup schema 11 restores schemas 8/9/10 with the corresponding
+legacy source semantics and preserves interrupted provenance/receipts. Unknown/active
 termination or downgraded containers fail closed. This remains the implemented
 native subset; complete PDF-linked portability and scalable whole backup are open.
 

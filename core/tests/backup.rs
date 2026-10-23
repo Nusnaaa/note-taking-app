@@ -354,6 +354,7 @@ fn rich_library_restores_objects_views_anchors_proposals_profiles_and_capture_re
         colour_rgba: [10, 20, 30, 255],
         finger_ink: true,
         anchor: Some(ink.id),
+        bookmark: None,
         revision: 0,
     };
     s.save_view(view.clone(), None, &a).unwrap();
@@ -510,7 +511,7 @@ fn schema8_logical_backup_upgrades_without_inventing_old_undo_actions() {
         .retain(|row| row[0]["value"] != "edit_operation");
     let old = crypto::encrypt(&serde_json::to_vec(&doc).unwrap(), PASSWORD).unwrap();
     let restored = Store::restore_backup_password(&old.bytes, PASSWORD).unwrap();
-    assert_eq!(restored.schema_version().unwrap(), 10);
+    assert_eq!(restored.schema_version().unwrap(), 11);
     assert_eq!(
         restored.block(b.id, &a).unwrap().content.literal(),
         "schema-eight content"

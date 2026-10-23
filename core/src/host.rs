@@ -173,6 +173,9 @@ pub enum Command {
     View {
         view: Id,
     },
+    RestoreView {
+        view: Id,
+    },
     SaveView {
         view: ViewSettings,
         expected: Option<u64>,
@@ -331,7 +334,7 @@ enum Message {
         Box<dyn PdfGrantVerifier>,
         mpsc::Sender<Result<Value>>,
     ),
-    Call(Request, mpsc::Sender<Response>),
+    Call(Box<Request>, mpsc::Sender<Response>),
     Authenticate(
         BTreeSet<Scope>,
         Box<dyn Authenticator + Send>,
@@ -453,7 +456,7 @@ impl Host {
                         Message::Call(request, reply) => {
                             let result =
                                 std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                                    execute(&mut store, &mut access, &mut pdf, request)
+                                    execute(&mut store, &mut access, &mut pdf, *request)
                                 }))
                                 .unwrap_or_else(|_| Response::error(Error::WorkerFailed));
                             let _ = input.complete(envelope.authoring, envelope.bytes, !result.ok);
@@ -523,6 +526,7 @@ impl Host {
                 | Command::Group { .. }
                 | Command::Embed { .. }
                 | Command::View { .. }
+                | Command::RestoreView { .. }
                 | Command::Links { .. }
                 | Command::List { .. }
                 | Command::Read { .. }
@@ -540,7 +544,7 @@ impl Host {
             && !matches!(&request.command, Command::Pdf { command } if command.is_query());
         let (tx, rx) = mpsc::channel();
         self.mailbox
-            .admit(Message::Call(request, tx), authoring, json.len())?;
+            .admit(Message::Call(Box::new(request), tx), authoring, json.len())?;
         Ok(PendingResponse(rx))
     }
     pub fn request(&self, json: &str) -> Result<Response> {
@@ -755,6 +759,7 @@ fn execute(s: &mut Store, a: &mut Access, pdf: &mut PdfState, r: Request) -> Res
                 Value::Null
             }
             Command::View { view } => serde_json::to_value(s.view(view, a)?)?,
+            Command::RestoreView { view } => serde_json::to_value(s.restore_view(view, a)?)?,
             Command::SaveView { view, expected } => {
                 serde_json::to_value(s.save_view(view, expected, a)?)?
             }

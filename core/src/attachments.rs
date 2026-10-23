@@ -185,6 +185,24 @@ impl Attachments {
                 return Err(Error::Invalid("native view"));
             }
 
+            if let Some(bookmark) = &v.bookmark {
+                for point in bookmark.points() {
+                    let block = blocks
+                        .get(&point.block)
+                        .ok_or(Error::Invalid("native caret block"))?;
+                    if block.entity != v.entity {
+                        return Err(Error::Invalid("native caret scope"));
+                    }
+                    point.validate_block(block, |stroke| {
+                        doc.blocks
+                            .iter()
+                            .flat_map(|b| &b.strokes)
+                            .find(|s| s.id == stroke)
+                            .map(|s| s.points.len())
+                            .ok_or(Error::Invalid("native caret stroke"))
+                    })?;
+                }
+            }
             if let (Some(e), Some(b)) = (v.exercise, v.anchor) {
                 if !doc
                     .memberships
@@ -200,6 +218,14 @@ impl Attachments {
     }
 
     pub(crate) fn add_ids(&self, ids: &mut BTreeMap<Id, Id>) {
+        for bookmark in self.views.iter().filter_map(|v| v.bookmark.as_ref()) {
+            for point in bookmark.points() {
+                if let Some(region) = point.region {
+                    ids.entry(region).or_default();
+                }
+            }
+        }
+
         for id in self
             .assets
             .iter()
@@ -247,6 +273,9 @@ impl Attachments {
             v.exercise = v.exercise.map(|e| ids[&e]);
 
             v.anchor = v.anchor.map(|b| ids[&b]);
+            if let Some(bookmark) = &mut v.bookmark {
+                bookmark.remap(ids);
+            }
         }
     }
 }
@@ -353,7 +382,11 @@ impl Store {
                     continue;
                 }
 
-                if v.anchor.is_some_and(|b| !blocks.contains(&b)) {
+                if v.anchor.is_some_and(|b| !blocks.contains(&b))
+                    || v.bookmark.as_ref().is_some_and(|bookmark| {
+                        bookmark.points().iter().any(|p| !blocks.contains(&p.block))
+                    })
+                {
                     continue;
                 }
 

@@ -754,3 +754,77 @@ fn recovery_identity_is_stable_but_never_grants_content_or_receipt_access() {
     let h = Host::open(path, 8).unwrap();
     assert_eq!(h.capture_library_identity().unwrap(), identity);
 }
+#[test]
+fn host_restores_revision_bound_selection_without_silently_rebinding_after_edit() {
+    use stem_core::{
+        content::Content,
+        store::{
+            BookmarkState, Camera, CaretPoint, CaretTarget, InlinePoint, Kind, SelectionBookmark,
+            ViewSettings,
+        },
+        Id,
+    };
+    let dir = tempfile::tempdir().unwrap();
+    let host = Host::open(dir.path().join("position.db"), 8).unwrap();
+    let note = request(
+        &host,
+        Command::Create {
+            kind: Kind::Note,
+            parent: None,
+            title: "position".into(),
+        },
+    );
+    let entity = Id::parse(note["id"].as_str().unwrap()).unwrap();
+    let block = request(
+        &host,
+        Command::Append {
+            entity,
+            content: Content::Text("A😀?".into()),
+        },
+    );
+    let block = Id::parse(block["id"].as_str().unwrap()).unwrap();
+    let caret = CaretPoint {
+        block,
+        revision: 0,
+        region: None,
+        target: CaretTarget::Inline(InlinePoint::Text { offset: 2 }),
+    };
+    let view = ViewSettings {
+        id: Id::new(),
+        entity,
+        exercise: None,
+        camera: Camera::default(),
+        pen_width_mm: 0.5,
+        colour_rgba: [0, 0, 0, 255],
+        finger_ink: false,
+        anchor: None,
+        bookmark: Some(SelectionBookmark {
+            anchor: caret.clone(),
+            focus: caret,
+        }),
+        revision: 0,
+    };
+    request(
+        &host,
+        Command::SaveView {
+            view: view.clone(),
+            expected: None,
+        },
+    );
+    assert_eq!(
+        request(&host, Command::RestoreView { view: view.id })["bookmark_state"],
+        serde_json::to_value(BookmarkState::Current).unwrap()
+    );
+    request(
+        &host,
+        Command::Edit {
+            block,
+            revision: 0,
+            content: Content::Text("A😀!".into()),
+        },
+    );
+    let restored = request(&host, Command::RestoreView { view: view.id });
+    assert_eq!(restored["bookmark_state"], "NeedsReview");
+    assert_eq!(restored["settings"]["bookmark"]["anchor"]["revision"], 0);
+    host.close().unwrap();
+}

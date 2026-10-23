@@ -175,3 +175,15 @@ reads observe the subsequent commit, large input exhausts bytes before count, an
 capture/relock ordering checks fresh authority while retaining denied work for replay.
 These are backend/Robolectric fixtures; device latency, load and process acceptance
 remain unproven. Counter snapshots never substitute for per-ticket commit receipts.
+
+## Revision-bound selection restoration
+
+`positions` covers Unicode scalar offsets and direction, reopen, explicit stale
+revision handling, future/out-of-range rejection, rollback, maths child/leaf and
+component targets, multi-block ranges, cross-owner rejection, exercise reassignment,
+fresh block protection, exact original ink, global-ID remapping, stale copy/backup,
+legacy view migration and downgraded container rejection. Host and actual desktop-
+JNI/Robolectric fixtures exercise SaveView/RestoreView before/after an explicit edit.
+A preliminary region fixture correctly received ReviewRequired for an attempted
+whole-block replacement; it now uses the explicit region-edit API. No bypass was
+introduced. No tablet caret/gesture, automatic rebase or production H.I. is claimed.

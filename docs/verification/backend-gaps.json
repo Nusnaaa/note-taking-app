@@ -7,7 +7,7 @@
       "NB-DOC-004",
       "NB-DATA-008"
     ],
-    "work": "Shared exercise membership/edits/status, extraction, reversible reassignment, hiding, protection, independent rich-object copies, flat exercise/search projections and open-in-master navigation are implemented and exposed through the host boundary. Native coalesced content-free host admission subscriptions are implemented. Android coalesced content-free admission subscriptions are implemented. Remaining: caret/selection positions and complete operation history/retirement. SQLite-managed exclusive native ownership and Android pre-cleanup file leases now enforce one cooperative backend per library through full resource retirement. Save state belongs to the single host Store."
+    "work": "Shared exercise membership/edits/status, extraction, reversible reassignment, hiding, protection, independent rich-object copies, flat exercise/search projections and open-in-master navigation are implemented and exposed through the host boundary. Native coalesced content-free host admission subscriptions are implemented. Android coalesced content-free admission subscriptions are implemented. Revision-bound typed caret/selection bookmarks now persist independently per view, restore with explicit current/stale state, check fresh protection and survive native copy/encrypted backup. Remaining: workspace last-document/pane restoration and complete operation history/retirement. SQLite-managed exclusive native ownership and Android pre-cleanup file leases now enforce one cooperative backend per library through full resource retirement. Save state belongs to the single host Store."
   },
   {
     "id": "A2-CAPTURE-HOST",
@@ -66,7 +66,7 @@
       "NB-EXP-003",
       "NB-EXP-004"
     ],
-    "work": "Native subset v5 adds explicit interrupted-stroke provenance, reads v1-v4, preserves regions/rich attachments and remaps identities. Encrypted schema-10 whole backups retain provenance/authoring undo and restore schemas 8/9 without inventing termination or old history. Converted-only Markdown/SVG and paginated selectable Unicode/vector maths PDF are implemented. Remaining: static embeds, cropped images/canvas fidelity, scalable/chunked backup beyond the current 64 MiB bound, complete import lineage/PDF-linked native portability and all-operation undo. Model files and source grants are not portable."
+    "work": "Native subset v6 adds revision-bound selection bookmarks, retains interrupted-stroke provenance, reads v1-v5, preserves regions/rich attachments and remaps identities. Encrypted schema-11 whole backups retain bookmarks/provenance/authoring undo and restore schemas 8/9/10 without inventing termination or old history. Converted-only Markdown/SVG and paginated selectable Unicode/vector maths PDF are implemented. Remaining: static embeds, cropped images/canvas fidelity, scalable/chunked backup beyond the current 64 MiB bound, complete import lineage/PDF-linked native portability and all-operation undo. Model files and source grants are not portable."
   },
   {
     "id": "A7-ANDROID-BOUNDARY",

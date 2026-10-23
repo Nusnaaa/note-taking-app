@@ -84,13 +84,20 @@ pub struct ViewSettings {
     pub colour_rgba: [u8; 4],
     pub finger_ink: bool,
     pub anchor: Option<Id>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bookmark: Option<SelectionBookmark>,
     pub revision: u64,
 }
 
 impl ViewSettings {
     pub fn validate(&self) -> Result<()> {
         self.camera.validate()?;
-
+        if let Some(bookmark) = &self.bookmark {
+            bookmark.validate_shape()?;
+        }
+        if self.revision > i64::MAX as u64 {
+            return Err(Error::Invalid("view revision"));
+        }
         if !self.pen_width_mm.is_finite() || self.pen_width_mm <= 0. || self.pen_width_mm > 100. {
             Err(Error::Invalid("pen width"))
         } else {
@@ -647,6 +654,9 @@ impl Store {
                 }
             }
 
+            if Self::bookmark_state(db, &view, access)? == BookmarkState::NeedsReview {
+                return Err(Error::Conflict);
+            }
             let old: Option<String> = db
                 .query_row(
                     "SELECT payload FROM view_settings WHERE id=?1",
@@ -656,6 +666,7 @@ impl Store {
                 .optional()?;
             let old: Option<ViewSettings> = old.as_deref().map(serde_json::from_str).transpose()?;
             if let Some(previous) = &old {
+                Self::bookmark_state(db, previous, access)?;
                 if let Some(exercise) = previous.exercise {
                     Self::read_exercise(db, exercise, access)?;
                 }
@@ -671,7 +682,13 @@ impl Store {
                 return Err(Error::Conflict);
             }
             let mut view = view;
-            view.revision = expected.map_or(0, |r| r + 1);
+            view.revision = match expected {
+                Some(r) => r
+                    .checked_add(1)
+                    .filter(|r| *r <= i64::MAX as u64)
+                    .ok_or(Error::ResourceLimit)?,
+                None => 0,
+            };
             db.execute(
                 "INSERT INTO view_settings VALUES(?1,?2,?3) ON CONFLICT(id) DO UPDATE SET \
                 payload=excluded.payload",
@@ -686,6 +703,9 @@ impl Store {
     }
 
     pub fn view(&self, id: Id, access: &Access) -> Result<ViewSettings> {
+        Ok(self.read_view(id, access)?.settings)
+    }
+    pub(crate) fn read_view(&self, id: Id, access: &Access) -> Result<RestoredView> {
         let json: String = self
             .db
             .query_row(
@@ -697,7 +717,7 @@ impl Store {
             .ok_or(Error::Unavailable)?;
 
         let v: ViewSettings = serde_json::from_str(&json)?;
-
+        v.validate()?;
         Self::authorise(&self.db, v.entity, access, false)?;
 
         if let Some(e) = v.exercise {
@@ -708,7 +728,11 @@ impl Store {
             Self::read_block(&self.db, b, access)?;
         }
 
-        Ok(v)
+        let bookmark_state = Self::bookmark_state(&self.db, &v, access)?;
+        Ok(RestoredView {
+            settings: v,
+            bookmark_state,
+        })
     }
 
     pub fn surface_items(

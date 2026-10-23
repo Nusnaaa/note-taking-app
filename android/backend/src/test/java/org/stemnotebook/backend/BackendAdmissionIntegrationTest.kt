@@ -36,6 +36,23 @@ class BackendAdmissionIntegrationTest {
         val event = MotionEvent.obtain(10, time, action, 1, arrayOf(property), arrayOf(coordinate), 0, 0, 1f, 1f, 0, 0, InputDevice.SOURCE_STYLUS, 0)
         return try { session.accept(event).single() } finally { event.recycle() }
     }
+    @Test(timeout = 20_000) fun savedUnicodeSelectionRestoresOnlyAtItsOriginalRevision() {
+        val backend = NotebookBackend(platform(temporary.newFolder())); val entity = note(backend)
+        try {
+            val block = call(backend, JSONObject().put("op", "Append").put("entity", entity.toString()).put("content", JSONObject().put("type", "Text").put("value", "A😀?"))).getJSONObject("data").getString("id")
+            val point = JSONObject().put("block", block).put("revision", 0).put("region", JSONObject.NULL).put("target", JSONObject().put("Inline", JSONObject().put("Text", JSONObject().put("offset", 2))))
+            val view = UUID.randomUUID()
+            val settings = JSONObject().put("id", view.toString()).put("entity", entity.toString()).put("exercise", JSONObject.NULL)
+                .put("camera", JSONObject().put("centre_x", 0).put("centre_y", 0).put("zoom", 1).put("rotation_rad", 0))
+                .put("pen_width_mm", 0.5).put("colour_rgba", org.json.JSONArray(listOf(0, 0, 0, 255))).put("finger_ink", false).put("anchor", JSONObject.NULL).put("revision", 0)
+                .put("bookmark", JSONObject().put("anchor", point).put("focus", point))
+            call(backend, JSONObject().put("op", "SaveView").put("view", settings).put("expected", JSONObject.NULL))
+            assertEquals("Current", call(backend, JSONObject().put("op", "RestoreView").put("view", view.toString())).getJSONObject("data").getString("bookmark_state"))
+            call(backend, JSONObject().put("op", "Edit").put("block", block).put("revision", 0).put("content", JSONObject().put("type", "Text").put("value", "A😀!")))
+            val restored = call(backend, JSONObject().put("op", "RestoreView").put("view", view.toString())).getJSONObject("data")
+            assertEquals("NeedsReview", restored.getString("bookmark_state")); assertEquals(0, restored.getJSONObject("settings").getJSONObject("bookmark").getJSONObject("anchor").getInt("revision"))
+        } finally { backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
+    }
     @Test(timeout = 20_000) fun fullReadLaneStillAdmitsObservedInkAndQueuedReadsSeeItsCommit() {
         val backend = NotebookBackend(platform(temporary.newFolder())); val entity = note(backend)
         val entered = CountDownLatch(1); val release = CountDownLatch(1)

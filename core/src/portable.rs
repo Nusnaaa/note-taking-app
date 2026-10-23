@@ -1,4 +1,4 @@
-//! Native JSON v5 (with v1-v4 read compatibility) for the implemented core subset.
+//! Native JSON v6 (with v1-v5 read compatibility) for the implemented core subset.
 //! It is NOT yet the complete v0.5.8 interchange contract (see status).
 use crate::{
     crypto, digest,
@@ -107,7 +107,7 @@ impl NativeDocument {
         })?)
     }
     pub fn validate(&self) -> Result<()> {
-        if !matches!(self.version, 1..=5) {
+        if !matches!(self.version, 1..=6) {
             return Err(Error::Unsupported);
         }
         if self.version < 4
@@ -120,6 +120,9 @@ impl NativeDocument {
         }
         if self.version < 3 && self.attachments != crate::attachments::Attachments::default() {
             return Err(Error::Invalid("native v3 extensions"));
+        }
+        if self.version < 6 && self.attachments.views.iter().any(|v| v.bookmark.is_some()) {
+            return Err(Error::Unsupported);
         }
         self.attachments.validate(self)?;
         if self.version == 1
@@ -524,7 +527,7 @@ impl Store {
             entities.push(e);
         }
         let mut document = NativeDocument {
-            version: 5,
+            version: 6,
             created_ms: now_ms(),
             entities,
             blocks,

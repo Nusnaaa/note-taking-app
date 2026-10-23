@@ -48,7 +48,7 @@ impl MathNode {
             form: MathForm::Token(value.into()),
         }
     }
-    fn children(&self) -> Vec<&MathNode> {
+    pub(crate) fn children(&self) -> Vec<&MathNode> {
         match &self.form {
             MathForm::Row(v) | MathForm::AlignedLines(v) | MathForm::Alternatives(v) => {
                 v.iter().collect()
