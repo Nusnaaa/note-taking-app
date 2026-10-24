@@ -15,7 +15,7 @@ class JournaledCaptureSession internal constructor(internal val backend: Noteboo
     internal val seen = mutableMapOf<UUID, Long>() // bounded by journal admission
     private var interrupted = emptyList<CapturedStroke>()
     data class Receipt(val ticket: UUID, val revision: Long, val checkpointed: Boolean, val committed: Boolean, val discarded: Boolean = false)
-    data class Submission internal constructor(val stroke: CapturedStroke, val revision: Long, private val completion: CompletableFuture<Receipt>, val cancelled: Boolean = false) {
+    data class Submission(val stroke: CapturedStroke, val revision: Long, private val completion: CompletableFuture<Receipt>, val cancelled: Boolean = false) {
         // Cancelling observation never retires an admitted write or its priority.
         val receipt: CompletableFuture<Receipt> = completion.thenApply { it }
         internal val retirement: CompletableFuture<Receipt> get() = completion
