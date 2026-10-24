@@ -1009,3 +1009,61 @@ recognition status and never discards original observations. No SDK callback or 
 cleanup runs on the input thread. Registration/execution of Android recogniser providers,
 complete cross-media scheduling, hard worker isolation and physical-device performance
 acceptance remain open; no model is introduced and production H.I. remains gated.
+
+
+### Incremental encrypted whole-library backup (trusted core API)
+
+Store.prepare_stream_backup returns generation/library-bound, read-only review metadata,
+not a copied library snapshot. Existing explicit original-ink inclusion and protected
+scope checks apply. Store.finish_stream_backup requires confirmation, fresh protected
+proof and a JobControl. It reads a consistent SQLite snapshot and streams fixed-table
+logical records into EncryptStream; the sink receives ciphertext only. It checks the
+current generation after ending the read snapshot, before authenticating completion.
+Original stroke payloads/hashes are carried unchanged. Source caches are omitted;
+authorised retained PDF bytes require explicit inclusion and export authority. Local
+model-resource paths are stripped; engine metadata never grants runtime readiness.
+
+STEMENC2 uses the already-resolved RustCrypto aead 0.5.2 STREAM BE32 implementation
+with XChaCha20Poly1305, a fresh random data key and independent password/recovery-key
+wraps. The existing password floor/Argon2id parameters remain unchanged. It uses 64 KiB
+plaintext frames, bounded lengths and authenticated header/length/final-flag AAD.
+STREAM maintains sequence/finality; the reader also requires exact underlying EOF.
+Successful finish alone returns the offline recovery key. A failed writer/flush is
+permanently poisoned; callers discard partial/unacknowledged encrypted output. Flush
+is not completion. Callers still own file sync and deliberate atomic publication;
+this generic byte-sink API does not claim an OS durability acknowledgement.
+
+A decrypted authenticated prefix is not proof of a complete archive. DecryptStream
+requires an explicit plaintext-byte budget; callers must consume EOF/finish before
+using whole-stream results. Store.restore_stream_backup enforces that rule before its
+private SQLite transaction commits. The logical STEMLIB2 body uses schema 15 and a
+fixed compiled table order/column contract, typed bounded cells, table terminators and
+an encrypted total-row footer. It never executes SQL supplied by archive content.
+Individual cells are bounded to 64 MiB and the existing million-row admission bound
+remains. These are engineering limits, not approved device SLOs.
+
+Restore requires a caller-owned private directory (owner-only permissions on Unix;
+symlink/shared-directory rejection occurs before creating private content). A random
+create-new 0600 SQLite file stages the restore. The returned StagedBackupRestore owns
+that file/connection and removes its own scratch on ordinary drop, closing SQLite
+first. Failure returns no Store. The complete existing logical/foreign-key/identity/
+source/history validator runs before returning a stage. Restore allocates a new library
+identity, preserves protected scopes/original ink/history and retires platform grants
+and runtime readiness through the same code as legacy restore. Publishing via
+stage.store().persist_restored_library still requires fresh access/authentication and
+explicit confirmation, syncs and atomically creates a new path without overwriting a
+live library. The staged working DB is private plaintext, matching the established
+working-database boundary; only encrypted output is a public backup writer.
+
+Legacy STEMENC1/schema-8–15 backup APIs remain readable and retain their 64 MiB
+in-memory limits. No native-subset, SQLite or receipt schema version changes. Tests
+exercise an actual whole library above that old limit, plus large generated encrypted
+streams, corruption/reordering/truncation/appending, cancellation, retained-source
+consent, stale generation and no-overwrite publication. These are synthetic application
+fixtures, not real-device measurements or a new cryptographic audit.
+
+This is a trusted core streaming path, not Host/JNI/Android backup transport. Scheduling
+and platform sink durability/cancellation integration remain open. The reused semantic
+validator still materialises a complete logical graph; bounded validation, disk quota,
+crash-orphan cleanup/review and comprehensive interruption/resource acceptance remain
+open. Normal-drop cleanup is not a process-kill guarantee. Production H.I. remains gated.

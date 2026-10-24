@@ -1,6 +1,9 @@
 //! Whole-library logical backup. Fixed schema and parameterised row writes: never
 //! execute SQL supplied by a backup. Restore builds an independent database and
 //! cannot overwrite the live Store. Encrypted output is the only public writer.
+mod streaming;
+pub use streaming::{StagedBackupRestore, StreamBackupPlan};
+
 use crate::{
     attachments::{Attachments, NativeAsset, NativeLayout},
     crypto, digest,
@@ -449,9 +452,14 @@ impl Store {
             4
         })?;
 
+        destination.retire_restored_runtime_state()?;
+        Ok(destination)
+    }
+
+    fn retire_restored_runtime_state(&mut self) -> Result<()> {
         // Provider grants and in-process adapter readiness are not transferable.
         // Retain relationship/revision metadata without pretending the file is open.
-        let tx = destination.db.transaction()?;
+        let tx = self.db.transaction()?;
 
         let rows = {
             let mut q = tx.prepare("SELECT payload FROM sources")?;
@@ -487,7 +495,7 @@ impl Store {
 
         tx.commit()?;
 
-        Ok(destination)
+        Ok(())
     }
 
     /// Publish to a NEW path only. Atomic hard-link publication never overwrites

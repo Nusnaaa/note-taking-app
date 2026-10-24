@@ -17,6 +17,7 @@ thiserror = "2.0.17"
 sha2 = "0.10.9"
 argon2 = "0.5.3"
 chacha20poly1305 = "0.10.1"
+aead = { version = "0.5.2", features = ["stream", "std"] }
 rand = "0.8.5"
 zeroize = "1.8.2"
 tempfile = "3.23.0"

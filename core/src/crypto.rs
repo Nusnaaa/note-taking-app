@@ -9,6 +9,8 @@ use chacha20poly1305::{
 use rand::{rngs::OsRng, RngCore};
 use zeroize::Zeroizing;
 
+pub mod stream;
+
 const MAGIC: &[u8; 8] = b"STEMENC1";
 const MAX: usize = 64 * 1024 * 1024;
 const HEADER: usize = 8 + 16 + 24 + 48 + 24 + 48 + 24;
@@ -41,21 +43,7 @@ pub fn encrypt(plain: &[u8], password: &str) -> Result<Encrypted> {
     if plain.len() > MAX {
         return Err(Error::ResourceLimit);
     }
-    // A length/variety floor is not a guarantee of entropy. Recommend a generated
-    // passphrase; a short numeric PIN is never accepted for offline encryption.
-    if password.chars().count() < 12
-        || password.len() > 1024
-        || password.chars().all(|c| c.is_ascii_digit())
-        || password
-            .chars()
-            .collect::<std::collections::BTreeSet<_>>()
-            .len()
-            < 6
-    {
-        return Err(Error::Invalid(
-            "portable password; use a long distinct passphrase",
-        ));
-    }
+    validate_password(password)?;
     let salt = random::<16>()?;
     let password_key = derive(password, &salt)?;
     let data_key = Zeroizing::new(random::<32>()?);
@@ -161,4 +149,23 @@ pub fn decrypt(envelope: &[u8], credential: Credential<'_>) -> Result<Zeroizing<
         )
         .map_err(|_| Error::Integrity)?;
     Ok(Zeroizing::new(plain))
+}
+
+fn validate_password(password: &str) -> Result<()> {
+    // A length/variety floor is not a guarantee of entropy. Recommend a generated
+    // passphrase; a short numeric PIN is never accepted for offline encryption.
+    if password.chars().count() < 12
+        || password.len() > 1024
+        || password.chars().all(|c| c.is_ascii_digit())
+        || password
+            .chars()
+            .collect::<std::collections::BTreeSet<_>>()
+            .len()
+            < 6
+    {
+        return Err(Error::Invalid(
+            "portable password; use a long distinct passphrase",
+        ));
+    }
+    Ok(())
 }
