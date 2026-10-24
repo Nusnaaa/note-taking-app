@@ -1280,8 +1280,8 @@ NotebookBackend.backups() exposes a trusted NotebookBackups controller, not a JS
 command or model capability. One review/artifact and one optional operation are
 retained. A dedicated daemon worker performs native review, encryption, staged file
 I/O, copy/sync/publication and cleanup. The bounded queue admits one ordinary task
-plus one lifecycle cleanup task while a previous task finishes. Neither file I/O
-nor native backup waiting runs on BackendWriter. Pending.await is for an observer
+plus one lifecycle cleanup task while a previous task finishes. Encrypted payload I/O and native backup job waiting stay off BackendWriter;
+bounded capture-folder metadata and generation barriers are serialized there. Pending.await is for an observer
 thread. Cancellation is logical; closeFullyAsync awaits actual optional workers and
 cleanup before releasing LibraryOwnership, including pre-native and post-native work.
 
@@ -1336,3 +1336,59 @@ API-35 Robolectric/local filesystem checks, not device/provider guarantees.
 SAF/provider transport, scheduling, persisted backup catalogue/status, JNI restore, explicit orphan recovery/cleanup,
 full resource scheduling and bounded semantic restore validation remain open, along
 with other registered backend gaps. No production H.I. is introduced or authorised.
+
+
+### Reviewed Android provider backup publication
+
+Prepared.reviewProvider(treeUri, pickerFlags) reviews an explicitly selected SAF tree
+for that exact owned encrypted artifact. Read/write picker flags are necessary but
+are not treated as permission proof. The production BackupDocuments adapter checks
+current OS URI access, queries the selected directory identity/type/create support
+and label, and binds a bounded selection capability. Selection/payload/provider work
+runs on the optional worker. No URI grant or backup credential comes from notebook
+JSON/model code, and no grant is silently persisted for scheduled use.
+
+Publishing requires confirmation and fresh destination/grant observation. The
+controller verifies staged ciphertext before external creation, creates a fresh
+randomly named octet-stream document through DocumentsContract, checks the returned
+tree/authority/document identity and child relationship, then writes only bounded
+ciphertext. It never accepts an arbitrary existing output URI or requests overwrite
+of an existing selected document. This relies on the selected provider honouring
+Android's new-document contract; it does not establish provider honesty.
+
+Write descriptors/streams are closed before reopening for an exact bounded length/
+SHA-256 readback. Reliable descriptor errors and close failures suppress verification.
+Descriptor sync is attempted; unsupported sync does not by itself prevent verified
+readback. The result records whether that call was acknowledged. ProviderVerified
+means the immediate readback matched the prepared encrypted bytes, not local atomic
+publication, remote commit, durable cloud storage or two-way sync. Production app
+code must preserve that distinction. The destination receipt exposes the deliberately
+created URI to its trusted caller and has no generated toString containing it.
+Neither passwords nor recovery keys enter the provider adapter.
+
+Errors/cancellation after external creation begins return Uncertain, possibly with
+no known document URI if creation itself was ambiguous. No remote document is
+silently deleted or retried; credentials remain in the still-owned prepared artifact
+for explicit recovery until it is closed/invalidated. Local-file commit retains its
+existing non-reversible cancellation boundary; provider cancellation instead requests
+stop and drains to a verified/uncertain outcome after resources retire.
+
+A per-operation CancellationSignal and remaining-deadline timer cover provider
+metadata/open/read/write waits. Signal callbacks run on a separate bounded cancellation
+worker. Its slot remains occupied and new ordinary operations are rejected until a
+callback actually retires. Close awaits payload, cancellation and timer workers before
+library ownership can be released. No blocked provider is claimed forcibly terminated.
+Source-policy invalidation retires the artifact/destination capability; current-source
+flags remain point-in-time epoch/native-generation comparisons.
+
+Actual JNI/API-35 host tests use synthetic provider adapters and descriptors. They
+cover live/revoked grants, fresh selection, independent new documents, ciphertext
+integrity, readback mismatch, ambiguous creation, non-child results, cancellation/
+timeout and actual callback retirement, authoring while readback waits, relock and
+simulated non-seekable output with unsupported-sync injection. Robolectric's pipe
+and sync behaviour is not ART/kernel or cloud-provider evidence. The production
+adapter's OS-denied check is exercised separately. No production H.I. is added.
+
+Source contract: [Android DocumentsContract](https://developer.android.com/reference/android/provider/DocumentsContract).
+Scheduling/persisted grant consent, saved/backed-up catalogue, JNI/platform restore,
+orphan recovery, device/real-provider acceptance and other backend gaps remain open.

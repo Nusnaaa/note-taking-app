@@ -1,5 +1,10 @@
 package org.stemnotebook.backend
 
+import android.content.Intent
+import android.net.Uri
+import android.os.CancellationSignal
+import android.os.ParcelFileDescriptor
+import android.provider.DocumentsContract
 import java.io.Closeable
 import java.io.File
 import java.io.IOException
@@ -26,28 +31,36 @@ class NotebookBackups internal constructor(
     private val barrier: (Any?) -> Any,
     private val current: (Any) -> Boolean,
     private val fault: (String) -> Unit = {},
+    private val documents: BackupDocuments,
 ) : Closeable {
     private val lock = Any()
     private var closed = false
     private var review: Review? = null
     private var prepared: Prepared? = null
     private var running: Operation<*>? = null
+    private var destination: ProviderDestination? = null
+    private var cancelling = false
     @Volatile var needsAttention: Boolean = false
         private set
     private val worker = ThreadPoolExecutor(1, 1, 0, TimeUnit.MILLISECONDS, ArrayBlockingQueue(2),
         { action -> Thread(action, "stem-backup").apply { isDaemon = true } }, ThreadPoolExecutor.AbortPolicy())
+    private val cancellations = ThreadPoolExecutor(1, 1, 0, TimeUnit.MILLISECONDS, ArrayBlockingQueue(1),
+        { action -> Thread(action, "stem-backup-cancel").apply { isDaemon = true } }, ThreadPoolExecutor.AbortPolicy())
+    private val deadlines = java.util.concurrent.ScheduledThreadPoolExecutor(1) { action ->
+        Thread(action, "stem-backup-deadline").apply { isDaemon = true }
+    }.apply { removeOnCancelPolicy = true }
     init {
         check(directory.isDirectory || directory.mkdirs())
         require(!Files.isSymbolicLink(directory.toPath()))
     }
-    class Pending<T : Any> internal constructor(private val future: CompletableFuture<T>, private val cancelAction: () -> Boolean) : Closeable {
+    class Pending<T : Any> internal constructor(private val future: CompletableFuture<T>, private val cancelAction: () -> Boolean, private val partialOutcome: () -> Boolean) : Closeable {
         private val cancelled = java.util.concurrent.atomic.AtomicBoolean(false)
         private val taken = java.util.concurrent.atomic.AtomicBoolean(false)
         val isReady: Boolean get() = future.isDone
         fun await(): T {
             check(taken.compareAndSet(false, true)) { "Backup result already claimed" }
-            if (cancelled.get()) throw CancellationException("Backup operation cancelled")
-            return try { future.get().also { if (cancelled.get()) throw CancellationException("Backup operation cancelled") } }
+            if (cancelled.get() && !partialOutcome()) throw CancellationException("Backup operation cancelled")
+            return try { future.get().also { if (cancelled.get() && !partialOutcome()) throw CancellationException("Backup operation cancelled") } }
             catch (error: ExecutionException) { throw error.cause ?: error }
             catch (error: InterruptedException) { cancel(); Thread.currentThread().interrupt(); throw error }
         }
@@ -78,15 +91,32 @@ class NotebookBackups internal constructor(
         }
         fun publish(destination: File, confirmed: Boolean, timeoutMillis: Long = 120_000): Pending<Publication> =
             publishPrepared(this, destination, confirmed, timeoutMillis)
+        fun reviewProvider(tree: Uri, pickerFlags: Int, timeoutMillis: Long = 120_000): Pending<ProviderDestination> =
+            reviewProviderDestination(this, tree, pickerFlags, timeoutMillis)
         override fun close() = synchronized(lock) {
+            destination?.let { it.live = false }; destination = null
             live = false; key.fill('\u0000'); queueCleanup(this)
         }
     }
+    inner class ProviderDestination internal constructor(internal val artifact: Prepared, internal val tree: Uri,
+        internal val observed: BackupDocuments.Selection) : Closeable {
+        internal var live = true
+        val label: String get() = synchronized(lock) { check(live && !closed); observed.label }
+        fun publish(confirmed: Boolean, timeoutMillis: Long = 120_000): Pending<ProviderPublication> =
+            publishProvider(this, confirmed, timeoutMillis)
+        override fun close() = synchronized(lock) {
+            live = false; if (destination === this) destination = null
+        }
+    }
+    /** Only ciphertext and an intentionally created document URI cross the provider
+     * boundary. No key/password, raw notebook path or cloud-sync claim is included. */
+    class ProviderPublication internal constructor(val document: Uri?, val bytes: Long, val outcome: Outcome,
+        val descriptorSyncAcknowledged: Boolean, val coversCurrentAuthoring: Boolean)
     /** Published is a durable local-filesystem acknowledgement, not cloud sync.
      * Uncertain means a final encrypted file may exist: inspect before retrying.
      * No destination path, key or notebook content is present in this result. */
     data class Publication(val bytes: Long, val outcome: Outcome, val coversCurrentAuthoring: Boolean)
-    enum class Outcome { Published, Uncertain }
+    enum class Outcome { Published, ProviderVerified, Uncertain }
     enum class FailureReason { RecoveryRequired, SourceChanged, QuotaExceeded, StagingNeedsAttention, IntegrityFailed, DestinationExists, Unavailable }
     class Failure internal constructor(val reason: FailureReason) : IOException("Backup operation unavailable")
 
@@ -95,14 +125,29 @@ class NotebookBackups internal constructor(
         private val started = System.nanoTime()
         var cancelled = false
         var committing = false
+        @Volatile var partialOutcome = false
+        var signal: CancellationSignal? = null
+        var signalCancelled = false
         var nativeJob: NativeBridge.BackupJob? = null
         var disposal: (() -> Unit)? = null
         fun check() = synchronized(lock) {
             if (!committing && (closed || cancelled || System.nanoTime() - started >= TimeUnit.MILLISECONDS.toNanos(timeout)))
                 throw CancellationException("Backup operation cancelled or expired")
         }
+        fun remainingNanos(): Long = maxOf(0, TimeUnit.MILLISECONDS.toNanos(timeout) - (System.nanoTime() - started))
+        fun completionCheck() { if (!partialOutcome) check() }
+        fun providerSignal(): CancellationSignal = synchronized(lock) {
+            check(); CancellationSignal().also { signal = it }
+        }
         fun cancel(): Boolean {
-            val pair = synchronized(lock) { if (committing) return false; cancelled = true; nativeJob to disposal }
+            val pair = synchronized(lock) { if (committing) return false
+                cancelled = true
+                val active = signal
+                if (active != null && !signalCancelled) {
+                    signalCancelled = true; cancelling = true
+                    cancellations.execute { try { active.cancel() } finally { synchronized(lock) { cancelling = false } } }
+                }
+                nativeJob to disposal }
             try { pair.first?.close() } catch (_: Exception) { }
             pair.second?.invoke()
             return true
@@ -113,17 +158,18 @@ class NotebookBackups internal constructor(
         val operation = Operation<T>(timeout)
         synchronized(lock) {
             check(!closed)
-            if (running != null) throw RejectedExecutionException("Backup worker occupied")
+            if (running != null || cancelling) throw RejectedExecutionException("Backup worker occupied")
             running = operation
             try {
                 worker.execute {
                     var value: T? = null
                     var failure: Throwable? = null
-                    try { operation.check(); value = action(operation); operation.check() }
+                    try { operation.check(); value = action(operation); operation.completionCheck() }
                     catch (error: Throwable) { failure = error }
                     try { retire() } catch (error: Throwable) { if (failure == null) failure = error }
                     synchronized(lock) {
-                        if (failure == null) try { operation.check() } catch (error: Throwable) { failure = error }
+                        if (failure == null) try { operation.completionCheck() } catch (error: Throwable) { failure = error }
+                        operation.signal = null
                         if (running === operation) running = null
                         var problem = failure
                         var wrappers = 0
@@ -136,14 +182,14 @@ class NotebookBackups internal constructor(
                             operation.future.complete(result)
                         } else {
                             value?.let { dispose(it) }
-                            operation.future.completeExceptionally(if (problem is CancellationException)
+                            operation.future.completeExceptionally(if (problem is CancellationException || problem is android.os.OperationCanceledException || operation.cancelled)
                                 CancellationException("Backup operation cancelled or expired") else (problem as? Failure ?: Failure(FailureReason.Unavailable)))
                         }
                     }
                 }
             } catch (error: RejectedExecutionException) { running = null; throw error }
         }
-        return Pending(operation.future) { operation.cancel() }
+        return Pending(operation.future, { operation.cancel() }, { operation.partialOutcome })
     }
     fun review(originalInk: Boolean = true, sourceAssets: Boolean = false, timeoutMillis: Long = 120_000): Pending<Review> {
         synchronized(lock) { check(review == null && prepared == null) { "Backup review or artifact still owned" } }
@@ -225,6 +271,120 @@ class NotebookBackups internal constructor(
                 }
             }
         } catch (error: Throwable) { secret.fill('\u0000'); throw error }
+    }
+    private fun <T> withProviderSignal(operation: Operation<*>, action: (CancellationSignal) -> T): T {
+        val signal = operation.providerSignal()
+        val timer = deadlines.schedule({ operation.cancel() }, operation.remainingNanos(), TimeUnit.NANOSECONDS)
+        return try { action(signal) } finally { timer.cancel(false) }
+    }
+    private fun reviewProviderDestination(artifact: Prepared, tree: Uri, flags: Int, timeout: Long): Pending<ProviderDestination> {
+        val required = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+        require(tree.scheme == "content" && tree.toString().length <= 4096 && DocumentsContract.isTreeUri(tree) && flags and required == required)
+        synchronized(lock) { check(!closed && artifact === prepared && artifact.live) }
+        return submit(timeout, { it.close() }) { operation ->
+            withProviderSignal(operation) { signal ->
+                val observation = documents.inspect(tree, signal)
+                require(observation.identity == DocumentsContract.getTreeDocumentId(tree) && observation.label.length <= 4096)
+                operation.check()
+                synchronized(lock) {
+                    operation.check(); check(artifact.live && prepared === artifact)
+                    destination?.close()
+                    ProviderDestination(artifact, tree, observation).also { destination = it }
+                }
+            }
+        }
+    }
+    private fun verifyCiphertext(artifact: Prepared, operation: Operation<*>) {
+        FileChannel.open(artifact.file.toPath(), StandardOpenOption.READ, LinkOption.NOFOLLOW_LINKS).use { source ->
+            val buffer = ByteBuffer.allocate(64 * 1024)
+            val digest = java.security.MessageDigest.getInstance("SHA-256")
+            var total = 0L
+            while (true) {
+                operation.check(); buffer.clear()
+                val count = source.read(buffer)
+                if (count < 0) break
+                if (count.toLong() > artifact.bytes - total) throw Failure(FailureReason.IntegrityFailed)
+                digest.update(buffer.array(), 0, count); total += count
+            }
+            if (total != artifact.bytes || !java.security.MessageDigest.isEqual(digest.digest(), artifact.digest))
+                throw Failure(FailureReason.IntegrityFailed)
+        }
+    }
+    private fun publishProvider(selected: ProviderDestination, confirmed: Boolean, timeout: Long): Pending<ProviderPublication> {
+        require(confirmed)
+        synchronized(lock) { check(!closed && destination === selected && selected.live && selected.artifact.live) }
+        return submit(timeout, {}) { operation ->
+            withProviderSignal(operation) { signal ->
+                val artifact = selected.artifact
+                if (documents.inspect(selected.tree, signal) != selected.observed) throw Failure(FailureReason.SourceChanged)
+                verifyCiphertext(artifact, operation)
+                var created: Uri? = null
+                var syncAcknowledged = false
+                try {
+                    synchronized(lock) {
+                        operation.check(); check(destination === selected && selected.live && artifact.live)
+                        selected.close()
+                        // A provider can mutate externally before create returns. From
+                        // here cancellation/errors must report an uncertain outcome.
+                        operation.partialOutcome = true
+                    }
+                    val document = documents.create(selected.tree, "STEM-backup-${java.util.UUID.randomUUID()}.stemenc")
+                    require(document.scheme == "content" && document.toString().length <= 4096 && document.authority == selected.tree.authority)
+                    require(DocumentsContract.getTreeDocumentId(document) == selected.observed.identity)
+                    require(DocumentsContract.getDocumentId(document) != selected.observed.identity)
+                    created = document
+                    operation.check()
+                    check(documents.isChild(selected.tree, document))
+                    val outputDescriptor = documents.open(document, true, signal)
+                    try {
+                        ParcelFileDescriptor.AutoCloseOutputStream(outputDescriptor).use { output ->
+                            FileChannel.open(artifact.file.toPath(), StandardOpenOption.READ, LinkOption.NOFOLLOW_LINKS).use { source ->
+                                val buffer = ByteBuffer.allocate(64 * 1024)
+                                val digest = java.security.MessageDigest.getInstance("SHA-256")
+                                var total = 0L
+                                while (true) {
+                                    operation.check(); buffer.clear()
+                                    val count = source.read(buffer)
+                                    if (count < 0) break
+                                    if (count.toLong() > artifact.bytes - total) throw Failure(FailureReason.IntegrityFailed)
+                                    output.write(buffer.array(), 0, count); digest.update(buffer.array(), 0, count); total += count
+                                }
+                                if (total != artifact.bytes || !java.security.MessageDigest.isEqual(digest.digest(), artifact.digest))
+                                    throw Failure(FailureReason.IntegrityFailed)
+                            }
+                            operation.check(); output.flush(); outputDescriptor.checkError()
+                            try { fault("provider-sync"); outputDescriptor.fileDescriptor.sync(); syncAcknowledged = true } catch (_: java.io.SyncFailedException) { }
+                        }
+                    } finally { outputDescriptor.close() }
+                    operation.check(); fault("provider-written")
+                    val inputDescriptor = documents.open(document, false, signal)
+                    try {
+                        ParcelFileDescriptor.AutoCloseInputStream(inputDescriptor).use { input ->
+                            val bytes = ByteArray(64 * 1024)
+                            val digest = java.security.MessageDigest.getInstance("SHA-256")
+                            var total = 0L
+                            while (true) {
+                                operation.check()
+                                val count = input.read(bytes)
+                                if (count < 0) break
+                                if (count.toLong() > artifact.bytes - total) throw Failure(FailureReason.IntegrityFailed)
+                                digest.update(bytes, 0, count); total += count
+                            }
+                            inputDescriptor.checkError()
+                            if (total != artifact.bytes || !java.security.MessageDigest.isEqual(digest.digest(), artifact.digest))
+                                throw Failure(FailureReason.IntegrityFailed)
+                        }
+                    } finally { inputDescriptor.close() }
+                    operation.check()
+                    ProviderPublication(document, artifact.bytes, Outcome.ProviderVerified, syncAcknowledged,
+                        try { current(artifact.epoch) } catch (_: Exception) { false })
+                } catch (_: Exception) {
+                    if (!operation.partialOutcome) throw Failure(FailureReason.Unavailable)
+                    needsAttention = true
+                    ProviderPublication(created, artifact.bytes, Outcome.Uncertain, false, false)
+                }
+            }
+        }
     }
     private fun publishPrepared(artifact: Prepared, destination: File, confirmed: Boolean, timeout: Long): Pending<Publication> {
         require(confirmed && destination.isAbsolute)
@@ -313,6 +473,7 @@ class NotebookBackups internal constructor(
             pair
         }
         old.first?.cancel(); old.second?.close()
+        deadlines.shutdownNow(); cancellations.shutdown()
     }
-    internal fun awaitClosed() = awaitStopped(worker)
+    internal fun awaitClosed() = awaitStopped(worker, cancellations, deadlines)
 }

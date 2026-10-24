@@ -10,7 +10,7 @@ import java.util.UUID
 import org.json.JSONObject
 
 /** Owns native lifetime and serialises requests away from the Android main thread. */
-class NotebookBackend internal constructor(context: Context, pdfFactory: (Context, (JSONObject) -> JSONObject) -> PdfWorkspace, selectionProvider: PdfProvider = PdfProvider(context), captureJournalFault: (String) -> Unit = {}, backupFault: (String) -> Unit = {}) : Closeable {
+class NotebookBackend internal constructor(context: Context, pdfFactory: (Context, (JSONObject) -> JSONObject) -> PdfWorkspace, selectionProvider: PdfProvider = PdfProvider(context), captureJournalFault: (String) -> Unit = {}, backupFault: (String) -> Unit = {}, backupDocuments: BackupDocuments = BackupDocuments.platform(context)) : Closeable {
     constructor(context: Context) : this(context, { platform, native -> PdfWorkspace(platform, native) })
     private val ownership = try { LibraryOwnership.acquire(context.noBackupFilesDir) } catch (error: Exception) { selectionProvider.close(); throw error }
     private val directory = File(context.noBackupFilesDir, "notebook")
@@ -42,7 +42,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
             require(!java.nio.file.Files.isSymbolicLink(directory.toPath()))
             val loadedBackups = NotebookBackups(File(directory, "backup-staging"), context.noBackupFilesDir, { handle.join() },
                 { expected -> backupBarrier(expected).join() },
-                { expected -> try { backupBarrier(expected).join() === expected } catch (_: Exception) { false } }, backupFault)
+                { expected -> try { backupBarrier(expected).join() === expected } catch (_: Exception) { false } }, backupFault, backupDocuments)
             createdBackups = loadedBackups
             backups = loadedBackups
             val loadedPdf = pdfFactory(context) { command ->
