@@ -1242,3 +1242,33 @@ through their own workers' entire lifetimes. JNI restore, scheduled/public-provi
 transport, bounded semantic restore validation and crash cleanup remain open.
 Production H.I. remains gated. Actual JVM checks and API-35 Robolectric tests are
 host evidence, not device or provider durability evidence.
+
+
+### JNI consumer rules and release packaging
+
+The backend library packages consumer-rules.pro into both debug and release AARs.
+The rules retain NativeBridge exported names, JNI-created nested constructors,
+callback interface members and concrete Verification/PdfGrant/BackupOutput methods
+called only by native code. They do not disable shrinking for unrelated backend
+code. No Activity or production H.I. is introduced.
+
+The Android validator now builds both AAR variants, compares their consumer rules
+against the tracked file, verifies identical ARM64 libraries, and checks privacy
+merge contracts in both packaged manifests. It compiles fresh JVM classes in a
+private temporary build directory, runs the complete native smoke boundary, then
+uses the installed SDK 35 build-tools R8 in release classfile mode with tree shaking,
+optimization and minification enabled. Only the fixture main entry point is kept
+by test rules; the actual library consumer rules retain JNI names. Mapping inspection
+requires BackupBoundarySmoke to have been renamed. The same -Xcheck:jni smoke groups
+must pass in the optimized artifact. Both concrete verifier classes and lambdas,
+PDF grant callbacks, backup review construction/output/retirement, Unicode,
+protection and close ownership are exercised. Tool version/hash, input/output hashes,
+mapping and raw command output are retained in evidence. JNI group totals are read
+from smoke output instead of the old fixed jni_assertions field.
+
+This is actual desktop R8/JVM execution plus debug/release AAR packaging evidence,
+not final APK/ART, device authentication/privacy or a shrunk production app test.
+The acceptance gate requires these new checks without closing the broader Android
+boundary/semantic gaps. App-level backup/recovery integration, worker ownership,
+trusted quota/sync/publication and JNI restore still remain open; production H.I.
+remains gated.

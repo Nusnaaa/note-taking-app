@@ -9,6 +9,8 @@ import datetime
 import hashlib
 import json
 import os
+import re
+import tempfile
 from pathlib import Path
 import shlex
 import shutil
@@ -49,15 +51,39 @@ def main():
         report['checks'].append({'name':name,'command':command,'exit_code':result.returncode,'result':'PASS' if result.returncode==0 else 'FAIL'})
         save();print(name+': '+report['checks'][-1]['result'],flush=True)
         if result.returncode: print(result.stdout[-4000:]);raise SystemExit(result.returncode)
+        return result.stdout
     run('android-native',[cargo,'build','-p','stem-bridge','--target','aarch64-linux-android','--release','--locked','--offline'])
     native=ROOT/'target/aarch64-linux-android/release/libstem_bridge.so'
     run('android-elf',['readelf','-h',str(native)])
     target=ROOT/'target/android-jni/arm64-v8a';target.mkdir(parents=True,exist_ok=True);shutil.copy2(native,target/native.name)
     run('jni-library',[cargo,'build','-p','stem-bridge','--locked','--offline'])
-    target=ROOT/'target/jvm-test';target.mkdir(exist_ok=True)
-    run('jni-compile',[str(jdk/'bin/javac'),'-d',str(target),'android/backend/src/main/java/org/stemnotebook/backend/NativeBridge.java','bridge/tests/java/BoundarySmoke.java','bridge/tests/java/BackupBoundarySmoke.java'])
-    run('jni-smoke',[str(jdk/'bin/java'),'-Xcheck:jni','-Djava.library.path=target/debug','-cp',str(target),'BoundarySmoke'])
-    gradle=[args.gradle,'--no-daemon','-p','android',':backend:assembleDebug',':backend:testDebugUnitTest',':backend:lintDebug','--console=plain','--rerun-tasks']
+    # Fresh classes prevent removed/renamed fixtures surviving from an older run.
+    with tempfile.TemporaryDirectory(prefix='jni-',dir=ROOT/'target') as scratch:
+        target=Path(scratch)
+        run('jni-compile',[str(jdk/'bin/javac'),'-d',str(target),'android/backend/src/main/java/org/stemnotebook/backend/NativeBridge.java','bridge/tests/java/BoundarySmoke.java','bridge/tests/java/BackupBoundarySmoke.java'])
+        smoke=run('jni-smoke',[str(jdk/'bin/java'),'-Xcheck:jni','-Djava.library.path=target/debug','-cp',str(target),'BoundarySmoke'])
+        groups=sum(int(n) for n in re.findall(r'^PASS:.*\((\d+)\)$',smoke,re.MULTILINE))
+        assert groups>=17, 'Missing JNI fixture groups'
+        inputs=target/'input.jar'
+        with zipfile.ZipFile(inputs,'w') as bundle:
+            for path in sorted(target.rglob('*.class')): bundle.write(path,path.relative_to(target))
+        shrinker=sdk/'build-tools/35.0.0/lib/d8.jar'
+        r8=[str(jdk/'bin/java'),'-cp',str(shrinker),'com.android.tools.r8.R8']
+        version=run('jni-shrinker-version',r8+['--version']).strip()
+        mapping=dest/'jni-shrinker.map'
+        shrunk=target/'shrunk.jar'
+        run('jni-shrink',r8+['--classfile','--release','--lib',str(jdk),'--pg-conf','android/backend/consumer-rules.pro','--pg-conf','bridge/tests/java/shrinker-entry.pro','--pg-map-output',str(mapping),'--output',str(shrunk),str(inputs)])
+        # The only fixture keep is main; prove unrelated fixture code was renamed,
+        # rather than accidentally running an unshrunk or broadly kept artifact.
+        assert re.search(r'^BackupBoundarySmoke -> (?!BackupBoundarySmoke:)[^\n]+:',mapping.read_text(),re.MULTILINE)
+        optimized=run('jni-shrunk-smoke',[str(jdk/'bin/java'),'-Xcheck:jni','-Djava.library.path=target/debug','-cp',str(shrunk),'BoundarySmoke'])
+        optimized_groups=sum(int(n) for n in re.findall(r'^PASS:.*\((\d+)\)$',optimized,re.MULTILINE))
+        assert optimized_groups==groups, 'Shrunk JNI fixtures differ'
+        report['jni_smoke_groups']=groups
+        report['jni_shrunk_smoke_groups']=optimized_groups
+        report['jni_shrinker']={'version':version,'tool_sha256':hashlib.sha256(shrinker.read_bytes()).hexdigest(),'input_sha256':hashlib.sha256(inputs.read_bytes()).hexdigest(),'output_sha256':hashlib.sha256(shrunk.read_bytes()).hexdigest(),'mode':'R8 release classfile; tree shaking, optimization and minification enabled; desktop JVM execution, not device DEX'}
+        report['jni_shrink_policy']='PASS'
+    gradle=[args.gradle,'--no-daemon','-p','android',':backend:assembleDebug',':backend:assembleRelease',':backend:testDebugUnitTest',':backend:lintDebug','--console=plain','--rerun-tasks']
     if not args.online: gradle.append('--offline')
     proxy=urllib.parse.urlsplit(os.environ.get('HTTPS_PROXY',''))
     if proxy.hostname and proxy.port:
@@ -67,25 +93,37 @@ def main():
     suites=[ET.parse(path).getroot() for path in (ROOT/'android/backend/build/test-results/testDebugUnitTest').glob('TEST-*.xml')]
     totals={key:sum(int(s.get(key,'0')) for s in suites) for key in ['tests','failures','errors','skipped']}
     if totals['tests']<10 or any(totals[k] for k in ['failures','errors','skipped']): raise RuntimeError('Missing, failed or skipped Android unit checks')
-    manifest=ET.parse(ROOT/'android/backend/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml').getroot()
-    ns='{http://schemas.android.com/apk/res/android}';app=manifest.find('application')
-    assert app is not None and app.get(ns+'allowBackup')=='false'
-    # AAR manifests deliberately retain tools merge markers. A removal directive
-    # is not a grant; this checks the library contract, not a future APK manifest.
-    permissions=manifest.findall('uses-permission')
-    internet=[node for node in permissions if node.get(ns+'name')=='android.permission.INTERNET']
-    assert internet and all(node.get('{http://schemas.android.com/tools}node')=='remove' for node in internet)
-    assert app.get(ns+'usesCleartextTraffic')=='false'
-    services=app.findall('service');pdf_services=[s for s in services if s.get(ns+'name','').endswith('.PdfWorkerService')]
-    assert len(pdf_services)==1 and pdf_services[0].get(ns+'isolatedProcess')=='true' and pdf_services[0].get(ns+'exported')=='false'
+    def check_manifest(manifest):
+        ns='{http://schemas.android.com/apk/res/android}';app=manifest.find('application')
+        assert app is not None and app.get(ns+'allowBackup')=='false'
+        # AAR manifests deliberately retain tools merge markers. A removal directive
+        # is not a grant; this checks the library contract, not a future APK manifest.
+        permissions=manifest.findall('uses-permission')
+        internet=[node for node in permissions if node.get(ns+'name')=='android.permission.INTERNET']
+        assert internet and all(node.get('{http://schemas.android.com/tools}node')=='remove' for node in internet)
+        assert app.get(ns+'usesCleartextTraffic')=='false'
+        services=app.findall('service');pdf_services=[s for s in services if s.get(ns+'name','').endswith('.PdfWorkerService')]
+        assert len(pdf_services)==1 and pdf_services[0].get(ns+'isolatedProcess')=='true' and pdf_services[0].get(ns+'exported')=='false'
     aar=ROOT/'android/backend/build/outputs/aar/backend-debug.aar'
     with zipfile.ZipFile(aar) as bundle:
         packaged=bundle.read('jni/arm64-v8a/libstem_bridge.so')
         assert packaged[:6]==b'\x7fELF\x02\x01' and int.from_bytes(packaged[18:20],'little')==183
+    rules=(ROOT/'android/backend/consumer-rules.pro').read_text().strip()
+    with zipfile.ZipFile(aar) as bundle:
+        assert bundle.read('proguard.txt').decode().strip()==rules
+        check_manifest(ET.fromstring(bundle.read('AndroidManifest.xml')))
+    release=ROOT/'android/backend/build/outputs/aar/backend-release.aar'
+    with zipfile.ZipFile(release) as bundle:
+        assert bundle.read('proguard.txt').decode().strip()==rules
+        check_manifest(ET.fromstring(bundle.read('AndroidManifest.xml')))
+        assert bundle.read('jni/arm64-v8a/libstem_bridge.so')==packaged
+    report['consumer_rules_policy']='PASS'
+    report['consumer_rules_sha256']=hashlib.sha256(rules.encode()).hexdigest()
+    report['release_aar_sha256']=hashlib.sha256(release.read_bytes()).hexdigest()
     report['aar_sha256']=hashlib.sha256(aar.read_bytes()).hexdigest()
     report['packaged_arm64_library_bytes']=len(packaged)
-    report['android_tests']=totals;report['jni_assertions']=10;report['merged_manifest_policy']='PASS';report['native_sha256']=hashlib.sha256(native.read_bytes()).hexdigest()
-    report['manifest_scope']='AAR merge contract only: INTERNET removal marker, no backup/transfer, no cleartext, isolated non-exported PDF service. Final APK/device enforcement NOT RUN.'
+    report['android_tests']=totals;report['merged_manifest_policy']='PASS';report['native_sha256']=hashlib.sha256(native.read_bytes()).hexdigest()
+    report['manifest_scope']='Debug/release AAR merge contracts only: INTERNET removal marker, no backup/transfer, no cleartext, isolated non-exported PDF service. Final APK/device enforcement NOT RUN.'
     report['finished_utc']=datetime.datetime.now(datetime.timezone.utc).isoformat();save();print(json.dumps(totals))
     return 0
 

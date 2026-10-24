@@ -3,6 +3,9 @@ import java.nio.file.Files;
 import java.util.regex.Pattern;
 public final class BoundarySmoke {
     private static void check(boolean condition) { if (!condition) throw new AssertionError("boundary contract failed"); }
+    private static final class Proof implements NativeBridge.Verification {
+        public boolean verify(String challenge) { return !challenge.isEmpty(); }
+    }
     public static void main(String[] args) throws Exception {
         String path=Files.createTempDirectory("stem-jni").resolve("notebook.db").toString();
         long handle=NativeBridge.open(path);
@@ -11,7 +14,7 @@ public final class BoundarySmoke {
         String created=NativeBridge.request(handle,request);
         check(created.contains("\"ok\":true") && created.contains("λ 日本 😀"));
         var matcher=Pattern.compile("\"id\":\"([^\"]+)\"").matcher(created);check(matcher.find());String id=matcher.group(1);
-        NativeBridge.authenticate(handle,"[{\"Entity\":\""+id+"\"}]",challenge -> !challenge.isEmpty());
+        NativeBridge.authenticate(handle,"[{\"Entity\":\""+id+"\"}]",new Proof());
         String locked=NativeBridge.request(handle,"{\"version\":1,\"command\":{\"op\":\"SetLock\",\"entity\":\""+id+"\",\"revision\":0,\"locked\":true}}");
         check(locked.contains("\"ok\":true"));
         NativeBridge.request(handle,"{\"version\":1,\"command\":{\"op\":\"Relock\"}}");
@@ -60,8 +63,10 @@ public final class BoundarySmoke {
             String target="{\"kind\":\"Link\",\"context\":\""+sourceOwner.group(1)+"\"}";
             String uri="content://synthetic/selected";String revision="a".repeat(64);
             var verified=new java.util.concurrent.atomic.AtomicInteger();
-            NativeBridge.PdfGrant proof=(challenge,requested,locator,hash) -> {
-                check(!challenge.isEmpty() && requested.equals(target) && locator.equals(uri) && hash.equals(revision));verified.incrementAndGet();return true;
+            NativeBridge.PdfGrant proof=new NativeBridge.PdfGrant() {
+                public boolean verify(String challenge,String requested,String locator,String hash) {
+                    check(!challenge.isEmpty() && requested.equals(target) && locator.equals(uri) && hash.equals(revision));verified.incrementAndGet();return true;
+                }
             };
             String prepared=NativeBridge.preparePdfSelection(selectionHandle,target,uri,revision,proof);
             var review=Pattern.compile("\"review\":\"([^\"]+)\"").matcher(prepared);check(review.find());

@@ -30,12 +30,14 @@ try:
     reasons += ["UNTESTED_INPUT:" + p for p in new_sources]
     platform = json.loads((root / "docs/evidence/latest/android-validation.json").read_text())
     platform_checks = {c["name"]: c for c in platform["checks"]}
-    if any(platform_checks.get(name, {}).get("result") != "PASS" for name in ("android-native", "android-elf", "jni-library", "jni-compile", "jni-smoke", "android-gradle")):
+    if any(platform_checks.get(name, {}).get("result") != "PASS" for name in ("android-native", "android-elf", "jni-library", "jni-compile", "jni-smoke", "jni-shrinker-version", "jni-shrink", "jni-shrunk-smoke", "android-gradle")):
         reasons.append("ANDROID_AUTOMATED_CHECKS_INCOMPLETE")
     if platform.get("working_tree_before") or not platform.get("finished_utc") or platform.get("merged_manifest_policy") != "PASS":
         reasons.append("ANDROID_RUN_INCOMPLETE_OR_UNCOMMITTED")
     if platform.get("source_sha256") != evidence["source_sha256"]:
         reasons.append("ANDROID_SOURCE_REVISION_MISMATCH")
+    if platform.get("jni_shrink_policy") != "PASS" or platform.get("consumer_rules_policy") != "PASS" or platform.get("jni_smoke_groups", 0) < 17 or platform.get("jni_shrunk_smoke_groups") != platform.get("jni_smoke_groups") or not platform.get("release_aar_sha256"):
+        reasons.append("JNI_RELEASE_PACKAGING_INCOMPLETE")
     totals = platform.get("android_tests", {})
     if totals.get("tests", 0) < 10 or any(totals.get(k, 0) for k in ("failures", "errors", "skipped")) or not platform.get("packaged_arm64_library_bytes"):
         reasons.append("ANDROID_TEST_RESULTS_INCOMPLETE")
