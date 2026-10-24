@@ -1,0 +1,11 @@
+Pre-build tool invocation failure; no Android application checks ran.
+Requested SDK/JDK/Gradle arguments were present in the tool request; the returned
+process output rejected missing arguments. The cause is not established. Filesystem
+inspection afterwards confirmed all three supplied tool paths existed. The subsequent
+invocation supplies both explicit --option=value arguments and matching environment
+defaults. This failure is not a source validation result.
+
+exit_code=2
+usage: validate_android.py [-h] [--sdk SDK] [--jdk JDK] [--gradle GRADLE]
+                           [--online]
+validate_android.py: error: SDK, JDK and Gradle paths are required

@@ -1,0 +1,55 @@
+   Compiling stem-core v0.1.0 (/home/linus/Projects/software/note-taking-app/repo/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.80s
+     Running tests/backup_stream.rs (target/debug/deps/backup_stream-cc2d075ba6f24cea)
+
+running 8 tests
+test authorised_retained_pdf_bytes_are_explicit_while_revoked_relationships_stay_revoked ... FAILED
+test cancelled_stream_restore_removes_private_staging_and_does_not_modify_source ... FAILED
+test restore_rejects_shared_or_symlinked_directories_before_creating_private_content ... ok
+test incremental_library_restore_preserves_ink_undo_and_source_relationships_then_publishes_without_overwrite ... FAILED
+test stream_review_requires_ink_consent_fresh_scope_and_current_source_generation_before_any_output ... FAILED
+test concurrent_generation_change_prevents_finalising_an_old_read_snapshot ... ok
+test truncation_trailing_data_malformed_tables_and_budget_failures_leave_no_restore_scratch ... ok
+test whole_library_larger_than_legacy_limit_roundtrips_without_a_library_sized_plaintext_buffer ... FAILED
+
+failures:
+
+---- authorised_retained_pdf_bytes_are_explicit_while_revoked_relationships_stay_revoked stdout ----
+
+thread 'authorised_retained_pdf_bytes_are_explicit_while_revoked_relationships_stay_revoked' panicked at core/tests/backup_stream.rs:400:6:
+called `Result::unwrap()` on an `Err` value: Denied
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- cancelled_stream_restore_removes_private_staging_and_does_not_modify_source stdout ----
+
+thread 'cancelled_stream_restore_removes_private_staging_and_does_not_modify_source' panicked at core/tests/backup_stream.rs:337:5:
+assertion failed: matches!(Store::restore_stream_backup(input,
+    crypto::Credential::Recovery(&key), 10 * 1024 * 1024, dir.path(), &job),
+    Err(Error::Cancelled))
+
+---- incremental_library_restore_preserves_ink_undo_and_source_relationships_then_publishes_without_overwrite stdout ----
+
+thread 'incremental_library_restore_preserves_ink_undo_and_source_relationships_then_publishes_without_overwrite' panicked at core/tests/backup_stream.rs:85:6:
+called `Result::unwrap()` on an `Err` value: Denied
+
+---- stream_review_requires_ink_consent_fresh_scope_and_current_source_generation_before_any_output stdout ----
+
+thread 'stream_review_requires_ink_consent_fresh_scope_and_current_source_generation_before_any_output' panicked at core/tests/backup_stream.rs:218:6:
+called `Result::unwrap()` on an `Err` value: Denied
+
+---- whole_library_larger_than_legacy_limit_roundtrips_without_a_library_sized_plaintext_buffer stdout ----
+
+thread 'whole_library_larger_than_legacy_limit_roundtrips_without_a_library_sized_plaintext_buffer' panicked at core/tests/backup_stream.rs:590:6:
+called `Result::unwrap()` on an `Err` value: Denied
+
+
+failures:
+    authorised_retained_pdf_bytes_are_explicit_while_revoked_relationships_stay_revoked
+    cancelled_stream_restore_removes_private_staging_and_does_not_modify_source
+    incremental_library_restore_preserves_ink_undo_and_source_relationships_then_publishes_without_overwrite
+    stream_review_requires_ink_consent_fresh_scope_and_current_source_generation_before_any_output
+    whole_library_larger_than_legacy_limit_roundtrips_without_a_library_sized_plaintext_buffer
+
+test result: FAILED. 3 passed; 5 failed; 0 ignored; 0 measured; 0 filtered out; finished in 43.57s
+
+error: test failed, to rerun pass `-p stem-core --test backup_stream`

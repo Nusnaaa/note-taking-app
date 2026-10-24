@@ -1,8 +1,8 @@
 {
-  "started_utc": "2026-10-24T08:03:37.572509+00:00",
-  "source_commit": "d87531d31486082c05f57e9febd2a6abc4dd3284",
+  "started_utc": "2026-10-24T08:36:00.550723+00:00",
+  "source_commit": "aff1137f0124dec950a5977befb32f33963b455d",
   "working_tree_before": "",
-  "full_working_tree_before": " M docs/evidence/latest/android-elf.log\n M docs/evidence/latest/android-gradle.log\n M docs/evidence/latest/android-native.log\n M docs/evidence/latest/android-validation.json\n M docs/evidence/latest/jni-library.log\n?? docs/evidence/Capture_Priority_2026-10-24.md\n?? docs/evidence/continuation-2026-10-24/capture-priority/",
+  "full_working_tree_before": "?? docs/evidence/continuation-2026-10-24/streaming-backup/",
   "build_environment": {
     "CARGO_INCREMENTAL": "0",
     "CARGO_BUILD_JOBS": "2"
@@ -12,8 +12,8 @@
   "source_sha256": {
     ".gitignore": "47df1768ba52b16ac4fd14a3042d10ecc149fe248e1ddeb2b100a177d279f9f9",
     "AGENTS.md": "096d49ab5f84e027e21d194a534683b066bc92a5248cc1d82ae1731f2b9572d3",
-    "Cargo.lock": "2cf6fcdda6de3477e914f44681a2d46dca4e8f828c216f9b39a3fe1c3766d42e",
-    "Cargo.toml": "977a9d2f34416262f15b7d1eb91a2f97f950f6f4b947576e28f0df57cc6acff8",
+    "Cargo.lock": "f95e65f10aef2d6ed7334f60fc88d7334cbd979571d50a256458a25972cf6356",
+    "Cargo.toml": "6d8463b75d7bd98ca723ae4065b478dc235989b8fa5a84fc773a5f391d4752ca",
     "README.md": "15a1f482bae31cab48d9ff304e95b92993c9cb69ac0948d141fdb9b86d5e1a6b",
     "android/backend/build.gradle.kts": "32c6c9bfe0dee1247b8da7d98fe65a7da8e269057c03e71aa82a386c4a052b4e",
     "android/backend/gradle.lockfile": "cbec11f0c961a5a5bfe6aab69d9bf761a8b8e27bc19034fd5b8eb6589005941e",
@@ -65,7 +65,7 @@
     "bridge/Cargo.toml": "af12a5ff8d095ac69ab0137f1694d789f862f8d3efc2c0d2c6345cdb7ac31db1",
     "bridge/src/lib.rs": "ee37ce1fffd9cc0f6a70f673bb4258088704bae68d078358a6d43970496e1f28",
     "bridge/tests/java/BoundarySmoke.java": "ccf2f052729364d535b86ff09df5ba50053ffd50b409ecbae8f44b0b6d884f91",
-    "core/Cargo.toml": "fb6f7af0edcfe81d72ddd40707fec658e16e7336cdcaa668085716e79021a5be",
+    "core/Cargo.toml": "7275eadb36f35c89ad7849d5dde0ec1e7671d247645cce6f92e4b479dc323ebb",
     "core/migrations/001.sql": "99dad6121fe73b423becb107a9b446855adc6fc652f5927a2da2bdb4167de77c",
     "core/migrations/002.sql": "65a83aaece959e6dca07080c3b1d4c24bafd6e4c962dd9ec8ab3874aea137c7d",
     "core/migrations/003.sql": "b259eca5252494a283015070ba2b759b8e98bf0ca2068b5932d6d65b59846682",
@@ -82,14 +82,16 @@
     "core/migrations/014.sql": "8526cb69c4da2add90f60161f3da93d3a8541aebaf5ebf9914625c1175832be7",
     "core/migrations/015.sql": "a8bf3d06e302e89106460cf3b0fc40c849eb8ca4fabe484101efdd730bbf0482",
     "core/src/attachments.rs": "f44d8206e8fb225d4047e11f73da9d0623e53ac1fdd74a87a8c0055ed291ae46",
-    "core/src/backup.rs": "55157ccd15c743a1ae343bcc82015a9a682bd80a6e1a353113ec1149cfb7e78a",
+    "core/src/backup.rs": "79562233a08f263aefb25d6aa5312824a168b7633073786199e906c447418238",
+    "core/src/backup/streaming.rs": "b5270d33b3afe0933a26c242e233c171c401f00a6bbbabcea12a4568108fcaf6",
     "core/src/bin/notebook_cli.rs": "26271e2457fe8d3fc1b72a61eb1463bf8e775e5d4929fea5d90235b6d299ff03",
     "core/src/bin/recovery_probe.rs": "f3e86f9fb8114498e56003199357ceb03bcc0e11a1b9257ac1e6325fe2ba23e9",
     "core/src/bin/render_probe.rs": "e82dac37876ef085a1066f169375d6195a0edf1f46f5c28f1b8124e7ed651326",
     "core/src/capture.rs": "fe9f8052d3760f2cd8c7be671b467e6928cc11181f82b6ab36088b12120c1ed8",
     "core/src/content.rs": "771dbbbf70512a8786ec3fe012f30f778c9eb8efb5a669a04c5601bb694f82e9",
     "core/src/converters.rs": "45577c77224a9a960a33242b8d9c29b779cf18ff94f09a13f2b3efac4ad7ac09",
-    "core/src/crypto.rs": "090a892bbf649583dda78e915be5de826bd4098b8381133e0a6975e18f4330b4",
+    "core/src/crypto.rs": "ca083b36a1a9095ebff26c0247914454424e78098bf59c2169ae14c07d3e61ea",
+    "core/src/crypto/stream.rs": "8917bdfccac8c6d64fdd6fd490270c6fe2367bff1a1cd96248027ae08741a855",
     "core/src/export.rs": "2364239249b1f3acf2854a72abdf2b5a0f6cc75c33a995daec2969136e7eeeda",
     "core/src/help.rs": "6e590f88e4d92923f32ce1c9c0557c97a10dff8bb8039b16e4c034de809f4369",
     "core/src/host.rs": "08ac9d91dea8d7ac4c847538dae854c88d83105e4c4248fae81ad7820b5b844b",
@@ -124,11 +126,13 @@
     "core/src/store/writing.rs": "70211c7fd1696b30c97bb2ec54ce86ce979bd102de6bd7f617e961f555789ad9",
     "core/tests/authoring.rs": "ca360149874c259677323da39dce694a86ffb364e7f9e73ba82a79d3a6ab8f61",
     "core/tests/backup.rs": "6aca0349f7d7486d81fdee1c17487fe422dc1f4e85480406388bdcb04f29b9f2",
+    "core/tests/backup_stream.rs": "689cc859bebf959b94d3fe13ae8d400029bcedf3877e52e0ea194ba72d9fe40d",
     "core/tests/capture.rs": "07ff499ab18ead9a03e15cb31f292e5a8d39d1ae4dd25a7eb2cdbc6aef7a7dff",
     "core/tests/capture_privacy.rs": "fac1b3f429f467ec4f51aaa2920b62456926aa1aa35e5a99b0358ac003901648",
     "core/tests/capture_recovery.rs": "118d36ea5db4bb769856679f778f937e8f72acc8949bec687da8a2e9b1173a4b",
     "core/tests/common/mod.rs": "4257fc12f3f78d69ac8da4a7586ae2984216936feb53ace2836c01b013ee1a58",
     "core/tests/converters.rs": "804296aa85a721207230cd5f710b41eb851904a3de3bd73bf6b4de46a8379a91",
+    "core/tests/crypto_stream.rs": "bb5f6b04731b2fb89d42181fe0f791b2bdc41048fbc959ce392e14782c05b797",
     "core/tests/deletion.rs": "2b0d0ea4205b9f91677f08a16c18fe11ee300bbb7310b12dc03864642c36cb31",
     "core/tests/editing.rs": "60c13a9f8fb6fa7fdcdbd14617b56ca0ece6e6e737ba9d5f09d598180388f747",
     "core/tests/engines.rs": "dd1a07bd2a03829621cb311ddeec02087629e033c101435d66179a47df4808ed",
@@ -198,17 +202,17 @@
     "docs/licensing/dependency-inventory.json": "c86a26e424db68595a545e056ad6726307d9167b564590ea565bba3e08c05c32",
     "docs/spec/approved-v0.5.8.md": "68612d4dc4d0e69c61f0018fbcf67bf779559bcbb120bcd0f6c3f9333f27b7b3",
     "docs/verification/DEFERRED_MANUAL.md": "c694b9fe185c216204dfd72aa6c55d1f8d21e06c431bb50b126bce1a6b514e1c",
-    "docs/verification/HOST_INTEGRATION.md": "a20a0d3852eaa1021a0362ec353beee882d2c4976016e344733a4298103daf30",
+    "docs/verification/HOST_INTEGRATION.md": "f3f3f424aa6e03d9697780992508e02c98332865e8d534eced99102342c96d0f",
     "docs/verification/TEST_PLAN.md": "b87eb3dba1b3074e9d8ab4b38ab9ac0323aa7d1c09dc01b800aa007893c511d9",
-    "docs/verification/backend-gaps.json": "ca4ed6b6a9ed57745f28f59ffda38ef4fe9710bd74a8da233d83c3835b6b03f5",
-    "docs/verification/candidates-current.csv": "65434667dc75f080904a3bd36a8340f14ed1da131738b8cf6057551c3d4e6f50",
-    "docs/verification/inherited-current.csv": "56455ab1511c2a433770ad240ba3fe090fd2a621319f0408febef8f3a514376e",
-    "docs/verification/requirements-current.csv": "c1dd329db29abcaa92862edfa58e86a3801094fdc4f6844f3ba1df790996b7fe",
+    "docs/verification/backend-gaps.json": "d03283674a6b8a4426e92e8312458a9fd0fe795592bbe3e7820c102546630d45",
+    "docs/verification/candidates-current.csv": "6f8fa7e40f2e825aa40aebbdf714c80cd18467d2d4e14adafea4ae5fde0096b8",
+    "docs/verification/inherited-current.csv": "7f624872a0c8be0c4ea033c440792a0101c8d36f3786c690cdf4bec449dee0e0",
+    "docs/verification/requirements-current.csv": "6ab8ff0649318f881798f61de6a31ccc6bee401deb7edaaef4332c66e5f21322",
     "docs/verification/traceability-manifest.json": "15d09e00b540a512b8e0b6afd98b06824e93d743d80317963ebe18d91d3adb22",
     "rust-toolchain.toml": "c33d1f0b1b8fda448bea32d7dc867aa64947c87169fd9de7122ffccad1dd80f9",
     "tools/backend_gate.py": "f2e695b770631ef9dcff18125b737665b3153be72f0bb8992007f151fc1e762d",
     "tools/dependency_inventory.py": "51dc9dcd28cab69c8af36b976d65aa67557d6afe8827be162a431d1854232315",
-    "tools/traceability.py": "645073d66fe140031490266daa76132948b05d826952251566f7bf9da731c797",
+    "tools/traceability.py": "1c6222563b076c67ca600bb38a5120e32e611ba3959689ee5c489ee82a8d5d10",
     "tools/validate.py": "2a25d3f4c6d487754f7b73bc0f415809cdf9e8416fe9f651f0302522a373711a",
     "tools/validate_android.py": "54269646d3c5eefaba3b410e5727ecef2eb49b26d18fc86291ea90ccdc4b79d5"
   },
@@ -224,7 +228,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 0.802,
+      "seconds": 0.749,
       "log": "format.log"
     },
     {
@@ -242,7 +246,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 3.235,
+      "seconds": 0.286,
       "log": "lint.log"
     },
     {
@@ -256,7 +260,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 295.127,
+      "seconds": 449.558,
       "log": "tests.log"
     },
     {
@@ -271,7 +275,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 0.226,
+      "seconds": 169.074,
       "log": "release-build.log"
     },
     {
@@ -283,7 +287,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 0.287,
+      "seconds": 0.367,
       "log": "traceability.log"
     }
   ],
@@ -297,10 +301,6 @@
       "result": "ok"
     },
     {
-      "name": "host::recognition::tests::optional_retirement_worker_failure_does_not_disable_authoritative_writing",
-      "result": "ok"
-    },
-    {
       "name": "sources::selection_tests::retained_pdf_commit_failure_does_not_publish_asset_or_change_acquisition",
       "result": "ok"
     },
@@ -309,11 +309,15 @@
       "result": "ok"
     },
     {
+      "name": "host::recognition::tests::optional_retirement_worker_failure_does_not_disable_authoritative_writing",
+      "result": "ok"
+    },
+    {
       "name": "host::deletion::tests::expired_and_capacity_bounded_reviews_never_delete_content",
       "result": "ok"
     },
     {
-      "name": "host::ownership::tests::sqlite_managed_ownership_survives_commits_and_failed_duplicate_connections",
+      "name": "host::recognition::tests::oversized_processing_frames_fail_without_allocating_an_encoded_copy",
       "result": "ok"
     },
     {
@@ -321,7 +325,11 @@
       "result": "ok"
     },
     {
-      "name": "host::recognition::tests::oversized_processing_frames_fail_without_allocating_an_encoded_copy",
+      "name": "host::ownership::tests::sqlite_managed_ownership_survives_commits_and_failed_duplicate_connections",
+      "result": "ok"
+    },
+    {
+      "name": "invalid_or_dangling_presets_reject_atomically_without_silent_selection_repair",
       "result": "ok"
     },
     {
@@ -330,10 +338,6 @@
     },
     {
       "name": "preferences_preserve_stale_selection_and_do_not_consume_document_undo",
-      "result": "ok"
-    },
-    {
-      "name": "invalid_or_dangling_presets_reject_atomically_without_silent_selection_repair",
       "result": "ok"
     },
     {
@@ -361,6 +365,10 @@
       "result": "ok"
     },
     {
+      "name": "external_asset_backup_is_explicit_authorised_and_revocation_safe",
+      "result": "ok"
+    },
+    {
       "name": "restore_publication_never_overwrites_live_database_and_reopens",
       "result": "ok"
     },
@@ -373,15 +381,43 @@
       "result": "ok"
     },
     {
-      "name": "external_asset_backup_is_explicit_authorised_and_revocation_safe",
-      "result": "ok"
-    },
-    {
       "name": "schema8_logical_backup_upgrades_without_inventing_old_undo_actions",
       "result": "ok"
     },
     {
       "name": "purge_retires_detailed_undo_payloads_and_backup_rejects_forged_journal_rows",
+      "result": "ok"
+    },
+    {
+      "name": "cancelled_stream_restore_removes_private_staging_and_does_not_modify_source",
+      "result": "ok"
+    },
+    {
+      "name": "stream_review_requires_ink_consent_fresh_scope_and_current_source_generation_before_any_output",
+      "result": "ok"
+    },
+    {
+      "name": "restore_rejects_shared_or_symlinked_directories_before_creating_private_content",
+      "result": "ok"
+    },
+    {
+      "name": "incremental_library_restore_preserves_ink_undo_and_source_relationships_then_publishes_without_overwrite",
+      "result": "ok"
+    },
+    {
+      "name": "authorised_retained_pdf_bytes_are_explicit_while_revoked_relationships_stay_revoked",
+      "result": "ok"
+    },
+    {
+      "name": "concurrent_generation_change_prevents_finalising_an_old_read_snapshot",
+      "result": "ok"
+    },
+    {
+      "name": "truncation_trailing_data_malformed_tables_and_budget_failures_leave_no_restore_scratch",
+      "result": "ok"
+    },
+    {
+      "name": "whole_library_larger_than_legacy_limit_roundtrips_with_incremental_encryption_and_private_sqlite_restore",
       "result": "ok"
     },
     {
@@ -441,11 +477,11 @@
       "result": "ok"
     },
     {
-      "name": "recovery_authority_preserves_inherited_and_app_locks_across_purge_and_reopen",
+      "name": "subtree_purge_preflight_and_commit_failure_do_not_partially_erase_protected_ink",
       "result": "ok"
     },
     {
-      "name": "subtree_purge_preflight_and_commit_failure_do_not_partially_erase_protected_ink",
+      "name": "recovery_authority_preserves_inherited_and_app_locks_across_purge_and_reopen",
       "result": "ok"
     },
     {
@@ -465,6 +501,30 @@
       "result": "ok"
     },
     {
+      "name": "envelope_and_frames_are_readable_by_rustcrypto_primitives_independent_of_the_stream_reader",
+      "result": "ok"
+    },
+    {
+      "name": "authenticated_prefix_requires_explicit_finality_and_plaintext_budget_cannot_be_exceeded",
+      "result": "ok"
+    },
+    {
+      "name": "sink_failure_poisoning_prevents_retry_or_final_recovery_receipt",
+      "result": "ok"
+    },
+    {
+      "name": "reordered_duplicated_truncated_spliced_or_appended_frames_never_finish_successfully",
+      "result": "ok"
+    },
+    {
+      "name": "streaming_password_and_recovery_roundtrip_across_arbitrary_writes_and_flushes",
+      "result": "ok"
+    },
+    {
+      "name": "streaming_above_old_64_mib_envelope_limit_uses_only_bounded_io_frames",
+      "result": "ok"
+    },
+    {
       "name": "trash_pages_count_only_authorised_entries_and_restore_requires_current_revision",
       "result": "ok"
     },
@@ -481,11 +541,7 @@
       "result": "ok"
     },
     {
-      "name": "undo_requires_current_locks_and_cannot_remove_protection",
-      "result": "ok"
-    },
-    {
-      "name": "editing_after_undo_discards_redo_branch_but_keeps_source_history",
+      "name": "pruning_without_protected_block_access_keeps_its_undo_history",
       "result": "ok"
     },
     {
@@ -493,11 +549,15 @@
       "result": "ok"
     },
     {
-      "name": "pruning_without_protected_block_access_keeps_its_undo_history",
+      "name": "editing_after_undo_discards_redo_branch_but_keeps_source_history",
       "result": "ok"
     },
     {
       "name": "lasso_action_undo_is_atomic_and_stale_or_interrupted_actions_leave_no_history",
+      "result": "ok"
+    },
+    {
+      "name": "undo_requires_current_locks_and_cannot_remove_protection",
       "result": "ok"
     },
     {
@@ -513,7 +573,7 @@
       "result": "ok"
     },
     {
-      "name": "resource_installation_requires_consent_digest_and_bounded_streaming",
+      "name": "removing_engine_preserves_notebooks_strokes_and_accepted_work",
       "result": "ok"
     },
     {
@@ -521,15 +581,15 @@
       "result": "ok"
     },
     {
-      "name": "removing_engine_preserves_notebooks_strokes_and_accepted_work",
-      "result": "ok"
-    },
-    {
-      "name": "another_connection_changing_state_during_probe_prevents_stale_activation",
+      "name": "resource_installation_requires_consent_digest_and_bounded_streaming",
       "result": "ok"
     },
     {
       "name": "batch_acceptance_is_selected_and_atomic_on_stale_members",
+      "result": "ok"
+    },
+    {
+      "name": "another_connection_changing_state_during_probe_prevents_stale_activation",
       "result": "ok"
     },
     {
@@ -553,15 +613,7 @@
       "result": "ok"
     },
     {
-      "name": "legacy_v1_native_remains_readable_and_malformed_v2_membership_is_rejected",
-      "result": "ok"
-    },
-    {
-      "name": "master_trash_restore_and_purge_preserve_then_remove_exercise_state",
-      "result": "ok"
-    },
-    {
-      "name": "linked_append_is_atomic_and_keeps_master_order_and_shared_save_state",
+      "name": "removing_view_preserves_master_ink_membership_and_protection",
       "result": "ok"
     },
     {
@@ -569,11 +621,19 @@
       "result": "ok"
     },
     {
-      "name": "reassignment_rejects_stale_review_cross_master_and_aba_history",
+      "name": "duplicate_titles_keep_distinct_identity_and_metadata_failures_share_status",
       "result": "ok"
     },
     {
-      "name": "removing_view_preserves_master_ink_membership_and_protection",
+      "name": "legacy_v1_native_remains_readable_and_malformed_v2_membership_is_rejected",
+      "result": "ok"
+    },
+    {
+      "name": "linked_append_is_atomic_and_keeps_master_order_and_shared_save_state",
+      "result": "ok"
+    },
+    {
+      "name": "reassignment_rejects_stale_review_cross_master_and_aba_history",
       "result": "ok"
     },
     {
@@ -581,15 +641,15 @@
       "result": "ok"
     },
     {
-      "name": "failed_extraction_and_reassignment_roll_back_every_membership",
-      "result": "ok"
-    },
-    {
       "name": "exercise_locks_cover_master_search_history_inference_links_export_and_deletion",
       "result": "ok"
     },
     {
-      "name": "duplicate_titles_keep_distinct_identity_and_metadata_failures_share_status",
+      "name": "master_trash_restore_and_purge_preserve_then_remove_exercise_state",
+      "result": "ok"
+    },
+    {
+      "name": "failed_extraction_and_reassignment_roll_back_every_membership",
       "result": "ok"
     },
     {
@@ -597,15 +657,7 @@
       "result": "ok"
     },
     {
-      "name": "reassignment_requires_preview_confirmation_and_undo_preserves_new_content",
-      "result": "ok"
-    },
-    {
       "name": "selected_exercise_export_excludes_unrelated_master_content_and_roundtrips",
-      "result": "ok"
-    },
-    {
-      "name": "existing_membership_survives_heading_confirmation_removal_rename_and_reopen",
       "result": "ok"
     },
     {
@@ -617,11 +669,19 @@
       "result": "ok"
     },
     {
-      "name": "graph_derivative_preserves_authored_order_and_refuses_concealed_points",
+      "name": "reassignment_requires_preview_confirmation_and_undo_preserves_new_content",
+      "result": "ok"
+    },
+    {
+      "name": "existing_membership_survives_heading_confirmation_removal_rename_and_reopen",
       "result": "ok"
     },
     {
       "name": "pagination_never_bisects_indivisible_work_or_silently_scales",
+      "result": "ok"
+    },
+    {
+      "name": "graph_derivative_preserves_authored_order_and_refuses_concealed_points",
       "result": "ok"
     },
     {
@@ -641,15 +701,7 @@
       "result": "ok"
     },
     {
-      "name": "verifier_panic_fails_closed_without_killing_the_writer_or_retaining_access",
-      "result": "ok"
-    },
-    {
       "name": "failed_host_initialisation_releases_ownership_before_returning",
-      "result": "ok"
-    },
-    {
-      "name": "asynchronous_writer_retry_tickets_and_lock_scopes_are_enforced",
       "result": "ok"
     },
     {
@@ -657,31 +709,15 @@
       "result": "ok"
     },
     {
-      "name": "host_restores_revision_bound_selection_without_silently_rebinding_after_edit",
-      "result": "ok"
-    },
-    {
-      "name": "recovery_identity_is_stable_but_never_grants_content_or_receipt_access",
-      "result": "ok"
-    },
-    {
-      "name": "query_saturation_reserves_edit_admission_and_preserves_edit_undo_order",
-      "result": "ok"
-    },
-    {
       "name": "threaded_host_commits_reopens_and_rejects_unknown_version_and_fields",
       "result": "ok"
     },
     {
-      "name": "active_call_and_shutdown_drain_hold_ownership_until_original_ink_is_committed",
+      "name": "asynchronous_writer_retry_tickets_and_lock_scopes_are_enforced",
       "result": "ok"
     },
     {
-      "name": "concurrent_host_calls_return_distinct_committed_content",
-      "result": "ok"
-    },
-    {
-      "name": "host_workspace_discovers_last_view_after_reopen_without_serializing_locked_targets",
+      "name": "verifier_panic_fails_closed_without_killing_the_writer_or_retaining_access",
       "result": "ok"
     },
     {
@@ -689,7 +725,23 @@
       "result": "ok"
     },
     {
-      "name": "dropped_receipts_still_drain_on_close_and_observers_see_final_closed_state",
+      "name": "recovery_identity_is_stable_but_never_grants_content_or_receipt_access",
+      "result": "ok"
+    },
+    {
+      "name": "active_call_and_shutdown_drain_hold_ownership_until_original_ink_is_committed",
+      "result": "ok"
+    },
+    {
+      "name": "query_saturation_reserves_edit_admission_and_preserves_edit_undo_order",
+      "result": "ok"
+    },
+    {
+      "name": "host_restores_revision_bound_selection_without_silently_rebinding_after_edit",
+      "result": "ok"
+    },
+    {
+      "name": "host_workspace_discovers_last_view_after_reopen_without_serializing_locked_targets",
       "result": "ok"
     },
     {
@@ -698,6 +750,14 @@
     },
     {
       "name": "library_host_ownership_rejects_duplicate_aliases_without_truncating_and_allows_other_libraries",
+      "result": "ok"
+    },
+    {
+      "name": "dropped_receipts_still_drain_on_close_and_observers_see_final_closed_state",
+      "result": "ok"
+    },
+    {
+      "name": "concurrent_host_calls_return_distinct_committed_content",
       "result": "ok"
     },
     {
@@ -721,11 +781,11 @@
       "result": "ok"
     },
     {
-      "name": "rejecting_a_prepared_revision_consumes_it_without_changing_the_source",
+      "name": "new_link_selection_does_not_create_source_until_explicit_acceptance_and_uses_preallocated_identity",
       "result": "ok"
     },
     {
-      "name": "new_link_selection_does_not_create_source_until_explicit_acceptance_and_uses_preallocated_identity",
+      "name": "rejecting_a_prepared_revision_consumes_it_without_changing_the_source",
       "result": "ok"
     },
     {
@@ -733,31 +793,11 @@
       "result": "ok"
     },
     {
-      "name": "relock_scope_changes_and_failed_authentication_retire_old_capabilities",
-      "result": "ok"
-    },
-    {
-      "name": "selection_reviews_are_stale_safe_scope_checked_and_cleared_on_relock",
-      "result": "ok"
-    },
-    {
-      "name": "changed_revision_can_be_reacquired_from_revoked_state_without_silent_anchor_relocation",
-      "result": "ok"
-    },
-    {
-      "name": "revocation_and_missing_sources_retire_reads_without_touching_authored_work",
-      "result": "ok"
-    },
-    {
-      "name": "live_read_lease_survives_pen_and_view_changes_but_not_release_or_restart",
-      "result": "ok"
-    },
-    {
       "name": "bounded_selection_plans_can_be_released_and_cannot_be_supplied_as_json_grants",
       "result": "ok"
     },
     {
-      "name": "reviewed_pdf_replacement_updates_lineage_and_retires_the_old_live_read",
+      "name": "relock_scope_changes_and_failed_authentication_retire_old_capabilities",
       "result": "ok"
     },
     {
@@ -765,15 +805,23 @@
       "result": "ok"
     },
     {
-      "name": "trusted_selection_is_reviewed_and_same_revision_regrant_preserves_source_identity",
+      "name": "live_read_lease_survives_pen_and_view_changes_but_not_release_or_restart",
       "result": "ok"
     },
     {
-      "name": "staged_retention_cannot_survive_relock_replay_or_wrong_pdf_bytes",
+      "name": "revocation_and_missing_sources_retire_reads_without_touching_authored_work",
       "result": "ok"
     },
     {
-      "name": "retained_pdf_lock_applies_to_metadata_chunks_and_staging_even_with_independent_authority",
+      "name": "selection_reviews_are_stale_safe_scope_checked_and_cleared_on_relock",
+      "result": "ok"
+    },
+    {
+      "name": "reviewed_pdf_replacement_updates_lineage_and_retires_the_old_live_read",
+      "result": "ok"
+    },
+    {
+      "name": "changed_revision_can_be_reacquired_from_revoked_state_without_silent_anchor_relocation",
       "result": "ok"
     },
     {
@@ -781,7 +829,19 @@
       "result": "ok"
     },
     {
+      "name": "retained_pdf_lock_applies_to_metadata_chunks_and_staging_even_with_independent_authority",
+      "result": "ok"
+    },
+    {
       "name": "retained_pdf_lease_shares_capacity_and_preserves_old_revision_under_new_source_edition",
+      "result": "ok"
+    },
+    {
+      "name": "staged_retention_cannot_survive_relock_replay_or_wrong_pdf_bytes",
+      "result": "ok"
+    },
+    {
+      "name": "trusted_selection_is_reviewed_and_same_revision_regrant_preserves_source_identity",
       "result": "ok"
     },
     {
@@ -789,19 +849,7 @@
       "result": "ok"
     },
     {
-      "name": "host_close_invalidates_prepared_work_while_pending_reviews_remain_explicit",
-      "result": "ok"
-    },
-    {
-      "name": "reentrant_close_from_model_callback_cancels_without_self_join",
-      "result": "ok"
-    },
-    {
-      "name": "blocked_inference_never_holds_writer_and_relock_rejects_late_output",
-      "result": "ok"
-    },
-    {
-      "name": "capture_priority_reaches_a_running_adapter_and_does_not_wait_for_it_to_save_ink",
+      "name": "idle_runtime_cleanup_is_off_writer_and_reentrant_close_never_releases_ownership_early",
       "result": "ok"
     },
     {
@@ -809,11 +857,11 @@
       "result": "ok"
     },
     {
-      "name": "capture_priority_cancels_old_work_and_nested_contacts_never_resume_each_other",
+      "name": "reentrant_close_from_model_callback_cancels_without_self_join",
       "result": "ok"
     },
     {
-      "name": "processing_admission_counts_unrun_sources_and_close_retires_them_without_waiting_for_callers",
+      "name": "host_close_invalidates_prepared_work_while_pending_reviews_remain_explicit",
       "result": "ok"
     },
     {
@@ -821,11 +869,23 @@
       "result": "ok"
     },
     {
-      "name": "idle_runtime_cleanup_is_off_writer_and_reentrant_close_never_releases_ownership_early",
+      "name": "capture_priority_reaches_a_running_adapter_and_does_not_wait_for_it_to_save_ink",
       "result": "ok"
     },
     {
-      "name": "pending_reviews_are_discoverable_after_restart_without_a_loaded_model_and_hide_locked_source",
+      "name": "capture_priority_cancels_old_work_and_nested_contacts_never_resume_each_other",
+      "result": "ok"
+    },
+    {
+      "name": "blocked_inference_never_holds_writer_and_relock_rejects_late_output",
+      "result": "ok"
+    },
+    {
+      "name": "processing_admission_counts_unrun_sources_and_close_retires_them_without_waiting_for_callers",
+      "result": "ok"
+    },
+    {
+      "name": "cancelled_stale_unscoped_and_forged_results_cannot_publish",
       "result": "ok"
     },
     {
@@ -833,19 +893,19 @@
       "result": "ok"
     },
     {
-      "name": "batch_acceptance_spanning_documents_records_independent_document_undo",
-      "result": "ok"
-    },
-    {
       "name": "overlapping_region_or_whole_block_selections_leave_every_review_pending",
       "result": "ok"
     },
     {
-      "name": "selected_regions_publish_independent_reviews_and_explicit_batch_acceptance_is_atomic",
+      "name": "pending_reviews_are_discoverable_after_restart_without_a_loaded_model_and_hide_locked_source",
       "result": "ok"
     },
     {
-      "name": "cancelled_stale_unscoped_and_forged_results_cannot_publish",
+      "name": "batch_acceptance_spanning_documents_records_independent_document_undo",
+      "result": "ok"
+    },
+    {
+      "name": "selected_regions_publish_independent_reviews_and_explicit_batch_acceptance_is_atomic",
       "result": "ok"
     },
     {
@@ -897,11 +957,11 @@
       "result": "ok"
     },
     {
-      "name": "malformed_membership_aliases_and_fresh_protection_cannot_leak_or_change_layers",
+      "name": "scene_orders_layers_then_z_and_paginates_without_dropping_nested_reference_placeholders",
       "result": "ok"
     },
     {
-      "name": "legacy_canvas_migrates_to_an_implicit_base_without_rewriting_original_payloads",
+      "name": "malformed_membership_aliases_and_fresh_protection_cannot_leak_or_change_layers",
       "result": "ok"
     },
     {
@@ -909,11 +969,11 @@
       "result": "ok"
     },
     {
-      "name": "scene_orders_layers_then_z_and_paginates_without_dropping_nested_reference_placeholders",
+      "name": "defaults_and_independent_embed_overrides_preserve_source_and_report_missing_layers",
       "result": "ok"
     },
     {
-      "name": "defaults_and_independent_embed_overrides_preserve_source_and_report_missing_layers",
+      "name": "legacy_canvas_migrates_to_an_implicit_base_without_rewriting_original_payloads",
       "result": "ok"
     },
     {
@@ -933,10 +993,6 @@
       "result": "ok"
     },
     {
-      "name": "canvas_embeds_keep_independent_pinned_cameras_and_reject_cycles",
-      "result": "ok"
-    },
-    {
       "name": "table_cell_edit_preserves_identity_neighbours_and_source_ink",
       "result": "ok"
     },
@@ -949,11 +1005,11 @@
       "result": "ok"
     },
     {
-      "name": "grouped_transform_is_atomic_and_never_changes_original_points",
+      "name": "canvas_embeds_keep_independent_pinned_cameras_and_reject_cycles",
       "result": "ok"
     },
     {
-      "name": "view_settings_and_protected_placeholders_reopen_without_secret_text",
+      "name": "grouped_transform_is_atomic_and_never_changes_original_points",
       "result": "ok"
     },
     {
@@ -961,23 +1017,11 @@
       "result": "ok"
     },
     {
+      "name": "view_settings_and_protected_placeholders_reopen_without_secret_text",
+      "result": "ok"
+    },
+    {
       "name": "chronology_filters_by_actual_creation_without_journals",
-      "result": "ok"
-    },
-    {
-      "name": "module_moves_check_descendants_cycles_and_depth_atomically",
-      "result": "ok"
-    },
-    {
-      "name": "stale_edit_and_interrupted_move_do_not_change_saved_state",
-      "result": "ok"
-    },
-    {
-      "name": "trash_dependency_review_restore_and_permanent_broken_link",
-      "result": "ok"
-    },
-    {
-      "name": "delete_review_is_invalidated_by_new_dependency",
       "result": "ok"
     },
     {
@@ -985,7 +1029,23 @@
       "result": "ok"
     },
     {
+      "name": "delete_review_is_invalidated_by_new_dependency",
+      "result": "ok"
+    },
+    {
       "name": "app_lock_and_inherited_protection_do_not_grant_via_link_or_move",
+      "result": "ok"
+    },
+    {
+      "name": "stale_edit_and_interrupted_move_do_not_change_saved_state",
+      "result": "ok"
+    },
+    {
+      "name": "module_moves_check_descendants_cycles_and_depth_atomically",
+      "result": "ok"
+    },
+    {
+      "name": "trash_dependency_review_restore_and_permanent_broken_link",
       "result": "ok"
     },
     {
@@ -1009,15 +1069,7 @@
       "result": "ok"
     },
     {
-      "name": "raw_ink_requires_deliberate_inclusion_and_subset_export_never_follows_links",
-      "result": "ok"
-    },
-    {
-      "name": "hostile_cross_kind_identifier_aliases_are_rejected_before_import",
-      "result": "ok"
-    },
-    {
-      "name": "export_plan_cannot_survive_later_lock_or_source_change",
+      "name": "hostile_native_relationships_rejected_even_with_recomputed_checksum",
       "result": "ok"
     },
     {
@@ -1025,11 +1077,19 @@
       "result": "ok"
     },
     {
+      "name": "export_plan_cannot_survive_later_lock_or_source_change",
+      "result": "ok"
+    },
+    {
       "name": "corrupt_native_import_and_interruption_do_not_touch_existing_documents",
       "result": "ok"
     },
     {
-      "name": "hostile_native_relationships_rejected_even_with_recomputed_checksum",
+      "name": "raw_ink_requires_deliberate_inclusion_and_subset_export_never_follows_links",
+      "result": "ok"
+    },
+    {
+      "name": "hostile_cross_kind_identifier_aliases_are_rejected_before_import",
       "result": "ok"
     },
     {
@@ -1049,11 +1109,11 @@
       "result": "ok"
     },
     {
-      "name": "structured_math_and_component_offsets_validate_without_interpreting_or_repairing_content",
+      "name": "exercise_membership_and_current_block_protection_gate_bookmark_metadata_and_replacement",
       "result": "ok"
     },
     {
-      "name": "exercise_membership_and_current_block_protection_gate_bookmark_metadata_and_replacement",
+      "name": "structured_math_and_component_offsets_validate_without_interpreting_or_repairing_content",
       "result": "ok"
     },
     {
@@ -1065,15 +1125,15 @@
       "result": "ok"
     },
     {
+      "name": "observed_ink_region_bookmarks_copy_global_ids_and_old_format_tags_cannot_hide_them",
+      "result": "ok"
+    },
+    {
       "name": "view_restore_and_discovery_reject_misbound_persistent_identity",
       "result": "ok"
     },
     {
       "name": "view_discovery_reopens_saved_positions_and_filters_fresh_block_protection",
-      "result": "ok"
-    },
-    {
-      "name": "observed_ink_region_bookmarks_copy_global_ids_and_old_format_tags_cannot_hide_them",
       "result": "ok"
     },
     {
@@ -1149,15 +1209,11 @@
       "result": "ok"
     },
     {
-      "name": "locked_ink_and_proposals_cannot_be_sent_or_reviewed_without_access",
-      "result": "ok"
-    },
-    {
-      "name": "rejection_and_failed_atomic_accept_leave_ink_untouched",
-      "result": "ok"
-    },
-    {
       "name": "model_switch_and_remove_leave_accepted_content_and_raw_strokes",
+      "result": "ok"
+    },
+    {
+      "name": "locked_ink_and_proposals_cannot_be_sent_or_reviewed_without_access",
       "result": "ok"
     },
     {
@@ -1165,11 +1221,15 @@
       "result": "ok"
     },
     {
-      "name": "stored_proposal_protection_precedes_malformed_payload_parsing",
+      "name": "rejection_and_failed_atomic_accept_leave_ink_untouched",
       "result": "ok"
     },
     {
       "name": "stored_proposal_identity_mismatch_cannot_acknowledge_a_correction",
+      "result": "ok"
+    },
+    {
+      "name": "stored_proposal_protection_precedes_malformed_payload_parsing",
       "result": "ok"
     },
     {
@@ -1185,11 +1245,11 @@
       "result": "ok"
     },
     {
-      "name": "failed_migration_rolls_back_and_newer_schema_is_not_downgraded",
+      "name": "process_exit_before_and_after_commit_preserves_correct_durable_boundary",
       "result": "ok"
     },
     {
-      "name": "process_exit_before_and_after_commit_preserves_correct_durable_boundary",
+      "name": "failed_migration_rolls_back_and_newer_schema_is_not_downgraded",
       "result": "ok"
     },
     {
@@ -1249,11 +1309,11 @@
       "result": "ok"
     },
     {
-      "name": "legacy_source_payload_hash_and_receipt_are_not_rewritten_by_schema13_upgrade",
+      "name": "source_style_and_receipt_survive_edits_reopen_native_copy_and_legacy_format_validation",
       "result": "ok"
     },
     {
-      "name": "source_style_and_receipt_survive_edits_reopen_native_copy_and_legacy_format_validation",
+      "name": "legacy_source_payload_hash_and_receipt_are_not_rewritten_by_schema13_upgrade",
       "result": "ok"
     },
     {
@@ -1261,19 +1321,19 @@
       "result": "ok"
     },
     {
-      "name": "optimistic_layout_checks_and_rollback_preserve_the_previous_workspace",
-      "result": "ok"
-    },
-    {
       "name": "fresh_protection_redacts_targets_and_keep_can_resize_only_existing_private_slots",
       "result": "ok"
     },
     {
-      "name": "independent_views_pdf_position_tool_and_active_pane_reopen_without_touching_observations",
+      "name": "optimistic_layout_checks_and_rollback_preserve_the_previous_workspace",
       "result": "ok"
     },
     {
       "name": "native_copy_preserves_selected_views_without_activating_a_workspace_in_the_destination",
+      "result": "ok"
+    },
+    {
+      "name": "independent_views_pdf_position_tool_and_active_pane_reopen_without_touching_observations",
       "result": "ok"
     },
     {
@@ -1297,7 +1357,7 @@
       "result": "ok"
     },
     {
-      "name": "active_use_retirement_keeps_checkpoint_and_originals",
+      "name": "mode_defaults_and_inheritance_do_not_convert_existing_ink",
       "result": "ok"
     },
     {
@@ -1305,19 +1365,15 @@
       "result": "ok"
     },
     {
-      "name": "restore_never_removes_newer_content_lock",
-      "result": "ok"
-    },
-    {
-      "name": "unauthorised_history_retirement_skips_locked_content",
-      "result": "ok"
-    },
-    {
       "name": "interrupted_capture_rolls_back_block_strokes_and_document_revision",
       "result": "ok"
     },
     {
-      "name": "mode_defaults_and_inheritance_do_not_convert_existing_ink",
+      "name": "restore_never_removes_newer_content_lock",
+      "result": "ok"
+    },
+    {
+      "name": "active_use_retirement_keeps_checkpoint_and_originals",
       "result": "ok"
     },
     {
@@ -1329,14 +1385,18 @@
       "result": "ok"
     },
     {
+      "name": "unauthorised_history_retirement_skips_locked_content",
+      "result": "ok"
+    },
+    {
       "name": "source_ink_is_lossless_after_reopen_transform_erase_and_history_retirement",
       "result": "ok"
     }
   ],
   "backend_accepted": false,
-  "finished_utc": "2026-10-24T08:08:37.315888+00:00",
+  "finished_utc": "2026-10-24T08:46:20.649524+00:00",
   "totals": {
-    "passed": 261,
+    "passed": 275,
     "failed": 0,
     "ignored": 0
   }
