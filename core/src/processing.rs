@@ -66,6 +66,7 @@ pub struct JobControl {
     cancelled: Arc<AtomicBool>,
     deadline: Instant,
     validity: Vec<Arc<AtomicBool>>,
+    authority_until: Option<Instant>,
 }
 impl JobControl {
     pub fn new(budget: Duration) -> Result<Self> {
@@ -76,6 +77,7 @@ impl JobControl {
             cancelled: Arc::new(AtomicBool::new(false)),
             deadline,
             validity: Vec::new(),
+            authority_until: None,
         })
     }
     fn linked(&self, validity: Arc<AtomicBool>) -> Self {
@@ -100,6 +102,12 @@ impl JobControl {
                 .any(|epoch| !epoch.load(Ordering::Acquire))
         {
             return Err(Error::Cancelled);
+        }
+        if self
+            .authority_until
+            .is_some_and(|until| Instant::now() >= until)
+        {
+            return Err(Error::Denied);
         }
         if Instant::now() >= self.deadline {
             return Err(Error::Timeout);
@@ -194,9 +202,30 @@ impl Drop for Manager {
     }
 }
 
+/// A trusted host's current access epoch. Never supplied through notebook JSON.
+#[derive(Debug, Clone)]
+pub(crate) struct WorkAuthority {
+    pub(crate) owner: crate::Id,
+    pub(crate) ticket: crate::Id,
+    pub(crate) valid: Arc<AtomicBool>,
+    pub(crate) until: Option<Instant>,
+}
+impl WorkAuthority {
+    pub(crate) fn check(&self) -> Result<()> {
+        if !self.valid.load(Ordering::Acquire) {
+            return Err(Error::Cancelled);
+        }
+        if self.until.is_some_and(|until| Instant::now() >= until) {
+            return Err(Error::Denied);
+        }
+        Ok(())
+    }
+}
+
 /// An owned snapshot and pinned verified runtime. Not a serialisable grant or a
 /// worker queue: the host reserves its worker/resources before preparing work.
 pub struct RecognitionWork {
+    authority: Option<WorkAuthority>,
     snapshot: InkSnapshot,
     task: Task,
     descriptor: Descriptor,
@@ -214,10 +243,34 @@ pub struct ConversionWork {
 /// Source binding and engine provenance accompany output into the core proposal.
 #[derive(Debug, Clone)]
 pub struct CompletedRecognition {
+    cancelled: Arc<AtomicBool>,
+    deadline: Instant,
+    runtime_validity: Option<Arc<AtomicBool>>,
+    pub(crate) authority: Option<WorkAuthority>,
     pub(crate) snapshot: InkSnapshot,
     pub(crate) descriptor: Descriptor,
     pub(crate) output: RecognitionOutput,
 }
+impl CompletedRecognition {
+    pub(crate) fn check_delivery(&self) -> Result<()> {
+        if let Some(authority) = &self.authority {
+            authority.check()?;
+        }
+        if self.cancelled.load(Ordering::Acquire)
+            || self
+                .runtime_validity
+                .as_ref()
+                .is_some_and(|valid| !valid.load(Ordering::Acquire))
+        {
+            return Err(Error::Cancelled);
+        }
+        if Instant::now() >= self.deadline {
+            return Err(Error::Timeout);
+        }
+        Ok(())
+    }
+}
+
 impl Manager {
     pub fn new() -> Self {
         Self::default()
@@ -391,6 +444,7 @@ impl Manager {
             return Err(Error::EngineUnavailable);
         };
         Ok(RecognitionWork {
+            authority: None,
             snapshot,
             task,
             descriptor: entry.descriptor.clone(),
@@ -446,13 +500,25 @@ impl Manager {
 }
 
 impl RecognitionWork {
+    pub(crate) fn bind_authority(mut self, authority: WorkAuthority) -> Self {
+        self.authority = Some(authority);
+        self
+    }
     pub fn descriptor(&self) -> &Descriptor {
         &self.descriptor
     }
     /// Consumes the job on its reserved worker. Epoch cancellation reaches the
     /// adapter's ordinary control checks; ignoring it still requires isolation.
     pub fn run(self, control: &JobControl) -> Result<CompletedRecognition> {
-        let control = control.linked(Arc::clone(&self.validity));
+        let mut control = control.linked(Arc::clone(&self.validity));
+        if let Some(authority) = &self.authority {
+            authority.check()?;
+            control = control.linked(Arc::clone(&authority.valid));
+            control.authority_until = match (control.authority_until, authority.until) {
+                (Some(a), Some(b)) => Some(a.min(b)),
+                (a, b) => a.or(b),
+            };
+        }
         control.check()?;
         let task = self.task;
         let output = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
@@ -484,6 +550,10 @@ impl RecognitionWork {
             }
         }
         Ok(CompletedRecognition {
+            cancelled: Arc::clone(&control.cancelled),
+            deadline: control.deadline,
+            runtime_validity: self.authority.as_ref().map(|_| Arc::clone(&self.validity)),
+            authority: self.authority,
             snapshot: self.snapshot,
             descriptor: self.descriptor,
             output,

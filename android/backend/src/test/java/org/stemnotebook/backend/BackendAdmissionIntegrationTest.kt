@@ -36,6 +36,24 @@ class BackendAdmissionIntegrationTest {
         val event = MotionEvent.obtain(10, time, action, 1, arrayOf(property), arrayOf(coordinate), 0, 0, 1f, 1f, 0, 0, InputDevice.SOURCE_STYLUS, 0)
         return try { session.accept(event).single() } finally { event.recycle() }
     }
+    @Test(timeout = 20_000) fun proposalDiscoveryChecksCurrentBlockProtectionBeforeReturningEvenAnEmptyPage() {
+        val backend = NotebookBackend(platform(temporary.newFolder()))
+        try {
+            val entity = note(backend)
+            backend.capture(UUID.randomUUID(), entity, "fixed-space", listOf(stroke())).get(5, TimeUnit.SECONDS)
+            val block = call(backend, blocks(entity)).getJSONArray("data").getJSONObject(0).getString("id")
+            val query = JSONObject().put("op", "Proposals").put("block", block).put("offset", 0).put("limit", 10)
+            assertEquals(0, call(backend, query).getJSONArray("data").length())
+            val scope = "[{\"Block\":\"$block\"}]"
+            backend.authenticate(scope) { true }.get(5, TimeUnit.SECONDS)
+            call(backend, JSONObject().put("op", "SetBlockLock").put("block", block).put("revision", 0).put("locked", true))
+            call(backend, JSONObject().put("op", "Relock"))
+            val denied = JSONObject(backend.request(wire(query)).get(5, TimeUnit.SECONDS))
+            assertFalse(denied.getBoolean("ok")); assertEquals("authentication required", denied.getString("error")); assertTrue(denied.isNull("data")); assertTrue(denied.isNull("generation"))
+            backend.authenticate(scope) { true }.get(5, TimeUnit.SECONDS)
+            assertEquals(0, call(backend, query).getJSONArray("data").length())
+        } finally { backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
+    }
     @Test(timeout = 20_000) fun protectedCaptureRetriesReturnIdenticalErrorsBeforeComparingObservedInk() {
         val backend = NotebookBackend(platform(temporary.newFolder()))
         try {

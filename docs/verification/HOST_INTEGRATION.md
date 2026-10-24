@@ -895,8 +895,8 @@ correction/rejection/acceptance cannot treat a payload ID as a different row key
 
 This is a stored-row binding/corruption defence, not encryption or protection against
 an attacker with arbitrary database read/write access. Existing source fingerprints,
-proposal revision checks and preservation of original ink remain unchanged. A real
-bounded host recognition/proposal job path and eligible recogniser remain open.
+proposal revision checks and preservation of original ink remain unchanged. The native bounded recognition/proposal path is described below; an eligible
+recogniser and Android provider/job integration remain open.
 
 
 ### Owned recognition and conversion work
@@ -924,6 +924,53 @@ before preparing work and freshly authorise/revision-check source before publica
 this API is not a queue, permission grant or new JSON request. Store.propose still
 creates a pending review, and acceptance remains explicit with immutable original ink.
 
-Bounded host/JNI job transport, current-scope cancellation integration, real eligible
-recognisers and isolated-worker termination/scheduling remain open. No model, SDK,
+Native host transport and current-scope cancellation now use the bounded path below.
+JNI/Android recogniser-provider integration, real eligible recognisers and isolated-worker
+termination/scheduling remain open. No model, SDK,
 certificate, weights, executable plugin or network permission is introduced here.
+
+
+### Bounded native recognition and review
+
+Trusted Rust callers request Host.recognition_source(block, optional region), prepare
+that move-only source with a verified Manager and run it on an optional worker. The
+writer snapshots authorised ordered digital ink; it never invokes recognition callbacks.
+Host.publish_recognition accepts only a native completion bound to that host and source
+epoch. JSON cannot submit recognised output, register an adapter or claim runtime readiness.
+
+Each host reserves at most min(8, query count capacity) source slots and 32 MiB of
+canonical encoded source bytes, including prepared, running and retiring inputs.
+Individual snapshots/results/publications are bounded to 8 MiB including admission
+charge. These are engineering admission limits, not model RSS or latency guarantees.
+Status exposes only reserved/running counts and closure. No content or source identifiers
+are included. The optional retirement worker starts lazily; its startup failure does
+not disable library opening or ink authoring.
+
+Authentication attempts, relock/expiry and successful protection/move/history/deletion
+changes invalidate old source epochs. Exact access expiry remains attached to the job;
+a longer inference budget cannot extend it. Caller cancellation/deadline and runtime
+retirement also apply at publication. Fresh SQL source access and revision/fingerprint
+checks precede initial publication. Inference may return late but cannot publish stale
+success. Cancellation retires unrun source/runtime objects off the writer. Running work
+keeps its quota and library ownership until actual callback/resource retirement; shutdown
+waits for retirement and rejects worker reentrant close instead of joining itself.
+
+The source ticket is the proposal ID. Retrying publication acknowledges the same stored
+review, including its current correction or accepted state, without overwriting it.
+After scope cancellation or restart, query Proposal or paged Proposals under current
+access. Discovery returns source/engine/state summaries without transcription bodies,
+works without a loaded model, and checks protection even for an empty page. Its auxiliary
+SQL index is created only on authorised discovery; no logical schema/version change is
+introduced. Correction, rejection and acceptance are explicit authoring commands.
+
+Batch acceptance preflights all selections against the same pre-mutation source.
+Distinct regions of one block can be accepted together; duplicate/overlapping whole-block
+and region targets fail atomically. Each changed block advances once, and each affected
+document receives its own transactional Undo journal entry. Original source observations
+remain recoverable. Accepted proposal state records the historical acceptance even if
+content is subsequently undone.
+
+No SDK, model, weights or new network permission is introduced. Native test adapters
+establish workflow behavior only. Android/JNI provider registration/execution, shared
+capture scheduling, actual eligible runtime integration and isolated hard termination
+remain open. Production H.I. remains gated.

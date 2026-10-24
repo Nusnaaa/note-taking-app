@@ -211,26 +211,44 @@ impl Store {
             .copied()
             .unwrap_or(SaveState::SavedLocally))
     }
+    /// Reuse the authoring journal inside an existing transaction, including
+    /// one atomic batch spanning several document-local undo operations.
+    pub(crate) fn journal_for<T>(
+        db: &Connection,
+        entity: Id,
+        f: impl FnOnce(&Connection) -> Result<T>,
+    ) -> Result<T> {
+        db.execute("INSERT INTO edit_operations(entity,active_ms) VALUES(?1,CAST((SELECT value FROM settings WHERE key='active_ms') AS INTEGER))", [entity.to_string()])?;
+        let operation = db.last_insert_rowid();
+        db.execute(
+            "UPDATE settings SET value=?1 WHERE key='edit_operation'",
+            [operation.to_string()],
+        )?;
+        let value = f(db)?;
+        db.execute(
+            "UPDATE settings SET value='' WHERE key='edit_operation'",
+            [],
+        )?;
+        let changed = db
+            .prepare("SELECT 1 FROM edit_changes WHERE operation=?1")?
+            .exists([operation])?;
+        if changed {
+            db.execute(
+                "DELETE FROM edit_operations WHERE entity=?1 AND undone=1 AND id<>?2",
+                rusqlite::params![entity.to_string(), operation],
+            )?;
+        } else {
+            db.execute("DELETE FROM edit_operations WHERE id=?1", [operation])?;
+        }
+        Ok(value)
+    }
     pub(crate) fn write_for<T>(
         &mut self,
         entity: Id,
         f: impl FnOnce(&Connection) -> Result<T>,
     ) -> Result<T> {
         self.document_save_states.insert(entity, SaveState::Saving);
-        let result = self.write(|db| {
-            db.execute("INSERT INTO edit_operations(entity,active_ms) VALUES(?1,CAST((SELECT value FROM settings WHERE key='active_ms') AS INTEGER))", [entity.to_string()])?;
-            let operation = db.last_insert_rowid();
-            db.execute("UPDATE settings SET value=?1 WHERE key='edit_operation'", [operation.to_string()])?;
-            let value = f(db)?;
-            db.execute("UPDATE settings SET value='' WHERE key='edit_operation'", [])?;
-            let changed = db.prepare("SELECT 1 FROM edit_changes WHERE operation=?1")?.exists([operation])?;
-            if changed {
-                db.execute("DELETE FROM edit_operations WHERE entity=?1 AND undone=1 AND id<>?2", rusqlite::params![entity.to_string(), operation])?;
-            } else {
-                db.execute("DELETE FROM edit_operations WHERE id=?1", [operation])?;
-            }
-            Ok(value)
-        });
+        let result = self.write(|db| Self::journal_for(db, entity, f));
         self.document_save_states.insert(
             entity,
             if result.is_ok() {
@@ -352,7 +370,7 @@ pub use exercises::{
 pub use navigation::SearchHit;
 pub use objects::{Camera, Embed, Layout, MasterLocation, ObjectGroup, SurfaceItem, ViewSettings};
 pub use organisation::{DeletionReview, Link, LinkState, Order};
-pub use proposals::{Proposal, ProposalState};
+pub use proposals::{Proposal, ProposalState, ProposalSummary};
 pub use writing::{Block, Display, HistoryEntry, InkSnapshot, Region};
 
 pub use positions::{

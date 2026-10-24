@@ -5,6 +5,7 @@ use crate::{
     content::Content,
     ink::{Stroke, Transform},
     objects::{CellValue, DiagramPart, Rect},
+    processing::CompletedRecognition,
     security::{Access, Authenticator, Scope},
     store::{
         Camera, CanvasLayers, Display, Kind, LayerRef, Order, Store, ViewSettings, WorkspaceUpdate,
@@ -24,6 +25,9 @@ mod deletion;
 use deletion::DeletionState;
 mod mailbox;
 mod ownership;
+mod recognition;
+use recognition::RecognitionScope;
+pub use recognition::{HostRecognitionWork, RecognitionSource, RecognitionStatus};
 mod pdf;
 use crate::sources::PdfSelectionTarget;
 use mailbox::Mailbox;
@@ -34,6 +38,29 @@ pub use pdf::{PdfCommand, PdfGrantVerifier};
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "op", deny_unknown_fields)]
 pub enum Command {
+    Proposals {
+        block: Id,
+        offset: u32,
+        limit: u32,
+    },
+    Proposal {
+        proposal: Id,
+    },
+    CorrectProposal {
+        proposal: Id,
+        correction: Content,
+    },
+    RejectProposal {
+        proposal: Id,
+    },
+    AcceptProposal {
+        proposal: Id,
+        candidate: usize,
+    },
+    AcceptProposals {
+        selections: Vec<(Id, usize)>,
+        confirmed: bool,
+    },
     ConfigureView {
         view: Id,
         expected: u64,
@@ -401,6 +428,11 @@ impl Response {
 }
 
 enum Message {
+    RecognitionSource(Id, Option<Id>, mpsc::Sender<Result<RecognitionSource>>),
+    PublishRecognition(
+        Box<CompletedRecognition>,
+        mpsc::Sender<Result<crate::store::Proposal>>,
+    ),
     Identity(mpsc::Sender<Result<String>>),
     PreparePdf(
         PdfSelectionTarget,
@@ -433,6 +465,7 @@ impl PendingResponse {
 }
 pub struct Host {
     mailbox: Arc<Mailbox>,
+    recognition: Arc<RecognitionScope>,
     worker: Mutex<Option<thread::JoinHandle<Result<()>>>>,
     writer_thread: thread::ThreadId,
 }
@@ -454,6 +487,8 @@ impl Host {
             return Err(Error::Invalid("file-backed library path"));
         }
         let input = Arc::clone(&mailbox);
+        let recognition = Arc::new(RecognitionScope::new(limits.query_count.min(8)));
+        let recognition_scope = Arc::clone(&recognition);
         let (ready_tx, ready_rx) = mpsc::channel();
         let worker = thread::Builder::new()
             .name("stem-writer".into())
@@ -475,10 +510,32 @@ impl Host {
                 while let Ok(Some(envelope)) = input.next() {
                     if access.remaining().is_some_and(|d| d.is_zero()) {
                         access.relock();
+                        recognition_scope.invalidate();
                         pdf.clear();
                         deletion.clear();
                     }
                     match envelope.message {
+                        Message::RecognitionSource(block, region, reply) => {
+                            let result =
+                                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                                    recognition_scope.source(&store, &access, block, region)
+                                }))
+                                .unwrap_or(Err(Error::WorkerFailed));
+                            let _ =
+                                input.complete(envelope.authoring, envelope.bytes, result.is_err());
+                            let _ = reply.send(result);
+                        }
+                        Message::PublishRecognition(completed, reply) => {
+                            let result =
+                                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                                    recognition_scope.check_result(&completed)?;
+                                    store.propose(*completed, &access)
+                                }))
+                                .unwrap_or(Err(Error::WorkerFailed));
+                            let _ =
+                                input.complete(envelope.authoring, envelope.bytes, result.is_err());
+                            let _ = reply.send(result);
+                        }
                         Message::Identity(reply) => {
                             let result = Store::setting(&store.db, "library_id")
                                 .and_then(|v| Id::parse(&v))
@@ -521,6 +578,7 @@ impl Host {
                             let _ = reply.send(result);
                         }
                         Message::Authenticate(scopes, mut auth, reply) => {
+                            recognition_scope.invalidate();
                             pdf.clear();
                             deletion.clear();
                             let result =
@@ -538,6 +596,20 @@ impl Host {
                             let _ = reply.send(result);
                         }
                         Message::Call(request, reply) => {
+                            let changes_scope = request.version == 1
+                                && matches!(
+                                    &request.command,
+                                    Command::Relock {}
+                                        | Command::SetLock { .. }
+                                        | Command::SetBlockLock { .. }
+                                        | Command::ExerciseLock { .. }
+                                        | Command::SetAppLock { .. }
+                                        | Command::Move { .. }
+                                        | Command::Undo { .. }
+                                        | Command::Redo { .. }
+                                        | Command::ConfirmDeletion { .. }
+                                        | Command::RestoreEntity { .. }
+                                );
                             let result =
                                 std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                                     execute(
@@ -549,12 +621,17 @@ impl Host {
                                     )
                                 }))
                                 .unwrap_or_else(|_| Response::error(Error::WorkerFailed));
+                            if changes_scope && result.ok {
+                                recognition_scope.invalidate();
+                            }
                             let _ = input.complete(envelope.authoring, envelope.bytes, !result.ok);
                             let _ = reply.send(result);
                         }
                     }
                 }
                 access.relock();
+                recognition_scope.close();
+                recognition_scope.wait_workers();
                 input.close();
                 drop(pdf);
                 drop(store);
@@ -573,6 +650,7 @@ impl Host {
         }
         Ok(Self {
             mailbox,
+            recognition,
             writer_thread: worker.thread().id(),
             worker: Mutex::new(Some(worker)),
         })
@@ -580,10 +658,11 @@ impl Host {
     /// Close admission, drain all accepted work and wait for the writer even when
     /// other callers still hold Arc references. Never call from a verifier callback.
     pub fn close(&self) -> Result<()> {
+        self.recognition.close();
         self.mailbox.close();
         // Check before taking the join mutex: an external closer may already
         // hold it while waiting for this very verifier to return.
-        if self.writer_thread == thread::current().id() {
+        if self.writer_thread == thread::current().id() || self.recognition.is_current_worker() {
             return Err(Error::WorkerFailed);
         }
         let mut worker = self.worker.lock().map_err(|_| Error::WorkerFailed)?;
@@ -598,6 +677,40 @@ impl Host {
         self.mailbox.admit(Message::Identity(tx), false, 32)?;
         rx.recv().map_err(|_| Error::WorkerFailed)?
     }
+    /// Called by a trusted optional worker, never the UI thread. The source
+    /// carries a host access epoch and exact authentication expiry.
+    pub fn recognition_status(&self) -> RecognitionStatus {
+        self.recognition.status()
+    }
+    pub fn recognition_source(&self, block: Id, region: Option<Id>) -> Result<RecognitionSource> {
+        let (tx, rx) = mpsc::channel();
+        self.mailbox
+            .admit(Message::RecognitionSource(block, region, tx), false, 128)?;
+        rx.recv().map_err(|_| Error::WorkerFailed)?
+    }
+    /// Persist a pending review only. Ordinary JSON cannot manufacture this
+    /// completed work or its host authority. Acceptance is a distinct command.
+    pub fn publish_recognition(
+        &self,
+        mut completed: CompletedRecognition,
+    ) -> Result<crate::store::Proposal> {
+        self.recognition.check_result(&completed)?;
+        // Store.propose needs frozen identity/fingerprint, not another retained
+        // point copy. Authoritative observations stay in SQLite and are rechecked.
+        completed.snapshot.strokes = Vec::new();
+        let bytes = recognition::charge(&(
+            &completed.snapshot,
+            &completed.descriptor,
+            &completed.output,
+        ))?;
+        let (tx, rx) = mpsc::channel();
+        self.mailbox.admit(
+            Message::PublishRecognition(Box::new(completed), tx),
+            false,
+            bytes,
+        )?;
+        rx.recv().map_err(|_| Error::WorkerFailed)?
+    }
     pub fn subscribe_status(&self) -> StatusSubscription {
         self.mailbox.subscribe()
     }
@@ -608,7 +721,9 @@ impl Host {
         let request: Request = serde_json::from_str(json)?;
         let authoring = !matches!(
             &request.command,
-            Command::ViewPen { .. }
+            Command::Proposals { .. }
+                | Command::Proposal { .. }
+                | Command::ViewPen { .. }
                 | Command::ViewGuides { .. }
                 | Command::TrashEntries { .. }
                 | Command::CaptureRecoveryAccess { .. }
@@ -741,6 +856,28 @@ fn execute(
     }
     let result = (|| -> Result<Value> {
         Ok(match r.command {
+            Command::Proposals {
+                block,
+                offset,
+                limit,
+            } => serde_json::to_value(s.proposals_for(block, offset, limit, a)?)?,
+            Command::Proposal { proposal } => serde_json::to_value(s.proposal(proposal, a)?)?,
+            Command::CorrectProposal {
+                proposal,
+                correction,
+            } => serde_json::to_value(s.correct_proposal(proposal, correction, a)?)?,
+            Command::RejectProposal { proposal } => {
+                s.reject_proposal(proposal, a)?;
+                Value::Null
+            }
+            Command::AcceptProposal {
+                proposal,
+                candidate,
+            } => serde_json::to_value(s.accept_proposal(proposal, candidate, a)?)?,
+            Command::AcceptProposals {
+                selections,
+                confirmed,
+            } => serde_json::to_value(s.accept_proposals(&selections, confirmed, a)?)?,
             Command::ConfigureView {
                 view,
                 expected,
