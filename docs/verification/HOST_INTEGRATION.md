@@ -1105,3 +1105,37 @@ This core pull/consumer split is not yet a native Host job registry or JNI/Andro
 transport. Those still need bounded job admission, current host/capture epoch cancellation,
 actual worker/sink retirement through close, trusted publication and platform durability.
 Whole-graph validation, staging disk/crash cleanup and acceptance gaps remain open.
+
+
+### Backup seek and access-capability checks
+
+Backup row lookup now uses separate first-row, exact-rowid and next-rowid queries.
+Exact/next queries use SQLite's rowid search; nullable OR predicates and class filters
+no longer make one cursor step scan a table prefix or a run of omitted cache rows.
+Live-cache rows still consume cursor steps, but CASE substitutes NULL for both their
+bytes and following digest column. This avoids materialising the blob or fetching a
+column beyond it while retaining metadata for the existing omission/authority checks.
+Retained assets keep the unchanged column order and digest validation. An omitted
+asset table is still skipped as a whole when source assets were not selected.
+
+Access retains a private opaque allocation identity. Authentication creates a new
+identity and relock changes it; private scope mutations must always do the same.
+A cursor caches a successful required-scope check only for that exact allocation,
+retaining a small Arc so allocator address reuse cannot alias a later capability.
+The identity is not a permission grant and never crosses JSON/JNI or model interfaces.
+The current capability must still be supplied. Clock expiry of both the private backup
+proof and current capability is checked on every pull, independently of the identity.
+App protection, source generation and cancellation checks remain per-pull. A new or
+replaced grant triggers full scope validation; failure permanently poisons the cursor.
+The first full validation polls cooperative control between groups of scope checks.
+
+Tests use SQLite query plans and relative VM work on a fixed long-cache fixture to
+verify rowid search rather than prefix/filter scanning. Separate tests expire an
+unchanged capability, replace one at the same Rust variable/address, and relock a
+cached capability. A real pull/encrypt/restore path over 130 live caches and an explicitly
+retained snapshot verifies yielding, exclusion of cache marker bytes and retained-byte
+fidelity. These are algorithm/security regression checks, not approved device SLOs.
+
+The initial scope/metadata preparation and first validation still scale with library
+size. Native Host job/worker lifecycle, capture scheduling and JNI/Android transport,
+whole-graph restore memory, disk/crash cleanup and full acceptance remain open.

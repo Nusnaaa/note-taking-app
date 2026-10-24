@@ -234,3 +234,159 @@ fn a_blocked_ciphertext_sink_holds_no_read_transaction_or_authoring_writer() {
     assert!(decryptor.read_to_end(&mut Vec::new()).is_err());
     source.check_integrity().unwrap();
 }
+
+#[test]
+fn replacing_or_relocking_a_cached_access_capability_never_reuses_its_old_scope_decision() {
+    let public = Access::public();
+    let mut source = Store::memory().unwrap();
+    let note = source
+        .create(Kind::Note, None, "current grant", &public)
+        .unwrap();
+    let block = source
+        .append_content(note.id, Content::Text("x".repeat(200000)), &public)
+        .unwrap();
+    let mut current = access([Scope::Block(block.id)]);
+    source.set_block_lock(block.id, 0, true, &current).unwrap();
+    let control = job();
+    let plan = source.prepare_stream_backup(options(), &current).unwrap();
+    let mut cursor = source
+        .open_stream_backup_cursor(plan, &mut TestAuth(true), true, &control)
+        .unwrap();
+    cursor
+        .next_chunk(&source, &current, &control)
+        .unwrap()
+        .unwrap();
+    cursor
+        .next_chunk(&source, &current, &control)
+        .unwrap()
+        .unwrap();
+    // Same Rust variable/address, newly authenticated but unrelated scopes.
+    current = access([Scope::App]);
+    assert!(matches!(
+        cursor.next_chunk(&source, &current, &control),
+        Err(Error::Denied)
+    ));
+    current = access([Scope::Block(block.id)]);
+    assert!(matches!(
+        cursor.next_chunk(&source, &current, &control),
+        Err(Error::Cancelled)
+    ));
+    let plan = source.prepare_stream_backup(options(), &current).unwrap();
+    let mut cursor = source
+        .open_stream_backup_cursor(plan, &mut TestAuth(true), true, &control)
+        .unwrap();
+    cursor
+        .next_chunk(&source, &current, &control)
+        .unwrap()
+        .unwrap();
+    current.relock();
+    assert!(matches!(
+        cursor.next_chunk(&source, &current, &control),
+        Err(Error::Denied)
+    ));
+}
+#[test]
+fn long_runs_of_live_caches_yield_and_never_export_cache_bytes_when_retained_assets_are_selected() {
+    use sha2::{Digest, Sha256};
+    use stem_core::sources::{AssetClass, RetentionChoice};
+    let public = Access::public();
+    let mut source = Store::memory().unwrap();
+    let note = source
+        .create(Kind::Note, None, "asset pulls", &public)
+        .unwrap();
+    let digest = format!("{:x}", Sha256::digest(b"%PDF external source"));
+    let pdf = source
+        .link_pdf(note.id, "content://local-source", &digest, &public)
+        .unwrap();
+    let cache = b"PRIVATE_LIVE_CACHE_ONLY_MARKER".repeat(2048);
+    let mut cache_ids = Vec::new();
+    for _ in 0..130 {
+        cache_ids.push(
+            source
+                .retain_source_bytes(
+                    pdf.id,
+                    &cache,
+                    RetentionChoice {
+                        class: AssetClass::LiveCache,
+                        authority: None,
+                        export_allowed: false,
+                        consented: true,
+                    },
+                    &public,
+                )
+                .unwrap(),
+        );
+    }
+    let retained = b"%PDF retained snapshot permitted";
+    let snapshot = source
+        .retain_source_bytes(
+            pdf.id,
+            retained,
+            RetentionChoice {
+                class: AssetClass::HistoricalSnapshot,
+                authority: Some("Synthetic explicit export authority"),
+                export_allowed: true,
+                consented: true,
+            },
+            &public,
+        )
+        .unwrap();
+    let plan = source
+        .prepare_stream_backup(
+            BackupOptions {
+                include_authorised_source_assets: true,
+                ..options()
+            },
+            &public,
+        )
+        .unwrap();
+    assert_eq!(plan.source_assets(), 1);
+    let control = job();
+    let mut cursor = source
+        .open_stream_backup_cursor(plan, &mut TestAuth(true), true, &control)
+        .unwrap();
+    let mut output = Vec::new();
+    let mut empty_yields = 0;
+    while let Some(part) = cursor.next_chunk(&source, &public, &control).unwrap() {
+        assert!(part.len() <= 64 * 1024);
+        if part.is_empty() {
+            empty_yields += 1;
+        }
+        output.extend_from_slice(&part);
+    }
+    cursor
+        .validate_complete(&source, &public, &control)
+        .unwrap();
+    assert!(empty_yields > 0);
+    assert!(!output
+        .windows(b"PRIVATE_LIVE_CACHE_ONLY_MARKER".len())
+        .any(|v| v == b"PRIVATE_LIVE_CACHE_ONLY_MARKER"));
+    let mut encryptor = EncryptStream::new(Vec::new(), PASSWORD).unwrap();
+    encryptor.write_all(&output).unwrap();
+    let (bytes, key) = encryptor.finish().unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(dir.path(), std::fs::Permissions::from_mode(0o700)).unwrap();
+    }
+    let restored = Store::restore_stream_backup(
+        bytes.as_slice(),
+        crypto::Credential::Recovery(&key),
+        10 * 1024 * 1024,
+        dir.path(),
+        &control,
+    )
+    .unwrap();
+    assert_eq!(
+        restored
+            .store()
+            .source_bytes(snapshot, true, &public)
+            .unwrap()
+            .bytes,
+        retained
+    );
+    for id in cache_ids {
+        assert!(restored.store().source_bytes(id, false, &public).is_err());
+    }
+}
