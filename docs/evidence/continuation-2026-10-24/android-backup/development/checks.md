@@ -1,0 +1,7 @@
+Development checks on dirty source (not frozen-source acceptance):
+
+- The first ten controller fixtures and lint passed. Twelve fixtures then passed, including relock key retirement and publication commit cancellation. Thirteen passed after real protected capture recovery and private-destination coverage were added.
+- Subsequent content-free typed failure reasons initially failed two assertions: known/unknown private recovery returned Unavailable instead of RecoveryRequired because CompletableFuture.join wrapped the original typed failure in CompletionException. Raw failed output and suite XML are retained as typed attempt. Draft preservation continued to pass; this was a diagnostic classification defect. The worker now unwraps only bounded standard future wrappers before preserving a typed reason; unknown diagnostics remain sanitized.
+- Early compile logs include nullable platform-type warnings; the final code uses explicit non-null copy paths. Final development and frozen-source logs separately establish their actual outcomes. No timeout/assertion is weakened, no private records are discarded, and E01 remains open.
+
+- Typed-reason correction: all thirteen controller fixtures and lint passed in 2m48s. Later final source moves destination filesystem checks onto the optional worker and uses first-entry directory streams instead of full listings; complete frozen-source validation below covers those changes and the new generation JNI smoke calls. No earlier dirty-source pass is substituted for that run.

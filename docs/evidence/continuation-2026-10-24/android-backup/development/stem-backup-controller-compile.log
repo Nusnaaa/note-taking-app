@@ -1,0 +1,18 @@
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/stem-android-user
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.9/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :backend:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :backend:preBuild UP-TO-DATE
+> Task :backend:preDebugBuild UP-TO-DATE
+> Task :backend:generateDebugResValues UP-TO-DATE
+> Task :backend:generateDebugResources UP-TO-DATE
+> Task :backend:packageDebugResources UP-TO-DATE
+> Task :backend:parseDebugLocalResources UP-TO-DATE
+> Task :backend:generateDebugRFile UP-TO-DATE
+
+> Task :backend:compileDebugKotlin
+w: file:///home/linus/Projects/software/note-taking-app/repo/android/backend/src/main/java/org/stemnotebook/backend/NotebookBackups.kt:223:58 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'java.io.File?'.
+w: file:///home/linus/Projects/software/note-taking-app/repo/android/backend/src/main/java/org/stemnotebook/backend/NotebookBackups.kt:223:58 Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'java.io.File?'.
+
+BUILD SUCCESSFUL in 40s
+6 actionable tasks: 1 executed, 5 up-to-date
