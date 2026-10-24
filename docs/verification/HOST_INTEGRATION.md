@@ -974,3 +974,38 @@ No SDK, model, weights or new network permission is introduced. Native test adap
 establish workflow behavior only. Android/JNI provider registration/execution, shared
 capture scheduling, actual eligible runtime integration and isolated hard termination
 remain open. Production H.I. remains gated.
+
+
+### Observed-contact priority over recognition
+
+Host.set_capture_priority accepts a trusted input-session ID and activity flag directly,
+without JSON, SQLite or a writer wait. Beginning an observed contact cancels the prior
+recognition epoch and retires idle source/runtime inputs on the optional cleanup lane.
+New source admission is rejected while any contact remains active. Running adapters
+receive ordinary JobControl cancellation; deliberately late success is rejected and
+resources remain reserved until actual retirement. Ending capture permits newly
+requested work only; it never revives a cancelled job or accepts output.
+
+Session begin/end are idempotent, and ending one session never releases another. At
+most 16 trusted session identities are retained. Overflow disables recognition for the
+host lifetime rather than running optional work after losing a capture signal. It does
+not close the authoring writer. Counts/closure/capture-active status contain no IDs or
+content. This is a scheduling admission policy, not a CPU/RSS quota or hard preemption.
+
+NativeBridge exposes the signal/status only to trusted application code. Android
+JournaledCaptureSession signals observed pen/explicit-finger input, preserving default
+finger navigation behavior. A contact's priority remains held through its final
+checkpoint attempt. The private admission completion, rather than the caller-cancellable
+receipt observation, controls retirement. A later observed frame owns the release generation: delayed pen-up
+acknowledgement cannot resume optional work during the next contact. Independent
+sessions, cancellation and lifecycle interruption retain their own boundaries. Signals
+observed before native open are reconciled from current state after the handle becomes
+ready, rather than replaying obsolete transitions. Full backend close disables native
+recognition independently of checkpoint shutdown/recovery.
+
+A priority signal is not a SQLite commit or durable journal receipt; existing receipts
+remain authoritative. An unexpected signal failure is visible in content-free Android
+recognition status and never discards original observations. No SDK callback or engine
+cleanup runs on the input thread. Registration/execution of Android recogniser providers,
+complete cross-media scheduling, hard worker isolation and physical-device performance
+acceptance remain open; no model is introduced and production H.I. remains gated.

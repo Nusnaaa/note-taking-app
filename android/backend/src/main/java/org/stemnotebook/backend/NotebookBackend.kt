@@ -29,6 +29,8 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
     // lifetime or retaining their observations after callers release them.
     private val captureSessionHistory = java.util.WeakHashMap<JournaledCaptureSession, Unit>()
     private var recoveryAttention = false
+    private val capturePriority = mutableMapOf<UUID, Long>()
+    @Volatile private var recognitionPriorityFailed = false
     init {
         var createdPdf: PdfWorkspace? = null
         var createdSelections: PdfSelectionManager? = null
@@ -73,6 +75,9 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
                 recoveryAttention = recoveryAttention || journal.pendingCount() != 0 || journal.incompleteCount() != 0
                 journal
             }
+            handle.thenAccept { _ -> synchronized(this) {
+                if (!closed) capturePriority.keys.forEach { signalCapturePriority(it, true) }
+            } }
             // No native handle is opened until every synchronous factory succeeds.
             CompletableFuture.supplyAsync({ NativeBridge.open(File(directory, "library.db").absolutePath) }, executor).whenComplete { value, error ->
                 if (error == null) handle.complete(value) else { handle.completeExceptionally(error); close() }
@@ -105,6 +110,32 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
     // executing work. They are neither a whole-process RSS nor a latency promise.
     private fun inputBytes(vararg values: String): Long = 512L + values.sumOf { it.length.toLong() * 4 }
     private fun strokeBytes(strokes: List<CapturedStroke>, space: String): Long = inputBytes(space) + strokes.sumOf { 512L + inputBytes(it.id, it.session) + it.points.size.toLong() * 128 }
+    data class RecognitionStatus(val reserved: Int, val running: Int, val closed: Boolean, val captureActive: Boolean, val prioritySignalFailed: Boolean)
+    fun recognitionStatus(): CompletableFuture<RecognitionStatus> = handle.thenApply { native ->
+        val status = JSONObject(NativeBridge.recognitionStatus(native))
+        RecognitionStatus(status.getInt("reserved"), status.getInt("running"), status.getBoolean("closed"), status.getBoolean("capture_active"), recognitionPriorityFailed)
+    }
+    // A newer observed frame owns the release. An old pen-up completion cannot
+    // resume optional work during a subsequent contact in the same session.
+    @Synchronized internal fun beginCapturePriority(session: JournaledCaptureSession, revision: Long) {
+        if (closed) return
+        capturePriority[session.id] = revision
+        signalCapturePriority(session.id, true)
+    }
+    private fun signalCapturePriority(session: UUID, active: Boolean) {
+        try {
+            val native = handle.getNow(0L)
+            if (native != 0L) NativeBridge.setCapturePriority(native, session.toString(), active)
+        } catch (_: Exception) { recognitionPriorityFailed = true }
+    }
+    internal fun releaseCapturePriorityAfter(session: JournaledCaptureSession, revision: Long, receipts: List<CompletableFuture<JournaledCaptureSession.Receipt>>) {
+        CompletableFuture.allOf(*receipts.toTypedArray()).whenComplete { _, _ -> synchronized(this) {
+            if (capturePriority[session.id] == revision) {
+                capturePriority.remove(session.id)
+                if (!closed) signalCapturePriority(session.id, false)
+            }
+        } }
+    }
     fun writerStatus(): BackendAdmissionStatus = executor.snapshot()
     fun observeWriterStatus(): BackendStatusSubscription = executor.subscribe()
     @Synchronized fun openCaptureSession(entity: UUID, coordinateSpace: String, style: StrokeStyle? = null, layer: CaptureLayer? = null, fingerInk: Boolean = false): JournaledCaptureSession {

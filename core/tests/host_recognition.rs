@@ -970,3 +970,112 @@ fn pending_reviews_are_discoverable_after_restart_without_a_loaded_model_and_hid
     assert!(!hidden.ok);
     assert!(hidden.data.is_none());
 }
+
+#[test]
+fn capture_priority_cancels_old_work_and_nested_contacts_never_resume_each_other() {
+    let (_root, host, _, block) = fixture();
+    let manager = manager_with(Box::new(Model));
+    let computed = complete(&host, &manager, block);
+    let prepared = host
+        .recognition_source(block, None)
+        .unwrap()
+        .prepare(&manager, Task::Prose, None)
+        .unwrap();
+    let first = Id::new();
+    let second = Id::new();
+    host.set_capture_priority(first, true).unwrap();
+    host.set_capture_priority(first, true).unwrap(); // repeated frames do not nest
+    host.set_capture_priority(second, true).unwrap();
+    assert!(host.recognition_status().capture_active);
+    assert!(matches!(
+        host.recognition_source(block, None),
+        Err(Error::ResourceLimit)
+    ));
+    assert!(matches!(
+        prepared.run(&JobControl::new(Duration::from_secs(30)).unwrap()),
+        Err(Error::Cancelled)
+    ));
+    host.set_capture_priority(Id::new(), false).unwrap();
+    host.set_capture_priority(first, false).unwrap();
+    host.set_capture_priority(first, false).unwrap();
+    assert!(host.recognition_status().capture_active);
+    host.set_capture_priority(second, false).unwrap();
+    assert!(!host.recognition_status().capture_active);
+    assert!(matches!(
+        host.publish_recognition(computed),
+        Err(Error::Cancelled)
+    ));
+    let pending = host
+        .publish_recognition(complete(&host, &manager, block))
+        .unwrap();
+    assert_eq!(pending.state, stem_core::store::ProposalState::Pending);
+}
+
+#[test]
+fn capture_priority_reaches_a_running_adapter_and_does_not_wait_for_it_to_save_ink() {
+    let (_root, host, note, block) = fixture();
+    let (started, waiting) = mpsc::channel();
+    let (release, blocked) = mpsc::channel();
+    let cancelled = Arc::new(AtomicBool::new(false));
+    let manager = manager_with(Box::new(Blocking {
+        started,
+        release: Mutex::new(blocked),
+        cancelled: cancelled.clone(),
+    }));
+    let work = host
+        .recognition_source(block, None)
+        .unwrap()
+        .prepare(&manager, Task::Prose, None)
+        .unwrap();
+    let worker =
+        std::thread::spawn(move || work.run(&JobControl::new(Duration::from_secs(30)).unwrap()));
+    waiting.recv_timeout(Duration::from_secs(5)).unwrap();
+    let contact = Id::new();
+    host.set_capture_priority(contact, true).unwrap();
+    call(
+        &host,
+        Command::Capture {
+            ticket: Id::new(),
+            entity: note,
+            strokes: vec![stroke(1)],
+        },
+    );
+    assert_eq!(host.recognition_status().running, 1); // actual resource still pinned
+    host.set_capture_priority(contact, false).unwrap();
+    release.send(()).unwrap();
+    assert!(matches!(worker.join().unwrap(), Err(Error::Cancelled)));
+    assert!(cancelled.load(Ordering::Acquire));
+    assert_eq!(host.recognition_status().running, 0);
+}
+
+#[test]
+fn excessive_trusted_capture_sessions_disable_optional_work_but_preserve_authoring() {
+    let (_root, host, note, block) = fixture();
+    let manager = manager_with(Box::new(Model));
+    let computed = complete(&host, &manager, block);
+    let contacts = (0..16).map(|_| Id::new()).collect::<Vec<_>>();
+    for id in &contacts {
+        host.set_capture_priority(*id, true).unwrap();
+    }
+    assert!(matches!(
+        host.set_capture_priority(Id::new(), true),
+        Err(Error::ResourceLimit)
+    ));
+    assert!(host.recognition_status().closed);
+    for id in contacts {
+        host.set_capture_priority(id, false).unwrap();
+    }
+    host.set_capture_priority(Id::new(), true).unwrap(); // already disabled, no loss of ink
+    assert!(matches!(
+        host.publish_recognition(computed),
+        Err(Error::Cancelled)
+    ));
+    call(
+        &host,
+        Command::Capture {
+            ticket: Id::new(),
+            entity: note,
+            strokes: vec![stroke(2)],
+        },
+    );
+}

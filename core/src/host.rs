@@ -679,6 +679,10 @@ impl Host {
     }
     /// Called by a trusted optional worker, never the UI thread. The source
     /// carries a host access epoch and exact authentication expiry.
+    /// Trusted observed-contact scheduling hint; never a save acknowledgement.
+    pub fn set_capture_priority(&self, session: Id, active: bool) -> Result<()> {
+        self.recognition.capture_priority(session, active)
+    }
     pub fn recognition_status(&self) -> RecognitionStatus {
         self.recognition.status()
     }

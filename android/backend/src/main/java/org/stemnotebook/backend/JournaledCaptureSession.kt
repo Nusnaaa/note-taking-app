@@ -15,7 +15,11 @@ class JournaledCaptureSession internal constructor(internal val backend: Noteboo
     internal val seen = mutableMapOf<UUID, Long>() // bounded by journal admission
     private var interrupted = emptyList<CapturedStroke>()
     data class Receipt(val ticket: UUID, val revision: Long, val checkpointed: Boolean, val committed: Boolean, val discarded: Boolean = false)
-    data class Submission(val stroke: CapturedStroke, val revision: Long, val receipt: CompletableFuture<Receipt>, val cancelled: Boolean = false)
+    data class Submission internal constructor(val stroke: CapturedStroke, val revision: Long, private val completion: CompletableFuture<Receipt>, val cancelled: Boolean = false) {
+        // Cancelling observation never retires an admitted write or its priority.
+        val receipt: CompletableFuture<Receipt> = completion.thenApply { it }
+        internal val retirement: CompletableFuture<Receipt> get() = completion
+    }
     /** New contacts inherit this style; observed active prefixes never change. */
     @Synchronized fun setStyle(style: StrokeStyle?) { check(!closed); motion.setStyle(style) }
     /** Applies to future contacts; active contact provenance remains immutable. */
@@ -25,7 +29,10 @@ class JournaledCaptureSession internal constructor(internal val backend: Noteboo
         val before = motion.checkpoint(); val completed = motion.accept(event); val active = motion.checkpoint()
         val retained = (completed + active).map { it.id }.toSet()
         val cancelled = before.filter { it.id !in retained }
-        return ((completed + active).map { it to false } + cancelled.map { it to true }).sortedBy { it.first.sequence }.map { (stroke, cancel) -> submit(stroke, revision, cancel) }
+        if (before.isNotEmpty() || completed.isNotEmpty() || active.isNotEmpty()) backend.beginCapturePriority(this, revision)
+        val result = ((completed + active).map { it to false } + cancelled.map { it to true }).sortedBy { it.first.sequence }.map { (stroke, cancel) -> submit(stroke, revision, cancel) }
+        if (active.isEmpty()) backend.releaseCapturePriorityAfter(this, revision, result.map { it.retirement })
+        return result
     }
     /** Retry the same immutable frame after queue/storage failure. */
     @Synchronized fun retry(value: Submission): Submission { require(!closed || (!value.cancelled && value.stroke.end != StrokeEnd.InProgress)); return submit(value.stroke, value.revision, value.cancelled) }
@@ -38,7 +45,9 @@ class JournaledCaptureSession internal constructor(internal val backend: Noteboo
     @Synchronized fun interrupt(): List<Submission> {
         check(!closed); check(revision < Long.MAX_VALUE); revision++
         interrupted = motion.interrupt()
+        if (interrupted.isNotEmpty()) backend.beginCapturePriority(this, revision)
         val result = interrupted.map { submit(it, revision, false) }
+        backend.releaseCapturePriorityAfter(this, revision, result.map { it.retirement })
         closed = true; backend.retireCaptureSession(this)
         return result
     }

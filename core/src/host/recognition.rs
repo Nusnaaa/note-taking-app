@@ -7,7 +7,7 @@ use crate::{
 };
 use serde::Serialize;
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, BTreeSet},
     io::{self, Write},
     sync::{
         atomic::{AtomicBool, Ordering},
@@ -46,12 +46,14 @@ struct State {
     valid: Arc<AtomicBool>,
     closed: bool,
     entries: BTreeMap<Id, Entry>,
+    capture: BTreeSet<Id>,
 }
 #[derive(Debug, Clone, Copy, Serialize)]
 pub struct RecognitionStatus {
     pub reserved: usize,
     pub running: usize,
     pub closed: bool,
+    pub capture_active: bool,
 }
 pub(super) struct RecognitionScope {
     owner: Id,
@@ -126,6 +128,7 @@ impl RecognitionScope {
                 valid: Arc::new(AtomicBool::new(true)),
                 closed: false,
                 entries: BTreeMap::new(),
+                capture: BTreeSet::new(),
             }),
             changed: Condvar::new(),
             retire_sender: Mutex::new(None),
@@ -172,6 +175,7 @@ impl RecognitionScope {
                 .filter(|entry| entry.running.is_some())
                 .count(),
             closed: state.closed,
+            capture_active: !state.capture.is_empty(),
         }
     }
     fn cancel(&self, close: bool) {
@@ -190,6 +194,50 @@ impl RecognitionScope {
         };
         for slot in slots {
             slot.cancel_idle();
+        }
+    }
+    /// Trusted input-session signal. No document read, callback or writer wait.
+    /// Repeated begin/end are idempotent; one contact cannot release another.
+    pub fn capture_priority(&self, session: Id, active: bool) -> Result<()> {
+        let (slots, overflow) = {
+            let mut state = self.state();
+            if !active {
+                state.capture.remove(&session);
+                return Ok(());
+            }
+            if state.closed {
+                return Ok(()); // optional processing is already disabled
+            }
+            if state.capture.contains(&session) {
+                return Ok(());
+            }
+            let overflow = state.capture.len() >= 16;
+            if overflow {
+                // Never continue optional inference after losing a capture signal.
+                state.closed = true;
+            } else {
+                state.capture.insert(session);
+            }
+            state.valid.store(false, Ordering::Release);
+            if !state.closed {
+                state.valid = Arc::new(AtomicBool::new(true));
+            }
+            (
+                state
+                    .entries
+                    .values()
+                    .filter_map(|e| e.slot.upgrade())
+                    .collect::<Vec<_>>(),
+                overflow,
+            )
+        };
+        for slot in slots {
+            slot.cancel_idle();
+        }
+        if overflow {
+            Err(Error::ResourceLimit)
+        } else {
+            Ok(())
         }
     }
     pub fn invalidate(&self) {
@@ -284,7 +332,7 @@ impl RecognitionScope {
             if state.closed {
                 return Err(Error::WorkerFailed);
             }
-            if state.entries.len() >= self.capacity {
+            if !state.capture.is_empty() || state.entries.len() >= self.capacity {
                 return Err(Error::ResourceLimit);
             }
         }
@@ -299,7 +347,8 @@ impl RecognitionScope {
         if state.closed {
             return Err(Error::WorkerFailed);
         }
-        if state.entries.len() >= self.capacity
+        if !state.capture.is_empty()
+            || state.entries.len() >= self.capacity
             || bytes
                 > MAX_SOURCE_BYTES
                     .saturating_sub(state.entries.values().map(|entry| entry.bytes).sum())

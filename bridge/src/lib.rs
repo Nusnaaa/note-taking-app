@@ -316,3 +316,54 @@ pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_finishPdfSelec
         }
     }
 }
+
+/// A trusted input controller may suppress optional recognition without waiting
+/// for SQLite or invoking an engine. Model code is never given this boundary.
+#[no_mangle]
+pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_setCapturePriority(
+    mut env: JNIEnv<'_>,
+    _: JClass<'_>,
+    handle: jlong,
+    session: JString<'_>,
+    active: jni::sys::jboolean,
+) {
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> Option<()> {
+        if env
+            .call_method(&session, "length", "()I", &[])
+            .ok()?
+            .i()
+            .ok()?
+            != 36
+        {
+            return None;
+        }
+        let session: String = env.get_string(&session).ok()?.into();
+        let session = stem_core::Id::parse(&session).ok()?;
+        let host = Arc::clone(hosts().lock().ok()?.get(&handle)?);
+        host.set_capture_priority(session, active != 0).ok()?;
+        Some(())
+    }));
+    if !matches!(result, Ok(Some(()))) {
+        fail(&mut env);
+    }
+}
+
+#[no_mangle]
+pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_recognitionStatus(
+    mut env: JNIEnv<'_>,
+    _: JClass<'_>,
+    handle: jlong,
+) -> jstring {
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> Option<jstring> {
+        let host = Arc::clone(hosts().lock().ok()?.get(&handle)?);
+        let status = serde_json::to_string(&host.recognition_status()).ok()?;
+        Some(env.new_string(status).ok()?.into_raw())
+    }));
+    match result {
+        Ok(Some(value)) => value,
+        _ => {
+            fail(&mut env);
+            std::ptr::null_mut()
+        }
+    }
+}

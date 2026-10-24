@@ -7,6 +7,9 @@ public final class NativeBridge {
     /** Private opaque recovery binding; never grants content access. */
     public static native String captureLibraryIdentity(long handle);
     public static native String request(long handle, String request);
+    /** Trusted observed-contact hint, no content or persistence acknowledgement. */
+    public static native void setCapturePriority(long handle, String session, boolean active);
+    public static native String recognitionStatus(long handle);
     public interface Verification { boolean verify(String challenge); }
     public static native void authenticate(long handle, String scopes, Verification verification);
     /** Trusted provider observation; never populated from JSON or supplied by model code. */

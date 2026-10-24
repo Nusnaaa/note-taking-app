@@ -36,6 +36,62 @@ class BackendAdmissionIntegrationTest {
         val event = MotionEvent.obtain(10, time, action, 1, arrayOf(property), arrayOf(coordinate), 0, 0, 1f, 1f, 0, 0, InputDevice.SOURCE_STYLUS, 0)
         return try { session.accept(event).single() } finally { event.recycle() }
     }
+    @Test(timeout = 20_000) fun observedContactsHoldNativePriorityIndependentlyUntilTheirCheckpointsRetire() {
+        val backend = NotebookBackend(platform(temporary.newFolder()))
+        try {
+            val entity = note(backend)
+            val first = backend.openCaptureSession(entity, "device-pixels")
+            val second = backend.openCaptureSession(entity, "device-pixels")
+            submit(first, MotionEvent.ACTION_DOWN, 10).receipt.get(5, TimeUnit.SECONDS)
+            submit(second, MotionEvent.ACTION_DOWN, 10).receipt.get(5, TimeUnit.SECONDS)
+            assertTrue(backend.recognitionStatus().get(5, TimeUnit.SECONDS).captureActive)
+            submit(first, MotionEvent.ACTION_UP, 20).receipt.get(5, TimeUnit.SECONDS)
+            call(backend, blocks(entity))
+            assertTrue(backend.recognitionStatus().get(5, TimeUnit.SECONDS).captureActive)
+            second.interrupt().single().receipt.get(5, TimeUnit.SECONDS)
+            call(backend, blocks(entity))
+            val status = backend.recognitionStatus().get(5, TimeUnit.SECONDS)
+            assertFalse(status.captureActive); assertFalse(status.closed); assertFalse(status.prioritySignalFailed)
+            assertEquals(2, call(backend, blocks(entity)).getJSONArray("data").length())
+        } finally { backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
+    }
+    @Test(timeout = 20_000) fun cancellingPenUpObservationKeepsPriorityUntilTheAdmittedCheckpointActuallyRuns() {
+        val backend = NotebookBackend(platform(temporary.newFolder()))
+        val entered = CountDownLatch(1); val release = CountDownLatch(1)
+        try {
+            val entity = note(backend); val session = backend.openCaptureSession(entity, "device-pixels")
+            submit(session, MotionEvent.ACTION_DOWN, 10).receipt.get(5, TimeUnit.SECONDS)
+            val proof = backend.authenticate("[\"App\"]") { entered.countDown(); release.await(5, TimeUnit.SECONDS); true }
+            assertTrue(entered.await(5, TimeUnit.SECONDS))
+            val up = submit(session, MotionEvent.ACTION_UP, 20)
+            assertTrue(up.receipt.cancel(false))
+            assertTrue(backend.recognitionStatus().get(5, TimeUnit.SECONDS).captureActive)
+            release.countDown(); proof.get(5, TimeUnit.SECONDS)
+            assertEquals(1, call(backend, blocks(entity)).getJSONArray("data").length())
+            assertFalse(backend.recognitionStatus().get(5, TimeUnit.SECONDS).captureActive)
+            assertTrue(up.receipt.isCancelled)
+        } finally { release.countDown(); backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
+    }
+    @Test(timeout = 20_000) fun oldPenUpAcknowledgementCannotResumeRecognitionDuringANewerContact() {
+        val backend = NotebookBackend(platform(temporary.newFolder()))
+        val entered = CountDownLatch(1); val release = CountDownLatch(1)
+        try {
+            val entity = note(backend); val session = backend.openCaptureSession(entity, "device-pixels")
+            submit(session, MotionEvent.ACTION_DOWN, 10).receipt.get(5, TimeUnit.SECONDS)
+            val proof = backend.authenticate("[\"App\"]") { entered.countDown(); release.await(5, TimeUnit.SECONDS); true }
+            assertTrue(entered.await(5, TimeUnit.SECONDS))
+            val old = submit(session, MotionEvent.ACTION_UP, 20)
+            val current = submit(session, MotionEvent.ACTION_DOWN, 30)
+            assertTrue(backend.recognitionStatus().get(5, TimeUnit.SECONDS).captureActive)
+            release.countDown(); proof.get(5, TimeUnit.SECONDS)
+            old.receipt.get(5, TimeUnit.SECONDS); current.receipt.get(5, TimeUnit.SECONDS)
+            call(backend, blocks(entity))
+            assertTrue(backend.recognitionStatus().get(5, TimeUnit.SECONDS).captureActive)
+            session.interrupt().single().receipt.get(5, TimeUnit.SECONDS)
+            call(backend, blocks(entity))
+            assertFalse(backend.recognitionStatus().get(5, TimeUnit.SECONDS).captureActive)
+        } finally { release.countDown(); backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
+    }
     @Test(timeout = 20_000) fun proposalDiscoveryChecksCurrentBlockProtectionBeforeReturningEvenAnEmptyPage() {
         val backend = NotebookBackend(platform(temporary.newFolder()))
         try {
