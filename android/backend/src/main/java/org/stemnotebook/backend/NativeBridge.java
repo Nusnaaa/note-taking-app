@@ -18,6 +18,7 @@ public final class NativeBridge {
     public static native String finishPdfSelection(long handle, String review, boolean confirmed, PdfGrant proof);
     /** Worker-only review of the committed library; private capture journals are
      * outside this dataset. App transport must reconcile those before publication. */
+    public static native String backupGeneration(long handle);
     public static native BackupReview reviewBackup(long handle, boolean originalInk, boolean sourceAssets);
     private static native void armBackup(long handle, long token, long budgetMillis);
     private static native char[] runBackup(long handle, long token, char[] password,

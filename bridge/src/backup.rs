@@ -321,3 +321,36 @@ pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_runBackup(
         }
     }
 }
+
+/// Exact decimal generation avoids Java JSON number precision loss. This is
+/// content-free metadata behind the existing current app-access Status check.
+#[no_mangle]
+pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_backupGeneration(
+    mut env: JNIEnv<'_>,
+    _: JClass<'_>,
+    handle: jlong,
+) -> jni::sys::jstring {
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(
+        || -> Option<jni::sys::jstring> {
+            let host = Arc::clone(hosts().lock().ok()?.get(&handle)?);
+            let response = host
+                .request(r#"{"version":1,"command":{"op":"Status"}}"#)
+                .ok()?;
+            if !response.ok {
+                return None;
+            }
+            Some(
+                env.new_string(response.generation?.to_string())
+                    .ok()?
+                    .into_raw(),
+            )
+        },
+    ));
+    match result {
+        Ok(Some(value)) => value,
+        _ => {
+            fail(&mut env);
+            std::ptr::null_mut()
+        }
+    }
+}

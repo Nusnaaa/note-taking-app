@@ -10,6 +10,7 @@ public final class BoundarySmoke {
         String path=Files.createTempDirectory("stem-jni").resolve("notebook.db").toString();
         long handle=NativeBridge.open(path);
         String identity=NativeBridge.captureLibraryIdentity(handle);check(!identity.isEmpty());
+        check(NativeBridge.backupGeneration(handle).matches("[0-9]{1,20}"));
         String request="{\"version\":1,\"command\":{\"op\":\"Create\",\"kind\":\"Note\",\"parent\":null,\"title\":\"λ 日本 😀\"}}";
         String created=NativeBridge.request(handle,request);
         check(created.contains("\"ok\":true") && created.contains("λ 日本 😀"));
@@ -25,6 +26,7 @@ public final class BoundarySmoke {
         try { NativeBridge.request(handle,"malformed private payload");throw new AssertionError(); } catch(IllegalStateException expected) {check(!expected.getMessage().contains("private"));}
         NativeBridge.close(handle);
         try {NativeBridge.request(handle,read);throw new AssertionError();}catch(IllegalStateException expected) { }
+        try {NativeBridge.backupGeneration(handle);throw new AssertionError();}catch(IllegalStateException expected) { }
         // A verifier waiting on one library must not hold the global registry.
         String blockedPath=Files.createTempDirectory("stem-jni-blocked").resolve("notebook.db").toString();
         long blockedHandle=NativeBridge.open(blockedPath);
@@ -76,7 +78,7 @@ public final class BoundarySmoke {
             try { NativeBridge.preparePdfSelection(selectionHandle,target,uri,revision,(c,t,l,r) -> {throw new IllegalArgumentException("private provider diagnostic");});throw new AssertionError(); } catch(IllegalStateException expected) {check(!expected.getMessage().contains("private"));}
         } finally {NativeBridge.close(selectionHandle);}
         BackupBoundarySmoke.run();
-        System.out.println("PASS: JNI Unicode, platform-verifier callback, relock, restart, malformed input, closed handles, independent registry access fresh source-selection proof and concurrent close drain and recovery identity (10)");
+        System.out.println("PASS: JNI Unicode, platform-verifier callback, relock, restart, malformed input, closed handles, independent registry access fresh source-selection proof and concurrent close drain and recovery identity/generation (10)");
 
     }
 }

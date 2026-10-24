@@ -1272,3 +1272,67 @@ The acceptance gate requires these new checks without closing the broader Androi
 boundary/semantic gaps. App-level backup/recovery integration, worker ownership,
 trusted quota/sync/publication and JNI restore still remain open; production H.I.
 remains gated.
+
+
+### Android local backup controller
+
+NotebookBackend.backups() exposes a trusted NotebookBackups controller, not a JSON
+command or model capability. One review/artifact and one optional operation are
+retained. A dedicated daemon worker performs native review, encryption, staged file
+I/O, copy/sync/publication and cleanup. The bounded queue admits one ordinary task
+plus one lifecycle cleanup task while a previous task finishes. Neither file I/O
+nor native backup waiting runs on BackendWriter. Pending.await is for an observer
+thread. Cancellation is logical; closeFullyAsync awaits actual optional workers and
+cleanup before releasing LibraryOwnership, including pre-native and post-native work.
+
+Review/create use serialized authoring-writer barriers: initial journal recovery
+must finish, both private active/legacy capture directories must be empty (a bounded first-entry
+directory-stream check includes unknown/incomplete entries), no observed contact or failed priority signal may be
+active, and the non-reused local epoch and exact native SQLite generation must
+match. The epoch changes before authoring/access admissions and observed contact
+updates. NativeBridge.backupGeneration returns exact decimal metadata behind the
+existing app-authorised Status check, avoiding Java JSON floating-point precision
+loss. Content-free FailureReason codes distinguish recovery, stale source, quota, staging,
+integrity and destination-exists failures without propagating callback diagnostics.
+A blocked or corrupt/private capture record is retained for explicit recovery;
+backup never disposes drafts or reports they were included in committed SQLite.
+
+A reviewed create requires confirmation, caller-owned bounded password chars, fresh
+platform verification and explicit maximum encrypted bytes. It creates an owner-only
+encrypted private staging file; native sink retirement forces and closes its channel
+before key delivery. Temporary password/key buffers are cleared on failure,
+cancellation and retirement. Prepared.copyRecoveryKey is an explicit trusted copy;
+its caller must clear the returned char array. Closing/invalidating the prepared
+artifact clears its managed key and serializes deletion behind all file work. No
+unguarded reader or public path is exposed by this API. Staging alone is not a
+Backed up acknowledgement. Existing staging/orphan/unknown files block a new create
+and remain for recovery; no automatic sweep or crash-cleanup completion is claimed.
+
+Prepared.publish chooses a trusted absolute local file outside managed no-backup
+storage and requires explicit confirmation. It copies only ciphertext to a new
+random file in the selected parent, enforces the original size/digest, forces/closes
+the copied file, publishes using an atomic no-overwrite hard link, syncs the parent,
+unlinks the temporary and syncs again. Existing destinations and symlinks are rejected.
+The filesystem must support hard links and directory sync; unsupported destinations
+fail without replacing a file. This local-file capability is not a SAF/provider grant.
+
+Publication reports Published only after these filesystem acknowledgements. Failure
+after the link reports Uncertain, retains credentials in the still-owned prepared
+artifact and leaves any final encrypted file for explicit inspection rather than
+removing it. Cancellation after entry to publication commit returns false and drains
+to an outcome; close retains ownership through the drain. The receipt's current flag
+is a point-in-time epoch/generation comparison, not a promise to cover later edits.
+A valid older snapshot may be published with current=false. Authentication,
+protection/containment/deletion policy changes invalidate uncommitted reviews,
+artifacts and key capabilities; an already committing publication drains to its
+explicit outcome. No operation can revoke a recovery-key copy deliberately taken
+by the caller earlier.
+
+Tests exercise actual JNI, original source-ink preservation, private and unknown
+recovery barriers, protected capture replay, stale review/current state, quota and
+sink failures, digest/no-overwrite checks, relock, uncertain publication and ownership
+through blocked pre-native/sink/post-native/publication workers. These are host
+API-35 Robolectric/local filesystem checks, not device/provider guarantees.
+SAF/provider transport, scheduling, persisted backup catalogue/status, JNI restore, explicit orphan recovery/cleanup,
+full resource scheduling and bounded semantic restore validation remain open, along
+with other registered backend gaps. No production H.I. is introduced or authorised.
