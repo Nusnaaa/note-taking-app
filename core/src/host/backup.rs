@@ -45,6 +45,17 @@ impl BackupReview {
     pub fn summary(&self) -> &BackupSummary {
         &self.summary
     }
+    /// Admission hint only: finish still rechecks authority and generation.
+    /// Lets trusted transports retire stale opaque handles without retaining
+    /// cancelled metadata or evicting a newer review.
+    pub fn is_current(&self) -> bool {
+        let s = self.slot.lease.scope.state();
+        !s.closed
+            && s.ticket == Some(self.slot.lease.ticket)
+            && s.worker.is_none()
+            && self.slot.authority.check().is_ok()
+            && self.slot.plan.lock().is_ok_and(|p| p.is_some())
+    }
 }
 struct State {
     closed: bool,

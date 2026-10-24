@@ -12,3 +12,4 @@ crate-type = ["cdylib", "rlib"]
 stem-core = { path = "../core" }
 jni = "=0.21.1"
 serde_json.workspace = true
+zeroize.workspace = true

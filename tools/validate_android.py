@@ -55,7 +55,7 @@ def main():
     target=ROOT/'target/android-jni/arm64-v8a';target.mkdir(parents=True,exist_ok=True);shutil.copy2(native,target/native.name)
     run('jni-library',[cargo,'build','-p','stem-bridge','--locked','--offline'])
     target=ROOT/'target/jvm-test';target.mkdir(exist_ok=True)
-    run('jni-compile',[str(jdk/'bin/javac'),'-d',str(target),'android/backend/src/main/java/org/stemnotebook/backend/NativeBridge.java','bridge/tests/java/BoundarySmoke.java'])
+    run('jni-compile',[str(jdk/'bin/javac'),'-d',str(target),'android/backend/src/main/java/org/stemnotebook/backend/NativeBridge.java','bridge/tests/java/BoundarySmoke.java','bridge/tests/java/BackupBoundarySmoke.java'])
     run('jni-smoke',[str(jdk/'bin/java'),'-Xcheck:jni','-Djava.library.path=target/debug','-cp',str(target),'BoundarySmoke'])
     gradle=[args.gradle,'--no-daemon','-p','android',':backend:assembleDebug',':backend:testDebugUnitTest',':backend:lintDebug','--console=plain','--rerun-tasks']
     if not args.online: gradle.append('--offline')

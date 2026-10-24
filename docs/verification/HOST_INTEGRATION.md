@@ -1199,3 +1199,46 @@ post-encryption destructor retirement. No device latency or hard-termination cla
 Initial metadata/proof preparation remains proportional to library size. JNI/Android
 transport, broader resource scheduling, platform durability, bounded semantic restore
 validation and disk/crash cleanup remain open; production H.I. remains gated.
+
+
+### Trusted JNI backup transport
+
+NativeBridge.reviewBackup(handle, originalInk, sourceAssets) returns a typed,
+AutoCloseable BackupReview bound to that exact non-reused host identity. The
+summary describes actual included ink/source assets and omissions; no library
+payload or recovery key crosses ordinary JSON. begin(budgetMillis) transfers the
+review into a single-use BackupJob. Its 1..3,600,000 ms input bound is an engineering
+limit, not a device latency promise or extension of protected access expiry.
+
+Run the job on a dedicated optional worker, never NotebookBackend's authoring
+executor. run(passwordChars, freshVerification, confirmed, output) consumes the
+job, revalidates native authority and sends only bounded ciphertext frames
+(maximum 65,552 bytes) to the trusted BackupOutput. Password input is bounded
+before Java cloning and JNI allocation; temporary Java and Rust copies are
+cleared, including malformed UTF-16 decode failure. The caller retains and clears
+its original password. Success returns a caller-owned recovery-key char array;
+clear it after the deliberately reviewed recovery workflow. It is never a String,
+JSON field, logged diagnostic or implicit clipboard value.
+
+BackupOutput.retire must synchronously retire every owned resource before
+returning, even if it reports failure. Native sink destruction calls retire while
+the admitted core worker remains counted. The Java wrapper makes exactly one
+retirement attempt and supplies fallback retirement when argument/admission
+rejection happens before native sink construction. Write/flush/retirement and
+verifier exceptions become generic errors; retirement failure suppresses key
+exposure. No hard termination or ownership of external resource clones is
+claimed. close() cancels logical work without releasing a running registry entry;
+actual native completion retires the entry. Host close removes admission before
+cancelling jobs, and no host/job registry lock spans Java callbacks or drain.
+Reentrant close retains native self-join protection.
+
+These trusted endpoints are not yet NotebookBackend's app-level backup workflow.
+They cover committed SQLite content only. A future controller must own and await
+all optional workers (including work rejected before native admission), reconcile
+private active/legacy capture journals, and bind reviewed destination, file sync,
+quota and atomic publication before acknowledging a durable backup. Core close
+only counts admitted core work; callers must retain Android directory ownership
+through their own workers' entire lifetimes. JNI restore, scheduled/public-provider
+transport, bounded semantic restore validation and crash cleanup remain open.
+Production H.I. remains gated. Actual JVM checks and API-35 Robolectric tests are
+host evidence, not device or provider durability evidence.

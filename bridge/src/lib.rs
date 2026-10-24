@@ -1,5 +1,6 @@
 //! The only JNI boundary. No raw Rust pointer crosses it; opaque, non-reused handles
 //! refer to a locked registry. Panic containment and bounded requests fail closed.
+mod backup;
 use jni::{
     objects::{JClass, JString},
     sys::{jlong, jstring},
@@ -109,6 +110,7 @@ pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_close(
 ) {
     let result = std::panic::catch_unwind(|| {
         let host = hosts().lock().ok()?.remove(&handle)?;
+        backup::close(handle);
         host.close().ok()?;
         Some(())
     });

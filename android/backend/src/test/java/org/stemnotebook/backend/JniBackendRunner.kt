@@ -12,5 +12,9 @@ class JniBackendRunner(testClass: Class<*>) : RobolectricTestRunner(testClass) {
             .doNotAcquireClass("org.stemnotebook.backend.NativeBridge")
             .doNotAcquireClass("org.stemnotebook.backend.NativeBridge\$Verification")
             .doNotAcquireClass("org.stemnotebook.backend.NativeBridge\$PdfGrant")
+            .doNotAcquireClass("org.stemnotebook.backend.NativeBridge\$BackupReview")
+            .doNotAcquireClass("org.stemnotebook.backend.NativeBridge\$BackupJob")
+            .doNotAcquireClass("org.stemnotebook.backend.NativeBridge\$BackupOutput")
+            .doNotAcquireClass("org.stemnotebook.backend.NativeBridge\$RetiringOutput")
             .build()
 }
