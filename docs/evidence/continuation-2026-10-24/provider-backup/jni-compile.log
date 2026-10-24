@@ -1,0 +1,4 @@
+$ /tmp/stem-build-tools/jdk-17.0.21+9/bin/javac -d /home/linus/Projects/software/note-taking-app/repo/target/jni-0jy0jbae android/backend/src/main/java/org/stemnotebook/backend/NativeBridge.java bridge/tests/java/BoundarySmoke.java bridge/tests/java/BackupBoundarySmoke.java
+exit_code=0
+
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/stem-android-user

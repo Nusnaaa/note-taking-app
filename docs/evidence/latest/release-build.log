@@ -1,5 +1,4 @@
 $ /tmp/stem-cargo/bin/cargo build --workspace --release --locked --offline
 exit_code=0
 
-   Compiling stem-bridge v0.1.0 (/home/linus/Projects/software/note-taking-app/repo/bridge)
-    Finished `release` profile [optimized] target(s) in 11.75s
+    Finished `release` profile [optimized] target(s) in 0.18s
