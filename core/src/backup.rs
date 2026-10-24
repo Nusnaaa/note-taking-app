@@ -2,7 +2,7 @@
 //! execute SQL supplied by a backup. Restore builds an independent database and
 //! cannot overwrite the live Store. Encrypted output is the only public writer.
 mod streaming;
-pub use streaming::{StagedBackupRestore, StreamBackupCursor, StreamBackupPlan};
+pub use streaming::{RestoreSummary, StagedBackupRestore, StreamBackupCursor, StreamBackupPlan};
 
 use crate::{
     attachments::{Attachments, NativeAsset, NativeLayout},
@@ -99,6 +99,16 @@ struct Snapshot {
     schema: u32,
     tables: BTreeMap<String, Vec<Vec<Cell>>>,
     omissions: Vec<String>,
+}
+
+#[cfg(test)]
+thread_local! { static RESTORE_AFTER_LINK_FAILURE: std::cell::Cell<bool> = const { std::cell::Cell::new(false) }; }
+
+/// Local recovered-copy publication, never a claim about cloud/provider storage.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+pub enum RestorePublication {
+    Published,
+    Uncertain,
 }
 
 pub struct BackupPlan {
@@ -510,52 +520,88 @@ impl Store {
         if !confirmed {
             return Err(Error::ReviewRequired);
         }
-
         Self::require_app(&self.db, access)?;
-
-        let generation = Self::setting(&self.db, "generation")?;
-
         let scopes = self.backup_scopes()?;
-
         if scopes.iter().any(|s| !access.permits(s))
             || (!scopes.is_empty() && !auth.verify(Id::new(), &scopes))
         {
             return Err(Error::Denied);
         }
+        match self.persist_verified_restore(destination, access, None)? {
+            RestorePublication::Published => Ok(()),
+            RestorePublication::Uncertain => Err(Error::Io(std::io::Error::other(
+                "Restore publication uncertain",
+            ))),
+        }
+    }
 
+    // Only the fresh-authorised entry points in this module may call this helper.
+    // No Boolean/JSON flag represents platform verification.
+    fn persist_verified_restore(
+        &self,
+        destination: &Path,
+        access: &Access,
+        control: Option<&crate::processing::JobControl>,
+    ) -> Result<RestorePublication> {
+        let check = || -> Result<()> {
+            if let Some(control) = control {
+                control.check()?;
+            }
+            Self::require_app(&self.db, access)?;
+            if access
+                .expires_at()
+                .is_some_and(|until| std::time::Instant::now() >= until)
+            {
+                return Err(Error::Denied);
+            }
+            if self.backup_scopes()?.iter().any(|s| !access.permits(s)) {
+                return Err(Error::Denied);
+            }
+            Ok(())
+        };
+        check()?;
+        let generation = Self::setting(&self.db, "generation")?;
         let parent = destination.parent().ok_or(Error::Invalid("restore path"))?;
-
         let temp = parent.join(format!(".stem-restore-{}.db", Id::new()));
-
-        let file = std::fs::OpenOptions::new()
-            .write(true)
-            .create_new(true)
-            .open(&temp)?;
-
-        drop(file);
-
+        let mut options = std::fs::OpenOptions::new();
+        options.write(true).create_new(true);
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::OpenOptionsExt;
+            options.mode(0o600);
+        }
+        drop(options.open(&temp)?);
+        let mut linked = false;
         let result = (|| -> Result<()> {
             self.db.execute(
                 "VACUUM INTO ?1",
                 [temp.to_str().ok_or(Error::Invalid("restore path"))?],
             )?;
-
             std::fs::File::open(&temp)?.sync_all()?;
-
+            check()?;
             if Self::setting(&self.db, "generation")? != generation {
                 return Err(Error::Conflict);
             }
-
             std::fs::hard_link(&temp, destination)?;
-
+            linked = true;
+            #[cfg(test)]
+            if RESTORE_AFTER_LINK_FAILURE.with(|failure| failure.get()) {
+                return Err(Error::Io(std::io::Error::other(
+                    "synthetic post-link failure",
+                )));
+            }
             std::fs::File::open(parent)?.sync_all()?;
-
+            std::fs::remove_file(&temp)?;
+            std::fs::File::open(parent)?.sync_all()?;
+            check()?;
             Ok(())
         })();
-
         let _ = std::fs::remove_file(temp);
-
-        result
+        match result {
+            Ok(()) => Ok(RestorePublication::Published),
+            Err(_) if linked => Ok(RestorePublication::Uncertain),
+            Err(error) => Err(error),
+        }
     }
 
     pub fn library_identity(&self, access: &Access) -> Result<String> {
@@ -1031,5 +1077,32 @@ impl Store {
         }
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod publication_tests {
+    use super::*;
+    #[test]
+    fn post_link_failure_is_uncertain_and_never_removes_the_new_recovered_copy() {
+        let mut store = Store::memory().unwrap();
+        let public = Access::public();
+        store
+            .create(
+                crate::store::Kind::Note,
+                None,
+                "synthetic recovered copy",
+                &public,
+            )
+            .unwrap();
+        let directory = tempfile::tempdir().unwrap();
+        let destination = directory.path().join("recovered.db");
+        RESTORE_AFTER_LINK_FAILURE.with(|failure| failure.set(true));
+        let result = store.persist_verified_restore(&destination, &public, None);
+        RESTORE_AFTER_LINK_FAILURE.with(|failure| failure.set(false));
+        assert_eq!(result.unwrap(), RestorePublication::Uncertain);
+        assert!(destination.is_file());
+        assert!(Store::open(&destination).is_ok());
+        assert_eq!(std::fs::read_dir(directory.path()).unwrap().count(), 1);
     }
 }

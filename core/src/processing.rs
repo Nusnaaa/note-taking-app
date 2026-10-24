@@ -91,6 +91,17 @@ impl JobControl {
         }
         linked
     }
+    pub(crate) fn linked_authority(&self, authority: &WorkAuthority) -> Self {
+        let mut linked = self.linked(Arc::clone(&authority.valid));
+        if let Some(until) = authority.until {
+            linked.authority_until = Some(
+                linked
+                    .authority_until
+                    .map_or(until, |parent| parent.min(until)),
+            );
+        }
+        linked
+    }
     pub fn cancel(&self) {
         self.cancelled.store(true, Ordering::Release);
     }
@@ -664,5 +675,39 @@ impl Manager {
         ) {
             previous.retire();
         }
+    }
+}
+
+#[cfg(test)]
+mod authority_control_tests {
+    use super::*;
+    #[test]
+    fn linking_authority_keeps_parent_cancellation_deadline_and_exact_expiry() {
+        let authority = WorkAuthority {
+            owner: crate::Id::new(),
+            ticket: crate::Id::new(),
+            valid: Arc::new(AtomicBool::new(true)),
+            until: Some(Instant::now() - Duration::from_secs(1)),
+        };
+        assert!(matches!(
+            JobControl::new(Duration::from_secs(10))
+                .unwrap()
+                .linked_authority(&authority)
+                .check(),
+            Err(Error::Denied)
+        ));
+        let mut authority = authority;
+        authority.until = Some(Instant::now() + Duration::from_secs(30));
+        assert!(matches!(
+            JobControl::new(Duration::ZERO)
+                .unwrap()
+                .linked_authority(&authority)
+                .check(),
+            Err(Error::Timeout)
+        ));
+        let parent = JobControl::new(Duration::from_secs(10)).unwrap();
+        let linked = parent.linked_authority(&authority);
+        parent.cancel();
+        assert!(matches!(linked.check(), Err(Error::Cancelled)));
     }
 }

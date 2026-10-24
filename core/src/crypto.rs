@@ -14,6 +14,7 @@ pub mod stream;
 const MAGIC: &[u8; 8] = b"STEMENC1";
 const MAX: usize = 64 * 1024 * 1024;
 const HEADER: usize = 8 + 16 + 24 + 48 + 24 + 48 + 24;
+pub(crate) const LEGACY_HEADER_BYTES: usize = HEADER;
 
 pub struct Encrypted {
     pub bytes: Vec<u8>,

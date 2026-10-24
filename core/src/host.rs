@@ -24,6 +24,9 @@ use std::{
 mod backup;
 use backup::{BackupActor, BackupScope};
 pub use backup::{BackupReceipt, BackupReview, BackupStatus, BackupSummary};
+mod restore;
+use restore::RestoreScope;
+pub use restore::{RestoreReview, RestoreStatus};
 mod deletion;
 use deletion::DeletionState;
 mod mailbox;
@@ -438,6 +441,7 @@ enum Message {
         mpsc::Sender<Result<crate::store::Proposal>>,
     ),
     Identity(mpsc::Sender<Result<String>>),
+    RestoreAuthority(Id, mpsc::Sender<Result<crate::processing::WorkAuthority>>),
     PreparePdf(
         PdfSelectionTarget,
         String,
@@ -471,6 +475,7 @@ pub struct Host {
     mailbox: Arc<Mailbox>,
     recognition: Arc<RecognitionScope>,
     backups: Arc<BackupScope>,
+    restores: Arc<RestoreScope>,
     worker: Mutex<Option<thread::JoinHandle<Result<()>>>>,
     writer_thread: thread::ThreadId,
 }
@@ -496,6 +501,8 @@ impl Host {
         let recognition_scope = Arc::clone(&recognition);
         let backups = BackupScope::new(limits.query_bytes);
         let backup_scope = Arc::clone(&backups);
+        let restores = RestoreScope::new(limits.query_bytes);
+        let restore_scope = Arc::clone(&restores);
         let (ready_tx, ready_rx) = mpsc::channel();
         let worker = thread::Builder::new()
             .name("stem-writer".into())
@@ -552,6 +559,14 @@ impl Host {
                                     store.propose(*completed, &access)
                                 }))
                                 .unwrap_or(Err(Error::WorkerFailed));
+                            let _ =
+                                input.complete(envelope.authoring, envelope.bytes, result.is_err());
+                            let _ = reply.send(result);
+                        }
+                        Message::RestoreAuthority(ticket, reply) => {
+                            let result = Store::require_app(&store.db, &access).and_then(|_| {
+                                recognition_scope.optional_authority(&access, ticket)
+                            });
                             let _ =
                                 input.complete(envelope.authoring, envelope.bytes, result.is_err());
                             let _ = reply.send(result);
@@ -653,8 +668,10 @@ impl Host {
                 recognition_scope.close();
                 backup_actor.clear();
                 backup_scope.close();
+                restore_scope.close();
                 recognition_scope.wait_workers();
                 backup_scope.wait();
+                restore_scope.wait();
                 input.close();
                 drop(pdf);
                 drop(store);
@@ -675,6 +692,7 @@ impl Host {
             mailbox,
             recognition,
             backups,
+            restores,
             writer_thread: worker.thread().id(),
             worker: Mutex::new(Some(worker)),
         })
@@ -684,12 +702,14 @@ impl Host {
     pub fn close(&self) -> Result<()> {
         self.recognition.close();
         self.backups.close();
+        self.restores.close();
         self.mailbox.close();
         // Check before taking the join mutex: an external closer may already
         // hold it while waiting for this very verifier to return.
         if self.writer_thread == thread::current().id()
             || self.recognition.is_current_worker()
             || self.backups.is_current_worker()
+            || self.restores.is_current_worker()
         {
             return Err(Error::WorkerFailed);
         }

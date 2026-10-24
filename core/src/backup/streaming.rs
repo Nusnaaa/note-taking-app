@@ -302,6 +302,148 @@ pub struct StagedBackupRestore {
     path: PathBuf,
 }
 impl StagedBackupRestore {
+    /// Aggregate metadata only. Protected titles/payloads are not exposed by review.
+    pub fn summary(&self) -> Result<RestoreSummary> {
+        let store = self.store();
+        let count = |table: &str| -> Result<u64> {
+            Ok(store
+                .db
+                .query_row(&format!("SELECT COUNT(*) FROM {table}"), [], |r| r.get(0))?)
+        };
+        let mut protected = u64::from(Store::setting(&store.db, "app_locked")? == "true");
+        for table in ["entities", "blocks", "exercises"] {
+            protected += store.db.query_row(
+                &format!("SELECT COUNT(*) FROM {table} WHERE json_extract(payload,'$.locked')=1"),
+                [],
+                |r| r.get::<_, u64>(0),
+            )?;
+        }
+        Ok(RestoreSummary {
+            entities: count("entities")?,
+            blocks: count("blocks")?,
+            strokes: count("strokes")?,
+            source_references: count("sources")?,
+            source_assets: count("source_assets")?,
+            protected_scopes: protected,
+        })
+    }
+    /// Trusted recovered-copy acceptance. Fresh platform verification is required
+    /// even for an unprotected archive; protection flags remain in the new copy.
+    pub fn publish(
+        &self,
+        destination: &Path,
+        auth: &mut dyn Authenticator,
+        confirmed: bool,
+        control: &JobControl,
+    ) -> Result<RestorePublication> {
+        if !confirmed {
+            return Err(Error::ReviewRequired);
+        }
+        control.check()?;
+        private_directory(destination.parent().ok_or(Error::Invalid("restore path"))?)?;
+        let mut scopes = self.store().backup_scopes()?;
+        scopes.insert(Scope::App);
+        let access = Access::authenticate(auth, scopes)?;
+        control.check()?;
+        self.store()
+            .persist_verified_restore(destination, &access, Some(control))
+    }
+}
+#[derive(Debug, Clone, Serialize)]
+pub struct RestoreSummary {
+    pub entities: u64,
+    pub blocks: u64,
+    pub strokes: u64,
+    pub source_references: u64,
+    pub source_assets: u64,
+    pub protected_scopes: u64,
+}
+fn private_directory(path: &Path) -> Result<()> {
+    let metadata = fs::symlink_metadata(path)?;
+    if !metadata.is_dir() || metadata.file_type().is_symlink() {
+        return Err(Error::Invalid("private restore directory"));
+    }
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        if metadata.permissions().mode() & 0o077 != 0 {
+            return Err(Error::Denied);
+        }
+    }
+    Ok(())
+}
+impl Store {
+    /// Current streaming envelopes and bounded legacy envelopes share validation,
+    /// runtime/grant retirement and a private stage. The input never becomes SQL.
+    pub fn restore_any_backup<R: Read>(
+        mut source: R,
+        credential: crypto::Credential<'_>,
+        max_plaintext_bytes: u64,
+        private_directory_path: &Path,
+        control: &JobControl,
+    ) -> Result<StagedBackupRestore> {
+        private_directory(private_directory_path)?;
+        control.check()?;
+        let mut magic = [0; 8];
+        source.read_exact(&mut magic)?;
+        let mut input = std::io::Cursor::new(magic).chain(source);
+        if &magic == b"STEMENC2" {
+            return Self::restore_stream_backup(
+                input,
+                credential,
+                max_plaintext_bytes,
+                private_directory_path,
+                control,
+            );
+        }
+        if &magic != b"STEMENC1" {
+            return Err(Error::Unsupported);
+        }
+        let maximum = usize::try_from(max_plaintext_bytes.min(64 * 1024 * 1024))
+            .map_err(|_| Error::ResourceLimit)?
+            + crypto::LEGACY_HEADER_BYTES
+            + 16;
+        let mut envelope = Vec::new();
+        let mut chunk = [0; 65536];
+        loop {
+            control.check()?;
+            let count = input.read(&mut chunk)?;
+            if count == 0 {
+                break;
+            }
+            if count > maximum - envelope.len() {
+                return Err(Error::ResourceLimit);
+            }
+            envelope.extend_from_slice(&chunk[..count]);
+        }
+        let plain = crypto::decrypt(&envelope, credential)?;
+        if plain.len() as u64 > max_plaintext_bytes {
+            return Err(Error::ResourceLimit);
+        }
+        control.check()?;
+        let memory = Self::restore_backup_plain(&plain)?;
+        control.check()?;
+        let path = private_directory_path.join(format!(".stem-stream-restore-{}.db", Id::new()));
+        let mut options = OpenOptions::new();
+        options.write(true).create_new(true);
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::OpenOptionsExt;
+            options.mode(0o600);
+        }
+        drop(options.open(&path)?);
+        let mut stage = StagedBackupRestore { store: None, path };
+        memory.db.execute(
+            "VACUUM INTO ?1",
+            [stage.path.to_str().ok_or(Error::Invalid("restore path"))?],
+        )?;
+        drop(memory);
+        stage.store = Some(Self::open(&stage.path)?);
+        control.check()?;
+        Ok(stage)
+    }
+}
+impl StagedBackupRestore {
     pub fn store(&self) -> &Store {
         self.store.as_ref().expect("validated restore stage")
     }

@@ -1392,3 +1392,63 @@ adapter's OS-denied check is exercised separately. No production H.I. is added.
 Source contract: [Android DocumentsContract](https://developer.android.com/reference/android/provider/DocumentsContract).
 Scheduling/persisted grant consent, saved/backed-up catalogue, JNI/platform restore,
 orphan recovery, device/real-provider acceptance and other backend gaps remain open.
+
+
+### Native restore review and recovered-copy ownership
+
+Host.prepare_restore owns an admitted reader on the trusted optional caller worker.
+It obtains current app-authorised lifecycle authority through one bounded writer
+metadata message, then reads/decrypts/validates off the live writer. Both STEMENC2
+streaming schema-15 and bounded STEMENC1 legacy envelopes are accepted through the
+existing validators/migrations. Caller plaintext budget bounds legacy envelope
+admission before decrypt allocation; the old 64 MiB limit remains only on the
+legacy format, not a total-size limit on current streams.
+
+One host-local move-only RestoreReview owns a private SQLite stage and aggregate
+counts (entities, blocks, original strokes, references/assets, protected scopes).
+It exposes no Store, raw payload or private path. The stage directory must be a
+real owner-only directory on Unix; random scratch files are create-new/0600.
+Authentication/runtime resource and source-grant retirement follow existing core
+restore rules. A protected recovered library stays protected. Review metadata is
+bounded by the host admission budget; semantic graph validation still has the
+separate unresolved whole-graph memory limitation recorded in A6.
+
+A reader is retired before review acknowledgement. Read panics and reader-destructor
+panics are contained separately, and actual retirement keeps the worker/job counted.
+Capture, access/lifecycle expiry, cancellation, deadline and host close invalidate
+optional authority without reviving it at pen-up. Linked controls preserve all
+parent cancellation/deadline/expiry constraints. Rejected/unadmitted resources still
+belong to their caller's outer lifecycle, as in the backup/JNI boundaries.
+
+Host.publish_restore consumes the review, explicit confirmation and a fresh trusted
+platform authenticator. Verification runs on the restore worker, including for an
+unprotected archive; it does not grant wider access to the live library. One proof
+covers the protected recovered scopes plus App. The destination is a separate
+owner-only private directory. A private 0600 temporary copy is synced and published
+by an atomic no-overwrite hard link inside that directory, with directory sync and
+temporary retirement. Existing live or unrelated files cannot be replaced.
+Published acknowledges those local steps; any error/cancellation after the final
+link is Uncertain and leaves the recovered copy for inspection. The caller-selected
+path is known to the trusted caller, not an ordinary JSON/model grant.
+
+Close stops admission and invalidates authority, clears idle private stages even if
+a caller retains review metadata, and keeps exclusive live SQLite ownership until
+actual restore readers, stages, verifiers and cleanup retire. Reentrant close from
+reader/destructor/verifier callbacks returns an error instead of self-joining, while
+still closing admission. A saturated/blocked optional reader never runs on the live
+writer; independent authoring can proceed. No hard termination is claimed.
+
+Core tests exercise both formats/credential paths and exact original ink, confirmation
+and one fresh proof, wrong/tampered/truncated/trailing input, budgets, one-slot and
+retained-review close, reader/destructor retirement, capture invalidation, separate
+panic boundaries, reentrant close, authoring during verification, existing/foreign
+and unsafe/symlink destinations, a real above-64-MiB host restore, exact authority
+expiry and post-link uncertainty. Resource-heavy restore fixtures are serialized
+inside their integration test binary; timings are host observations, not device SLOs.
+
+These are native trusted APIs, not yet JNI/Android restore transport or a new UI.
+Android must bind guarded input/grants/credentials, outer worker ownership, explicit
+recovered-library selection/activation and orphan/quota workflows before an app
+restore can acknowledge success. Provider/device acceptance, bounded semantic
+validation, crash cleanup and the other backend gaps remain open. Production H.I.
+remains gated.
