@@ -5,4 +5,4 @@ exit_code=0
    Compiling jni v0.21.1
    Compiling stem-core v0.1.0 (/home/linus/Projects/software/note-taking-app/repo/core)
    Compiling stem-bridge v0.1.0 (/home/linus/Projects/software/note-taking-app/repo/bridge)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 41.70s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 42.86s

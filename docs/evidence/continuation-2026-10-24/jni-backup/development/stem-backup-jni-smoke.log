@@ -1,0 +1,4 @@
+Exception in thread "main" java.lang.IllegalStateException: Native notebook operation failed
+	at org.stemnotebook.backend.NativeBridge.setCapturePriority(Native Method)
+	at BackupBoundarySmoke.run(BackupBoundarySmoke.java:63)
+	at BoundarySmoke.main(BoundarySmoke.java:73)
