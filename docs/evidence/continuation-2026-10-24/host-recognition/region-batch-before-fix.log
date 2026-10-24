@@ -1,0 +1,24 @@
+$ cargo test -p stem-core --test host_recognition selected_regions_publish_independent_reviews_and_explicit_batch_acceptance_is_atomic --locked --offline
+exit_code=101
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.16s
+     Running tests/host_recognition.rs (target/debug/deps/host_recognition-48a2d1c27b63370f)
+
+running 1 test
+test selected_regions_publish_independent_reviews_and_explicit_batch_acceptance_is_atomic ... FAILED
+
+failures:
+
+---- selected_regions_publish_independent_reviews_and_explicit_batch_acceptance_is_atomic stdout ----
+
+thread 'selected_regions_publish_independent_reviews_and_explicit_batch_acceptance_is_atomic' panicked at core/tests/host_recognition.rs:29:5:
+Some("source changed; reload before applying this operation")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    selected_regions_publish_independent_reviews_and_explicit_batch_acceptance_is_atomic
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 11 filtered out; finished in 0.06s
+
+error: test failed, to rerun pass `-p stem-core --test host_recognition`
