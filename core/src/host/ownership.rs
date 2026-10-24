@@ -65,4 +65,64 @@ mod tests {
             "still preserved"
         );
     }
+    #[test]
+    fn bounded_backup_pulls_leave_exclusive_owner_free_to_commit_authoring() {
+        use crate::{
+            backup::BackupOptions, content::Content, processing::JobControl,
+            security::Authenticator, Id,
+        };
+        struct Proof;
+        impl Authenticator for Proof {
+            fn verify(
+                &mut self,
+                _: Id,
+                _: &std::collections::BTreeSet<crate::security::Scope>,
+            ) -> bool {
+                true
+            }
+        }
+        let root = tempfile::tempdir().unwrap();
+        let path = root.path().join("pull.db");
+        let mut owner = open(&path).unwrap();
+        let access = Access::public();
+        let note = owner
+            .create(Kind::Note, None, "exclusive pull", &access)
+            .unwrap();
+        owner
+            .append_content(note.id, Content::Text("x".repeat(200000)), &access)
+            .unwrap();
+        let plan = owner
+            .prepare_stream_backup(
+                BackupOptions {
+                    include_original_ink: true,
+                    include_authorised_source_assets: false,
+                },
+                &access,
+            )
+            .unwrap();
+        let control = JobControl::new(Duration::from_secs(30)).unwrap();
+        let mut cursor = owner
+            .open_stream_backup_cursor(plan, &mut Proof, true, &control)
+            .unwrap();
+        assert!(cursor
+            .next_chunk(&owner, &access, &control)
+            .unwrap()
+            .is_some());
+        assert!(matches!(open(&path), Err(Error::Unavailable)));
+        owner
+            .append_content(
+                note.id,
+                Content::Text("authoring still commits".into()),
+                &access,
+            )
+            .unwrap();
+        assert!(matches!(
+            cursor.next_chunk(&owner, &access, &control),
+            Err(Error::Conflict)
+        ));
+        assert!(matches!(open(&path), Err(Error::Unavailable)));
+        drop(owner);
+        let reopened = open(&path).unwrap();
+        assert_eq!(reopened.blocks(note.id, 0, 10, &access).unwrap().len(), 2);
+    }
 }

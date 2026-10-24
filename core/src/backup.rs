@@ -2,7 +2,7 @@
 //! execute SQL supplied by a backup. Restore builds an independent database and
 //! cannot overwrite the live Store. Encrypted output is the only public writer.
 mod streaming;
-pub use streaming::{StagedBackupRestore, StreamBackupPlan};
+pub use streaming::{StagedBackupRestore, StreamBackupCursor, StreamBackupPlan};
 
 use crate::{
     attachments::{Attachments, NativeAsset, NativeLayout},

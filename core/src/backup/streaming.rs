@@ -1,11 +1,13 @@
 //! Incremental fixed-table logical backup. Only encrypted output leaves this
 //! module. Restore stages in a private, independent SQLite file; publication
 //! remains explicit and never overwrites another library.
+mod pull;
 use super::*;
 use crate::{
     crypto::stream::{DecryptStream, EncryptStream},
     processing::JobControl,
 };
+pub use pull::StreamBackupCursor;
 use std::{
     fs::{self, OpenOptions},
     io::{Read, Write},
@@ -145,97 +147,17 @@ impl Store {
         sink: W,
         control: &JobControl,
     ) -> Result<(W, Zeroizing<String>)> {
-        if !confirmed {
-            return Err(Error::ReviewRequired);
-        }
-        control.check()?;
-        let tx = self.db.unchecked_transaction()?;
-        if Self::setting(&tx, "library_id")? != plan.library
-            || Self::setting(&tx, "generation")? != plan.generation
-        {
-            return Err(Error::Conflict);
-        }
-        if !plan.scopes.is_empty() && !auth.verify(Id::new(), &plan.scopes) {
-            return Err(Error::Denied);
-        }
-        control.check()?;
+        let mut cursor = self.open_stream_backup_cursor(plan, auth, confirmed, control)?;
         let mut out = EncryptStream::new(sink, password)?;
-        out.write_all(BODY)?;
-        out.write_all(&15u32.to_be_bytes())?;
-        out.write_all(&(plan.omissions.len() as u32).to_be_bytes())?;
-        for omission in &plan.omissions {
-            write_bytes(&mut out, omission.as_bytes())?;
+        while let Some(chunk) = cursor.read_chunk(self, None, control)? {
+            out.write_all(&chunk)?;
         }
-        let mut count = 0u64;
-        for (index, &(name, width)) in TABLES.iter().enumerate() {
-            control.check()?;
-            out.write_all(&(index as u16).to_be_bytes())?;
-            let mut q = tx.prepare(&format!("SELECT * FROM {name}"))?;
-            if q.column_count() != width {
-                return Err(Error::Unsupported);
-            }
-            let mut cursor = q.query([])?;
-            while let Some(row) = cursor.next()? {
-                control.check()?;
-                if name == "source_assets"
-                    && !include_asset(
-                        row.get_ref(2)?.as_str().map_err(|_| Error::Integrity)?,
-                        row.get::<_, Option<String>>(3)?.as_deref(),
-                        plan.options,
-                    )?
-                {
-                    continue;
-                }
-                count = count
-                    .checked_add(1)
-                    .filter(|n| *n <= ROW_LIMIT)
-                    .ok_or(Error::ResourceLimit)?;
-                out.write_all(&[1])?;
-                for column in 0..width {
-                    control.check()?;
-                    let value = row.get_ref(column)?;
-                    match value {
-                        ValueRef::Null => out.write_all(&[0])?,
-                        ValueRef::Integer(n) => {
-                            out.write_all(&[1])?;
-                            out.write_all(&n.to_be_bytes())?;
-                        }
-                        ValueRef::Text(t) => {
-                            std::str::from_utf8(t).map_err(|_| Error::Integrity)?;
-                            out.write_all(&[2])?;
-                            if name == "engine_versions" && column == 2 {
-                                let mut v: EngineVersion = serde_json::from_slice(t)?;
-                                v.local_resource = None;
-                                write_bytes(&mut out, serde_json::to_string(&v)?.as_bytes())?;
-                            } else {
-                                write_bytes(&mut out, t)?;
-                            }
-                        }
-                        ValueRef::Blob(b) => {
-                            out.write_all(&[3])?;
-                            write_bytes(&mut out, b)?;
-                        }
-                        ValueRef::Real(_) => return Err(Error::Unsupported),
-                    }
-                }
-            }
-            out.write_all(&[0])?;
-        }
-        out.write_all(END)?;
-        out.write_all(&count.to_be_bytes())?;
-        control.check()?;
-        tx.commit()?;
-        // End the read snapshot before checking for a concurrent generation or
-        // protection change. A stale export must lack authenticated finality.
-        if Self::setting(&self.db, "library_id")? != plan.library
-            || Self::setting(&self.db, "generation")? != plan.generation
-        {
-            return Err(Error::Conflict);
-        }
+        cursor.check_complete(self, None, control)?;
         let finished = out.finish()?;
-        control.check()?;
+        cursor.check_complete(self, None, control)?;
         Ok(finished)
     }
+
     /// Stage a current-schema stream in a private directory. Caller chooses a
     /// finite decrypted-byte budget; malformed/incomplete streams cannot return
     /// a usable Store. The live library is never opened or overwritten here.

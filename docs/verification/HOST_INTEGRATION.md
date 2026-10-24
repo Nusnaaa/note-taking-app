@@ -1016,9 +1016,10 @@ acceptance remain open; no model is introduced and production H.I. remains gated
 Store.prepare_stream_backup returns generation/library-bound, read-only review metadata,
 not a copied library snapshot. Existing explicit original-ink inclusion and protected
 scope checks apply. Store.finish_stream_backup requires confirmation, fresh protected
-proof and a JobControl. It reads a consistent SQLite snapshot and streams fixed-table
+proof and a JobControl. It reads generation-checked bounded SQLite pulls and streams fixed-table
 logical records into EncryptStream; the sink receives ciphertext only. It checks the
-current generation after ending the read snapshot, before authenticating completion.
+current generation after each read snapshot, before authenticating completion, and
+after final sink completion before acknowledging success.
 Original stroke payloads/hashes are carried unchanged. Source caches are omitted;
 authorised retained PDF bytes require explicit inclusion and export authority. Local
 model-resource paths are stripped; engine metadata never grants runtime readiness.
@@ -1067,3 +1068,40 @@ and platform sink durability/cancellation integration remain open. The reused se
 validator still materialises a complete logical graph; bounded validation, disk quota,
 crash-orphan cleanup/review and comprehensive interruption/resource acceptance remain
 open. Normal-drop cleanup is not a process-kill guarantee. Production H.I. remains gated.
+
+
+### Bounded authoritative backup pulls
+
+The exclusive SQLite host owner intentionally prevents a second read connection from
+opening the live library. That ownership boundary is unchanged. StreamBackupCursor
+provides the pull side needed for optional encryption/sink workers: each next_chunk
+uses only the existing connection, copies at most 64 KiB, executes at most 64 cursor
+steps, closes every statement/read transaction and returns. No sink, password,
+encryptor or external callback executes within a pull. The cursor keeps logical position
+and bounded single-cell engine-metadata scratch, not a live SQLite snapshot or borrowed
+statement. Omitted source-asset tables/live-cache rows are skipped without reading their
+blob payloads. Individual-cell limits remain; this is not a whole-process RSS guarantee.
+
+Each pull checks the bound library/generation, exact-expiry fresh backup proof, supplied
+current Access and JobControl before releasing bytes. It checks generation again after
+the read transaction ends. Ordinary authoring may commit between pulls; the old cursor
+then fails instead of finalising a mixed-generation export. Failed/cancelled/denied or
+prematurely finalised cursors are permanently poisoned and retire their cached proof/
+engine metadata. Later reauthentication cannot revive one. Some(empty) means yield;
+only None means logical EOF. Consumers must successfully validate_complete under current
+authority immediately before completing the encrypted stream and must acknowledge
+success only after checking authority/source again following sink completion.
+
+The existing finish_stream_backup convenience API now delegates to the same cursor and
+retains source validation around encrypted finalisation. Wire envelope/body/schema and
+legacy readers are unchanged. Cursor construction still performs deliberate fresh scoped
+authentication; a cursor is move-only/non-deserialisable trusted native state, never a
+JSON output, model input or permission grant to an optional adapter. The existing
+exclusive-owner test additionally verifies a pull leaves the owner able to commit while
+second connections remain denied. A blocked ciphertext sink test proves authoring can
+commit before that sink is released; no tablet latency claim is inferred.
+
+This core pull/consumer split is not yet a native Host job registry or JNI/Android backup
+transport. Those still need bounded job admission, current host/capture epoch cancellation,
+actual worker/sink retirement through close, trusted publication and platform durability.
+Whole-graph validation, staging disk/crash cleanup and acceptance gaps remain open.
