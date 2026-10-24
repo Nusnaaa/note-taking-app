@@ -80,7 +80,7 @@ impl JobControl {
             authority_until: None,
         })
     }
-    fn linked(&self, validity: Arc<AtomicBool>) -> Self {
+    pub(crate) fn linked(&self, validity: Arc<AtomicBool>) -> Self {
         let mut linked = self.clone();
         if !linked
             .validity

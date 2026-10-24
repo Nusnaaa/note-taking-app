@@ -1139,3 +1139,63 @@ fidelity. These are algorithm/security regression checks, not approved device SL
 The initial scope/metadata preparation and first validation still scale with library
 size. Native Host job/worker lifecycle, capture scheduling and JNI/Android transport,
 whole-graph restore memory, disk/crash cleanup and full acceptance remain open.
+
+
+### Native host backup review, worker and retirement
+
+Host.review_backup(options) returns a move-only BackupReview with read-only summary
+metadata. It uses the current host access and binds the review to this host instance,
+source generation, exact access expiry and shared capture/access epoch. One review/job
+is admitted at a time. Metadata receives a conservative scope-count/input charge bounded
+by the host query-byte limit. This is admission engineering, not measured process RSS.
+A failed reservation/metadata budget leaves authoring available. Closed/stale/foreign
+reviews cannot be used; a new review can reclaim cancelled idle metadata on its optional
+caller thread. Close clears idle plan metadata even if a caller retains the old review.
+
+Host.finish_backup consumes that review, explicit confirmation, a fresh trusted scoped
+Authenticator, a JobControl and an owned Write sink. Call it on an optional worker.
+The writer opens the private core cursor and answers bounded pull/validation requests;
+password derivation, encryption and every sink write/flush/destructor execute on the
+caller worker. Ordinary JSON cannot create any of these capabilities, supply a sink,
+claim readiness or bypass protected review. Authentication remains the existing trusted
+platform callback, not model code. Current access must already cover protected review
+scope; fresh backup verification does not silently grant wider ordinary editing access.
+
+Backup work shares the native recognition capture/access epoch. Capture start, relock,
+authentication attempts, successful protection/containment/history/deletion changes,
+access expiry and host close cancel old authority; pen-up/new authentication never
+revive it. Ordinary edits instead invalidate the bound generation. Caller deadline/
+cancellation and any existing JobControl parents remain linked. Source/authority checks
+surround encrypted completion, sink retirement and final acknowledgement. A blocked or
+non-cooperative sink is not claimed terminated by logical cancellation.
+
+The owned sink never escapes in the result. It is dropped before BackupReceipt can
+expose its Zeroizing recovery key; the receipt has no Debug/Serialize implementation.
+Admitted sink write/flush panics are caught before the sink is separately retired under
+a panic boundary. Destructor panic/failure, stale source, cancelled authority or cleanup
+failure yields no success receipt. Reentrant close from a sink callback returns an
+error instead of self-joining. Authoring remains usable after ordinary optional failures.
+
+Close stops admission, drains accepted authoring and clears the actor cursor, then
+retains exclusive library ownership until actual backup worker/sink retirement. Private
+metadata/cursor/worker guards release the single job only after their owned state is
+retired. A saturated ordinary query budget cannot strand cursor cleanup: one fixed
+lifecycle-only Release slot is reserved. It runs after authoring and before ordinary
+reads, may add one to pending_queries, carries no content bytes and cannot admit a
+user request. Ordinary data-query budgets and authoring FIFO remain unchanged.
+
+A successful receipt acknowledges a complete encrypted logical SQLite stream and owned
+sink retirement. Generic Write flush/close is not an OS file-sync/atomic-publication
+acknowledgement. The committed SQLite library is the dataset; private active/legacy
+capture recovery stores are separate. JNI/Android must review pending drafts and bind
+trusted output capabilities, quota, sync and publication before an app-level backup
+success. Those workflows are not implemented by these Rust-only endpoints.
+
+Tests cover protected review/fresh proof/confirmation, foreign and retained closed-host
+reviews, actual above-64-MiB native export/restore, original ink, generation/capture
+cancellation, blocked sink authoring, metadata rejection, callback/destructor panics,
+cleanup with saturated queries and exclusive ownership held during blocked write and
+post-encryption destructor retirement. No device latency or hard-termination claim.
+Initial metadata/proof preparation remains proportional to library size. JNI/Android
+transport, broader resource scheduling, platform durability, bounded semantic restore
+validation and disk/crash cleanup remain open; production H.I. remains gated.

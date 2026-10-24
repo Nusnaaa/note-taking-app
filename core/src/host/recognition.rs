@@ -165,6 +165,27 @@ impl RecognitionScope {
             }
         }
     }
+    pub(super) fn optional_authority(&self, access: &Access, ticket: Id) -> Result<WorkAuthority> {
+        let state = self.state();
+        if state.closed {
+            return Err(Error::WorkerFailed);
+        }
+        if !state.capture.is_empty() {
+            return Err(Error::ResourceLimit);
+        }
+        Ok(WorkAuthority {
+            owner: self.owner,
+            ticket,
+            valid: Arc::clone(&state.valid),
+            until: access.expires_at(),
+        })
+    }
+    pub(super) fn check_optional_authority(&self, authority: &WorkAuthority) -> Result<()> {
+        if authority.owner != self.owner {
+            return Err(Error::Denied);
+        }
+        authority.check()
+    }
     pub fn status(&self) -> RecognitionStatus {
         let state = self.state();
         RecognitionStatus {

@@ -34,6 +34,13 @@ pub struct StreamBackupPlan {
     omissions: Vec<String>,
 }
 impl StreamBackupPlan {
+    pub(crate) fn admission_bytes(&self) -> Result<usize> {
+        self.scopes
+            .len()
+            .checked_mul(64)
+            .and_then(|n| n.checked_add(self.library.len() + self.generation.len() + 1024))
+            .ok_or(Error::ResourceLimit)
+    }
     pub fn includes_original_ink(&self) -> bool {
         self.includes_original_ink
     }

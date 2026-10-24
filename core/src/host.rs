@@ -21,6 +21,9 @@ use std::{
     sync::{mpsc, Arc, Mutex},
     thread,
 };
+mod backup;
+use backup::{BackupActor, BackupScope};
+pub use backup::{BackupReceipt, BackupReview, BackupStatus, BackupSummary};
 mod deletion;
 use deletion::DeletionState;
 mod mailbox;
@@ -428,6 +431,7 @@ impl Response {
 }
 
 enum Message {
+    Backup(Box<backup::Request>),
     RecognitionSource(Id, Option<Id>, mpsc::Sender<Result<RecognitionSource>>),
     PublishRecognition(
         Box<CompletedRecognition>,
@@ -466,6 +470,7 @@ impl PendingResponse {
 pub struct Host {
     mailbox: Arc<Mailbox>,
     recognition: Arc<RecognitionScope>,
+    backups: Arc<BackupScope>,
     worker: Mutex<Option<thread::JoinHandle<Result<()>>>>,
     writer_thread: thread::ThreadId,
 }
@@ -489,6 +494,8 @@ impl Host {
         let input = Arc::clone(&mailbox);
         let recognition = Arc::new(RecognitionScope::new(limits.query_count.min(8)));
         let recognition_scope = Arc::clone(&recognition);
+        let backups = BackupScope::new(limits.query_bytes);
+        let backup_scope = Arc::clone(&backups);
         let (ready_tx, ready_rx) = mpsc::channel();
         let worker = thread::Builder::new()
             .name("stem-writer".into())
@@ -507,6 +514,7 @@ impl Host {
                 let mut access = Access::public();
                 let mut pdf = PdfState::default();
                 let mut deletion = DeletionState::default();
+                let mut backup_actor = BackupActor::new(Arc::clone(&backup_scope));
                 while let Ok(Some(envelope)) = input.next() {
                     if access.remaining().is_some_and(|d| d.is_zero()) {
                         access.relock();
@@ -515,6 +523,18 @@ impl Host {
                         deletion.clear();
                     }
                     match envelope.message {
+                        Message::Backup(request) => {
+                            backup_actor.handle(
+                                *request,
+                                &store,
+                                &access,
+                                &recognition_scope,
+                                |failed| {
+                                    let _ =
+                                        input.complete(envelope.authoring, envelope.bytes, failed);
+                                },
+                            );
+                        }
                         Message::RecognitionSource(block, region, reply) => {
                             let result =
                                 std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
@@ -631,7 +651,10 @@ impl Host {
                 }
                 access.relock();
                 recognition_scope.close();
+                backup_actor.clear();
+                backup_scope.close();
                 recognition_scope.wait_workers();
+                backup_scope.wait();
                 input.close();
                 drop(pdf);
                 drop(store);
@@ -651,6 +674,7 @@ impl Host {
         Ok(Self {
             mailbox,
             recognition,
+            backups,
             writer_thread: worker.thread().id(),
             worker: Mutex::new(Some(worker)),
         })
@@ -659,10 +683,14 @@ impl Host {
     /// other callers still hold Arc references. Never call from a verifier callback.
     pub fn close(&self) -> Result<()> {
         self.recognition.close();
+        self.backups.close();
         self.mailbox.close();
         // Check before taking the join mutex: an external closer may already
         // hold it while waiting for this very verifier to return.
-        if self.writer_thread == thread::current().id() || self.recognition.is_current_worker() {
+        if self.writer_thread == thread::current().id()
+            || self.recognition.is_current_worker()
+            || self.backups.is_current_worker()
+        {
             return Err(Error::WorkerFailed);
         }
         let mut worker = self.worker.lock().map_err(|_| Error::WorkerFailed)?;

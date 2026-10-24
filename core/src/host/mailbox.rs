@@ -47,6 +47,7 @@ pub(super) struct Envelope {
 struct State {
     authoring: VecDeque<Envelope>,
     queries: VecDeque<Envelope>,
+    cleanup: Option<Envelope>,
     authoring_bytes: usize,
     query_bytes: usize,
     status: HostStatus,
@@ -63,6 +64,7 @@ impl Mailbox {
             state: Mutex::new(State {
                 authoring: VecDeque::new(),
                 queries: VecDeque::new(),
+                cleanup: None,
                 authoring_bytes: 0,
                 query_bytes: 0,
                 status: HostStatus {
@@ -123,12 +125,39 @@ impl Mailbox {
         self.publish(&mut s);
         Ok(())
     }
+    /// One lifecycle-only slot, shared by the single backup reservation. It may
+    /// exceed the ordinary query count by one; bytes are fixed control metadata.
+    pub fn admit_backup_cleanup(&self, request: super::backup::Request) -> Result<()> {
+        if !matches!(&request, super::backup::Request::Release { .. }) {
+            return Err(Error::Invalid("backup cleanup"));
+        }
+        let mut s = self.lock()?;
+        if s.status.closed {
+            return Err(Error::WorkerFailed);
+        }
+        if s.cleanup.is_some() {
+            return Err(Error::ResourceLimit);
+        }
+        s.cleanup = Some(Envelope {
+            message: Message::Backup(Box::new(request)),
+            authoring: false,
+            bytes: 0,
+        });
+        s.status.pending_queries += 1;
+        self.publish(&mut s);
+        Ok(())
+    }
     pub fn next(&self) -> Result<Option<Envelope>> {
         let mut s = self.lock()?;
         loop {
             // Preserve FIFO among all edits, capture, undo and access changes.
             // A running query is not preempted; queued optional reads yield.
-            if let Some(e) = s.authoring.pop_front().or_else(|| s.queries.pop_front()) {
+            if let Some(e) = s
+                .authoring
+                .pop_front()
+                .or_else(|| s.cleanup.take())
+                .or_else(|| s.queries.pop_front())
+            {
                 return Ok(Some(e));
             }
             if s.status.closed {
