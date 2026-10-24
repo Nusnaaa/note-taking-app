@@ -1,0 +1,82 @@
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/stem-android-user
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.9/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :backend:preBuild UP-TO-DATE
+> Task :backend:preDebugBuild UP-TO-DATE
+> Task :backend:mergeDebugJniLibFolders UP-TO-DATE
+> Task :backend:mergeDebugNativeLibs UP-TO-DATE
+> Task :backend:stripDebugDebugSymbols UP-TO-DATE
+> Task :backend:copyDebugJniLibsProjectAndLocalJars UP-TO-DATE
+> Task :backend:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :backend:generateDebugResValues UP-TO-DATE
+> Task :backend:generateDebugResources UP-TO-DATE
+> Task :backend:packageDebugResources UP-TO-DATE
+> Task :backend:parseDebugLocalResources UP-TO-DATE
+> Task :backend:generateDebugRFile UP-TO-DATE
+> Task :backend:compileDebugKotlin UP-TO-DATE
+> Task :backend:extractDebugAnnotations UP-TO-DATE
+> Task :backend:extractDeepLinksForAarDebug UP-TO-DATE
+> Task :backend:javaPreCompileDebug UP-TO-DATE
+> Task :backend:compileDebugJavaWithJavac UP-TO-DATE
+> Task :backend:mergeDebugGeneratedProguardFiles UP-TO-DATE
+> Task :backend:mergeDebugConsumerProguardFiles
+> Task :backend:mergeDebugShaders UP-TO-DATE
+> Task :backend:compileDebugShaders NO-SOURCE
+> Task :backend:generateDebugAssets UP-TO-DATE
+> Task :backend:packageDebugAssets UP-TO-DATE
+> Task :backend:prepareDebugArtProfile UP-TO-DATE
+> Task :backend:prepareLintJarForPublish UP-TO-DATE
+> Task :backend:processDebugManifest UP-TO-DATE
+> Task :backend:processDebugJavaRes UP-TO-DATE
+> Task :backend:mergeDebugJavaResource UP-TO-DATE
+> Task :backend:syncDebugLibJars UP-TO-DATE
+> Task :backend:writeDebugAarMetadata UP-TO-DATE
+> Task :backend:bundleDebugAar
+> Task :backend:assembleDebug
+> Task :backend:preReleaseBuild UP-TO-DATE
+> Task :backend:mergeReleaseJniLibFolders
+> Task :backend:generateReleaseResValues
+> Task :backend:extractDeepLinksForAarRelease
+> Task :backend:generateReleaseResources
+> Task :backend:mergeReleaseNativeLibs
+> Task :backend:packageReleaseResources
+> Task :backend:parseReleaseLocalResources
+> Task :backend:stripReleaseDebugSymbols
+> Task :backend:copyReleaseJniLibsProjectAndLocalJars
+> Task :backend:generateReleaseRFile
+> Task :backend:javaPreCompileRelease
+> Task :backend:mergeReleaseShaders
+> Task :backend:compileReleaseShaders NO-SOURCE
+> Task :backend:generateReleaseAssets UP-TO-DATE
+> Task :backend:packageReleaseAssets
+> Task :backend:prepareReleaseArtProfile
+
+> Task :backend:processReleaseManifest
+/home/linus/Projects/software/note-taking-app/repo/android/backend/src/main/AndroidManifest.xml:3:5-86 Warning:
+	uses-permission#android.permission.INTERNET was tagged at AndroidManifest.xml:3 to remove other declarations but no other declaration present
+/home/linus/Projects/software/note-taking-app/repo/android/backend/src/main/AndroidManifest.xml:4:5-6:19 Warning:
+	application@android:allowBackup was tagged at AndroidManifest.xml:4 to replace other declarations but no other declaration present
+/home/linus/Projects/software/note-taking-app/repo/android/backend/src/main/AndroidManifest.xml:4:5-6:19 Warning:
+	application@android:fullBackupContent was tagged at AndroidManifest.xml:4 to replace other declarations but no other declaration present
+/home/linus/Projects/software/note-taking-app/repo/android/backend/src/main/AndroidManifest.xml:4:5-6:19 Warning:
+	application@android:dataExtractionRules was tagged at AndroidManifest.xml:4 to replace other declarations but no other declaration present
+/home/linus/Projects/software/note-taking-app/repo/android/backend/src/main/AndroidManifest.xml:4:5-6:19 Warning:
+	application@android:usesCleartextTraffic was tagged at AndroidManifest.xml:4 to replace other declarations but no other declaration present
+
+> Task :backend:writeReleaseAarMetadata
+> Task :backend:mapReleaseSourceSetPaths
+> Task :backend:mergeReleaseResources
+> Task :backend:verifyReleaseResources
+> Task :backend:compileReleaseKotlin
+> Task :backend:extractReleaseAnnotations
+> Task :backend:compileReleaseJavaWithJavac
+> Task :backend:mergeReleaseGeneratedProguardFiles
+> Task :backend:mergeReleaseConsumerProguardFiles
+> Task :backend:processReleaseJavaRes
+> Task :backend:mergeReleaseJavaResource
+> Task :backend:syncReleaseLibJars
+> Task :backend:bundleReleaseAar
+> Task :backend:assembleRelease
+
+BUILD SUCCESSFUL in 59s
+54 actionable tasks: 30 executed, 24 up-to-date

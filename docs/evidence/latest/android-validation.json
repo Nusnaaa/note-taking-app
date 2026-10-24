@@ -1,5 +1,5 @@
 {
-  "source_commit": "bc7d27c41ce2519597116bd9063f8be9e3482542",
+  "source_commit": "f5e8622fa5635e63748005c33698fc894c897818",
   "working_tree_before": "",
   "source_sha256": {
     ".gitignore": "47df1768ba52b16ac4fd14a3042d10ecc149fe248e1ddeb2b100a177d279f9f9",
@@ -7,7 +7,8 @@
     "Cargo.lock": "276a84a76ba29160001fc55726eb07c049cb5bbdf1b198a8b73bc8f13e7ead7a",
     "Cargo.toml": "6d8463b75d7bd98ca723ae4065b478dc235989b8fa5a84fc773a5f391d4752ca",
     "README.md": "15a1f482bae31cab48d9ff304e95b92993c9cb69ac0948d141fdb9b86d5e1a6b",
-    "android/backend/build.gradle.kts": "32c6c9bfe0dee1247b8da7d98fe65a7da8e269057c03e71aa82a386c4a052b4e",
+    "android/backend/build.gradle.kts": "e972092a84e5e6e7a1a10fd6b421fa666dc1f18667279fd52c97cf68b2ba9c57",
+    "android/backend/consumer-rules.pro": "4da5cbd7c2ab312d4fb52254871a6c71ad22c26da8abe28902c609f4abb7a4dd",
     "android/backend/gradle.lockfile": "cbec11f0c961a5a5bfe6aab69d9bf761a8b8e27bc19034fd5b8eb6589005941e",
     "android/backend/src/main/AndroidManifest.xml": "e6c3baa8a6e88d578962c679301f3d53cd4cb2eb39351457e47c0915cb368a24",
     "android/backend/src/main/java/org/stemnotebook/backend/ActiveCaptureJournal.kt": "ccbceb70b0c19eb3a2b604eeb095c7b9c2eab868cf582b063599b29b53ca5fa0",
@@ -59,7 +60,8 @@
     "bridge/src/backup.rs": "d68bdf9c7852efc2b5f42e357eee1bc1bdeb04045d07e2730689bf2dd62fb81f",
     "bridge/src/lib.rs": "d40d72d91fcde273566171923ae8fc62862a4aa2230a83b107c12e020cad5f5b",
     "bridge/tests/java/BackupBoundarySmoke.java": "520140950da59a47d1aeefb3d6cc1ce5e3bd634a0cccdc70c7b5d5c36bcd3d17",
-    "bridge/tests/java/BoundarySmoke.java": "92f2940bb7358ed7e7f93f16cdbb19631e418ca8a6d116d75c301e05e19ff679",
+    "bridge/tests/java/BoundarySmoke.java": "bea0b213b2b272da05de1d3c83f24dd5188fa0b8b9b45c2a275ed6e398f572ee",
+    "bridge/tests/java/shrinker-entry.pro": "6499951820f04a798ac49ad973cb994bcd357e04ae874ae98dbeae709347fcf2",
     "core/Cargo.toml": "7275eadb36f35c89ad7849d5dde0ec1e7671d247645cce6f92e4b479dc323ebb",
     "core/migrations/001.sql": "99dad6121fe73b423becb107a9b446855adc6fc652f5927a2da2bdb4167de77c",
     "core/migrations/002.sql": "65a83aaece959e6dca07080c3b1d4c24bafd6e4c962dd9ec8ab3874aea137c7d",
@@ -201,21 +203,21 @@
     "docs/licensing/dependency-inventory.json": "c86a26e424db68595a545e056ad6726307d9167b564590ea565bba3e08c05c32",
     "docs/spec/approved-v0.5.8.md": "68612d4dc4d0e69c61f0018fbcf67bf779559bcbb120bcd0f6c3f9333f27b7b3",
     "docs/verification/DEFERRED_MANUAL.md": "c694b9fe185c216204dfd72aa6c55d1f8d21e06c431bb50b126bce1a6b514e1c",
-    "docs/verification/HOST_INTEGRATION.md": "a06deec3e3001247263bf7b581af9cd27cd993ae161c62e3bdf8f884fbe3cad0",
+    "docs/verification/HOST_INTEGRATION.md": "3257f7493e1fb255b6ec40b76d0236cdaa8c75d5516869f68bb05e198db4fdcf",
     "docs/verification/TEST_PLAN.md": "b87eb3dba1b3074e9d8ab4b38ab9ac0323aa7d1c09dc01b800aa007893c511d9",
-    "docs/verification/backend-gaps.json": "f3c8b381cd7d09ae89aed4e5cf34018c2be3c01071ca22481835c32856126d8f",
+    "docs/verification/backend-gaps.json": "3cf7ad5f03bfb86bdc43d098231dacefb52a806b36936db847e0f3c85b15171a",
     "docs/verification/candidates-current.csv": "e00a43b842508a09824530d9e64b35aa2d7669145e65cff9755d26a816d0d4aa",
     "docs/verification/inherited-current.csv": "2da70d265d0d7ddd003b917ad874ed3860719c3f8f7a771f1647ae4034658661",
-    "docs/verification/requirements-current.csv": "4d1c1651996d8d828347d6167bb624fc1e236c20f0c6baf27a15d71c83da4423",
+    "docs/verification/requirements-current.csv": "4a2c50937a43b1b2bf196b13b21b6714eb0f5389fc2aeb76ca11bebe1fe3b678",
     "docs/verification/traceability-manifest.json": "15d09e00b540a512b8e0b6afd98b06824e93d743d80317963ebe18d91d3adb22",
     "rust-toolchain.toml": "c33d1f0b1b8fda448bea32d7dc867aa64947c87169fd9de7122ffccad1dd80f9",
-    "tools/backend_gate.py": "f2e695b770631ef9dcff18125b737665b3153be72f0bb8992007f151fc1e762d",
+    "tools/backend_gate.py": "8485930297666ac5c4787facd3d5202ce1ebe3b732f2fb1c13caa6ac5c45117c",
     "tools/dependency_inventory.py": "51dc9dcd28cab69c8af36b976d65aa67557d6afe8827be162a431d1854232315",
-    "tools/traceability.py": "51f8cbfddd7ac5fa7545e65d0bacd544d49bf0fe793ef870f142811074aebfa2",
+    "tools/traceability.py": "18b62d37351c1cf43f860c5fde61a47d578326bf93e04c99a65010bddbbcde95",
     "tools/validate.py": "2a25d3f4c6d487754f7b73bc0f415809cdf9e8416fe9f651f0302522a373711a",
-    "tools/validate_android.py": "8253b94af6ee85eaffdeea73f48ddfbfd7f5b0a93042ed983293c6134e613745"
+    "tools/validate_android.py": "404555cc66faba46eb03b6a6b234294735ed492223166273823b84ff9b7553a4"
   },
-  "started_utc": "2026-10-24T14:37:27.308588+00:00",
+  "started_utc": "2026-10-24T15:22:40.038067+00:00",
   "checks": [
     {
       "name": "android-native",
@@ -261,7 +263,7 @@
       "command": [
         "/tmp/stem-build-tools/jdk-17.0.21+9/bin/javac",
         "-d",
-        "/home/linus/Projects/software/note-taking-app/repo/target/jvm-test",
+        "/home/linus/Projects/software/note-taking-app/repo/target/jni-r095n7y5",
         "android/backend/src/main/java/org/stemnotebook/backend/NativeBridge.java",
         "bridge/tests/java/BoundarySmoke.java",
         "bridge/tests/java/BackupBoundarySmoke.java"
@@ -276,7 +278,56 @@
         "-Xcheck:jni",
         "-Djava.library.path=target/debug",
         "-cp",
-        "/home/linus/Projects/software/note-taking-app/repo/target/jvm-test",
+        "/home/linus/Projects/software/note-taking-app/repo/target/jni-r095n7y5",
+        "BoundarySmoke"
+      ],
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "name": "jni-shrinker-version",
+      "command": [
+        "/tmp/stem-build-tools/jdk-17.0.21+9/bin/java",
+        "-cp",
+        "/tmp/stem-android-sdk/build-tools/35.0.0/lib/d8.jar",
+        "com.android.tools.r8.R8",
+        "--version"
+      ],
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "name": "jni-shrink",
+      "command": [
+        "/tmp/stem-build-tools/jdk-17.0.21+9/bin/java",
+        "-cp",
+        "/tmp/stem-android-sdk/build-tools/35.0.0/lib/d8.jar",
+        "com.android.tools.r8.R8",
+        "--classfile",
+        "--release",
+        "--lib",
+        "/tmp/stem-build-tools/jdk-17.0.21+9",
+        "--pg-conf",
+        "android/backend/consumer-rules.pro",
+        "--pg-conf",
+        "bridge/tests/java/shrinker-entry.pro",
+        "--pg-map-output",
+        "/home/linus/Projects/software/note-taking-app/repo/docs/evidence/latest/jni-shrinker.map",
+        "--output",
+        "/home/linus/Projects/software/note-taking-app/repo/target/jni-r095n7y5/shrunk.jar",
+        "/home/linus/Projects/software/note-taking-app/repo/target/jni-r095n7y5/input.jar"
+      ],
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "name": "jni-shrunk-smoke",
+      "command": [
+        "/tmp/stem-build-tools/jdk-17.0.21+9/bin/java",
+        "-Xcheck:jni",
+        "-Djava.library.path=target/debug",
+        "-cp",
+        "/home/linus/Projects/software/note-taking-app/repo/target/jni-r095n7y5/shrunk.jar",
         "BoundarySmoke"
       ],
       "exit_code": 0,
@@ -290,6 +341,7 @@
         "-p",
         "android",
         ":backend:assembleDebug",
+        ":backend:assembleRelease",
         ":backend:testDebugUnitTest",
         ":backend:lintDebug",
         "--console=plain",
@@ -311,8 +363,21 @@
     "CC_aarch64_linux_android": "/tmp/stem-android-sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android30-clang",
     "AR_aarch64_linux_android": "/tmp/stem-android-sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar"
   },
-  "full_working_tree_before": "?? docs/evidence/continuation-2026-10-24/jni-backup/",
-  "aar_sha256": "e2d1e964185f9ffc6a880090f356db5946dfb86db21b09c2bb4daba96ba9a2e4",
+  "full_working_tree_before": "?? docs/evidence/continuation-2026-10-24/jni-release/",
+  "jni_smoke_groups": 17,
+  "jni_shrunk_smoke_groups": 17,
+  "jni_shrinker": {
+    "version": "Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/stem-android-user\nR8 8.6.2-dev (build abaab469b5ebd4dd2bb91ba0ed6f45277faae4ca from go/r8bot (luci-r8-custom-ci-archive-0-77gl))",
+    "tool_sha256": "305622ad00535684534eb8f742cbf5e628a9abc09d8ea4d39d1babb95bf0cee5",
+    "input_sha256": "1417505d6f184a4de40a5dec4105badae3303b8a0152cdcbff208ab4f92008f3",
+    "output_sha256": "2f29ce72b59fad3ca5300e3c16652a57bec48e8db5dd523ea69ee646b46110d9",
+    "mode": "R8 release classfile; tree shaking, optimization and minification enabled; desktop JVM execution, not device DEX"
+  },
+  "jni_shrink_policy": "PASS",
+  "consumer_rules_policy": "PASS",
+  "consumer_rules_sha256": "48657e617ce701db89de33571f793ee13a0e38d919f20d49dbc353534b7bae69",
+  "release_aar_sha256": "5a429d3567644c69e3e47de5174c177b09775830f2b795013ac15b373448be3d",
+  "aar_sha256": "c2e56be3f049f7d6ae3174657756241e7cabeddbf6a3924eb1fdc06830044854",
   "packaged_arm64_library_bytes": 5328168,
   "android_tests": {
     "tests": 141,
@@ -320,9 +385,8 @@
     "errors": 0,
     "skipped": 0
   },
-  "jni_assertions": 10,
   "merged_manifest_policy": "PASS",
   "native_sha256": "d807374c36223bb5b92d2ff734d5c8dee8070844217124c5757580a06cc70ee8",
-  "manifest_scope": "AAR merge contract only: INTERNET removal marker, no backup/transfer, no cleartext, isolated non-exported PDF service. Final APK/device enforcement NOT RUN.",
-  "finished_utc": "2026-10-24T14:44:24.019512+00:00"
+  "manifest_scope": "Debug/release AAR merge contracts only: INTERNET removal marker, no backup/transfer, no cleartext, isolated non-exported PDF service. Final APK/device enforcement NOT RUN.",
+  "finished_utc": "2026-10-24T15:26:48.733589+00:00"
 }

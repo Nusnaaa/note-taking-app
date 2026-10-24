@@ -1,8 +1,8 @@
 {
-  "started_utc": "2026-10-24T14:37:27.338073+00:00",
-  "source_commit": "bc7d27c41ce2519597116bd9063f8be9e3482542",
+  "started_utc": "2026-10-24T15:22:40.079125+00:00",
+  "source_commit": "f5e8622fa5635e63748005c33698fc894c897818",
   "working_tree_before": "",
-  "full_working_tree_before": "?? docs/evidence/continuation-2026-10-24/jni-backup/",
+  "full_working_tree_before": "?? docs/evidence/continuation-2026-10-24/jni-release/",
   "build_environment": {
     "CARGO_INCREMENTAL": "0",
     "CARGO_BUILD_JOBS": "2"
@@ -15,7 +15,8 @@
     "Cargo.lock": "276a84a76ba29160001fc55726eb07c049cb5bbdf1b198a8b73bc8f13e7ead7a",
     "Cargo.toml": "6d8463b75d7bd98ca723ae4065b478dc235989b8fa5a84fc773a5f391d4752ca",
     "README.md": "15a1f482bae31cab48d9ff304e95b92993c9cb69ac0948d141fdb9b86d5e1a6b",
-    "android/backend/build.gradle.kts": "32c6c9bfe0dee1247b8da7d98fe65a7da8e269057c03e71aa82a386c4a052b4e",
+    "android/backend/build.gradle.kts": "e972092a84e5e6e7a1a10fd6b421fa666dc1f18667279fd52c97cf68b2ba9c57",
+    "android/backend/consumer-rules.pro": "4da5cbd7c2ab312d4fb52254871a6c71ad22c26da8abe28902c609f4abb7a4dd",
     "android/backend/gradle.lockfile": "cbec11f0c961a5a5bfe6aab69d9bf761a8b8e27bc19034fd5b8eb6589005941e",
     "android/backend/src/main/AndroidManifest.xml": "e6c3baa8a6e88d578962c679301f3d53cd4cb2eb39351457e47c0915cb368a24",
     "android/backend/src/main/java/org/stemnotebook/backend/ActiveCaptureJournal.kt": "ccbceb70b0c19eb3a2b604eeb095c7b9c2eab868cf582b063599b29b53ca5fa0",
@@ -67,7 +68,8 @@
     "bridge/src/backup.rs": "d68bdf9c7852efc2b5f42e357eee1bc1bdeb04045d07e2730689bf2dd62fb81f",
     "bridge/src/lib.rs": "d40d72d91fcde273566171923ae8fc62862a4aa2230a83b107c12e020cad5f5b",
     "bridge/tests/java/BackupBoundarySmoke.java": "520140950da59a47d1aeefb3d6cc1ce5e3bd634a0cccdc70c7b5d5c36bcd3d17",
-    "bridge/tests/java/BoundarySmoke.java": "92f2940bb7358ed7e7f93f16cdbb19631e418ca8a6d116d75c301e05e19ff679",
+    "bridge/tests/java/BoundarySmoke.java": "bea0b213b2b272da05de1d3c83f24dd5188fa0b8b9b45c2a275ed6e398f572ee",
+    "bridge/tests/java/shrinker-entry.pro": "6499951820f04a798ac49ad973cb994bcd357e04ae874ae98dbeae709347fcf2",
     "core/Cargo.toml": "7275eadb36f35c89ad7849d5dde0ec1e7671d247645cce6f92e4b479dc323ebb",
     "core/migrations/001.sql": "99dad6121fe73b423becb107a9b446855adc6fc652f5927a2da2bdb4167de77c",
     "core/migrations/002.sql": "65a83aaece959e6dca07080c3b1d4c24bafd6e4c962dd9ec8ab3874aea137c7d",
@@ -209,19 +211,19 @@
     "docs/licensing/dependency-inventory.json": "c86a26e424db68595a545e056ad6726307d9167b564590ea565bba3e08c05c32",
     "docs/spec/approved-v0.5.8.md": "68612d4dc4d0e69c61f0018fbcf67bf779559bcbb120bcd0f6c3f9333f27b7b3",
     "docs/verification/DEFERRED_MANUAL.md": "c694b9fe185c216204dfd72aa6c55d1f8d21e06c431bb50b126bce1a6b514e1c",
-    "docs/verification/HOST_INTEGRATION.md": "a06deec3e3001247263bf7b581af9cd27cd993ae161c62e3bdf8f884fbe3cad0",
+    "docs/verification/HOST_INTEGRATION.md": "3257f7493e1fb255b6ec40b76d0236cdaa8c75d5516869f68bb05e198db4fdcf",
     "docs/verification/TEST_PLAN.md": "b87eb3dba1b3074e9d8ab4b38ab9ac0323aa7d1c09dc01b800aa007893c511d9",
-    "docs/verification/backend-gaps.json": "f3c8b381cd7d09ae89aed4e5cf34018c2be3c01071ca22481835c32856126d8f",
+    "docs/verification/backend-gaps.json": "3cf7ad5f03bfb86bdc43d098231dacefb52a806b36936db847e0f3c85b15171a",
     "docs/verification/candidates-current.csv": "e00a43b842508a09824530d9e64b35aa2d7669145e65cff9755d26a816d0d4aa",
     "docs/verification/inherited-current.csv": "2da70d265d0d7ddd003b917ad874ed3860719c3f8f7a771f1647ae4034658661",
-    "docs/verification/requirements-current.csv": "4d1c1651996d8d828347d6167bb624fc1e236c20f0c6baf27a15d71c83da4423",
+    "docs/verification/requirements-current.csv": "4a2c50937a43b1b2bf196b13b21b6714eb0f5389fc2aeb76ca11bebe1fe3b678",
     "docs/verification/traceability-manifest.json": "15d09e00b540a512b8e0b6afd98b06824e93d743d80317963ebe18d91d3adb22",
     "rust-toolchain.toml": "c33d1f0b1b8fda448bea32d7dc867aa64947c87169fd9de7122ffccad1dd80f9",
-    "tools/backend_gate.py": "f2e695b770631ef9dcff18125b737665b3153be72f0bb8992007f151fc1e762d",
+    "tools/backend_gate.py": "8485930297666ac5c4787facd3d5202ce1ebe3b732f2fb1c13caa6ac5c45117c",
     "tools/dependency_inventory.py": "51dc9dcd28cab69c8af36b976d65aa67557d6afe8827be162a431d1854232315",
-    "tools/traceability.py": "51f8cbfddd7ac5fa7545e65d0bacd544d49bf0fe793ef870f142811074aebfa2",
+    "tools/traceability.py": "18b62d37351c1cf43f860c5fde61a47d578326bf93e04c99a65010bddbbcde95",
     "tools/validate.py": "2a25d3f4c6d487754f7b73bc0f415809cdf9e8416fe9f651f0302522a373711a",
-    "tools/validate_android.py": "8253b94af6ee85eaffdeea73f48ddfbfd7f5b0a93042ed983293c6134e613745"
+    "tools/validate_android.py": "404555cc66faba46eb03b6a6b234294735ed492223166273823b84ff9b7553a4"
   },
   "checks": [
     {
@@ -235,7 +237,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 0.866,
+      "seconds": 1.066,
       "log": "format.log"
     },
     {
@@ -253,7 +255,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 18.139,
+      "seconds": 3.307,
       "log": "lint.log"
     },
     {
@@ -267,7 +269,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 607.949,
+      "seconds": 568.044,
       "log": "tests.log"
     },
     {
@@ -282,7 +284,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 179.862,
+      "seconds": 0.239,
       "log": "release-build.log"
     },
     {
@@ -294,7 +296,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 0.319,
+      "seconds": 0.312,
       "log": "traceability.log"
     }
   ],
@@ -316,11 +318,11 @@
       "result": "ok"
     },
     {
-      "name": "sources::selection_tests::selected_revision_transaction_rolls_back_and_preserves_independent_evidence",
+      "name": "host::recognition::tests::optional_retirement_worker_failure_does_not_disable_authoritative_writing",
       "result": "ok"
     },
     {
-      "name": "host::recognition::tests::optional_retirement_worker_failure_does_not_disable_authoritative_writing",
+      "name": "sources::selection_tests::selected_revision_transaction_rolls_back_and_preserves_independent_evidence",
       "result": "ok"
     },
     {
@@ -348,15 +350,15 @@
       "result": "ok"
     },
     {
-      "name": "invalid_or_dangling_presets_reject_atomically_without_silent_selection_repair",
-      "result": "ok"
-    },
-    {
       "name": "guide_kinds_are_bounded_escaped_and_excluded_from_export_only_by_explicit_choice",
       "result": "ok"
     },
     {
       "name": "preferences_preserve_stale_selection_and_do_not_consume_document_undo",
+      "result": "ok"
+    },
+    {
+      "name": "invalid_or_dangling_presets_reject_atomically_without_silent_selection_repair",
       "result": "ok"
     },
     {
@@ -384,7 +386,7 @@
       "result": "ok"
     },
     {
-      "name": "restore_publication_never_overwrites_live_database_and_reopens",
+      "name": "external_asset_backup_is_explicit_authorised_and_revocation_safe",
       "result": "ok"
     },
     {
@@ -396,7 +398,7 @@
       "result": "ok"
     },
     {
-      "name": "external_asset_backup_is_explicit_authorised_and_revocation_safe",
+      "name": "restore_publication_never_overwrites_live_database_and_reopens",
       "result": "ok"
     },
     {
@@ -428,6 +430,10 @@
       "result": "ok"
     },
     {
+      "name": "restore_rejects_shared_or_symlinked_directories_before_creating_private_content",
+      "result": "ok"
+    },
+    {
       "name": "incremental_library_restore_preserves_ink_undo_and_source_relationships_then_publishes_without_overwrite",
       "result": "ok"
     },
@@ -440,15 +446,11 @@
       "result": "ok"
     },
     {
-      "name": "restore_rejects_shared_or_symlinked_directories_before_creating_private_content",
+      "name": "authorised_retained_pdf_bytes_are_explicit_while_revoked_relationships_stay_revoked",
       "result": "ok"
     },
     {
       "name": "concurrent_generation_change_prevents_finalising_an_old_read_snapshot",
-      "result": "ok"
-    },
-    {
-      "name": "authorised_retained_pdf_bytes_are_explicit_while_revoked_relationships_stay_revoked",
       "result": "ok"
     },
     {
@@ -464,11 +466,11 @@
       "result": "ok"
     },
     {
-      "name": "observed_samples_are_exact_and_invalid_events_leave_capture_recoverable",
+      "name": "palm_navigation_and_stylus_cancellation_do_not_commit_accidental_ink",
       "result": "ok"
     },
     {
-      "name": "palm_navigation_and_stylus_cancellation_do_not_commit_accidental_ink",
+      "name": "observed_samples_are_exact_and_invalid_events_leave_capture_recoverable",
       "result": "ok"
     },
     {
@@ -492,11 +494,11 @@
       "result": "ok"
     },
     {
-      "name": "naming_a_public_destination_does_not_bypass_the_receipts_actual_owner_lock",
+      "name": "protected_receipt_denies_matching_changed_payload_and_changed_target_before_comparison",
       "result": "ok"
     },
     {
-      "name": "protected_receipt_denies_matching_changed_payload_and_changed_target_before_comparison",
+      "name": "naming_a_public_destination_does_not_bypass_the_receipts_actual_owner_lock",
       "result": "ok"
     },
     {
@@ -516,19 +518,11 @@
       "result": "ok"
     },
     {
-      "name": "subtree_purge_preflight_and_commit_failure_do_not_partially_erase_protected_ink",
-      "result": "ok"
-    },
-    {
       "name": "recovery_authority_preserves_inherited_and_app_locks_across_purge_and_reopen",
       "result": "ok"
     },
     {
-      "name": "code_plaintext_is_exact_and_markdown_fence_cannot_be_closed_by_content",
-      "result": "ok"
-    },
-    {
-      "name": "unsupported_maths_is_reported_and_xml_is_escaped",
+      "name": "subtree_purge_preflight_and_commit_failure_do_not_partially_erase_protected_ink",
       "result": "ok"
     },
     {
@@ -536,7 +530,15 @@
       "result": "ok"
     },
     {
+      "name": "code_plaintext_is_exact_and_markdown_fence_cannot_be_closed_by_content",
+      "result": "ok"
+    },
+    {
       "name": "offline_help_covers_recovery_and_unsearchable_ink_without_remote_dependency",
+      "result": "ok"
+    },
+    {
+      "name": "unsupported_maths_is_reported_and_xml_is_escaped",
       "result": "ok"
     },
     {
@@ -544,11 +546,11 @@
       "result": "ok"
     },
     {
-      "name": "authenticated_prefix_requires_explicit_finality_and_plaintext_budget_cannot_be_exceeded",
+      "name": "sink_failure_poisoning_prevents_retry_or_final_recovery_receipt",
       "result": "ok"
     },
     {
-      "name": "sink_failure_poisoning_prevents_retry_or_final_recovery_receipt",
+      "name": "authenticated_prefix_requires_explicit_finality_and_plaintext_budget_cannot_be_exceeded",
       "result": "ok"
     },
     {
@@ -580,19 +582,19 @@
       "result": "ok"
     },
     {
-      "name": "undo_creation_preserves_original_observations_and_redo_restores_visibility",
-      "result": "ok"
-    },
-    {
       "name": "undo_requires_current_locks_and_cannot_remove_protection",
       "result": "ok"
     },
     {
-      "name": "pruning_without_protected_block_access_keeps_its_undo_history",
+      "name": "editing_after_undo_discards_redo_branch_but_keeps_source_history",
       "result": "ok"
     },
     {
-      "name": "editing_after_undo_discards_redo_branch_but_keeps_source_history",
+      "name": "undo_creation_preserves_original_observations_and_redo_restores_visibility",
+      "result": "ok"
+    },
+    {
+      "name": "pruning_without_protected_block_access_keeps_its_undo_history",
       "result": "ok"
     },
     {
@@ -616,15 +618,15 @@
       "result": "ok"
     },
     {
-      "name": "removing_engine_preserves_notebooks_strokes_and_accepted_work",
-      "result": "ok"
-    },
-    {
       "name": "resource_installation_requires_consent_digest_and_bounded_streaming",
       "result": "ok"
     },
     {
       "name": "batch_acceptance_is_selected_and_atomic_on_stale_members",
+      "result": "ok"
+    },
+    {
+      "name": "removing_engine_preserves_notebooks_strokes_and_accepted_work",
       "result": "ok"
     },
     {
@@ -660,15 +662,7 @@
       "result": "ok"
     },
     {
-      "name": "independent_copy_preserves_ink_but_has_separate_ids_edits_modes_and_status",
-      "result": "ok"
-    },
-    {
       "name": "extracting_a_protected_heading_does_not_disclose_its_title",
-      "result": "ok"
-    },
-    {
-      "name": "linked_append_is_atomic_and_keeps_master_order_and_shared_save_state",
       "result": "ok"
     },
     {
@@ -680,7 +674,11 @@
       "result": "ok"
     },
     {
-      "name": "failed_extraction_and_reassignment_roll_back_every_membership",
+      "name": "linked_append_is_atomic_and_keeps_master_order_and_shared_save_state",
+      "result": "ok"
+    },
+    {
+      "name": "independent_copy_preserves_ink_but_has_separate_ids_edits_modes_and_status",
       "result": "ok"
     },
     {
@@ -688,11 +686,11 @@
       "result": "ok"
     },
     {
-      "name": "master_trash_restore_and_purge_preserve_then_remove_exercise_state",
+      "name": "failed_extraction_and_reassignment_roll_back_every_membership",
       "result": "ok"
     },
     {
-      "name": "selected_exercise_export_excludes_unrelated_master_content_and_roundtrips",
+      "name": "master_trash_restore_and_purge_preserve_then_remove_exercise_state",
       "result": "ok"
     },
     {
@@ -700,15 +698,19 @@
       "result": "ok"
     },
     {
-      "name": "current_native_preserves_exercise_identity_relationships_locks_modes_and_heading_rules",
-      "result": "ok"
-    },
-    {
       "name": "reassignment_requires_preview_confirmation_and_undo_preserves_new_content",
       "result": "ok"
     },
     {
+      "name": "selected_exercise_export_excludes_unrelated_master_content_and_roundtrips",
+      "result": "ok"
+    },
+    {
       "name": "existing_membership_survives_heading_confirmation_removal_rename_and_reopen",
+      "result": "ok"
+    },
+    {
+      "name": "current_native_preserves_exercise_identity_relationships_locks_modes_and_heading_rules",
       "result": "ok"
     },
     {
@@ -728,19 +730,11 @@
       "result": "ok"
     },
     {
-      "name": "derivative_scope_and_fresh_auth_cannot_be_bypassed",
-      "result": "ok"
-    },
-    {
       "name": "converted_only_export_never_reads_or_discloses_original_ink",
       "result": "ok"
     },
     {
-      "name": "threaded_host_commits_reopens_and_rejects_unknown_version_and_fields",
-      "result": "ok"
-    },
-    {
-      "name": "failed_host_initialisation_releases_ownership_before_returning",
+      "name": "derivative_scope_and_fresh_auth_cannot_be_bypassed",
       "result": "ok"
     },
     {
@@ -748,23 +742,11 @@
       "result": "ok"
     },
     {
-      "name": "reentrant_close_from_verifier_fails_without_self_join_or_retained_access",
+      "name": "failed_host_initialisation_releases_ownership_before_returning",
       "result": "ok"
     },
     {
       "name": "verifier_panic_fails_closed_without_killing_the_writer_or_retaining_access",
-      "result": "ok"
-    },
-    {
-      "name": "recovery_identity_is_stable_but_never_grants_content_or_receipt_access",
-      "result": "ok"
-    },
-    {
-      "name": "active_call_and_shutdown_drain_hold_ownership_until_original_ink_is_committed",
-      "result": "ok"
-    },
-    {
-      "name": "host_restores_revision_bound_selection_without_silently_rebinding_after_edit",
       "result": "ok"
     },
     {
@@ -776,11 +758,39 @@
       "result": "ok"
     },
     {
+      "name": "host_restores_revision_bound_selection_without_silently_rebinding_after_edit",
+      "result": "ok"
+    },
+    {
+      "name": "reentrant_close_from_verifier_fails_without_self_join_or_retained_access",
+      "result": "ok"
+    },
+    {
+      "name": "threaded_host_commits_reopens_and_rejects_unknown_version_and_fields",
+      "result": "ok"
+    },
+    {
+      "name": "concurrent_host_calls_return_distinct_committed_content",
+      "result": "ok"
+    },
+    {
+      "name": "recovery_identity_is_stable_but_never_grants_content_or_receipt_access",
+      "result": "ok"
+    },
+    {
+      "name": "active_call_and_shutdown_drain_hold_ownership_until_original_ink_is_committed",
+      "result": "ok"
+    },
+    {
       "name": "host_workspace_discovers_last_view_after_reopen_without_serializing_locked_targets",
       "result": "ok"
     },
     {
       "name": "host_ownership_is_cross_process_and_abrupt_exit_recovers_original_ink",
+      "result": "ok"
+    },
+    {
+      "name": "dropped_receipts_still_drain_on_close_and_observers_see_final_closed_state",
       "result": "ok"
     },
     {
@@ -792,27 +802,11 @@
       "result": "ok"
     },
     {
-      "name": "concurrent_host_calls_return_distinct_committed_content",
-      "result": "ok"
-    },
-    {
-      "name": "dropped_receipts_still_drain_on_close_and_observers_see_final_closed_state",
-      "result": "ok"
-    },
-    {
       "name": "optional_backup_metadata_budget_failure_keeps_authoring_available",
       "result": "ok"
     },
     {
       "name": "native_review_confirmation_fresh_proof_foreign_host_and_closed_host_are_enforced",
-      "result": "ok"
-    },
-    {
-      "name": "native_backup_retires_sink_before_receipt_and_restores_exact_original_ink",
-      "result": "ok"
-    },
-    {
-      "name": "reserved_cleanup_retires_backup_when_ordinary_queries_are_saturated",
       "result": "ok"
     },
     {
@@ -824,11 +818,11 @@
       "result": "ok"
     },
     {
-      "name": "sink_write_and_destructor_callbacks_cannot_self_join_or_publish_a_success_after_close",
+      "name": "native_backup_retires_sink_before_receipt_and_restores_exact_original_ink",
       "result": "ok"
     },
     {
-      "name": "verifier_and_sink_panics_do_not_kill_authoring_or_leave_a_backup_reservation",
+      "name": "reserved_cleanup_retires_backup_when_ordinary_queries_are_saturated",
       "result": "ok"
     },
     {
@@ -837,6 +831,14 @@
     },
     {
       "name": "blocked_sink_does_not_hold_writer_and_source_edits_invalidate_completion",
+      "result": "ok"
+    },
+    {
+      "name": "verifier_and_sink_panics_do_not_kill_authoring_or_leave_a_backup_reservation",
+      "result": "ok"
+    },
+    {
+      "name": "sink_write_and_destructor_callbacks_cannot_self_join_or_publish_a_success_after_close",
       "result": "ok"
     },
     {
@@ -872,15 +874,11 @@
       "result": "ok"
     },
     {
-      "name": "relock_scope_changes_and_failed_authentication_retire_old_capabilities",
-      "result": "ok"
-    },
-    {
       "name": "selection_requires_fresh_verification_on_acceptance_and_rejection_is_single_use",
       "result": "ok"
     },
     {
-      "name": "selection_reviews_are_stale_safe_scope_checked_and_cleared_on_relock",
+      "name": "relock_scope_changes_and_failed_authentication_retire_old_capabilities",
       "result": "ok"
     },
     {
@@ -888,11 +886,15 @@
       "result": "ok"
     },
     {
-      "name": "reviewed_pdf_replacement_updates_lineage_and_retires_the_old_live_read",
+      "name": "changed_revision_can_be_reacquired_from_revoked_state_without_silent_anchor_relocation",
       "result": "ok"
     },
     {
-      "name": "changed_revision_can_be_reacquired_from_revoked_state_without_silent_anchor_relocation",
+      "name": "selection_reviews_are_stale_safe_scope_checked_and_cleared_on_relock",
+      "result": "ok"
+    },
+    {
+      "name": "reviewed_pdf_replacement_updates_lineage_and_retires_the_old_live_read",
       "result": "ok"
     },
     {
@@ -916,11 +918,11 @@
       "result": "ok"
     },
     {
-      "name": "retained_pdf_lock_applies_to_metadata_chunks_and_staging_even_with_independent_authority",
+      "name": "retained_pdf_streaming_is_explicit_atomic_bounded_and_content_checked",
       "result": "ok"
     },
     {
-      "name": "retained_pdf_streaming_is_explicit_atomic_bounded_and_content_checked",
+      "name": "retained_pdf_lock_applies_to_metadata_chunks_and_staging_even_with_independent_authority",
       "result": "ok"
     },
     {
@@ -932,7 +934,7 @@
       "result": "ok"
     },
     {
-      "name": "host_close_invalidates_prepared_work_while_pending_reviews_remain_explicit",
+      "name": "reentrant_close_from_model_callback_cancels_without_self_join",
       "result": "ok"
     },
     {
@@ -940,15 +942,15 @@
       "result": "ok"
     },
     {
-      "name": "excessive_trusted_capture_sessions_disable_optional_work_but_preserve_authoring",
-      "result": "ok"
-    },
-    {
-      "name": "reentrant_close_from_model_callback_cancels_without_self_join",
+      "name": "host_close_invalidates_prepared_work_while_pending_reviews_remain_explicit",
       "result": "ok"
     },
     {
       "name": "capture_priority_reaches_a_running_adapter_and_does_not_wait_for_it_to_save_ink",
+      "result": "ok"
+    },
+    {
+      "name": "excessive_trusted_capture_sessions_disable_optional_work_but_preserve_authoring",
       "result": "ok"
     },
     {
@@ -972,15 +974,15 @@
       "result": "ok"
     },
     {
+      "name": "host_manual_recognition_review_correction_and_acceptance_preserve_original_ink",
+      "result": "ok"
+    },
+    {
       "name": "selected_regions_publish_independent_reviews_and_explicit_batch_acceptance_is_atomic",
       "result": "ok"
     },
     {
       "name": "overlapping_region_or_whole_block_selections_leave_every_review_pending",
-      "result": "ok"
-    },
-    {
-      "name": "host_manual_recognition_review_correction_and_acceptance_preserve_original_ink",
       "result": "ok"
     },
     {
@@ -1028,11 +1030,11 @@
       "result": "ok"
     },
     {
-      "name": "missing_layer_never_falls_back_and_identical_committed_receipt_does_not_rebind_membership",
+      "name": "layer_capture_checks_owner_protection_and_rolls_back_source_and_destination_on_failure",
       "result": "ok"
     },
     {
-      "name": "layer_capture_checks_owner_protection_and_rolls_back_source_and_destination_on_failure",
+      "name": "missing_layer_never_falls_back_and_identical_committed_receipt_does_not_rebind_membership",
       "result": "ok"
     },
     {
@@ -1048,19 +1050,19 @@
       "result": "ok"
     },
     {
-      "name": "legacy_canvas_migrates_to_an_implicit_base_without_rewriting_original_payloads",
-      "result": "ok"
-    },
-    {
       "name": "defaults_and_independent_embed_overrides_preserve_source_and_report_missing_layers",
       "result": "ok"
     },
     {
-      "name": "layer_undo_redo_and_failure_are_atomic_and_revisions_never_reset_to_zero",
+      "name": "legacy_canvas_migrates_to_an_implicit_base_without_rewriting_original_payloads",
       "result": "ok"
     },
     {
       "name": "native_copy_remaps_layer_and_embed_overrides_and_derivatives_respect_default_visibility",
+      "result": "ok"
+    },
+    {
+      "name": "layer_undo_redo_and_failure_are_atomic_and_revisions_never_reset_to_zero",
       "result": "ok"
     },
     {
@@ -1076,6 +1078,10 @@
       "result": "ok"
     },
     {
+      "name": "protected_canvas_cannot_leak_through_embed_or_group",
+      "result": "ok"
+    },
+    {
       "name": "canvas_embeds_keep_independent_pinned_cameras_and_reject_cycles",
       "result": "ok"
     },
@@ -1085,10 +1091,6 @@
     },
     {
       "name": "images_cannot_bypass_locks_even_after_replacing_visible_content",
-      "result": "ok"
-    },
-    {
-      "name": "protected_canvas_cannot_leak_through_embed_or_group",
       "result": "ok"
     },
     {
@@ -1108,19 +1110,15 @@
       "result": "ok"
     },
     {
-      "name": "chronology_filters_by_actual_creation_without_journals",
-      "result": "ok"
-    },
-    {
       "name": "delete_review_is_invalidated_by_new_dependency",
       "result": "ok"
     },
     {
-      "name": "app_lock_and_inherited_protection_do_not_grant_via_link_or_move",
+      "name": "module_moves_check_descendants_cycles_and_depth_atomically",
       "result": "ok"
     },
     {
-      "name": "module_moves_check_descendants_cycles_and_depth_atomically",
+      "name": "chronology_filters_by_actual_creation_without_journals",
       "result": "ok"
     },
     {
@@ -1129,6 +1127,10 @@
     },
     {
       "name": "stale_edit_and_interrupted_move_do_not_change_saved_state",
+      "result": "ok"
+    },
+    {
+      "name": "app_lock_and_inherited_protection_do_not_grant_via_link_or_move",
       "result": "ok"
     },
     {
@@ -1152,7 +1154,7 @@
       "result": "ok"
     },
     {
-      "name": "hostile_native_relationships_rejected_even_with_recomputed_checksum",
+      "name": "export_plan_cannot_survive_later_lock_or_source_change",
       "result": "ok"
     },
     {
@@ -1160,7 +1162,11 @@
       "result": "ok"
     },
     {
-      "name": "raw_ink_requires_deliberate_inclusion_and_subset_export_never_follows_links",
+      "name": "hostile_native_relationships_rejected_even_with_recomputed_checksum",
+      "result": "ok"
+    },
+    {
+      "name": "hostile_cross_kind_identifier_aliases_are_rejected_before_import",
       "result": "ok"
     },
     {
@@ -1168,11 +1174,7 @@
       "result": "ok"
     },
     {
-      "name": "export_plan_cannot_survive_later_lock_or_source_change",
-      "result": "ok"
-    },
-    {
-      "name": "hostile_cross_kind_identifier_aliases_are_rejected_before_import",
+      "name": "raw_ink_requires_deliberate_inclusion_and_subset_export_never_follows_links",
       "result": "ok"
     },
     {
@@ -1196,11 +1198,11 @@
       "result": "ok"
     },
     {
-      "name": "view_discovery_separates_master_and_exercise_and_rechecks_app_lock",
+      "name": "exercise_membership_and_current_block_protection_gate_bookmark_metadata_and_replacement",
       "result": "ok"
     },
     {
-      "name": "exercise_membership_and_current_block_protection_gate_bookmark_metadata_and_replacement",
+      "name": "view_discovery_separates_master_and_exercise_and_rechecks_app_lock",
       "result": "ok"
     },
     {
@@ -1212,15 +1214,15 @@
       "result": "ok"
     },
     {
-      "name": "view_discovery_reopens_saved_positions_and_filters_fresh_block_protection",
-      "result": "ok"
-    },
-    {
       "name": "schema10_upgrade_keeps_legacy_view_payload_byte_for_byte_and_absent_bookmark_is_not_invented",
       "result": "ok"
     },
     {
       "name": "unicode_selection_reopens_and_changed_content_requires_explicit_fresh_bookmark",
+      "result": "ok"
+    },
+    {
+      "name": "view_discovery_reopens_saved_positions_and_filters_fresh_block_protection",
       "result": "ok"
     },
     {
@@ -1252,11 +1254,11 @@
       "result": "ok"
     },
     {
-      "name": "worker_file_clone_keeps_resource_reserved_after_owner_is_dropped",
+      "name": "cloned_worker_reservations_survive_thread_transfer_until_the_last_handle_retires",
       "result": "ok"
     },
     {
-      "name": "cloned_worker_reservations_survive_thread_transfer_until_the_last_handle_retires",
+      "name": "worker_file_clone_keeps_resource_reserved_after_owner_is_dropped",
       "result": "ok"
     },
     {
@@ -1288,7 +1290,7 @@
       "result": "ok"
     },
     {
-      "name": "model_switch_and_remove_leave_accepted_content_and_raw_strokes",
+      "name": "cancel_timeout_and_worker_panic_discard_results",
       "result": "ok"
     },
     {
@@ -1296,11 +1298,11 @@
       "result": "ok"
     },
     {
-      "name": "cancel_timeout_and_worker_panic_discard_results",
+      "name": "stale_inference_and_stale_proposal_cannot_overwrite_corrections",
       "result": "ok"
     },
     {
-      "name": "stale_inference_and_stale_proposal_cannot_overwrite_corrections",
+      "name": "model_switch_and_remove_leave_accepted_content_and_raw_strokes",
       "result": "ok"
     },
     {
@@ -1368,11 +1370,11 @@
       "result": "ok"
     },
     {
-      "name": "source_link_never_bypasses_note_lock_or_creates_network_action",
+      "name": "link_default_managed_copy_requires_consent_and_matching_bytes",
       "result": "ok"
     },
     {
-      "name": "link_default_managed_copy_requires_consent_and_matching_bytes",
+      "name": "source_link_never_bypasses_note_lock_or_creates_network_action",
       "result": "ok"
     },
     {
@@ -1440,15 +1442,11 @@
       "result": "ok"
     },
     {
+      "name": "restore_never_removes_newer_content_lock",
+      "result": "ok"
+    },
+    {
       "name": "interrupted_capture_rolls_back_block_strokes_and_document_revision",
-      "result": "ok"
-    },
-    {
-      "name": "mode_defaults_and_inheritance_do_not_convert_existing_ink",
-      "result": "ok"
-    },
-    {
-      "name": "exact_code_and_incorrect_math_survive_edits_and_restore_as_new_revision",
       "result": "ok"
     },
     {
@@ -1456,19 +1454,23 @@
       "result": "ok"
     },
     {
-      "name": "restore_never_removes_newer_content_lock",
-      "result": "ok"
-    },
-    {
-      "name": "search_matches_literal_accepted_content_never_raw_or_locked_data",
-      "result": "ok"
-    },
-    {
       "name": "stale_edits_and_view_toggles_never_mutate_source",
       "result": "ok"
     },
     {
+      "name": "mode_defaults_and_inheritance_do_not_convert_existing_ink",
+      "result": "ok"
+    },
+    {
       "name": "unauthorised_history_retirement_skips_locked_content",
+      "result": "ok"
+    },
+    {
+      "name": "exact_code_and_incorrect_math_survive_edits_and_restore_as_new_revision",
+      "result": "ok"
+    },
+    {
+      "name": "search_matches_literal_accepted_content_never_raw_or_locked_data",
       "result": "ok"
     },
     {
@@ -1477,7 +1479,7 @@
     }
   ],
   "backend_accepted": false,
-  "finished_utc": "2026-10-24T14:50:54.538731+00:00",
+  "finished_utc": "2026-10-24T15:32:13.143223+00:00",
   "totals": {
     "passed": 294,
     "failed": 0,
