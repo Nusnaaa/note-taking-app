@@ -1,0 +1,8 @@
+$ /tmp/stem-cargo/bin/cargo build -p stem-bridge --locked --offline
+exit_code=0
+
+   Compiling jni-sys v0.3.1
+   Compiling jni v0.21.1
+   Compiling stem-core v0.1.0 (/home/linus/Projects/software/note-taking-app/repo/core)
+   Compiling stem-bridge v0.1.0 (/home/linus/Projects/software/note-taking-app/repo/bridge)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 41.44s
