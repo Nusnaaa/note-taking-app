@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.BackupPersistentAccessTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-25T22:51:25" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="0.419">
+  <properties/>
+  <testcase name="inFlightInspectionCannotResurrectAnInvalidatedPolicyEpoch" classname="org.stemnotebook.backend.BackupPersistentAccessTest" time="0.059"/>
+  <testcase name="missingPickerRightsAndRejectedConsentCannotTakePermission" classname="org.stemnotebook.backend.BackupPersistentAccessTest" time="0.041"/>
+  <testcase name="invalidationDuringProofOrConsentRecordingPreventsGrantEntry" classname="org.stemnotebook.backend.BackupPersistentAccessTest" time="0.037"/>
+  <testcase name="changedAuthorityDirectoryOrPermissionInvalidatesReviewBeforeAnyGrant" classname="org.stemnotebook.backend.BackupPersistentAccessTest" time="0.034"/>
+  <testcase name="interruptionAfterGrantEntryPreservesBothTheFlagAndEffectReceipt" classname="org.stemnotebook.backend.BackupPersistentAccessTest" time="0.033"/>
+  <testcase name="foreignAndInvalidatedReviewsCannotAuthorisePersistence" classname="org.stemnotebook.backend.BackupPersistentAccessTest" time="0.034"/>
+  <testcase name="failedConsentRecordingDoesNotTakeAPersistedGrant" classname="org.stemnotebook.backend.BackupPersistentAccessTest" time="0.033"/>
+  <testcase name="cancellationAndLostOutcomeRecordingAfterGrantCannotHideTheReceipt" classname="org.stemnotebook.backend.BackupPersistentAccessTest" time="0.035"/>
+  <testcase name="preexistingCompleteAccessIsNotRetakenOrTreatedAsExclusiveOwnership" classname="org.stemnotebook.backend.BackupPersistentAccessTest" time="0.037"/>
+  <testcase name="explicitReviewedConsentIsRecordedBeforePersistentGrantRequest" classname="org.stemnotebook.backend.BackupPersistentAccessTest" time="0.041"/>
+  <testcase name="failureAfterGrantEntryPreservesPossibleEffectsWithoutRevokingExistingAccess" classname="org.stemnotebook.backend.BackupPersistentAccessTest" time="0.033"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

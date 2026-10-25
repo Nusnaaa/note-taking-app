@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.JournaledCaptureIntegrationTest" tests="17" skipped="0" failures="0" errors="0" timestamp="2026-10-25T22:52:34" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="3.901">
+  <properties/>
+  <testcase name="gracefulCloseSealsLatestPrefixWithoutInventingPenUp" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.203"/>
+  <testcase name="failedClosingCheckpointDoesNotPreventOtherSessionsFromSealing" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.183"/>
+  <testcase name="processRecoveryRequiresReviewAndFreshPermissionAndPreservesExactObservedBits" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.219"/>
+  <testcase name="explicitRetargetChecksLayerRevisionFreshAuthorityAndOriginalTicketBeforePublishing" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.229"/>
+  <testcase name="ambiguousNativeCommitCannotBeRetargetedOrDuplicated" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.191"/>
+  <testcase name="protectedRecoveryNeedsFreshPermissionAndDoesNotBlockIndependentWriting" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.255"/>
+  <testcase name="platformCancellationDoesNotResurrectFromOldFramesOrReopen" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.175"/>
+  <testcase name="explicitDiscardRetiresCallerHeldFramesEvenAfterSessionInterruption" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.546"/>
+  <testcase name="fixedLayerCaptureAndMissingDestinationRecoveryNeverFallbackOrRewriteObservations" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.279"/>
+  <testcase name="checkpointIsNotDocumentCommitAndCompletionRetiresJournalWithExactTicketRetry" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.171"/>
+  <testcase name="unacknowledgedDiscardAfterUnlinkCannotResurrectAndKeepsOtherFramesRetryable" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.182"/>
+  <testcase name="explicitDiscardRemovesOnlyReviewedUncommittedRecoveryEvidence" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.173"/>
+  <testcase name="actualJniRetainsPerContactStyleAcrossConfigurationChangeAndExactRetry" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.22"/>
+  <testcase name="cancellingObservationFuturesCannotDropAdmittedCheckpointOrLegacyInk" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.179"/>
+  <testcase name="conflictingUnclassifiedLegacyEnvelopeCannotBeBypassedByRetarget" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.173"/>
+  <testcase name="reopenedInterruptedDraftRetargetsToChosenCustomLayerWithExactSourceIdentity" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.234"/>
+  <testcase name="retiredTargetsRequireFreshScopedReviewAndPermitDiscardWithoutReplay" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.286"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
