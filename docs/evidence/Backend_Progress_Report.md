@@ -4,8 +4,8 @@
 > adds Android recovered-copy ownership/discovery and strict SQLite-owned existing
 > activation. Its 184 Android tests, 25 JNI groups before/after R8, ARM64 packaging,
 > lint and AAR/manifest checks passed with matching clean-source hashes.
-> The final full Rust run is still pending at this checkpoint; earlier mixed-source
-> development results are not substituted for it. See
+> The matching full Rust run passed 313 tests, formatting, Clippy, release build
+> and traceability. Earlier mixed-source development results are not substituted. See
 > [restore evidence](continuation-2026-10-25/android-restore/README.md).
 > Backend acceptance remains NOT MET; production H.I. remains gated. The owner
 > authorised periodic pushes to the configured GitHub origin on 25 October.

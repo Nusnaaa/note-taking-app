@@ -30,11 +30,14 @@ legacy migration and duplicate-owner lock preservation. The 17 controller cases
 also check app/native rejected duplicates followed by successful owner edits.
 See ADR-006 and HOST_INTEGRATION.md for contracts and exact limitations.
 
-The final full Rust runner is still pending at this evidence checkpoint. Do not
-combine the earlier 310-test development attempt with this snapshot and call it
-one exact-source full run. Its logs are retained in development/initial-whole-run:
-source changed during that attempt, so it is explicitly not final acceptance.
-Final Rust evidence will follow after the live validation process retires.
+The final full Rust run also passed on the same unchanged source: 313 tests,
+zero failures/ignored tests, formatting, Clippy, release build and traceability.
+`validation.json` records the native commands and results. Rust and Android source
+SHA-256 manifests match exactly and both started with clean implementation inputs.
+The gate intentionally exits 2 for the eight open implementation groups plus
+canonical/inherited-clause coverage; no stale-source or mismatched-evidence reason
+remains. See backend-gate.json. Earlier mixed-source attempts remain development
+evidence only and are not substituted for this run.
 
 Development: the first 11-case controller run had three failures. Two exposed
 Pending.await returning before actual cancelled input retirement; it now waits
@@ -49,3 +52,7 @@ before replacement; the 24 October host-restore folder remains untouched.
 No complete-backend or production-H.I. acceptance is claimed. Explicit orphan
 review/cleanup, hard staging disk quotas, bounded whole-graph semantic validation,
 real-provider/device acceptance and the other recorded backend gaps remain open.
+
+Historical `android-first-attempt.*` files copied from the previous latest directory
+are retained for provenance; they are not executions by this continuation and are
+not part of the final c3173f4 checks listed in android-validation.json.
