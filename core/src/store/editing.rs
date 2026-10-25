@@ -33,7 +33,10 @@ fn comparable(mut value: Value) -> Value {
 impl Store {
     /// Backup rows are untrusted even after envelope authentication. Check both
     /// SQL identity columns and the embedded historical payload before replay.
-    pub(crate) fn validate_edit_journal(&self) -> Result<()> {
+    pub(crate) fn validate_edit_journal(
+        &self,
+        control: Option<&crate::processing::JobControl>,
+    ) -> Result<()> {
         let mut q = self.db.prepare("SELECT o.entity,c.table_name,c.item,c.before_row,c.after_row FROM edit_changes c JOIN edit_operations o ON o.id=c.operation")?;
         for record in q.query_map([], |r| {
             Ok((
@@ -44,6 +47,9 @@ impl Store {
                 r.get::<_, Option<String>>(4)?,
             ))
         })? {
+            if let Some(control) = control {
+                control.check()?;
+            }
             let (entity, table, item, before, after) = record?;
             let owner = Id::parse(&entity)?;
             let id = Id::parse(&item)?;

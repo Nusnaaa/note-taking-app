@@ -1595,3 +1595,16 @@ providers and actual desktop JNI. `RestoreStageCrashProbe` deliberately exits a
 separate JVM after native staging without destructors; it is a developer fixture,
 not Android process-kill or physical-power-loss acceptance. Host Unix metadata
 coverage does not certify the Android lstat fallback or device filesystem.
+
+### SQLite-backed restore validation update
+
+The earlier whole-graph Rust allocation limitation is superseded for semantic
+validation: current whole-library restore traverses rows and indexed SQLite work
+state, independently of subset-export caps. Both legacy and streaming paths keep
+schema and semantic checks. Streaming supplies its lifecycle JobControl through
+row traversal, edit-journal validation and incremental image/source hashing.
+Private validation tables/indexes are rolled back before review; no capability
+or extra schema is exposed. The encrypted input/cell and per-record domain limits
+remain. This is not a total native memory, SQLite/pager or scratch/WAL quota, nor
+forced cancellation within SQLite calls. Complete native allocation budgeting and
+device/storage interruption acceptance remain open. See full-library-backup-v1.md.

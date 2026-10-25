@@ -84,3 +84,18 @@ metadata; it does not claim complete visible axes, labels or layout fidelity.
 All numerical resource ceilings are defensive implementation limits, not approved
 performance SLOs. No production H.I., network inference, telemetry, automatic cloud
 backup or real-device/manual result is introduced by this decision.
+
+## Whole-library validation continuation — 25 October 2026
+
+Whole-library restore uses SQLite-backed semantic validation independently of the
+native subset format. Restore stages retain the normal notebook schema/journaling;
+private validation tables/indexes are created under a savepoint and always rolled
+back. This avoids unbounded Rust graph collections and SQLite TEMP placement
+outside the private stage without changing healthy-library transaction policy.
+Embed-cycle traversal uses an indexed SQLite stack and colours instead of native
+recursion or an in-memory whole graph. All former native-subset invariants remain,
+with explicit rejection of raw stroke rows absent from block source membership.
+The former aggregate path is compiled only for differential tests. Incremental
+SQLite BLOB hashing now covers images as well as retained source assets. No
+content is repaired or discarded to fit subset export limits. Per-record/input
+limits and a total native staging allocation budget remain separate obligations.

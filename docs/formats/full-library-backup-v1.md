@@ -70,3 +70,40 @@ payload bytes untouched. Restore supports schemas 8–14 with authoring absent, 
 uses native v9 validation for schema 15. Populated authoring under an older schema
 or native version is rejected. See [native subset v9](native-subset-v9.md) for the
 complete authoring field contract and view-local preset identity rules.
+
+## Whole-library semantic validation — 25 October 2026
+
+Both whole-library restore paths now validate the staged SQLite state directly,
+without reconstructing an aggregate `NativeDocument`. Native subset import/export
+keeps its separate format limits. Whole-library semantic validation no longer
+inherits the subset's 10,000-entity, 100,000-block, 10,000-exercise or 64 MiB
+aggregate-image limits. The legacy encrypted JSON decoder still has its original
+64 MiB input budget; the streaming format keeps its explicit cell/row/input limits.
+Per-record domain limits (for example stroke samples, content and layer state)
+are unchanged. This is not a removal of defensive input controls.
+
+Row iteration and indexed lookups check SQL/payload identities, containment,
+original ordered source membership and hashes, history, exercises, links, region
+identity, images, layouts, groups, layers, embeds and view/bookmark scope. Whole
+backup keeps Trash/tombstones. Retained-source policy, proposals, PDF anchors,
+engine descriptors, workspace/settings and historical edit-row checks remain
+mandatory. Schema feature gates are preserved. Every raw stroke row must now be
+accounted for in a block's source list; unreferenced rows are rejected rather than
+silently omitted by aggregate reconstruction.
+
+Private validation identity/region/heading indexes and the iterative embed-cycle
+stack/colours live in the staged database under a savepoint. Rollback removes all
+of this work on success and failure before a review or publication can expose the
+library. No validation table is part of either portable format. Image and retained
+source hashes use SQLite-owned incremental BLOB reads with a 64 KiB Rust buffer;
+image signatures and owners are checked independently. No raw SQLite descriptor
+is used. Cooperative cancellation is polled between rows/graph steps and blob
+chunks; it cannot forcibly interrupt an individual SQLite call or model-record
+validation.
+
+Rust validation retains individual records rather than the complete library.
+This does not establish a total RSS bound: complete streaming cells and individual
+model records still allocate, SQLite owns pager/work-index storage, and a hard
+scratch/WAL/journal/publication-space budget remains unfinished. Above-subset-scale
+host fixtures and the test-only old aggregate oracle provide component evidence,
+not device capacity, latency or complete backend acceptance.

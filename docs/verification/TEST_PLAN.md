@@ -305,3 +305,24 @@ an actual child-JVM abrupt exit. Quarantined unknown bytes are never treated as
 validated notebooks or silently deleted. Static recovery Help is checked before
 library opening and while app content is locked. Real ART/provider/device/storage
 acceptance, hard physical quotas and whole-graph validation bounds remain separate.
+
+## SQLite-backed whole-library validation
+
+`backup::validation::tests` retains the old aggregate validator as a test-only
+oracle for a rich graph and independent semantic corruptions. Cases include SQL
+identity/owner mismatches, containment/depth/cycles, ordered source membership,
+hashes, current/history regions and identity aliases, exercise versions, links,
+image MIME/signature/hash, groups, layouts, layers, embed cycles/cameras and
+view/bookmark constraints. A separate case explicitly demonstrates stronger
+rejection of orphan raw stroke rows that the old reconstruction omitted.
+
+An actual encrypted streaming restore exceeds the former subset limits with
+10,001 entities, 100,001 blocks and 10,001 exercises and verifies counts, literal
+incorrect working and stage retirement. A private SQLite fixture validates three
+24 MiB image assets without collecting their bytes in Rust, then rejects digest
+corruption. A 2,048-edge embed chain validates without native recursion and fails
+a closing back edge. Deterministic cooperative cancellation during semantic work
+must remove all private work tables/indexes, as must successful and failed checks.
+These are synthetic host correctness cases, not measured device SLOs or a hard
+native memory/disk quota. Individual-record allocations, SQLite calls, streaming
+cell allocation and complete scratch/publication budgeting remain to be covered.

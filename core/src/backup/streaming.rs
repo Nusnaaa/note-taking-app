@@ -282,7 +282,7 @@ impl Store {
             input.finish()?; // authenticated finality and exact encrypted EOF BEFORE commit
             control.check()?;
             tx.commit()?;
-            destination.validate_backup_state(9)?;
+            destination.validate_backup_state_controlled(9, Some(control))?;
             control.check()?;
             destination.retire_restored_runtime_state()?;
             destination

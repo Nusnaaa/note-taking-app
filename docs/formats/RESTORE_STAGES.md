@@ -92,6 +92,6 @@ preserved and cannot be repeatedly treated as known scratch. Ordinary JSON never
 becomes a path, source-content or deletion capability. Quarantine is not automatic
 activation or a new independent backup.
 
-Hard staging allocation quotas, bounded native semantic-validation memory, complete
-orphan salvage/export and real-provider/device crash/storage acceptance remain
+Hard staging allocation quotas, individual-record/SQLite validation allocation
+controls, complete orphan salvage/export and real-provider/device crash/storage acceptance remain
 open. Do not promote this protocol's component evidence to backend completion.

@@ -1,0 +1,17 @@
+   Compiling stem-core v0.1.0 (/home/linus/Projects/software/note-taking-app/repo/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.16s
+     Running unittests src/lib.rs (target/debug/deps/stem_core-33ed9416f1b2aa8b)
+
+running 8 tests
+test backup::validation::tests::cancellation_inside_semantic_validation_removes_work_indexes ... ok
+test backup::validation::tests::containment_depth_cycles_and_retired_entities_keep_the_same_rules ... ok
+test backup::validation::tests::unreferenced_raw_ink_is_rejected_instead_of_silently_omitted ... ok
+test backup::validation::tests::schema_feature_gates_match_aggregate_oracle ... ok
+test backup::validation::tests::sql_and_aggregate_validators_agree_on_rich_graph_and_corruptions ... ok
+test backup::validation::tests::deep_embed_graph_uses_sqlite_stack_and_detects_back_edges ... ok
+test backup::validation::tests::whole_library_images_exceed_aggregate_subset_limit_without_collecting_bytes ... ok
+test backup::validation::tests::whole_library_stream_restore_exceeds_subset_entity_block_and_exercise_caps has been running for over 60 seconds
+test backup::validation::tests::whole_library_stream_restore_exceeds_subset_entity_block_and_exercise_caps ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 19 filtered out; finished in 76.92s
+

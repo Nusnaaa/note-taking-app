@@ -2,19 +2,25 @@
 //! execute SQL supplied by a backup. Restore builds an independent database and
 //! cannot overwrite the live Store. Encrypted output is the only public writer.
 mod streaming;
+mod validation;
 pub use streaming::{RestoreSummary, StagedBackupRestore, StreamBackupCursor, StreamBackupPlan};
 
 use crate::{
-    attachments::{Attachments, NativeAsset, NativeLayout},
     crypto,
-    portable::{NativeBlock, NativeDocument, NativeMembership, NativeMode, NativeRule},
     security::{Access, Authenticator, Scope},
     sources::{AssetClass, Availability, PdfAnchor, Retention, Source},
     store::{
-        Block, Embed, EngineVersion, Entity, Exercise, HistoryEntry, Link, MembershipOperation,
-        ObjectGroup, Proposal, Store, ViewSettings,
+        Block, Embed, EngineVersion, Entity, Exercise, MembershipOperation, ObjectGroup, Proposal,
+        Store, ViewSettings,
     },
     Error, Id, Result,
+};
+
+#[cfg(test)]
+use crate::{
+    attachments::{Attachments, NativeAsset, NativeLayout},
+    portable::{NativeBlock, NativeDocument, NativeMembership, NativeMode, NativeRule},
+    store::{HistoryEntry, Link},
 };
 
 use rusqlite::{
@@ -610,8 +616,12 @@ impl Store {
         Self::setting(&self.db, "library_id")
     }
 
-    fn validate_backup_state(&self, native_version: u32) -> Result<()> {
-        self.validate_edit_journal()?;
+    fn validate_backup_prelude(
+        &self,
+        native_version: u32,
+        control: Option<&crate::processing::JobControl>,
+    ) -> Result<()> {
+        self.validate_edit_journal(control)?;
         if native_version < 8 {
             let mut q = self
                 .db
@@ -623,6 +633,9 @@ impl Store {
                     r.get::<_, Option<String>>(2)?,
                 ))
             })? {
+                if let Some(control) = control {
+                    control.check()?;
+                }
                 let (table, before, after) = row?;
                 if table == "canvas_layers" {
                     return Err(Error::Unsupported);
@@ -671,6 +684,188 @@ impl Store {
         let _: crate::store::WritingMode =
             serde_json::from_str(&Self::setting(db, "global_mode")?)?;
 
+        Ok(())
+    }
+
+    fn validate_backup_aux(&self, control: Option<&crate::processing::JobControl>) -> Result<()> {
+        let db = &self.db;
+        let mut payload_query = db.prepare("SELECT id,payload FROM sources")?;
+        for row in
+            payload_query.query_map([], |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?)))?
+        {
+            if let Some(control) = control {
+                control.check()?;
+            }
+            let (id, json) = row?;
+            let s: Source = serde_json::from_str(&json)?;
+
+            let context: String =
+                db.query_row("SELECT context FROM sources WHERE id=?1", [&id], |r| {
+                    r.get(0)
+                })?;
+
+            if s.id.to_string() != id
+                || s.context.to_string() != context
+                || s.revision.len() != 64
+                || !s.revision.bytes().all(|b| b.is_ascii_hexdigit())
+                || (!s.locator.starts_with("content://") && !s.locator.starts_with("file://"))
+            {
+                return Err(Error::Integrity);
+            }
+
+            s.view.validate()?;
+        }
+
+        let mut q = db.prepare("SELECT source,class,authority,rowid,digest FROM source_assets")?;
+
+        for row in q.query_map([], |r| {
+            Ok((
+                r.get::<_, String>(0)?,
+                r.get::<_, String>(1)?,
+                r.get::<_, Option<String>>(2)?,
+                r.get::<_, i64>(3)?,
+                r.get::<_, String>(4)?,
+            ))
+        })? {
+            if let Some(control) = control {
+                control.check()?;
+            }
+            let (source, class, authority, rowid, hash) = row?;
+
+            let class: AssetClass = serde_json::from_str(&class)?;
+
+            let retention: Retention = serde_json::from_str(&authority.ok_or(Error::Denied)?)?;
+
+            if class == AssetClass::LiveCache
+                || !retention.export_allowed
+                || retention.authority.is_empty()
+                || stored_asset_digest(db, "source_assets", rowid, control)? != hash
+            {
+                return Err(Error::Integrity);
+            }
+
+            Self::raw_source(db, Id::parse(&source)?)?;
+        }
+
+        let mut payload_query = db.prepare("SELECT id,payload FROM pdf_anchors")?;
+        for row in
+            payload_query.query_map([], |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?)))?
+        {
+            if let Some(control) = control {
+                control.check()?;
+            }
+            let (id, json) = row?;
+            let a: PdfAnchor = serde_json::from_str(&json)?;
+
+            let (source, block): (String, String) = db.query_row(
+                "SELECT source,block FROM pdf_anchors WHERE id=?1",
+                [&id],
+                |r| Ok((r.get(0)?, r.get(1)?)),
+            )?;
+
+            if a.id.to_string() != id
+                || a.source.to_string() != source
+                || a.block.to_string() != block
+                || Self::raw_source(db, a.source)?.context != Self::raw_block(db, a.block)?.entity
+            {
+                return Err(Error::Integrity);
+            }
+
+            a.bounds.validate()?;
+        }
+
+        let mut payload_query = db.prepare("SELECT id,payload FROM proposals")?;
+        for row in
+            payload_query.query_map([], |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?)))?
+        {
+            if let Some(control) = control {
+                control.check()?;
+            }
+            let (id, json) = row?;
+            let p: Proposal = serde_json::from_str(&json)?;
+
+            let block: String =
+                db.query_row("SELECT block FROM proposals WHERE id=?1", [&id], |r| {
+                    r.get(0)
+                })?;
+
+            if p.id.to_string() != id
+                || p.block.to_string() != block
+                || p.output.candidates.is_empty()
+                || p.output.candidates.len() > 32
+            {
+                return Err(Error::Integrity);
+            }
+
+            for c in &p.output.candidates {
+                c.validate()?;
+            }
+
+            if let Some(c) = &p.correction {
+                c.validate()?;
+            }
+        }
+
+        let mut payload_query = db.prepare("SELECT id,payload FROM membership_operations")?;
+        for row in
+            payload_query.query_map([], |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?)))?
+        {
+            if let Some(control) = control {
+                control.check()?;
+            }
+            let (id, json) = row?;
+            let o: MembershipOperation = serde_json::from_str(&json)?;
+
+            let master: String = db.query_row(
+                "SELECT master FROM membership_operations WHERE id=?1",
+                [&id],
+                |r| r.get(0),
+            )?;
+
+            if o.id.to_string() != id || o.master.to_string() != master {
+                return Err(Error::Integrity);
+            }
+
+            for c in o.changes {
+                if let Some(control) = control {
+                    control.check()?;
+                }
+                if Self::raw_block(db, c.block)?.entity != o.master {
+                    return Err(Error::Integrity);
+                }
+
+                for e in [c.from, c.to].into_iter().flatten() {
+                    if Self::raw_exercise(db, e)?.master != o.master {
+                        return Err(Error::Integrity);
+                    }
+                }
+            }
+        }
+
+        let mut payload_query = db.prepare("SELECT id,payload FROM engine_versions")?;
+        for row in
+            payload_query.query_map([], |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?)))?
+        {
+            if let Some(control) = control {
+                control.check()?;
+            }
+            let (id, json) = row?;
+            let v: EngineVersion = serde_json::from_str(&json)?;
+
+            if v.id.to_string() != id || v.local_resource.is_some() {
+                return Err(Error::Integrity);
+            }
+
+            crate::processing::Manager::validate(&v.descriptor)?;
+        }
+
+        Ok(())
+    }
+
+    #[cfg(test)]
+    fn validate_backup_state_aggregate(&self, native_version: u32) -> Result<()> {
+        self.validate_backup_prelude(native_version, None)?;
+        let db = &self.db;
         let payloads = |table: &str| -> Result<Vec<(String, String)>> {
             let key = if table == "canvas_layers" {
                 "canvas"
@@ -947,163 +1142,42 @@ impl Store {
         }
         doc.validate()?;
 
-        for (id, json) in payloads("sources")? {
-            let s: Source = serde_json::from_str(&json)?;
-
-            let context: String =
-                db.query_row("SELECT context FROM sources WHERE id=?1", [&id], |r| {
-                    r.get(0)
-                })?;
-
-            if s.id.to_string() != id
-                || s.context.to_string() != context
-                || s.revision.len() != 64
-                || !s.revision.bytes().all(|b| b.is_ascii_hexdigit())
-                || (!s.locator.starts_with("content://") && !s.locator.starts_with("file://"))
-            {
-                return Err(Error::Integrity);
-            }
-
-            s.view.validate()?;
-        }
-
-        let mut q = db.prepare("SELECT source,class,authority,rowid,digest FROM source_assets")?;
-
-        for row in q.query_map([], |r| {
-            Ok((
-                r.get::<_, String>(0)?,
-                r.get::<_, String>(1)?,
-                r.get::<_, Option<String>>(2)?,
-                r.get::<_, i64>(3)?,
-                r.get::<_, String>(4)?,
-            ))
-        })? {
-            let (source, class, authority, rowid, hash) = row?;
-
-            let class: AssetClass = serde_json::from_str(&class)?;
-
-            let retention: Retention = serde_json::from_str(&authority.ok_or(Error::Denied)?)?;
-
-            if class == AssetClass::LiveCache
-                || !retention.export_allowed
-                || retention.authority.is_empty()
-                || source_asset_digest(db, rowid)? != hash
-            {
-                return Err(Error::Integrity);
-            }
-
-            Self::raw_source(db, Id::parse(&source)?)?;
-        }
-
-        for (id, json) in payloads("pdf_anchors")? {
-            let a: PdfAnchor = serde_json::from_str(&json)?;
-
-            let (source, block): (String, String) = db.query_row(
-                "SELECT source,block FROM pdf_anchors WHERE id=?1",
-                [&id],
-                |r| Ok((r.get(0)?, r.get(1)?)),
-            )?;
-
-            if a.id.to_string() != id
-                || a.source.to_string() != source
-                || a.block.to_string() != block
-                || Self::raw_source(db, a.source)?.context != Self::raw_block(db, a.block)?.entity
-            {
-                return Err(Error::Integrity);
-            }
-
-            a.bounds.validate()?;
-        }
-
-        for (id, json) in payloads("proposals")? {
-            let p: Proposal = serde_json::from_str(&json)?;
-
-            let block: String =
-                db.query_row("SELECT block FROM proposals WHERE id=?1", [&id], |r| {
-                    r.get(0)
-                })?;
-
-            if p.id.to_string() != id
-                || p.block.to_string() != block
-                || p.output.candidates.is_empty()
-                || p.output.candidates.len() > 32
-            {
-                return Err(Error::Integrity);
-            }
-
-            for c in &p.output.candidates {
-                c.validate()?;
-            }
-
-            if let Some(c) = &p.correction {
-                c.validate()?;
-            }
-        }
-
-        for (id, json) in payloads("membership_operations")? {
-            let o: MembershipOperation = serde_json::from_str(&json)?;
-
-            let master: String = db.query_row(
-                "SELECT master FROM membership_operations WHERE id=?1",
-                [&id],
-                |r| r.get(0),
-            )?;
-
-            if o.id.to_string() != id || o.master.to_string() != master {
-                return Err(Error::Integrity);
-            }
-
-            for c in o.changes {
-                if Self::raw_block(db, c.block)?.entity != o.master {
-                    return Err(Error::Integrity);
-                }
-
-                for e in [c.from, c.to].into_iter().flatten() {
-                    if Self::raw_exercise(db, e)?.master != o.master {
-                        return Err(Error::Integrity);
-                    }
-                }
-            }
-        }
-
-        for (id, json) in payloads("engine_versions")? {
-            let v: EngineVersion = serde_json::from_str(&json)?;
-
-            if v.id.to_string() != id || v.local_resource.is_some() {
-                return Err(Error::Integrity);
-            }
-
-            crate::processing::Manager::validate(&v.descriptor)?;
-        }
-
-        Ok(())
+        self.validate_backup_aux(None)
     }
 }
 
 // SQLite owns all access to an open database. Keep source-asset verification
 // in bounded Rust buffers without opening a second raw database descriptor.
 // This does not bound SQLite pager allocation or streaming cell decoding.
-fn source_asset_digest(db: &rusqlite::Connection, rowid: i64) -> Result<String> {
+fn stored_asset_digest(
+    db: &rusqlite::Connection,
+    table: &str,
+    rowid: i64,
+    control: Option<&crate::processing::JobControl>,
+) -> Result<String> {
+    if !matches!(table, "source_assets" | "image_assets") {
+        return Err(Error::Integrity);
+    }
+    if let Some(control) = control {
+        control.check()?;
+    }
     use sha2::{Digest, Sha256};
     let kind: String = db.query_row(
-        "SELECT typeof(bytes) FROM source_assets WHERE rowid=?1",
+        &format!("SELECT typeof(bytes) FROM {table} WHERE rowid=?1"),
         [rowid],
         |r| r.get(0),
     )?;
     if kind != "blob" {
         return Err(Error::Integrity);
     }
-    let blob = db.blob_open(
-        rusqlite::DatabaseName::Main,
-        "source_assets",
-        "bytes",
-        rowid,
-        true,
-    )?;
+    let blob = db.blob_open(rusqlite::DatabaseName::Main, table, "bytes", rowid, true)?;
     let mut hash = Sha256::new();
     let mut buffer = [0_u8; 64 * 1024];
     let mut offset = 0;
     while offset < blob.len() {
+        if let Some(control) = control {
+            control.check()?;
+        }
         let count = buffer.len().min(blob.len() - offset);
         blob.read_at_exact(&mut buffer[..count], offset)?;
         hash.update(&buffer[..count]);
@@ -1127,7 +1201,10 @@ mod source_asset_validation_tests {
                 .unwrap();
             let rowid = db.last_insert_rowid();
             let expected = crate::digest(&bytes);
-            assert_eq!(source_asset_digest(&db, rowid).unwrap(), expected);
+            assert_eq!(
+                stored_asset_digest(&db, "source_assets", rowid, None).unwrap(),
+                expected
+            );
             if let Some(last) = bytes.last_mut() {
                 *last ^= 1;
                 db.execute(
@@ -1135,7 +1212,10 @@ mod source_asset_validation_tests {
                     rusqlite::params![bytes, rowid],
                 )
                 .unwrap();
-                assert_ne!(source_asset_digest(&db, rowid).unwrap(), expected);
+                assert_ne!(
+                    stored_asset_digest(&db, "source_assets", rowid, None).unwrap(),
+                    expected
+                );
             }
         }
     }
@@ -1147,8 +1227,11 @@ mod source_asset_validation_tests {
             "CREATE TABLE source_assets(bytes); INSERT INTO source_assets VALUES('not a blob')",
         )
         .unwrap();
-        assert!(matches!(source_asset_digest(&db, 1), Err(Error::Integrity)));
-        assert!(source_asset_digest(&db, 2).is_err());
+        assert!(matches!(
+            stored_asset_digest(&db, "source_assets", 1, None),
+            Err(Error::Integrity)
+        ));
+        assert!(stored_asset_digest(&db, "source_assets", 2, None).is_err());
     }
 }
 
