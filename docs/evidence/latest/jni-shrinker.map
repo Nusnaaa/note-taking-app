@@ -3,40 +3,48 @@
 # compiler_hash: abaab469b5ebd4dd2bb91ba0ed6f45277faae4ca
 # common_typos_disable
 # {"id":"com.android.tools.r8.mapping","version":"2.2"}
-# pg_map_id: b11809f
-# pg_map_hash: SHA-256 b11809f9c8da6db7c330696b03da100b815e0a6c59deb694732a71de92c3a722
+# pg_map_id: c195f72
+# pg_map_hash: SHA-256 c195f728b3768370d930c673ed78bb7bd004560ea3eccb758ac9514f741e6a13
 BackupBoundarySmoke -> e:
 # {"id":"sourceFile","fileName":"BackupBoundarySmoke.java"}
     char[] PASSWORD -> a
     1:1:void check(boolean):0:0 -> a
     2:2:boolean lambda$run$0(java.lang.String):0:0 -> a
-    3:3:void lambda$run$11(org.stemnotebook.backend.NativeBridge$BackupJob,BackupBoundarySmoke$Sink):0:0 -> a
+    3:3:boolean lambda$run$10(org.stemnotebook.backend.NativeBridge$BackupReview,long,java.util.concurrent.atomic.AtomicInteger,java.lang.String,int,java.lang.String,java.lang.String,boolean):0:0 -> a
+    4:4:void lambda$run$13(org.stemnotebook.backend.NativeBridge$BackupJob,BackupBoundarySmoke$Sink):0:0 -> a
       # {"id":"com.android.tools.r8.residualsignature","signature":"(Lorg/stemnotebook/backend/NativeBridge$BackupJob;Ld;)V"}
-    4:4:void lambda$run$12(org.stemnotebook.backend.NativeBridge$BackupReview):0:0 -> a
-    5:5:java.lang.String lambda$run$16(long):0:0 -> a
-    6:6:void lambda$run$2(org.stemnotebook.backend.NativeBridge$BackupJob):0:0 -> a
-    7:7:void rejected(java.lang.Runnable):0:0 -> a
-    8:8:void run():0:0 -> a
+    5:5:void lambda$run$2(org.stemnotebook.backend.NativeBridge$BackupJob):0:0 -> a
+    6:6:void lambda$run$20(org.stemnotebook.backend.NativeBridge$BackupReview):0:0 -> a
+    7:7:java.lang.String lambda$run$24(long):0:0 -> a
+    8:8:void lambda$run$3(long,org.stemnotebook.backend.NativeBridge$BackupReview):0:0 -> a
+    9:9:boolean lambda$run$6(java.lang.String,int,java.lang.String,java.lang.String,boolean):0:0 -> a
+    10:10:void rejected(java.lang.Runnable):0:0 -> a
+    11:11:void run():0:0 -> a
     1:1:boolean lambda$run$1(java.lang.String):0:0 -> b
-    2:2:void lambda$run$14(org.stemnotebook.backend.NativeBridge$BackupJob,BackupBoundarySmoke$Sink):0:0 -> b
+    2:2:void lambda$run$15(org.stemnotebook.backend.NativeBridge$BackupJob,BackupBoundarySmoke$Sink):0:0 -> b
       # {"id":"com.android.tools.r8.residualsignature","signature":"(Lorg/stemnotebook/backend/NativeBridge$BackupJob;Ld;)V"}
-    3:3:void lambda$run$17(long):0:0 -> b
-    4:4:void lambda$run$3(org.stemnotebook.backend.NativeBridge$BackupReview):0:0 -> b
-    1:1:boolean lambda$run$10(java.lang.String):0:0 -> c
-    2:2:void lambda$run$15(org.stemnotebook.backend.NativeBridge$BackupJob,BackupBoundarySmoke$Sink):0:0 -> c
+    3:3:void lambda$run$25(long):0:0 -> b
+    4:4:void lambda$run$5(org.stemnotebook.backend.NativeBridge$BackupReview):0:0 -> b
+    5:5:boolean lambda$run$8(java.lang.String,int,java.lang.String,java.lang.String,boolean):0:0 -> b
+    1:1:boolean lambda$run$11(java.lang.String):0:0 -> c
+    2:2:void lambda$run$17(org.stemnotebook.backend.NativeBridge$BackupJob,BackupBoundarySmoke$Sink):0:0 -> c
       # {"id":"com.android.tools.r8.residualsignature","signature":"(Lorg/stemnotebook/backend/NativeBridge$BackupJob;Ld;)V"}
-    3:3:java.lang.String lambda$run$18(long):0:0 -> c
-    1:1:boolean lambda$run$13(java.lang.String):0:0 -> d
-    2:2:void lambda$run$5(org.stemnotebook.backend.NativeBridge$BackupJob,BackupBoundarySmoke$Sink):0:0 -> d
+    3:3:java.lang.String lambda$run$26(long):0:0 -> c
+    1:1:boolean lambda$run$12(java.lang.String):0:0 -> d
+    2:2:void lambda$run$19(org.stemnotebook.backend.NativeBridge$BackupJob,BackupBoundarySmoke$Sink):0:0 -> d
       # {"id":"com.android.tools.r8.residualsignature","signature":"(Lorg/stemnotebook/backend/NativeBridge$BackupJob;Ld;)V"}
-    1:1:void lambda$run$19(java.lang.String):0:0 -> e
-    2:2:void lambda$run$7(org.stemnotebook.backend.NativeBridge$BackupJob,BackupBoundarySmoke$Sink):0:0 -> e
+    3:3:void lambda$run$4(long):0:0 -> d
+    1:1:boolean lambda$run$14(java.lang.String):0:0 -> e
+    2:2:void lambda$run$22(org.stemnotebook.backend.NativeBridge$BackupJob,BackupBoundarySmoke$Sink):0:0 -> e
       # {"id":"com.android.tools.r8.residualsignature","signature":"(Lorg/stemnotebook/backend/NativeBridge$BackupJob;Ld;)V"}
-    1:1:boolean lambda$run$4(java.lang.String):0:0 -> f
-    2:2:void lambda$run$9(org.stemnotebook.backend.NativeBridge$BackupJob,BackupBoundarySmoke$Sink):0:0 -> f
+    3:3:void lambda$run$7(long):0:0 -> e
+    1:1:boolean lambda$run$16(java.lang.String):0:0 -> f
+    2:2:void lambda$run$23(org.stemnotebook.backend.NativeBridge$BackupJob,BackupBoundarySmoke$Sink):0:0 -> f
       # {"id":"com.android.tools.r8.residualsignature","signature":"(Lorg/stemnotebook/backend/NativeBridge$BackupJob;Ld;)V"}
-    boolean lambda$run$6(java.lang.String) -> g
-    boolean lambda$run$8(java.lang.String) -> h
+    3:3:void lambda$run$9(long):0:0 -> f
+    boolean lambda$run$18(java.lang.String) -> g
+    boolean lambda$run$21(java.lang.String) -> h
+    void lambda$run$27(java.lang.String) -> i
 BackupBoundarySmoke$1 -> a:
 # {"id":"sourceFile","fileName":"BackupBoundarySmoke.java"}
 BackupBoundarySmoke$2 -> b:
@@ -195,6 +203,10 @@ RestoreBoundarySmoke$Input -> n:
     1:1:void RestoreBoundarySmoke.check(boolean):0:0 -> read
     1:1:int read(byte[]):0 -> read
 org.stemnotebook.backend.NativeBridge -> org.stemnotebook.backend.NativeBridge:
+# {"id":"sourceFile","fileName":"NativeBridge.java"}
+org.stemnotebook.backend.NativeBridge$BackupAuthority -> org.stemnotebook.backend.NativeBridge$BackupAuthority:
+# {"id":"sourceFile","fileName":"NativeBridge.java"}
+org.stemnotebook.backend.NativeBridge$BackupAuthorization -> org.stemnotebook.backend.NativeBridge$BackupAuthorization:
 # {"id":"sourceFile","fileName":"NativeBridge.java"}
 org.stemnotebook.backend.NativeBridge$BackupJob -> org.stemnotebook.backend.NativeBridge$BackupJob:
 # {"id":"sourceFile","fileName":"NativeBridge.java"}

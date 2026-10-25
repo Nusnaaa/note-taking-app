@@ -1,0 +1,7 @@
+# Exact-commit protected scheduling Android validation
+
+`python3 tools/validate_android.py --sdk /tmp/stem-android-sdk --jdk /usr/lib/jvm/java-21-openjdk-amd64 --gradle /tmp/stem-build-tools/gradle-8.9/bin/gradle` completed with exit 0 against pushed source fcc0716. The report retains exact invocation, environment, all tracked non-evidence source hashes and original working-tree status. All source hashes matched the root checkout when archived. The owner-supplied untracked host-restore evidence directory was untouched and excluded from implementation status.
+
+324 Android/Robolectric tests passed, with zero failures/errors/skips. All 28 actual desktop JNI fixture groups passed normally and after actual R8 release-classfile optimization/minification. ARM64/ELF, debug/release AAR native packaging, packaged consumer rules, both manifest privacy contracts and lint passed. These results do not assert ART/device/Keystore/provider/physical-interruption acceptance or complete backend acceptance. The separate exact native workspace validation was still running when this Android archive was made. The earlier isolated native workspace run passed all 335 tests.
+
+Environment uses Rust 1.90, cached offline dependencies, NDK 27.0.12077973, JDK 21, Android SDK/build-tools 35, Gradle 8.9 and the approved host local socket required by Gradle. No notebook/model inference or user handwriting was sent externally. No production Android H.I. is authorized; all eight backend gaps remain open.
