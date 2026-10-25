@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.NotebookSchedulesTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-10-25T23:24:35" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="86.667">
+  <properties/>
+  <testcase name="freshConsentedPreparationNeedsNoOrdinaryNoteUnlockAndDoesNotRunOnWriter" classname="org.stemnotebook.backend.NotebookSchedulesTest" time="4.85"/>
+  <testcase name="authoringInvalidatesPreparedSecretsAndCannotPublishAnObsoleteSnapshot" classname="org.stemnotebook.backend.NotebookSchedulesTest" time="4.644"/>
+  <testcase name="quotaFailureCreatesNoExternalBackupCredentialOrSchedule" classname="org.stemnotebook.backend.NotebookSchedulesTest" time="4.563"/>
+  <testcase name="reviewedDisabledRouteRetirementPreservesPolicyKeysHistoryAndBackupFiles" classname="org.stemnotebook.backend.NotebookSchedulesTest" time="5.02"/>
+  <testcase name="uncertainRegistrationKeepsKnownInitialPublicationAndNeedsExplicitReconciliation" classname="org.stemnotebook.backend.NotebookSchedulesTest" time="4.825"/>
+  <testcase name="grantPossibleEffectReturnsUncertainReceiptWithoutBackupOrGuessedPermissionRollback" classname="org.stemnotebook.backend.NotebookSchedulesTest" time="4.81"/>
+  <testcase name="explicitEnableDueBackupRecoveryRevealAndDisableOperateOnActualEncryptedFiles" classname="org.stemnotebook.backend.NotebookSchedulesTest" time="9.625"/>
+  <testcase name="replacementDirectoryIsNotSilentlyAcceptedByAnEnabledSchedule" classname="org.stemnotebook.backend.NotebookSchedulesTest" time="4.769"/>
+  <testcase name="providerGrantAndReadbackAreExplicitAndNeverBecomeACloudDurabilityClaim" classname="org.stemnotebook.backend.NotebookSchedulesTest" time="9.364"/>
+  <testcase name="noKeyOfferOrMissingStorageConsentCannotPublishStoreCredentialsOrRegisterJob" classname="org.stemnotebook.backend.NotebookSchedulesTest" time="4.659"/>
+  <testcase name="protectedScopeExpansionRejectsOldDelegationWithoutPublishingOrUnlocking" classname="org.stemnotebook.backend.NotebookSchedulesTest" time="4.773"/>
+  <testcase name="sameRevisionPlainPolicyTamperingCannotBroadenEncryptedDelegation" classname="org.stemnotebook.backend.NotebookSchedulesTest" time="5.087"/>
+  <testcase name="failedDeviceCredentialSetupKeepsKnownBackupAndAllowsVerifiedUnusedIntentRetirement" classname="org.stemnotebook.backend.NotebookSchedulesTest" time="4.858"/>
+  <testcase name="declinedFreshProtectedPreparationCreatesNoPublicationCredentialOrJob" classname="org.stemnotebook.backend.NotebookSchedulesTest" time="0.085"/>
+  <testcase name="sameEncryptedArtifactCanPublishDistinctAcknowledgedCopiesWithoutCatalogueIdCollision" classname="org.stemnotebook.backend.NotebookSchedulesTest" time="4.868"/>
+  <testcase name="protectedBackupNeedsSeparateConsentAndLeavesAppAndNoteReadsLocked" classname="org.stemnotebook.backend.NotebookSchedulesTest" time="9.867"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

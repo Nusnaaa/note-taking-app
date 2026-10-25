@@ -1,5 +1,5 @@
 {
-  "source_commit": "3b9b0a0d1348c6b7835207dcb4a1850fabdaf22f",
+  "source_commit": "f59e19a7b7ee390f11f2b7ae3a25190335c57d9f",
   "working_tree_before": "",
   "source_sha256": {
     ".gitignore": "47df1768ba52b16ac4fd14a3042d10ecc149fe248e1ddeb2b100a177d279f9f9",
@@ -16,8 +16,8 @@
     "android/backend/src/main/java/org/stemnotebook/backend/BackupCatalogue.kt": "011cd30a4a52d34a8bd0a931e680a3df4ca58870412b7c3d1dfd4870b2659ea1",
     "android/backend/src/main/java/org/stemnotebook/backend/BackupCredentialVault.kt": "3d08214c54dae357aeef71e7c5462f91b6e31273392a1017a7fdf3ccadde38f2",
     "android/backend/src/main/java/org/stemnotebook/backend/BackupDocuments.kt": "b084d5dbef5d1c9226c59120671d44ef503924c33d59806b295cb50000b9b4a9",
-    "android/backend/src/main/java/org/stemnotebook/backend/BackupJobRoutes.kt": "6f01f07a2df6fbb801da926895f9a74d1e69a5107aadb978f1b7e7a56b5eb5de",
-    "android/backend/src/main/java/org/stemnotebook/backend/BackupJobScheduler.kt": "7dc73f368d3ffe6244104a88f44b54eac839d2638447de3971a4079fe784252f",
+    "android/backend/src/main/java/org/stemnotebook/backend/BackupJobRoutes.kt": "9a54b7600ce3635b9d6047f686db05e24f5f03b201ff153ae7d7e7c6e5f1237d",
+    "android/backend/src/main/java/org/stemnotebook/backend/BackupJobScheduler.kt": "c4ebb483715d3e7805dffa6a5b8b431eab7b45c52f9a4c1d4763e5d1cf4824c1",
     "android/backend/src/main/java/org/stemnotebook/backend/BackupPersistentAccess.kt": "801c7026b3d22a48cd5379523b3a68561cb82f6eafe3c4d385030e2c47517c15",
     "android/backend/src/main/java/org/stemnotebook/backend/BackupPolicyDatabase.kt": "89da92b3412403dffa17428f478e9c04c4e3573980cda43872741af0e0078ff5",
     "android/backend/src/main/java/org/stemnotebook/backend/BackupPolicyStore.kt": "622dec5e97549e815404a922c80e3775b6a7f87894469921ca04ec1f747dc783",
@@ -35,7 +35,7 @@
     "android/backend/src/main/java/org/stemnotebook/backend/NotebookBackups.kt": "b2653a55f4157defe32ca6b89d97e53a609f4116368440caa1a86863985b8cbd",
     "android/backend/src/main/java/org/stemnotebook/backend/NotebookRestores.kt": "df838fd4962138d9f534f53c80ece8b669f5462680b09ef6ae3924718d8fae21",
     "android/backend/src/main/java/org/stemnotebook/backend/NotebookRuntime.kt": "ec07c7008ccedb3d9a5ce2fe4804010f624743d40c3ecf5ddc7d13ae8edbe485",
-    "android/backend/src/main/java/org/stemnotebook/backend/NotebookSchedules.kt": "52b1cbf6f92c48f97b35e6d9158a7f48b32099da61857370ad1e3ece612dc4c7",
+    "android/backend/src/main/java/org/stemnotebook/backend/NotebookSchedules.kt": "73c3b879bc77d4b28249a5b7be888446d3c24886695381841accb3c9d3526a42",
     "android/backend/src/main/java/org/stemnotebook/backend/ObservedInk.kt": "e805ee74103677a5304d858b2078374ba9ab1f1ee6ca695228d1d8729edca45d",
     "android/backend/src/main/java/org/stemnotebook/backend/PdfConnection.kt": "c7b5c61bc5d209f70a2867c8942d606556daf29a04a28e48872d1bd68af5504f",
     "android/backend/src/main/java/org/stemnotebook/backend/PdfParserClient.kt": "ae4fd736f00d29be432ffc4bb60d5443ba9bf9ca5a06ac3f83e2fe9c9b1c8214",
@@ -56,8 +56,8 @@
     "android/backend/src/test/java/org/stemnotebook/backend/BackendWriterTest.kt": "14f6c8c5bd1c6ca8a7c565b9d1ff63304de6529f178438e4692ae5137511604c",
     "android/backend/src/test/java/org/stemnotebook/backend/BackupCatalogueIntegrationTest.kt": "8a4911d96f905adaa25881846537fba6a3f1af756f6f8601474f717fd90b8b85",
     "android/backend/src/test/java/org/stemnotebook/backend/BackupCatalogueTest.kt": "58acddcefac31fd4bca08a7c3ce15f8e64cc871ca3b37d540ae3f49c7dbed9c7",
-    "android/backend/src/test/java/org/stemnotebook/backend/BackupJobRoutesTest.kt": "efe5b47c7510bb3af6fc8c8af02d2e0a1aba04f65d69cbb521b266b3ca9e0bed",
-    "android/backend/src/test/java/org/stemnotebook/backend/BackupJobSchedulerTest.kt": "d73df17a0f7def8bb03ad9eaa80a1aca52b4b685b520879cb98f4eaf63642ffd",
+    "android/backend/src/test/java/org/stemnotebook/backend/BackupJobRoutesTest.kt": "e5444ebc17de120298c63b5afd60724c5f7cf6ce65e998d0ba47bb3cf310e57d",
+    "android/backend/src/test/java/org/stemnotebook/backend/BackupJobSchedulerTest.kt": "34b523bfa5f10b726aa7b1896d053ad75bd993c03c10184336b86db411d7fc77",
     "android/backend/src/test/java/org/stemnotebook/backend/BackupPersistentAccessTest.kt": "f91956502ef9dc6b78045966f166ed0ee1f45c124110b0fff87471c869c92b9e",
     "android/backend/src/test/java/org/stemnotebook/backend/BackupPolicyMigrationTest.kt": "bf315543bf49d6b1c73dd9c915d740977eef2c9bee36cb0d0bc66b949ca3a150",
     "android/backend/src/test/java/org/stemnotebook/backend/BackupPolicyStoreTest.kt": "a0a4221b160fbeda084b5651987f2c0e482463fc72855792636c406a99fc59f8",
@@ -77,7 +77,7 @@
     "android/backend/src/test/java/org/stemnotebook/backend/NotebookBackupsTest.kt": "873e13b2e41cf89a619e42c054928e383137e2fa1560d19a5621aad06712265c",
     "android/backend/src/test/java/org/stemnotebook/backend/NotebookRestoresTest.kt": "b0a04dd4ec2ba03f49a535a7ddddea72e6bcf3196bf98fc4dedb8c564865fa4b",
     "android/backend/src/test/java/org/stemnotebook/backend/NotebookRuntimeTest.kt": "d5c1fa3b6e6d4f2790180343a158d182f20ca0a73b9d317a7b0418a1b16f1657",
-    "android/backend/src/test/java/org/stemnotebook/backend/NotebookSchedulesTest.kt": "e05c3805596828f449b566b7f7a4e4633bfdac8e40415c16b8782c73d74f91b3",
+    "android/backend/src/test/java/org/stemnotebook/backend/NotebookSchedulesTest.kt": "623d976e5b7eaac67927d6c83223d392b3d68cc6a30834717175eef3ba97c3db",
     "android/backend/src/test/java/org/stemnotebook/backend/PdfConnectionTest.kt": "deeb311c819cb566bcc449fbd5c4b2e3810b789e1dd8af77f3eb0c694d81df77",
     "android/backend/src/test/java/org/stemnotebook/backend/PdfParserClientTest.kt": "9c8dbd693cd1b3fd42f575329ac2b9af3dea47d7ecc8063e6623568dcc8c124f",
     "android/backend/src/test/java/org/stemnotebook/backend/PdfPixelsTest.kt": "270dc6eaa0524da80518f400c5fa8055f2b4936fb45cc9509e7eb421b9b997d7",
@@ -217,13 +217,13 @@
     "docs/decisions/ADR-008-scheduled-backup-authority-foundations.md": "af8499dac530b85df9c617b1429bc674ec71dbfd55d388bff52413fd181430d8",
     "docs/decisions/ADR-009-shared-notebook-runtime.md": "156d013ff10e0b43d2f911ff46b3943d371bb492f5defb00e3f32673c9002231",
     "docs/decisions/ADR-010-opt-in-scheduled-backup-workflow.md": "103da83bb45d048d556096408dca8340a9a322dfbe74c18dc485c2d30348a4a3",
-    "docs/decisions/ADR-011-private-independent-backup-job-routes.md": "a94f4b685151d0e7f39ba014e6f2d181fd7eaed495f9423b44d89cc3f1435078",
+    "docs/decisions/ADR-011-private-independent-backup-job-routes.md": "2320d3694191795a134265c4d6eac7363c339641fdf691c4200b46af0d7d7649",
     "docs/decisions/owner-authorisation-2026-10-22.md": "4fedeef87589b9028ce27cc4ee64878fae9fdd42cbbe9a8d8c093ca3091c0788",
     "docs/formats/BACKUP_POLICY_STORE.md": "86e0fd1acad565e730be2f8c8a8870020ab822f1e5603858c31f4010fe53b975",
     "docs/formats/BACKUP_PUBLICATION_HISTORY.md": "421c2dd947cc2b2128304fdeebfa801ee873c7b76f27582a5bbf05881536bd0a",
     "docs/formats/BACKUP_SCHEDULE_POLICY.md": "45b83b2fb099de071f7450c52da8c621b2d386e0449132e3220ba4222b4f20fb",
     "docs/formats/RESTORE_STAGES.md": "423a2f8fce054ff0724616260bf25b988f700213917085c80ce7adecefdf2b7e",
-    "docs/formats/SCHEDULED_BACKUPS.md": "da041ee5c727e8818f695b2071a08b8a78ad487e3dec22d654f45d79d92f5410",
+    "docs/formats/SCHEDULED_BACKUPS.md": "ca4cf3886520e6e6a6086712a7430b01f737f377ebdf4c182d34b6477373c97c",
     "docs/formats/SCHEDULED_BACKUP_FOUNDATIONS.md": "7721f1757739a464ae6261ee8b27461f94d2abb254e6644328539e5b51113db9",
     "docs/formats/SHARED_NOTEBOOK_RUNTIME.md": "4ad8abf6fb22bf15842f4990d1ee3bdb18c7365df84ee7837c35c880c2df7e83",
     "docs/formats/full-library-backup-v1.md": "97cca01cad85e753e74d60cf8fd472ddd9943d9bcc1a9a9ddfeea8d64fe2c586",
@@ -263,10 +263,10 @@
     "docs/verification/DEFERRED_MANUAL.md": "c694b9fe185c216204dfd72aa6c55d1f8d21e06c431bb50b126bce1a6b514e1c",
     "docs/verification/HOST_INTEGRATION.md": "d9ce8070ccc73e4f55ce3d5c736abe330ead837819ef8d068253b83db52ac70b",
     "docs/verification/TEST_PLAN.md": "9072e4e45bb15ff1a859d7cab76d45dd9289fbd19ec6556a636afebec2460c82",
-    "docs/verification/backend-gaps.json": "dbf63c912821b62f817aea0a1d2cf34ae07a542212a5a6fda0074c60234d699d",
-    "docs/verification/candidates-current.csv": "532e962e84109b45a54d53648435ccfdd9eb5d68a7eda7b432f88bf3cfaf46b3",
-    "docs/verification/inherited-current.csv": "4744d4498985fef3bca5f1b0a2e4d16d47d56c7823e1d693628102f508bbadc0",
-    "docs/verification/requirements-current.csv": "437a3dea7f55dd6c830e1895c4689a512cb5c45e87c5e8cb8706a3ce6a0790b2",
+    "docs/verification/backend-gaps.json": "993f91e214b04d1bff88b594d7bdcf4302cee91f50e34d0ee09eda6bf0a7aa72",
+    "docs/verification/candidates-current.csv": "b3446bdc238e2bb4bdfb8db4daefc405dcdaa806b1d5d8222ca3e1b461e9ecf2",
+    "docs/verification/inherited-current.csv": "f18853f871af7815d3418144a4a56e00365b928680088a5781e7cfd4c8fce422",
+    "docs/verification/requirements-current.csv": "a2d737c80fd5a36b74a3b78fe30f434bad86c26117ef4f2acb7e51170959e9be",
     "docs/verification/traceability-manifest.json": "15d09e00b540a512b8e0b6afd98b06824e93d743d80317963ebe18d91d3adb22",
     "rust-toolchain.toml": "c33d1f0b1b8fda448bea32d7dc867aa64947c87169fd9de7122ffccad1dd80f9",
     "tools/backend_gate.py": "6c924452f65676d8534651723073555ae5657430c9580e73e87d712e9ad7671b",
@@ -276,7 +276,7 @@
     "tools/validate_android.py": "db39e2663790d7d807e1a6a50a60480bd69ae09a19930c76819fef29daea0a21",
     "tools/validate_jni.py": "f94111ea41b4a1d778cf9c9967a2a74251f93515e372b670c50a16c50aa7d45e"
   },
-  "started_utc": "2026-10-25T22:46:24.777571+00:00",
+  "started_utc": "2026-10-25T23:14:35.852709+00:00",
   "checks": [
     {
       "name": "android-native",
@@ -322,7 +322,7 @@
       "command": [
         "/usr/lib/jvm/java-21-openjdk-amd64/bin/javac",
         "-d",
-        "/home/linus/Projects/software/note-taking-app/repo/target/jni-ztw3h6p_",
+        "/home/linus/Projects/software/note-taking-app/repo/target/jni-frfvb147",
         "android/backend/src/main/java/org/stemnotebook/backend/NativeBridge.java",
         "bridge/tests/java/BoundarySmoke.java",
         "bridge/tests/java/BackupBoundarySmoke.java",
@@ -339,7 +339,7 @@
         "-Xcheck:jni",
         "-Djava.library.path=target/debug",
         "-cp",
-        "/home/linus/Projects/software/note-taking-app/repo/target/jni-ztw3h6p_",
+        "/home/linus/Projects/software/note-taking-app/repo/target/jni-frfvb147",
         "BoundarySmoke"
       ],
       "exit_code": 0,
@@ -375,8 +375,8 @@
         "--pg-map-output",
         "/home/linus/Projects/software/note-taking-app/repo/docs/evidence/latest/jni-shrinker.map",
         "--output",
-        "/home/linus/Projects/software/note-taking-app/repo/target/jni-ztw3h6p_/shrunk.jar",
-        "/home/linus/Projects/software/note-taking-app/repo/target/jni-ztw3h6p_/input.jar"
+        "/home/linus/Projects/software/note-taking-app/repo/target/jni-frfvb147/shrunk.jar",
+        "/home/linus/Projects/software/note-taking-app/repo/target/jni-frfvb147/input.jar"
       ],
       "exit_code": 0,
       "result": "PASS"
@@ -388,7 +388,7 @@
         "-Xcheck:jni",
         "-Djava.library.path=target/debug",
         "-cp",
-        "/home/linus/Projects/software/note-taking-app/repo/target/jni-ztw3h6p_/shrunk.jar",
+        "/home/linus/Projects/software/note-taking-app/repo/target/jni-frfvb147/shrunk.jar",
         "BoundarySmoke"
       ],
       "exit_code": 0,
@@ -425,24 +425,24 @@
     "CC_aarch64_linux_android": "/tmp/stem-android-sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android30-clang",
     "AR_aarch64_linux_android": "/tmp/stem-android-sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar"
   },
-  "full_working_tree_before": " M docs/evidence/latest/validation.json\n?? docs/evidence/continuation-2026-10-24/host-restore/",
+  "full_working_tree_before": "?? docs/evidence/continuation-2026-10-24/host-restore/",
   "jni_smoke_groups": 28,
   "jni_shrunk_smoke_groups": 28,
   "jni_shrinker": {
     "version": "Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/stem-android-user\nR8 8.6.2-dev (build abaab469b5ebd4dd2bb91ba0ed6f45277faae4ca from go/r8bot (luci-r8-custom-ci-archive-0-77gl))",
     "tool_sha256": "305622ad00535684534eb8f742cbf5e628a9abc09d8ea4d39d1babb95bf0cee5",
-    "input_sha256": "48089c6b2f356535d9eef099cd14b7174be0aea270febcc7c3b588820e44d336",
+    "input_sha256": "05e898ab184686f5aa0d5112f2dcbb625c83dd6a1bae4b76d65aafb45597b7f3",
     "output_sha256": "061127cde345384216dca67bc27112f46532982632eed5254b81f1623e4be34e",
     "mode": "R8 release classfile; tree shaking, optimization and minification enabled; desktop JVM execution, not device DEX"
   },
   "jni_shrink_policy": "PASS",
   "consumer_rules_policy": "PASS",
   "consumer_rules_sha256": "8b3c0e5f5358ac4e5461fa069cc12d4c3153dbabf374e9173d562749f7ddf576",
-  "release_aar_sha256": "b7f4f88321b772525fb0cc7a5c6d4c56095319b479f939d1849bc56dc421cccc",
-  "aar_sha256": "6be048d26e5b37ecc3694f3bd74833dcacf77ce1aeee773319d09196e67c5d43",
+  "release_aar_sha256": "9a31950f8d20dcc69e2de90629df85abd3bfaec80ab848f936f4475cadd0968c",
+  "aar_sha256": "81b86682c0ac852f70cf6e9a0779d44e6c3a1be718633b874aaad7e69a358b17",
   "packaged_arm64_library_bytes": 5688808,
   "android_tests": {
-    "tests": 339,
+    "tests": 346,
     "failures": 0,
     "errors": 0,
     "skipped": 0
@@ -450,5 +450,5 @@
   "merged_manifest_policy": "PASS",
   "native_sha256": "c3f5f59fe662e28b2348f0ccdcf8dfccf46c07b5c8d980ae1e809876dc762d59",
   "manifest_scope": "Debug/release AAR merge contracts only: INTERNET removal marker, no backup/transfer, no cleartext, isolated non-exported PDF service, BIND_JOB_SERVICE-protected backup service and boot permission. Final APK/device enforcement NOT RUN.",
-  "finished_utc": "2026-10-25T22:59:55.558376+00:00"
+  "finished_utc": "2026-10-25T23:27:08.179005+00:00"
 }
