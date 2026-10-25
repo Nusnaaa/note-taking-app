@@ -291,3 +291,17 @@ protection. Malformed input, credential and quota failures must not change the
 live library or pending capture files. Post-publication ambiguity keeps the copy
 and receipt. Real provider/ART/device durability, hard disk quota, bounded native
 semantic validation and explicit orphan review/cleanup remain required work.
+
+## Unfinished restore retirement
+
+Restore-stage coverage separates purpose/owner marker recognition, bounded metadata
+inspection and file effects. Host fixtures test same-size changes with restored
+modification times, unknown marker extensions/versions, namespace replacement,
+links/nested or incomplete listings, partial transfer/deletion and protocol-only
+cleanup. Actual-JNI lifecycle fixtures test fresh confirmation/proof, foreign/stale
+capabilities, root ownership through blocked work, preservation of original drafts,
+rejected duplicate SQLite opens after hardlink inspection, restart continuation and
+an actual child-JVM abrupt exit. Quarantined unknown bytes are never treated as
+validated notebooks or silently deleted. Static recovery Help is checked before
+library opening and while app content is locked. Real ART/provider/device/storage
+acceptance, hard physical quotas and whole-graph validation bounds remain separate.

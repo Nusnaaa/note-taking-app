@@ -54,6 +54,7 @@ fn offline_help_covers_recovery_and_unsearchable_ink_without_remote_dependency()
         Topic::MissingPdf,
         Topic::Recognition,
         Topic::BackupCredentials,
+        Topic::RestoreCleanup,
     ] {
         let h = help::topic(topic);
         assert!(!h.next_action.is_empty());

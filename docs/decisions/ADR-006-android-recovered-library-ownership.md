@@ -51,3 +51,14 @@ without initializing them. Duplicate activation is tested with subsequent author
 and an independent native duplicate attempt, rather than only testing a thrown
 exception. The initial whole-run attempt predating this correction is development
 evidence and will not be claimed as final exact-source acceptance.
+
+Unfinished-stage continuation, 25 October: new preparations record an exact bounded
+purpose/library marker. Deliberate fresh review can discard identified private
+scratch or quarantine unknown data. Inspection uses payload metadata and marker
+hashes, never raw SQLite descriptors. Fresh proof/confirmation and anchored private
+namespaces precede transfer; effects after transfer retain an uncertain receipt
+through cancellation/close and can be re-reviewed after restart. Unknown quarantined
+data is preserved, not treated as a validated library or a source of free space.
+Empty private reservations and identified protocol-only leftovers can be reviewed
+without manufacturing a remaining payload. See RESTORE_STAGES.md. This does not
+supply a hard staging quota, complete salvage/export or device acceptance.

@@ -44,6 +44,9 @@ pub use pdf::{PdfCommand, PdfGrantVerifier};
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "op", deny_unknown_fields)]
 pub enum Command {
+    Help {
+        topic: crate::help::Topic,
+    },
     Proposals {
         block: Id,
         offset: u32,
@@ -825,6 +828,7 @@ impl Host {
                 | Command::FlatExercises { .. }
                 | Command::SearchViews { .. }
                 | Command::Status { .. }
+                | Command::Help { .. }
         );
         let authoring = authoring
             && !matches!(&request.command, Command::Pdf { command } if command.is_query());
@@ -929,6 +933,7 @@ fn execute(
     }
     let result = (|| -> Result<Value> {
         Ok(match r.command {
+            Command::Help { topic } => serde_json::to_value(crate::help::topic(topic))?,
             Command::Proposals {
                 block,
                 offset,

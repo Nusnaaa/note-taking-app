@@ -3,6 +3,8 @@ package org.stemnotebook.backend;
 public final class NativeBridge {
     static { System.loadLibrary("stem_bridge"); }
     private NativeBridge() {}
+    /** Bundled generic guidance; no open library or notebook data is required. */
+    public static native String help(String topic);
     public static native long open(String absoluteDatabasePath);
     /** Strict existing-library activation; no empty/missing/unknown initialization. */
     public static native long openExisting(String absoluteDatabasePath);

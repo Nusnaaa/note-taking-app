@@ -1,5 +1,5 @@
 //! Bundled, offline help for implemented recovery behaviour. No network lookup.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum Topic {
     Trash,
     History,
@@ -8,7 +8,9 @@ pub enum Topic {
     MissingPdf,
     Recognition,
     BackupCredentials,
+    RestoreCleanup,
 }
+#[derive(serde::Serialize)]
 pub struct Help {
     pub title: &'static str,
     pub explanation: &'static str,
@@ -22,6 +24,7 @@ pub fn topic(topic: Topic) -> Help {
         Topic::SaveFailure=>Help{title:"Changes need attention",explanation:"The latest operation was not confirmed saved. Previously saved content remains available. Saved locally and backed up are different states.",next_action:"Stop adding work, check free space, then retry. Preserve any unsaved work locally before closing."},
         Topic::MissingPdf=>Help{title:"Locate a reference PDF",explanation:"Your notes remain available if the linked PDF is missing. A file with the same name may be a different edition. Revoked sources cannot be opened from ordinary caches.",next_action:"Locate the original PDF and confirm the link. A different revision needs a separate reviewed replacement."},
         Topic::Recognition=>Help{title:"Keep writing when conversion fails",explanation:"Missing models, cancellation and failed conversion leave original handwriting intact. A proposal never changes your note until you accept it.",next_action:"Keep the ink, retry with a compatible local recogniser, or enter a manual correction. Review any result before accepting."},
-        Topic::BackupCredentials=>Help{title:"Open an encrypted portable file",explanation:"Use its export passphrase or independently stored recovery key. Device biometrics alone cannot open this portable file. Losing both credentials can make it unrecoverable.",next_action:"Keep the recovery key separately and privately. After import, set protection on the receiving device."},
+        Topic::RestoreCleanup=>Help{title:"Resolve an unfinished restore",explanation:"Cleanup does not replace your current library. An unfinished copy can contain handwriting that is not in that library. Discarding an identified unfinished copy is permanent and cannot be undone. Quarantine preserves unclassified items and does not free their file storage.",next_action:"Keep a readable encrypted backup and its passphrase or recovery key before discarding an unfinished copy. Review again after changes. Inspect an uncertain result before trying again."},
+        Topic::BackupCredentials=>Help{title:"Open an encrypted portable file",explanation:"Use its export passphrase or independently stored recovery key. Device biometrics alone cannot open this portable file. Losing both credentials can make it unrecoverable.",next_action:"Keep the recovery key separately and privately. After import, review protection on the receiving device. Restored locks remain in place; access must be re-established."},
     }
 }

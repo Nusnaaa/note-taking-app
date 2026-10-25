@@ -7,6 +7,13 @@ public final class BoundarySmoke {
         public boolean verify(String challenge) { return !challenge.isEmpty(); }
     }
     public static void main(String[] args) throws Exception {
+        String guidance=NativeBridge.help("RestoreCleanup");
+        check(guidance.contains("cannot be undone") && guidance.contains("Quarantine preserves"));
+        for(String invalid:new String[]{null,"unknown private topic","x".repeat(10000)}) {
+            try {NativeBridge.help(invalid);throw new AssertionError("Invalid help topic accepted");}
+            catch(IllegalStateException expected) {check(expected.getMessage().equals("Native notebook operation failed"));}
+        }
+        System.out.println("PASS: bounded offline recovery Help without a library handle (1)");
         String path=Files.createTempDirectory("stem-jni").resolve("notebook.db").toString();
         long handle=NativeBridge.open(path);
         String identity=NativeBridge.captureLibraryIdentity(handle);check(!identity.isEmpty());

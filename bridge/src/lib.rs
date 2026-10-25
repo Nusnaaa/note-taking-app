@@ -392,6 +392,35 @@ pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_recognitionSta
     }
 }
 
+/// Generic recovery guidance must remain available even when no library opens.
+#[no_mangle]
+pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_help(
+    mut env: JNIEnv<'_>,
+    _: JClass<'_>,
+    topic: JString<'_>,
+) -> jstring {
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> Option<jstring> {
+        let name = bounded_string(&mut env, &topic, 64)?;
+        if name.len() > 64 {
+            return None;
+        }
+        let topic: stem_core::help::Topic =
+            serde_json::from_value(serde_json::Value::String(name)).ok()?;
+        let body = serde_json::to_string(&stem_core::help::topic(topic)).ok()?;
+        Some(env.new_string(body).ok()?.into_raw())
+    }));
+    match result {
+        Ok(Some(value)) => value,
+        _ => {
+            if env.exception_check().unwrap_or(true) {
+                let _ = env.exception_clear();
+            }
+            fail(&mut env);
+            std::ptr::null_mut()
+        }
+    }
+}
+
 #[cfg(test)]
 mod handle_tests {
     use super::*;

@@ -1448,8 +1448,8 @@ inside their integration test binary; timings are host observations, not device 
 
 These native trusted APIs now also have the JNI transport described below;
 Android worker/provider ownership and explicit recovered-root opening are
-implemented below; production H.I. remains gated. Explicit orphan cleanup and
-hard quota workflows remain unfinished. Provider/device acceptance, bounded semantic
+implemented below; production H.I. remains gated. Reviewed orphan cleanup/quarantine is implemented below; hard quota workflows
+remain unfinished. Provider/device acceptance, bounded semantic
 validation, crash cleanup and the other backend gaps remain open. Production H.I.
 remains gated.
 
@@ -1550,3 +1550,48 @@ No Java/raw database descriptor is opened for preflight: closing an unrelated ra
 FD could otherwise disturb this process's POSIX SQLite locks. Duplicate-open tests
 verify that both app and native rejected duplicates leave the original writer's
 exclusive ownership and subsequent edits intact.
+
+### Reviewed unfinished restore cleanup and offline guidance
+
+New restore preparations persist a purpose/library/stage marker before native
+work. `NotebookRestores.reviewStages` retains one host-bound native reservation and
+returns a bounded page of opaque, epoch-bound items/cursors. It cannot inspect a
+currently owned JNI restore stage. The same optional worker owns inspection,
+proof/confirmation, transfer and actual cleanup through full app close.
+
+`StageReview.retire` consumes a selected item with `DiscardRecognised` or
+`Quarantine`. Current app access and a fresh platform verifier are required; stale
+metadata or marker digests refuse mutation with `StagingChanged`. Identified private
+scratch, verified protocol-only records and exactly empty private recovery folders
+may be discarded. Unclassified content is preserved in a separate private retired
+container and cannot be discarded or followed through links. This unblocks new
+restores when pending staging is cleared without silently sweeping unknown bytes.
+
+Both namespace roots are bound to their original filesystem identity. Files are
+checked by device/inode, UID/mode, link count, size and nanosecond-capable modification/
+change-time observations; marker JSON alone is read/digested. Raw SQLite payloads
+are never opened for inspection. Existing working SQLite ownership is therefore
+independent of orphan inspection, including a hardlinked-file negative fixture.
+
+Transfer happens only into a freshly reserved private container. After commit
+entry, a possible-effect receipt is preserved: `Discarded`, `Quarantined`, or
+`Uncertain`, with the retirement ID and acknowledged file bytes. Lifecycle close
+can stop further work cooperatively but cannot turn possible file changes into a
+lost cancellation result. Restart discovery can finish identified interrupted
+retirement; unknown retained data remains preserved. No secure-erasure, total disk
+quota, complete content hash or real-device durability guarantee is implied.
+See `docs/formats/RESTORE_STAGES.md` for the on-disk protocol and limits.
+
+Generic offline guidance is available as the read-only host command
+`{"op":"Help","topic":"RestoreCleanup"}` and as `NativeBridge.help("RestoreCleanup")`
+without opening any library. It explains permanent discard, separate current-library
+content, preserved quarantine and uncertain outcomes. Static guidance remains
+available while app content is locked and does not invalidate a live review or
+change library generation. No network/LLM or internal-log knowledge is needed.
+
+`RestoreStagesTest`, `RestoreStageLifecycleTest` and the existing
+`NotebookRestoresTest` cover these contracts with host filesystems, synthetic
+providers and actual desktop JNI. `RestoreStageCrashProbe` deliberately exits a
+separate JVM after native staging without destructors; it is a developer fixture,
+not Android process-kill or physical-power-loss acceptance. Host Unix metadata
+coverage does not certify the Android lstat fallback or device filesystem.

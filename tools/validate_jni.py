@@ -64,7 +64,7 @@ def main():
         command = [java, '-Xcheck:jni', '-Djava.library.path=target/debug', '-cp']
         smoke = run('jni-smoke', command + [str(classes), 'BoundarySmoke'])
         groups = sum(int(n) for n in re.findall(r'^PASS:.*\((\d+)\)$', smoke, re.MULTILINE))
-        if groups < 25:
+        if groups < 26:
             raise RuntimeError('Missing JNI fixture groups')
         inputs = Path(scratch) / 'input.jar'
         with zipfile.ZipFile(inputs, 'w') as bundle:

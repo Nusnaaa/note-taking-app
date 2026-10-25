@@ -917,3 +917,52 @@ fn host_workspace_discovers_last_view_after_reopen_without_serializing_locked_ta
     assert!(!locked.to_string().contains(&view.id.to_string()));
     host.close().unwrap();
 }
+
+#[test]
+fn offline_recovery_help_is_readonly_and_available_while_app_locked() {
+    let root = tempfile::tempdir().unwrap();
+    let host = Host::open(root.path().join("library.db"), 8).unwrap();
+    let note = request(
+        &host,
+        Command::Create {
+            kind: stem_core::store::Kind::Note,
+            parent: None,
+            title: "private title never appears in help".into(),
+        },
+    );
+    let id = stem_core::Id::parse(note["id"].as_str().unwrap()).unwrap();
+    let before = host
+        .request(&encode(Command::Status {}))
+        .unwrap()
+        .generation;
+    let help = host
+        .request(&encode(Command::Help {
+            topic: stem_core::help::Topic::RestoreCleanup,
+        }))
+        .unwrap();
+    assert!(help.ok);
+    assert_eq!(help.generation, before);
+    let body = help.data.unwrap();
+    assert!(body["explanation"]
+        .as_str()
+        .unwrap()
+        .contains("cannot be undone"));
+    assert!(body["explanation"]
+        .as_str()
+        .unwrap()
+        .contains("Quarantine preserves"));
+    host.authenticate([Scope::App].into_iter().collect(), Box::new(TestAuth(true)))
+        .unwrap();
+    request(&host, Command::SetAppLock { enabled: true });
+    request(&host, Command::Relock {});
+    assert!(!host.request(&encode(Command::Status {})).unwrap().ok);
+    assert!(!host.request(&encode(Command::Read { id })).unwrap().ok);
+    let help = host
+        .request(&encode(Command::Help {
+            topic: stem_core::help::Topic::RestoreCleanup,
+        }))
+        .unwrap();
+    assert!(help.ok);
+    assert_eq!(help.generation, None);
+    assert_eq!(help.data.unwrap(), body);
+}

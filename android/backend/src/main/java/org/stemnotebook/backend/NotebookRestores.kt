@@ -40,6 +40,8 @@ class NotebookRestores internal constructor(
     private var closed = false
     private var epoch = Any()
     private var review: Review? = null
+    private var stageReview: StageReview? = null
+    private val stages: RestoreStages
     private var running: Operation<*>? = null
     private var cancelling = 0
     @Volatile var needsAttention = false
@@ -52,7 +54,8 @@ class NotebookRestores internal constructor(
         .apply { removeOnCancelPolicy = true }
     init {
         privateDirectory(directory); privateDirectory(recoveredDirectory)
-        needsAttention = Files.newDirectoryStream(directory.toPath()).use { it.iterator().hasNext() }
+        stages = RestoreStages(directory, File(directory.parentFile, "restore-retired"), fault)
+        needsAttention = stages.hasPending() || stages.hasRetired()
     }
     /** Caller-selected engineering input/space bounds, not a hard SQLite disk quota
      * or a device performance promise. Peak stage allocation remains native work. */
@@ -61,7 +64,7 @@ class NotebookRestores internal constructor(
     }
     data class Summary(val entities: Long, val blocks: Long, val strokes: Long, val sourceReferences: Long, val sourceAssets: Long, val protectedScopes: Long)
     enum class Outcome { Published, Uncertain }
-    enum class FailureReason { AccessChanged, QuotaExceeded, StagingNeedsAttention, InvalidInput, Unavailable }
+    enum class FailureReason { AccessChanged, QuotaExceeded, StagingNeedsAttention, StagingChanged, InvalidInput, Unavailable }
     class Failure internal constructor(val reason: FailureReason) : IOException("Restore operation unavailable")
     class Pending<T : Any> internal constructor(private val future: CompletableFuture<T>, private val cancelAction: () -> Boolean, private val rejectObservation: () -> Boolean) : Closeable {
         private val taken = AtomicBoolean(false)
@@ -72,11 +75,11 @@ class NotebookRestores internal constructor(
             catch (error: ExecutionException) { throw error.cause ?: error }
             catch (error: InterruptedException) { cancel(); Thread.currentThread().interrupt(); throw error }
         }
-        /** False after publication entry: preserve a possible publication receipt. */
+        /** False once commit starts: preserve the possible file-operation outcome. */
         fun cancel(): Boolean = cancelAction()
         override fun close() { cancel() }
     }
-    inner class Review internal constructor(internal val job: NativeBridge.RestoreJob, internal val stage: File,
+    inner class Review internal constructor(internal val job: NativeBridge.RestoreJob, internal val stage: RestoreStages.Stage,
         internal val source: Uri, internal val stamp: Any, val summary: Summary) : Closeable {
         internal var live = true
         internal var cleanupQueued = false
@@ -117,7 +120,7 @@ class NotebookRestores internal constructor(
     private inner class Operation<T : Any>(val timeout: Long) {
         val future = CompletableFuture<T>()
         var cancelled = false
-        var publicationEntered = false
+        var committing = false
         var signal: CancellationSignal? = null
         var job: NativeBridge.RestoreJob? = null
         var cancellation: CompletableFuture<Void>? = null
@@ -130,7 +133,7 @@ class NotebookRestores internal constructor(
         }
         fun cancel(force: Boolean = false): Boolean {
             val resources = synchronized(lock) {
-                if (publicationEntered && !force) return false
+                if (committing && !force) return false
                 cancelled = true
                 disposal?.invoke()
                 if (cancellation != null || retiring || running !== this || (job == null && signal == null)) return true
@@ -166,7 +169,7 @@ class NotebookRestores internal constructor(
                     try { retire() } catch (_: Throwable) { needsAttention = true; if (failure == null) failure = Failure(FailureReason.Unavailable) }
                 }
                 synchronized(lock) {
-                    if (!operation.publicationEntered && failure == null) try { operation.check() } catch (error: Throwable) { failure = error }
+                    if (!operation.committing && failure == null) try { operation.check() } catch (error: Throwable) { failure = error }
                     if (running === operation) running = null
                     if (failure == null) {
                         val value = checkNotNull(result)
@@ -177,12 +180,12 @@ class NotebookRestores internal constructor(
                         var problem = failure
                         repeat(16) { if (problem is java.util.concurrent.CompletionException || problem is ExecutionException) problem = problem?.cause ?: problem }
                         operation.future.completeExceptionally(if (operation.cancelled || problem is CancellationException || problem is android.os.OperationCanceledException)
-                            CancellationException("Restore operation cancelled or expired") else (problem as? Failure ?: Failure(FailureReason.Unavailable)))
+                            CancellationException("Restore operation cancelled or expired") else (problem as? Failure ?: Failure(if (problem is RestoreStages.Changed) FailureReason.StagingChanged else FailureReason.Unavailable)))
                     }
                 }
             } } catch (error: RejectedExecutionException) { running = null; throw error }
         }
-        return Pending(operation.future, { operation.cancel() }, { synchronized(lock) { operation.cancelled && !operation.publicationEntered } })
+        return Pending(operation.future, { operation.cancel() }, { synchronized(lock) { operation.cancelled && !operation.committing } })
     }
     private inner class OwnedInput(private val input: InputStream, private val source: Uri,
         private val operation: Operation<*>, private val stage: File, private val limits: Limits) : NativeBridge.RestoreInput {
@@ -210,19 +213,20 @@ class NotebookRestores internal constructor(
         timeoutMillis: Long = 120_000): Pending<Review> {
         require(document.scheme == "content" && document.toString().length <= 4096 && pickerFlags and Intent.FLAG_GRANT_READ_URI_PERMISSION != 0)
         require(credential.size <= 1024)
-        synchronized(lock) { check(!closed && review == null) { "Restore review still owned" } }
+        synchronized(lock) { check(!closed && review == null && stageReview == null) { "Restore review still owned" } }
         val secret = credential.clone()
         return try {
             submit(timeoutMillis, { it.close() }, { secret.fill('\u0000') }) { operation ->
-                var stage: File? = null
+                var stage: RestoreStages.Stage? = null
                 var job: NativeBridge.RestoreJob? = null
                 var input: OwnedInput? = null
                 try {
-                    synchronized(lock) { check(review == null) }
+                    synchronized(lock) { check(review == null && stageReview == null) }
                     access(); operation.check()
                     if (Files.newDirectoryStream(directory.toPath()).use { it.iterator().hasNext() }) { needsAttention = true; throw Failure(FailureReason.StagingNeedsAttention) }
                     val stamp = synchronized(lock) { epoch }
-                    val stageFile = File(directory, UUID.randomUUID().toString()); stage = stageFile; privateDirectory(stageFile)
+                    val stageToken = stages.create(NativeBridge.captureLibraryIdentity(nativeHandle())); stage = stageToken
+                    val stageFile = stageToken.directory
                     checkSpace(stageFile, limits)
                     val nativeJob = NativeBridge.beginRestore(nativeHandle(), timeoutMillis); job = nativeJob
                     synchronized(lock) { operation.check(); operation.job = nativeJob; operation.signal = CancellationSignal() }
@@ -237,7 +241,7 @@ class NotebookRestores internal constructor(
                     synchronized(lock) {
                         operation.check()
                         if (epoch !== stamp) throw Failure(FailureReason.AccessChanged)
-                        Review(nativeJob, stageFile, document, stamp, summary).also { review = it; job = null; stage = null }
+                        Review(nativeJob, stageToken, document, stamp, summary).also { review = it; job = null; stage = null }
                     }
                 } catch (error: Throwable) { throw input?.failure?.let { Failure(it) } ?: error }
                 finally {
@@ -281,7 +285,7 @@ class NotebookRestores internal constructor(
                     if (epoch !== selected.stamp) throw Failure(FailureReason.AccessChanged)
                     selected.live = false
                     operation.job = selected.job
-                    operation.publicationEntered = true
+                    operation.committing = true
                 }
                 var outcome = try {
                     val freshProof = NativeBridge.Verification { challenge ->
@@ -312,7 +316,7 @@ class NotebookRestores internal constructor(
                 try { selected.job.close() } catch (_: Throwable) { needsAttention = true }
                 removeStage(selected.stage)
                 synchronized(lock) { selected.live = false; if (review === selected) review = null; operation.job = null }
-                if (!operation.publicationEntered) root?.let { candidate ->
+                if (!operation.committing) root?.let { candidate ->
                     File(candidate, "recovered-library.json").delete(); File(candidate, "notebook").delete(); if (!candidate.delete()) needsAttention = true
                 }
             }
@@ -362,6 +366,118 @@ class NotebookRestores internal constructor(
     }
     private fun encodeSummary(summary: Summary): JSONObject = JSONObject().put("entities", summary.entities).put("blocks", summary.blocks)
         .put("strokes", summary.strokes).put("source_references", summary.sourceReferences).put("source_assets", summary.sourceAssets).put("protected_scopes", summary.protectedScopes)
+    /** Names/paths remain private. A cursor is bound to this owner/access epoch. */
+    class StageCursor internal constructor(internal val owner: NotebookRestores, internal val stamp: Any, internal val retired: Boolean, internal val after: String)
+    class StageItem internal constructor(internal val snapshot: RestoreStages.Snapshot, internal val token: Any) {
+        val label: String get() = when {
+            snapshot.emptyDirectory -> "Empty recovery folder"
+            snapshot.metadataOnly -> "Restore cleanup record"
+            snapshot.entry.retired && snapshot.recognised -> "Quarantined unfinished restore"
+            snapshot.entry.retired -> "Quarantined unclassified item"
+            snapshot.recognised -> "Unfinished restore"
+            else -> "Unclassified recovery item"
+        }
+        val containsOnlyCleanupMetadata: Boolean get() = snapshot.metadataOnly
+        val isEmptyFolder: Boolean get() = snapshot.emptyDirectory
+        val canDiscard: Boolean get() = snapshot.recognised
+        val canQuarantine: Boolean get() = !snapshot.entry.retired || snapshot.recognised
+        /** Null for unclassified/nested data; no physical-allocation claim. */
+        val observedFileBytes: Long? get() = snapshot.observedBytes
+        val listingComplete: Boolean get() = snapshot.complete
+        val observedEntries: Int get() = if (snapshot.identity.directory) snapshot.children.size else 1
+    }
+    enum class StageDisposition { DiscardRecognised, Quarantine }
+    enum class StageOutcome { Discarded, Quarantined, Uncertain }
+    data class StageRetirement(val outcome: StageOutcome, val retirement: UUID, val sourceRetired: Boolean, val removedFileBytes: Long)
+    inner class StageReview internal constructor(internal val job: NativeBridge.RestoreJob, internal val library: String, internal val stamp: Any,
+        internal val maximumFiles: Int, val items: List<StageItem>, val next: StageCursor?, internal val token: Any) : Closeable {
+        internal var live = true
+        internal var cleanupQueued = false
+        fun retire(item: StageItem, disposition: StageDisposition, proof: NativeBridge.Verification, confirmed: Boolean,
+            timeoutMillis: Long = 120_000): Pending<StageRetirement> = retireStage(this, item, disposition, proof, confirmed, timeoutMillis)
+        override fun close() {
+            val active = synchronized(lock) {
+                live = false; queueStageCleanup(this)
+                running?.takeIf { it.job === job }
+            }
+            active?.cancel(force = true)
+        }
+    }
+    /** Review one bounded page. The held native reservation excludes active JNI
+     * restore work, and the app root remains owned through actual review disposal. */
+    fun reviewStages(retired: Boolean = false, after: StageCursor? = null, limit: Int = 32, maximumFilesPerItem: Int = 64,
+        timeoutMillis: Long = 120_000): Pending<StageReview> {
+        require(limit in 1..100 && maximumFilesPerItem in 1..1024)
+        synchronized(lock) {
+            check(!closed && review == null && stageReview == null)
+            if (after != null) check(after.owner === this && after.stamp === epoch && after.retired == retired)
+        }
+        return submit(timeoutMillis, { it.close() }) { operation ->
+            var job: NativeBridge.RestoreJob? = null
+            try {
+                access(); operation.check()
+                val stamp = synchronized(lock) { epoch }
+                val reservation = NativeBridge.beginRestore(nativeHandle(), timeoutMillis); job = reservation
+                synchronized(lock) { operation.check(); operation.job = reservation }
+                val library = NativeBridge.captureLibraryIdentity(nativeHandle())
+                val page = stages.page(retired, after?.after, limit) { operation.check() }
+                val token = Any()
+                val items = page.entries.map { StageItem(stages.capture(it, library, maximumFilesPerItem) { operation.check() }, token) }
+                access(); operation.check()
+                synchronized(lock) {
+                    operation.check(); check(epoch === stamp && review == null && stageReview == null)
+                    if (items.isNotEmpty()) needsAttention = true
+                    StageReview(reservation, library, stamp, maximumFilesPerItem, items,
+                        page.next?.let { StageCursor(this, stamp, retired, it) }, token).also { stageReview = it; job = null }
+                }
+            } finally {
+                operation.awaitCancellation()
+                try { job?.close() } finally { synchronized(lock) { operation.job = null } }
+            }
+        }
+    }
+    private fun retireStage(selected: StageReview, item: StageItem, disposition: StageDisposition, proof: NativeBridge.Verification,
+        confirmed: Boolean, timeout: Long): Pending<StageRetirement> {
+        require(confirmed)
+        synchronized(lock) {
+            check(!closed && stageReview === selected && selected.live && item.token === selected.token && selected.items.any { it === item })
+            if (disposition == StageDisposition.DiscardRecognised) require(item.canDiscard)
+            if (disposition == StageDisposition.Quarantine) require(item.canQuarantine)
+        }
+        return submit(timeout) { operation ->
+            try {
+                synchronized(lock) {
+                    operation.check(); check(stageReview === selected && selected.live && epoch === selected.stamp)
+                    selected.cleanupQueued = true; operation.job = selected.job
+                }
+                access(); operation.check()
+                if (!proof.verify(UUID.randomUUID().toString())) throw Failure(FailureReason.AccessChanged)
+                access(); operation.check()
+                synchronized(lock) { check(epoch === selected.stamp && selected.live) }
+                val receipt = stages.act(item.snapshot, selected.library, selected.maximumFiles,
+                    RestoreStages.Disposition.valueOf(disposition.name), { operation.check() }, {
+                        synchronized(lock) {
+                            operation.check(); check(epoch === selected.stamp && selected.live)
+                            selected.live = false; operation.committing = true
+                        }
+                    })
+                needsAttention = try { receipt.outcome == RestoreStages.Outcome.Uncertain || stages.hasPending() || stages.hasRetired() } catch (_: Exception) { true }
+                StageRetirement(StageOutcome.valueOf(receipt.outcome.name), receipt.retirement, receipt.sourceRetired, receipt.removedBytes)
+            } finally {
+                operation.awaitCancellation()
+                try { selected.job.close() } catch (_: Throwable) { needsAttention = true }
+                synchronized(lock) { selected.live = false; if (stageReview === selected) stageReview = null; operation.job = null }
+            }
+        }
+    }
+    private fun queueStageCleanup(selected: StageReview) {
+        if (selected.cleanupQueued) return
+        selected.cleanupQueued = true
+        worker.execute {
+            try { selected.job.close() } catch (_: Throwable) { needsAttention = true }
+            finally { synchronized(lock) { if (stageReview === selected) stageReview = null } }
+        }
+    }
     private fun queueCleanup(selected: Review) {
         if (selected.cleanupQueued) return
         selected.cleanupQueued = true
@@ -374,7 +490,7 @@ class NotebookRestores internal constructor(
     fun invalidate() {
         val active = synchronized(lock) {
             if (closed) return
-            epoch = Any(); review?.let { it.live = false; queueCleanup(it) }
+            epoch = Any(); review?.let { it.live = false; queueCleanup(it) }; stageReview?.let { it.live = false; queueStageCleanup(it) }
             running
         }
         active?.cancel(force = true)
@@ -382,7 +498,7 @@ class NotebookRestores internal constructor(
     override fun close() {
         val active = synchronized(lock) {
             if (closed) return
-            closed = true; epoch = Any(); review?.let { it.live = false; queueCleanup(it) }
+            closed = true; epoch = Any(); review?.let { it.live = false; queueCleanup(it) }; stageReview?.let { it.live = false; queueStageCleanup(it) }
             running
         }
         active?.cancel(force = true)
@@ -393,9 +509,9 @@ class NotebookRestores internal constructor(
         cancellations.shutdown(); deadlines.shutdownNow()
         awaitStopped(cancellations, deadlines)
     }
-    private fun removeStage(stage: File) {
+    private fun removeStage(stage: RestoreStages.Stage) {
         // Delete only an empty, exactly owned directory. Unknown/orphan bytes stay.
-        try { fault("stage-cleanup"); Files.deleteIfExists(stage.toPath()) }
+        try { fault("stage-cleanup"); stages.retire(stage) }
         catch (_: Exception) { needsAttention = true }
     }
     private fun checkSpace(stage: File, limits: Limits) {
