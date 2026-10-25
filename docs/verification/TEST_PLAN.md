@@ -364,3 +364,22 @@ also run. These checks are host/Robolectric components; destination availability
 physical/device/provider durability and complete backend acceptance are not
 inferred. Offline Help distinguishes saved state, past publication records,
 exclusions and actual external recovery files.
+
+## Scheduled-backup foundations (not a completed scheduler)
+
+`BackupSecretProtectorTest` uses actual JCA AES-GCM with a test key provider to
+check ciphertext/context tampering, exact managed-buffer clearing, bounded codec
+and recovery-key domains, alias non-overwrite, uncertain store callbacks, typed
+cancellation/interruption, blocked consumer/store/deletion lifetime, deletion
+retry and completion outside the registry monitor. It does not execute Android
+Keystore or establish hardware backing.
+
+`BackupPersistentAccessTest` uses synthetic provider/permission adapters to check
+explicit consent/flags, before-grant decision recording, prior shared rights,
+owner/epoch/single-use review, invalidation during inspection/proof/recording,
+changed authority/directory/permissions, post-grant cancellation/failure and lost
+acknowledgements. It never creates a backup or grants source-content access.
+
+Both production Android adapter sources compile and lint. Real Keystore/provider
+persistence, a durable consent/credential store and the scheduler service/run
+lifecycle are not proven by these component tests and remain implementation work.

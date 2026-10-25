@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.BackupPersistentAccessTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-25T17:57:01" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="8.84">
+  <properties/>
+  <testcase name="missingPickerRightsAndRejectedConsentCannotTakePermission" classname="org.stemnotebook.backend.BackupPersistentAccessTest" time="8.402"/>
+  <testcase name="changedAuthorityDirectoryOrPermissionInvalidatesReviewBeforeAnyGrant" classname="org.stemnotebook.backend.BackupPersistentAccessTest" time="0.068"/>
+  <testcase name="foreignAndInvalidatedReviewsCannotAuthorisePersistence" classname="org.stemnotebook.backend.BackupPersistentAccessTest" time="0.054"/>
+  <testcase name="failedConsentRecordingDoesNotTakeAPersistedGrant" classname="org.stemnotebook.backend.BackupPersistentAccessTest" time="0.063"/>
+  <testcase name="cancellationAndLostOutcomeRecordingAfterGrantCannotHideTheReceipt" classname="org.stemnotebook.backend.BackupPersistentAccessTest" time="0.06"/>
+  <testcase name="preexistingCompleteAccessIsNotRetakenOrTreatedAsExclusiveOwnership" classname="org.stemnotebook.backend.BackupPersistentAccessTest" time="0.045"/>
+  <testcase name="explicitReviewedConsentIsRecordedBeforePersistentGrantRequest" classname="org.stemnotebook.backend.BackupPersistentAccessTest" time="0.08"/>
+  <testcase name="failureAfterGrantEntryPreservesPossibleEffectsWithoutRevokingExistingAccess" classname="org.stemnotebook.backend.BackupPersistentAccessTest" time="0.065"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

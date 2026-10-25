@@ -1,0 +1,6 @@
+{
+  "android/backend/src/main/java/org/stemnotebook/backend/BackupSecretProtector.kt": "40f9ec015e41f9a1991c9e1e36363e016980c673c0a8e65dbdb12db5fa4c55c5",
+  "android/backend/src/main/java/org/stemnotebook/backend/BackupPersistentAccess.kt": "801c7026b3d22a48cd5379523b3a68561cb82f6eafe3c4d385030e2c47517c15",
+  "android/backend/src/test/java/org/stemnotebook/backend/BackupSecretProtectorTest.kt": "115ac0cc4d7c530851efd78b7bd71137b7146949f9b36cba892e13abf0b83095",
+  "android/backend/src/test/java/org/stemnotebook/backend/BackupPersistentAccessTest.kt": "f91956502ef9dc6b78045966f166ed0ee1f45c124110b0fff87471c869c92b9e"
+}
