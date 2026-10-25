@@ -11,7 +11,17 @@ thread_local! {
     static CANCEL_AFTER: std::cell::Cell<Option<usize>> = const { std::cell::Cell::new(None) };
 }
 
-fn check(control: Option<&JobControl>) -> Result<()> {
+// Empty work tables are populated row by row. CREATE INDEX over the populated
+// source graph could invoke SQLite's external sorter outside the private stage.
+const WORK_EDGES: &str = "CREATE TABLE restore_validation_edges(
+    host TEXT NOT NULL, edge INTEGER NOT NULL, source TEXT NOT NULL,
+    PRIMARY KEY(host,edge)) STRICT, WITHOUT ROWID";
+const EMBED_HOSTS: &str = "SELECT DISTINCT host FROM restore_validation_edges";
+const FIRST_EDGE: &str =
+    "SELECT edge,source FROM restore_validation_edges WHERE host=?1 ORDER BY edge LIMIT 1";
+const NEXT_EDGE: &str = "SELECT edge,source FROM restore_validation_edges WHERE host=?1 AND edge>?2 ORDER BY edge LIMIT 1";
+
+pub(super) fn check(control: Option<&JobControl>) -> Result<()> {
     #[cfg(test)]
     CANCEL_AFTER.with(|remaining| {
         if let (Some(count), Some(control)) = (remaining.get(), control) {
@@ -103,6 +113,7 @@ fn block_content(
 }
 
 impl Store {
+    #[cfg(test)]
     pub(super) fn validate_backup_state(&self, version: u32) -> Result<()> {
         self.validate_backup_state_controlled(version, None)
     }
@@ -125,9 +136,9 @@ impl Store {
                  CREATE TABLE restore_validation_regions(id TEXT PRIMARY KEY,owner TEXT NOT NULL) STRICT;
                  CREATE TABLE restore_validation_headings(id TEXT PRIMARY KEY) STRICT;
                  CREATE TABLE restore_validation_colours(id TEXT PRIMARY KEY,colour INTEGER NOT NULL) STRICT;
-                 CREATE TABLE restore_validation_stack(depth INTEGER PRIMARY KEY,id TEXT NOT NULL,last_edge INTEGER) STRICT;
-                 CREATE INDEX restore_validation_embed_host ON embeds(host);",
+                 CREATE TABLE restore_validation_stack(depth INTEGER PRIMARY KEY,id TEXT NOT NULL,last_edge INTEGER) STRICT;",
             )?;
+            db.execute_batch(WORK_EDGES)?;
             self.validate_restore_graph(version, control)?;
             self.validate_backup_aux(control)?;
             check(control)
@@ -465,26 +476,35 @@ impl Store {
         )?;
         each(
             db,
-            "SELECT id,host,source,payload FROM embeds",
+            "SELECT rowid,id,host,source,payload FROM embeds",
             control,
             |r| {
-                let embed: Embed = serde_json::from_str(&r.get::<_, String>(3)?)?;
+                let embed: Embed = serde_json::from_str(&r.get::<_, String>(4)?)?;
                 embed.validate_layers()?;
                 embed.camera.validate()?;
                 embed.frame.validate()?;
                 if version < 8 && embed.visible_layers.is_some() {
                     return Err(Error::Unsupported);
                 }
-                if embed.id.to_string() != r.get::<_, String>(0)?
-                    || embed.host.to_string() != r.get::<_, String>(1)?
-                    || embed.source.to_string() != r.get::<_, String>(2)?
+                if embed.id.to_string() != r.get::<_, String>(1)?
+                    || embed.host.to_string() != r.get::<_, String>(2)?
+                    || embed.source.to_string() != r.get::<_, String>(3)?
                     || embed.revision > i64::MAX as u64
                     || !entity(db, embed.host)?.kind.is_surface()
                     || entity(db, embed.source)?.kind != Kind::Canvas
                 {
                     return Err(Error::Invalid("restore embed"));
                 }
-                identity(db, embed.id, "embed")
+                identity(db, embed.id, "embed")?;
+                db.execute(
+                    "INSERT INTO restore_validation_edges VALUES(?1,?2,?3)",
+                    params![
+                        embed.host.to_string(),
+                        r.get::<_, i64>(0)?,
+                        embed.source.to_string()
+                    ],
+                )?;
+                Ok(())
             },
         )?;
         validate_embed_cycles(db, control)?;
@@ -549,7 +569,7 @@ impl Store {
 // Iterative depth-first search with SQLite-owned colours and stack. Long embed
 // chains never recurse on the native stack or accumulate a whole graph in Rust.
 fn validate_embed_cycles(db: &Connection, control: Option<&JobControl>) -> Result<()> {
-    each(db, "SELECT DISTINCT host FROM embeds", control, |r| {
+    each(db, EMBED_HOSTS, control, |r| {
         let root: String = r.get(0)?;
         let done: bool = db.query_row(
             "SELECT EXISTS(SELECT 1 FROM restore_validation_colours WHERE id=?1 AND colour=2)",
@@ -576,17 +596,11 @@ fn validate_embed_cycles(db: &Connection, control: Option<&JobControl>) -> Resul
                 |r| Ok((r.get(0)?, r.get(1)?)),
             )?;
             let next: Option<(i64, String)> = if let Some(last) = last {
-                db.query_row(
-                    "SELECT rowid,source FROM embeds WHERE host=?1 AND rowid>?2 ORDER BY rowid LIMIT 1",
-                    params![id, last], |r| Ok((r.get(0)?, r.get(1)?)),
-                ).optional()?
+                db.query_row(NEXT_EDGE, params![id, last], |r| Ok((r.get(0)?, r.get(1)?)))
+                    .optional()?
             } else {
-                db.query_row(
-                    "SELECT rowid,source FROM embeds WHERE host=?1 ORDER BY rowid LIMIT 1",
-                    [&id],
-                    |r| Ok((r.get(0)?, r.get(1)?)),
-                )
-                .optional()?
+                db.query_row(FIRST_EDGE, [&id], |r| Ok((r.get(0)?, r.get(1)?)))
+                    .optional()?
             };
             if let Some((edge, target)) = next {
                 db.execute(
@@ -867,6 +881,159 @@ mod tests {
     }
 
     #[test]
+    fn checkpoint_checks_busy_readers_and_keeps_sqlite_in_charge_of_stage_io() {
+        assert!(matches!(
+            super::super::streaming::checkpoint_stage(&Connection::open_in_memory().unwrap()),
+            Err(Error::Conflict)
+        ));
+        let root = tempfile::tempdir().unwrap();
+        let path = root.path().join("private-stage.db");
+        let mut stage = Store::open(&path).unwrap();
+        let public = Access::public();
+        let first = stage
+            .create(Kind::Note, None, "before checkpoint", &public)
+            .unwrap();
+        let mut reader = Connection::open(&path).unwrap();
+        let snapshot = reader.transaction().unwrap();
+        let count: i64 = snapshot
+            .query_row("SELECT count(*) FROM entities", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(count, 1);
+        stage
+            .create(Kind::Note, None, "after reader snapshot", &public)
+            .unwrap();
+        stage.db.busy_timeout(Duration::ZERO).unwrap();
+        assert!(matches!(
+            super::super::streaming::checkpoint_stage(&stage.db),
+            Err(Error::Conflict)
+        ));
+        snapshot.rollback().unwrap();
+        drop(reader);
+        super::super::streaming::checkpoint_stage(&stage.db).unwrap();
+        assert_eq!(
+            stage.entity(first.id, &public).unwrap().title,
+            "before checkpoint"
+        );
+        stage
+            .create(Kind::Note, None, "writing still works", &public)
+            .unwrap();
+        stage.check_integrity().unwrap();
+    }
+
+    #[test]
+    fn source_grant_retirement_is_incremental_and_cancellation_rolls_back() {
+        let mut s = Store::memory().unwrap();
+        let public = Access::public();
+        let note = s
+            .create(Kind::Note, None, "source relationships", &public)
+            .unwrap();
+        for index in 0..130 {
+            let source = s
+                .link_pdf(
+                    note.id,
+                    &format!("file://synthetic/{index}"),
+                    &"0".repeat(64),
+                    &public,
+                )
+                .unwrap();
+            if index % 2 == 0 {
+                s.revoke_source(source.id, &public).unwrap();
+            }
+        }
+        let snapshot = || -> Vec<(String, String)> {
+            s.db.prepare("SELECT id,payload FROM sources ORDER BY rowid")
+                .unwrap()
+                .query_map([], |r| Ok((r.get(0)?, r.get(1)?)))
+                .unwrap()
+                .collect::<std::result::Result<_, _>>()
+                .unwrap()
+        };
+        let before = snapshot();
+        let library = Store::setting(&s.db, "library_id").unwrap();
+        let control = JobControl::new(Duration::from_secs(300)).unwrap();
+        CANCEL_AFTER.with(|n| n.set(Some(7)));
+        let result = s.retire_restored_runtime_state(Some(&control));
+        CANCEL_AFTER.with(|n| n.set(None));
+        assert!(matches!(result, Err(Error::Cancelled)));
+        let after: Vec<(String, String)> =
+            s.db.prepare("SELECT id,payload FROM sources ORDER BY rowid")
+                .unwrap()
+                .query_map([], |r| Ok((r.get(0)?, r.get(1)?)))
+                .unwrap()
+                .collect::<std::result::Result<_, _>>()
+                .unwrap();
+        assert_eq!(after, before);
+        assert!(s.db.is_autocommit());
+        assert_eq!(Store::setting(&s.db, "library_id").unwrap(), library);
+        s.retire_restored_runtime_state(None).unwrap();
+        assert_ne!(Store::setting(&s.db, "library_id").unwrap(), library);
+        assert_eq!(Store::setting(&s.db, "restore_origin").unwrap(), library);
+        let mut q =
+            s.db.prepare("SELECT payload FROM sources ORDER BY rowid")
+                .unwrap();
+        let rows = q.query_map([], |r| r.get::<_, String>(0)).unwrap();
+        for ((_, old), new) in before.into_iter().zip(rows) {
+            let mut expected: Source = serde_json::from_str(&old).unwrap();
+            if expected.availability != Availability::Revoked {
+                expected.availability = Availability::Missing;
+            }
+            assert_eq!(
+                serde_json::from_str::<Source>(&new.unwrap()).unwrap(),
+                expected
+            );
+        }
+    }
+
+    #[test]
+    fn legacy_restore_worker_cancellation_reaches_semantic_validation() {
+        struct Auth;
+        impl crate::security::Authenticator for Auth {
+            fn verify(&mut self, _: Id, _: &BTreeSet<Scope>) -> bool {
+                true
+            }
+        }
+        let source = fixture();
+        let public = Access::public();
+        let plan = source
+            .prepare_backup(
+                BackupOptions {
+                    include_original_ink: true,
+                    include_authorised_source_assets: false,
+                },
+                &public,
+            )
+            .unwrap();
+        let archive = source
+            .finish_backup(
+                plan,
+                "Synthetic deliberate legacy backup password",
+                &mut Auth,
+                true,
+            )
+            .unwrap();
+        let stage = tempfile::tempdir().unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            std::fs::set_permissions(stage.path(), std::fs::Permissions::from_mode(0o700)).unwrap();
+        }
+        let control = JobControl::new(Duration::from_secs(300)).unwrap();
+        CANCEL_AFTER.with(|n| n.set(Some(15)));
+        let result = Store::restore_any_backup(
+            archive.bytes.as_slice(),
+            crypto::Credential::Recovery(&archive.recovery_key),
+            64 * 1024 * 1024,
+            stage.path(),
+            &control,
+        );
+        CANCEL_AFTER.with(|n| n.set(None));
+        assert!(matches!(result, Err(Error::Cancelled)));
+        assert_eq!(std::fs::read_dir(stage.path()).unwrap().count(), 0);
+        no_work_tables(&source);
+        source.validate_backup_state(9).unwrap();
+    }
+
+    #[test]
     fn unreferenced_raw_ink_is_rejected_instead_of_silently_omitted() {
         let s = fixture();
         let stroke = ink();
@@ -1123,6 +1290,57 @@ mod tests {
         s.db.execute("UPDATE image_assets SET digest='wrong' WHERE rowid=(SELECT max(rowid) FROM image_assets)", []).unwrap();
         assert!(s.validate_backup_state(9).is_err());
         no_work_tables(&s);
+    }
+
+    #[test]
+    fn embed_work_queries_use_covering_primary_key_without_temporary_sorting() {
+        let db = Connection::open_in_memory().unwrap();
+        db.execute_batch(WORK_EDGES).unwrap();
+        for host in ["a", "b"] {
+            for edge in [-3_i64, 0, 7, 29] {
+                db.execute(
+                    "INSERT INTO restore_validation_edges VALUES(?1,?2,'target')",
+                    params![host, edge],
+                )
+                .unwrap();
+            }
+        }
+        for (sql, bindings) in [
+            (EMBED_HOSTS, vec![]),
+            (FIRST_EDGE, vec![rusqlite::types::Value::Text("a".into())]),
+            (
+                NEXT_EDGE,
+                vec![
+                    rusqlite::types::Value::Text("a".into()),
+                    rusqlite::types::Value::Integer(0),
+                ],
+            ),
+        ] {
+            let mut q = db.prepare(&format!("EXPLAIN QUERY PLAN {sql}")).unwrap();
+            let plan = q
+                .query_map(rusqlite::params_from_iter(bindings), |r| {
+                    r.get::<_, String>(3)
+                })
+                .unwrap()
+                .collect::<std::result::Result<Vec<_>, _>>()
+                .unwrap()
+                .join("; ");
+            assert!(!plan.contains("TEMP B-TREE"), "{sql}: {plan}");
+            if sql != EMBED_HOSTS {
+                assert!(
+                    plan.contains("SEARCH restore_validation_edges USING PRIMARY KEY"),
+                    "{plan}"
+                );
+            }
+            if sql == NEXT_EDGE {
+                assert!(plan.contains("edge>?"), "{plan}");
+            }
+        }
+        let first: i64 = db.query_row(FIRST_EDGE, ["a"], |r| r.get(0)).unwrap();
+        let next: i64 = db
+            .query_row(NEXT_EDGE, params!["a", first], |r| r.get(0))
+            .unwrap();
+        assert_eq!((first, next), (-3, 0));
     }
 
     #[test]

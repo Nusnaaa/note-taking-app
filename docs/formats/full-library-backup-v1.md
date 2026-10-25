@@ -92,14 +92,24 @@ accounted for in a block's source list; unreferenced rows are rejected rather th
 silently omitted by aggregate reconstruction.
 
 Private validation identity/region/heading indexes and the iterative embed-cycle
-stack/colours live in the staged database under a savepoint. Rollback removes all
-of this work on success and failure before a review or publication can expose the
+stack/colours live in the staged database under a savepoint. Validated embed
+edges populate an initially empty `WITHOUT ROWID` table keyed by host/edge;
+there is no populated `CREATE INDEX` step that could invoke SQLite external
+sorting. Covered host discovery and indexed edge traversal need no temporary
+B-tree sorting. Rollback removes all of this work on success and failure before a review or publication can expose the
 library. No validation table is part of either portable format. Image and retained
 source hashes use SQLite-owned incremental BLOB reads with a 64 KiB Rust buffer;
-image signatures and owners are checked independently. No raw SQLite descriptor
-is used. Cooperative cancellation is polled between rows/graph steps and blob
+image signatures and owners are checked independently. Hash verification uses no
+raw SQLite descriptor. The open stage is synced by FULL synchronous SQLite
+commits and a checked truncating checkpoint; no second raw stage descriptor is
+opened for fsync. Busy or non-WAL checkpoints are rejected before review. Both worker restore formats propagate cooperative cancellation through row
+ingestion and semantic validation. It is polled between rows/graph steps and blob
 chunks; it cannot forcibly interrupt an individual SQLite call or model-record
 validation.
+
+Post-validation source-grant retirement also traverses one row at a time by
+rowid, preserves revoked relationships and changes library identity in the same
+transaction. Cancellation rolls back all of those changes.
 
 Rust validation retains individual records rather than the complete library.
 This does not establish a total RSS bound: complete streaming cells and individual

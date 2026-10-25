@@ -1601,10 +1601,28 @@ coverage does not certify the Android lstat fallback or device filesystem.
 The earlier whole-graph Rust allocation limitation is superseded for semantic
 validation: current whole-library restore traverses rows and indexed SQLite work
 state, independently of subset-export caps. Both legacy and streaming paths keep
-schema and semantic checks. Streaming supplies its lifecycle JobControl through
-row traversal, edit-journal validation and incremental image/source hashing.
+schema and semantic checks. Both streaming and legacy worker restore supply their lifecycle JobControl
+through row traversal, edit-journal validation and incremental image/source
+hashing. Legacy ingestion also polls between rows; individual decryption/JSON or
+SQLite calls are not forcibly interrupted.
 Private validation tables/indexes are rolled back before review; no capability
 or extra schema is exposed. The encrypted input/cell and per-record domain limits
 remain. This is not a total native memory, SQLite/pager or scratch/WAL quota, nor
 forced cancellation within SQLite calls. Complete native allocation budgeting and
 device/storage interruption acceptance remain open. See full-library-backup-v1.md.
+
+Embed traversal uses incrementally inserted private `(host,edge)` primary-key
+work records instead of creating an index over the populated source table. The
+pinned SQLite query-plan fixture checks covered discovery, bounded next-edge
+search, no temporary B-tree sorting and negative/zero edge ordering.
+
+Post-validation source-grant retirement now uses bounded rowid traversal and the
+same cooperative control, preserving revoked references and committing fresh
+recovered identity atomically with availability retirement. Cancellation rolls
+back an already-updated prefix; neither source rows nor source grants escape
+through a review of an incomplete stage.
+
+The open restore stage no longer receives a second raw database descriptor for
+fsync. FULL synchronous SQLite commits and a checked truncating checkpoint own
+sync/locking; busy or non-WAL/no-op results fail before review. Publication still
+syncs its closed new-copy file and directory before acknowledging that copy.

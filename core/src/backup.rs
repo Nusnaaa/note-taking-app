@@ -26,6 +26,7 @@ use crate::{
 use rusqlite::{
     params_from_iter,
     types::{Value, ValueRef},
+    OptionalExtension,
 };
 
 use serde::{Deserialize, Serialize};
@@ -342,11 +343,24 @@ impl Store {
     }
 
     fn restore_backup_plain(bytes: &[u8]) -> Result<Self> {
+        Self::restore_backup_plain_controlled(bytes, None)
+    }
+
+    fn restore_backup_plain_controlled(
+        bytes: &[u8],
+        control: Option<&crate::processing::JobControl>,
+    ) -> Result<Self> {
+        if let Some(control) = control {
+            control.check()?;
+        }
         if bytes.len() > 64 * 1024 * 1024 {
             return Err(Error::ResourceLimit);
         }
 
         let mut snapshot: Snapshot = serde_json::from_slice(bytes)?;
+        if let Some(control) = control {
+            control.check()?;
+        }
         let source_schema = snapshot.schema;
         if snapshot.schema == 8 {
             snapshot.tables.insert("edit_operations".into(), vec![]);
@@ -432,6 +446,9 @@ impl Store {
 
         for &(table, width) in TABLES {
             for row in &snapshot.tables[table] {
+                if let Some(control) = control {
+                    control.check()?;
+                }
                 count += 1;
 
                 if count > 1_000_000 || row.len() != width {
@@ -454,48 +471,63 @@ impl Store {
 
         tx.commit()?;
 
-        destination.validate_backup_state(if source_schema >= 15 {
-            9
-        } else if source_schema >= 14 {
-            8
-        } else if source_schema >= 13 {
-            7
-        } else if source_schema >= 11 {
-            6
-        } else if source_schema >= 10 {
-            5
-        } else {
-            4
-        })?;
+        destination.validate_backup_state_controlled(
+            if source_schema >= 15 {
+                9
+            } else if source_schema >= 14 {
+                8
+            } else if source_schema >= 13 {
+                7
+            } else if source_schema >= 11 {
+                6
+            } else if source_schema >= 10 {
+                5
+            } else {
+                4
+            },
+            control,
+        )?;
 
-        destination.retire_restored_runtime_state()?;
+        destination.retire_restored_runtime_state(control)?;
         Ok(destination)
     }
 
-    fn retire_restored_runtime_state(&mut self) -> Result<()> {
+    fn retire_restored_runtime_state(
+        &mut self,
+        control: Option<&crate::processing::JobControl>,
+    ) -> Result<()> {
         // Provider grants and in-process adapter readiness are not transferable.
         // Retain relationship/revision metadata without pretending the file is open.
         let tx = self.db.transaction()?;
 
-        let rows = {
-            let mut q = tx.prepare("SELECT payload FROM sources")?;
-
-            let rows = q
-                .query_map([], |r| r.get::<_, String>(0))?
-                .collect::<std::result::Result<Vec<_>, _>>()?;
-
-            rows
-        };
-
-        for row in rows {
-            let mut source: Source = serde_json::from_str(&row)?;
-
+        let mut last = None;
+        loop {
+            validation::check(control)?;
+            // Updating only the payload preserves rowid. Keyset traversal avoids
+            // collecting the whole source table or keeping a read cursor open
+            // while modifying that table.
+            let row: Option<(i64, String)> = if let Some(last) = last {
+                tx.prepare_cached(
+                    "SELECT rowid,payload FROM sources WHERE rowid>?1 ORDER BY rowid LIMIT 1",
+                )?
+                .query_row([last], |r| Ok((r.get(0)?, r.get(1)?)))
+                .optional()?
+            } else {
+                tx.prepare_cached("SELECT rowid,payload FROM sources ORDER BY rowid LIMIT 1")?
+                    .query_row([], |r| Ok((r.get(0)?, r.get(1)?)))
+                    .optional()?
+            };
+            let Some((rowid, json)) = row else {
+                break;
+            };
+            let mut source: Source = serde_json::from_str(&json)?;
             if source.availability != Availability::Revoked {
                 source.availability = Availability::Missing;
             }
-
             Self::save_source(&tx, &source)?;
+            last = Some(rowid);
         }
+        validation::check(control)?;
 
         let origin = Self::setting(&tx, "library_id")?;
 

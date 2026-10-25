@@ -99,3 +99,18 @@ The former aggregate path is compiled only for differential tests. Incremental
 SQLite BLOB hashing now covers images as well as retained source assets. No
 content is repaired or discarded to fit subset export limits. Per-record/input
 limits and a total native staging allocation budget remain separate obligations.
+
+Follow-up review replaced populated-index creation with incremental insertion into
+a private `WITHOUT ROWID` edge table. Pinned SQLite source inspection establishes
+that populated `CREATE INDEX` can open an external sorter; no tested disk spill is
+claimed. Primary-key traversal avoids that step, with actual bundled-SQLite plan
+coverage. Legacy worker restore now propagates the same cooperative control into
+ingestion and semantic checks, rather than checking only before/after them.
+
+Post-validation source-grant retirement likewise replaces table-wide collection
+with rowid traversal, with grant retirement and fresh library identity committed
+together. Its cancellation regression checks rollback after a modified prefix.
+
+The stage checkpoint now checks SQLite's result rather than ignoring its busy
+flag and opening a raw database descriptor for fsync. FULL synchronous SQLite owns
+open-stage sync/locks; publication separately syncs the closed independent copy.

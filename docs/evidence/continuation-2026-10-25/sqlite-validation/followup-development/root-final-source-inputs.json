@@ -1,0 +1,9 @@
+{
+  "Cargo.toml": "201677b8ae08f5c9da36f6ebc332a39457766527f1ceeb70d5d49abefe68caf1",
+  "Cargo.lock": "276a84a76ba29160001fc55726eb07c049cb5bbdf1b198a8b73bc8f13e7ead7a",
+  "core/src/backup.rs": "e8e4c988c8f26961e6255b2506e0ab25f9cc4f9846311de5bab249b388e79b72",
+  "core/src/backup/validation.rs": "a27e03b7f81839732c07e105d7069532a0f68825aae14715a17016167c0291a8",
+  "core/src/backup/streaming.rs": "290efc52d8d7fb172ea01ee7ad019a0ff40c483c4ae867e4a241bc9f7d485596",
+  "core/src/store/editing.rs": "4616bcc760b178ce9deb15785f0f2d01a1ac60e61d27bb4fd406aa50751602c5",
+  "tools/traceability.py": "55f7275451f28fa42e3bd0eaced897874045cd4d49a5247991f4b565940f3ae6"
+}

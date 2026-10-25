@@ -326,3 +326,22 @@ must remove all private work tables/indexes, as must successful and failed check
 These are synthetic host correctness cases, not measured device SLOs or a hard
 native memory/disk quota. Individual-record allocations, SQLite calls, streaming
 cell allocation and complete scratch/publication budgeting remain to be covered.
+
+The pinned SQLite query-plan test requires covering primary-key traversal without
+a temporary sorting B-tree and checks negative/zero edge cursor boundaries.
+A legacy encrypted restore test injects cooperative cancellation during semantic
+validation and requires an empty staging directory and unchanged source. Isolated
+follow-up execution is recorded as development evidence; final Git-snapshot
+validation is recorded separately.
+
+Source-grant retirement coverage checks a multi-row source table, complete
+relationship-field preservation, revoked-versus-missing availability, fresh
+recovered-library identity and rollback of an already-modified prefix on
+cancellation. Production retirement uses indexed rowid steps without a table-wide
+Vec or an open source cursor while updating that same table.
+
+A real WAL/second-reader checkpoint fixture requires rejection while a reader
+prevents truncation, successful checkpoint after release and intact subsequent
+SQLite authoring. A non-WAL/no-op checkpoint cannot acknowledge stage sync. The
+open stage uses SQLite's FULL synchronous transaction/checkpoint path without
+opening/closing a raw stage descriptor that could disturb POSIX SQLite locks.

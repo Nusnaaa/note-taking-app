@@ -1,0 +1,9 @@
+   Compiling stem-core v0.1.0 (/home/linus/Projects/software/note-taking-app/repo/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.67s
+     Running unittests src/lib.rs (target/debug/deps/stem_core-33ed9416f1b2aa8b)
+
+running 1 test
+test backup::validation::tests::checkpoint_checks_busy_readers_and_keeps_sqlite_in_charge_of_stage_io ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 30 filtered out; finished in 0.03s
+

@@ -284,16 +284,27 @@ impl Store {
             tx.commit()?;
             destination.validate_backup_state_controlled(9, Some(control))?;
             control.check()?;
-            destination.retire_restored_runtime_state()?;
-            destination
-                .db
-                .execute_batch("PRAGMA wal_checkpoint(TRUNCATE);")?;
-            fs::File::open(&stage.path)?.sync_all()?;
+            destination.retire_restored_runtime_state(Some(control))?;
+            checkpoint_stage(&destination.db)?;
         }
         control.check()?;
         Ok(stage)
     }
 }
+// FULL synchronous SQLite commits/checkpoint own database syncing and locks.
+// A second raw database descriptor can disturb process-scoped POSIX SQLite locks
+// when closed. Check the checkpoint result rather than opening the live stage.
+pub(super) fn checkpoint_stage(db: &rusqlite::Connection) -> Result<()> {
+    let (busy, frames, checkpointed): (i64, i64, i64) =
+        db.query_row("PRAGMA wal_checkpoint(TRUNCATE)", [], |r| {
+            Ok((r.get(0)?, r.get(1)?, r.get(2)?))
+        })?;
+    if busy != 0 || frames < 0 || frames != checkpointed {
+        return Err(Error::Conflict);
+    }
+    Ok(())
+}
+
 /// Owns private scratch through validation/review/publication. Drop closes SQLite
 /// before removing its own random scratch files. Publishing uses the existing
 /// fresh-authenticated, atomic no-overwrite restore operation.
@@ -421,7 +432,7 @@ impl Store {
             return Err(Error::ResourceLimit);
         }
         control.check()?;
-        let memory = Self::restore_backup_plain(&plain)?;
+        let memory = Self::restore_backup_plain_controlled(&plain, Some(control))?;
         control.check()?;
         let path = private_directory_path.join(format!(".stem-stream-restore-{}.db", Id::new()));
         let mut options = OpenOptions::new();
