@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.BackupSchedulePolicyTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-10-25T19:40:04" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="1.221">
+  <properties/>
+  <testcase name="twoControllersCannotAdmitTheSameActiveScheduleTwice" classname="org.stemnotebook.backend.BackupSchedulePolicyTest" time="0.121"/>
+  <testcase name="lostRegistrationAndRunAcknowledgementsAreDiscoverableWithoutDuplicateRuns" classname="org.stemnotebook.backend.BackupSchedulePolicyTest" time="0.127"/>
+  <testcase name="providerPolicyNeedsRecordedCompleteConsentForExactLibraryAndTree" classname="org.stemnotebook.backend.BackupSchedulePolicyTest" time="0.118"/>
+  <testcase name="publicationOutcomeIsImmutableAndDoesNotReenableDisabledPolicy" classname="org.stemnotebook.backend.BackupSchedulePolicyTest" time="0.123"/>
+  <testcase name="disableRejectsStaleJobsAndRetainsActualRunFenceUntilCompletion" classname="org.stemnotebook.backend.BackupSchedulePolicyTest" time="0.157"/>
+  <testcase name="durableCredentialRetirementAtomicallyDisablesReferencingSchedule" classname="org.stemnotebook.backend.BackupSchedulePolicyTest" time="0.108"/>
+  <testcase name="persistedSetupNeverRunsUntilExactRegistrationAcknowledges" classname="org.stemnotebook.backend.BackupSchedulePolicyTest" time="0.107"/>
+  <testcase name="credentialRetirementDuringRunKeepsFenceAndNeverReenablesOnCompletion" classname="org.stemnotebook.backend.BackupSchedulePolicyTest" time="0.134"/>
+  <testcase name="retirementRollbackCannotDisableScheduleWithoutRetiringItsCredential" classname="org.stemnotebook.backend.BackupSchedulePolicyTest" time="0.088"/>
+  <testcase name="scheduleRequiresConsentReadySameLibraryPasswordAndExactCurrentRevision" classname="org.stemnotebook.backend.BackupSchedulePolicyTest" time="0.137"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
