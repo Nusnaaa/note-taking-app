@@ -1,0 +1,5 @@
+{
+  "library": "/tmp/stem-backup-catalogue-work/target/debug/libstem_bridge.so",
+  "sha256": "1d9eb12007399b2bc234700852fd73117ffac821a4d911a41462fdd060ea97bf",
+  "source": "copied from fully validated main checkout bfb5b18 host JNI artifact before the last isolated run; no Rust change in this prototype"
+}

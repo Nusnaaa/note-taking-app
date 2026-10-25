@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.BackupCatalogueTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-25T16:39:39" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="7.898">
+  <properties/>
+  <testcase name="acknowledgedSnapshotsSurviveReopenWithoutConflatingPendingOrNewEdits" classname="org.stemnotebook.backend.BackupCatalogueTest" time="7.345"/>
+  <testcase name="failedMetadataCommitCannotAdvanceTheRecordedSnapshot" classname="org.stemnotebook.backend.BackupCatalogueTest" time="0.084"/>
+  <testcase name="invalidSnapshotDestinationAndAcknowledgementCannotCreateReceipts" classname="org.stemnotebook.backend.BackupCatalogueTest" time="0.047"/>
+  <testcase name="existingForeignOrFutureDatabasesArePreservedWithoutInitialisation" classname="org.stemnotebook.backend.BackupCatalogueTest" time="0.055"/>
+  <testcase name="linksAndDirectoryReplacementAreRejectedBeforeOpeningSqlite" classname="org.stemnotebook.backend.BackupCatalogueTest" time="0.06"/>
+  <testcase name="lostPostCommitAcknowledgementKeepsTheCommittedReceiptForRestartDiscovery" classname="org.stemnotebook.backend.BackupCatalogueTest" time="0.055"/>
+  <testcase name="pageCursorsStayBoundedAndDoNotRepeatNewlyAddedReceipts" classname="org.stemnotebook.backend.BackupCatalogueTest" time="0.134"/>
+  <testcase name="corruptedReceiptFieldsFailInsteadOfBeingSilentlyRepaired" classname="org.stemnotebook.backend.BackupCatalogueTest" time="0.052"/>
+  <testcase name="providerReadbackIsRecordedAsSuchWithoutClaimingRemoteDurabilityOrContactingIt" classname="org.stemnotebook.backend.BackupCatalogueTest" time="0.062"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

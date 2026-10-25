@@ -54,12 +54,20 @@ fn offline_help_covers_recovery_and_unsearchable_ink_without_remote_dependency()
         Topic::MissingPdf,
         Topic::Recognition,
         Topic::BackupCredentials,
+        Topic::BackupStatus,
         Topic::RestoreCleanup,
     ] {
         let h = help::topic(topic);
         assert!(!h.next_action.is_empty());
         assert!(!h.explanation.contains("https://"));
     }
+    let backup = help::topic(Topic::BackupStatus);
+    assert!(backup
+        .explanation
+        .contains("past encrypted-file acknowledgements"));
+    assert!(backup
+        .explanation
+        .contains("does not check that an external copy still exists"));
     let h = help::topic(Topic::Retention);
     assert!(h.explanation.contains("active notebook use"));
     assert!(h.explanation.contains("original handwriting remain"));

@@ -1,0 +1,7 @@
+{
+  "android/backend/src/main/java/org/stemnotebook/backend/BackupCatalogue.kt": "8e769ac6b463d44569922a4c7e738cec03999c5dd4a058f0efda7916db965f8b",
+  "android/backend/src/main/java/org/stemnotebook/backend/NotebookBackups.kt": "3ee4f6dae663e42d1c65904736b61036861d58abbe1f01ab9386ad278d9086e6",
+  "android/backend/src/main/java/org/stemnotebook/backend/NotebookBackend.kt": "c9250b89da39eb5942bd2ed88d3e339457eaa459abb725e80f4fc6a9d9f0a0d1",
+  "android/backend/src/test/java/org/stemnotebook/backend/BackupCatalogueTest.kt": "21c68ac022aca45bd77214760e085fe57fe884c753e352f6b6e98c49d3c17d59",
+  "android/backend/src/test/java/org/stemnotebook/backend/BackupCatalogueIntegrationTest.kt": "8a4911d96f905adaa25881846537fba6a3f1af756f6f8601474f717fd90b8b85"
+}

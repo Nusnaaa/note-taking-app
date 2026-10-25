@@ -1,0 +1,10 @@
+{
+  "android/backend/src/main/java/org/stemnotebook/backend/BackupCatalogue.kt": "34e40cd10b3d1b89b55696e944d4edaff0c56cc3a1a6332516184a11af162ebb",
+  "android/backend/src/main/java/org/stemnotebook/backend/NotebookBackend.kt": "c9250b89da39eb5942bd2ed88d3e339457eaa459abb725e80f4fc6a9d9f0a0d1",
+  "android/backend/src/main/java/org/stemnotebook/backend/NotebookBackups.kt": "3ee4f6dae663e42d1c65904736b61036861d58abbe1f01ab9386ad278d9086e6",
+  "android/backend/src/test/java/org/stemnotebook/backend/BackupCatalogueTest.kt": "58acddcefac31fd4bca08a7c3ce15f8e64cc871ca3b37d540ae3f49c7dbed9c7",
+  "android/backend/src/test/java/org/stemnotebook/backend/BackupCatalogueIntegrationTest.kt": "8a4911d96f905adaa25881846537fba6a3f1af756f6f8601474f717fd90b8b85",
+  "core/src/help.rs": "a829ef9b06668ff734dd5c1b72de00afd76c865f6fd6118dadc84a1d001b2988",
+  "core/tests/converters.rs": "fccfe9367f0ff43748f4694f981768dd43f41ed6f3bb6f334157ebac06b5483f",
+  "bridge/tests/java/BoundarySmoke.java": "9dd1abda6c08c71dc1f6914863e48164e9fe00604c8a2e6848e9f2c1f1f42c43"
+}

@@ -1,0 +1,7 @@
+{
+  "src/main/java/org/stemnotebook/backend/BackupCatalogue.kt": "7756867d2369bb2d1e7ac7ec418a13257af2243062bafa4cff7463f3ff91ad0d",
+  "src/main/java/org/stemnotebook/backend/NotebookBackups.kt": "22b44b913d1f4ff4781c14ce97bc87524334b5bd2510050137110adfdd44bc0b",
+  "src/main/java/org/stemnotebook/backend/NotebookBackend.kt": "cd5a05bf77713bb6701570c8a66bdc503072ed1a51f8862da11e7ddbbfcdf4e2",
+  "src/test/java/org/stemnotebook/backend/BackupCatalogueTest.kt": "f4e71e6688324631a0e1125b2a08847ba8cac7d40fe24cfb3b48871fd8389c65",
+  "src/test/java/org/stemnotebook/backend/BackupCatalogueIntegrationTest.kt": "93a84b18d77b751df94fe634209bec678c97613b7f5eeba81b08ec534970e4fb"
+}

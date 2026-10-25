@@ -1626,3 +1626,23 @@ The open restore stage no longer receives a second raw database descriptor for
 fsync. FULL synchronous SQLite commits and a checked truncating checkpoint own
 sync/locking; busy or non-WAL/no-op results fail before review. Publication still
 syncs its closed new-copy file and directory before acknowledging that copy.
+
+### Persistent backup publication status
+
+`NotebookBackups.status()` and bounded `history(before,limit)` use the existing
+optional worker and fresh native app authority before/after reads. A separate
+private SQLite catalogue records the actual prepared library/generation, selected
+external destination, ciphertext count/hash, acknowledgement kind/sync, raw-ink
+inclusion, retained source count and omission facts after successful publication.
+It neither changes notebook generation nor enters a portable backup. Source
+metadata queries account for active/pending/recovery/failed authoring before
+claiming all current authoring was published. Catalogue reads do not contact an
+external destination, and historical locations are not URI permissions.
+
+Local/provider receipts now carry `catalogueRecorded` separately. A history-write
+failure preserves the known file outcome, leaves previous records intact and sets
+backup attention; a possible/uncertain file operation never becomes a successful
+history row. FULL synchronous metadata transactions and directory sync stay within
+the worker lifetime. Close retains the app lease through blocked catalogue work.
+Unknown/future schemas, file links, redirected namespaces and corrupt records are
+preserved and reported unavailable. See BACKUP_PUBLICATION_HISTORY.md and ADR 007.

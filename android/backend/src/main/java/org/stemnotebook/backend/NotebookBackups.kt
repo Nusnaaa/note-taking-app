@@ -32,7 +32,10 @@ class NotebookBackups internal constructor(
     private val current: (Any) -> Boolean,
     private val fault: (String) -> Unit = {},
     private val documents: BackupDocuments,
+    private val describeSnapshot: (Any) -> BackupSnapshot,
+    private val statusSnapshot: () -> BackupSnapshot,
 ) : Closeable {
+    private val catalogue = BackupCatalogue(File(directory.parentFile, "backup-publications"), fault)
     private val lock = Any()
     private var closed = false
     private var review: Review? = null
@@ -81,7 +84,7 @@ class NotebookBackups internal constructor(
         }
     }
     inner class Prepared internal constructor(internal val file: File, private val key: CharArray,
-        internal val epoch: Any, val bytes: Long, val includesOriginalInk: Boolean,
+        internal val epoch: Any, internal val snapshot: BackupSnapshot, val bytes: Long, val includesOriginalInk: Boolean,
         val sourceAssets: Long, val omissions: List<String>, internal val digest: ByteArray) : Closeable {
         internal var live = true
         internal var cleanupQueued = false
@@ -111,13 +114,13 @@ class NotebookBackups internal constructor(
     /** Only ciphertext and an intentionally created document URI cross the provider
      * boundary. No key/password, raw notebook path or cloud-sync claim is included. */
     class ProviderPublication internal constructor(val document: Uri?, val bytes: Long, val outcome: Outcome,
-        val descriptorSyncAcknowledged: Boolean, val coversCurrentAuthoring: Boolean)
+        val descriptorSyncAcknowledged: Boolean, val coversCurrentAuthoring: Boolean, val catalogueRecorded: Boolean = false)
     /** Published is a durable local-filesystem acknowledgement, not cloud sync.
      * Uncertain means a final encrypted file may exist: inspect before retrying.
      * No destination path, key or notebook content is present in this result. */
-    data class Publication(val bytes: Long, val outcome: Outcome, val coversCurrentAuthoring: Boolean)
+    data class Publication(val bytes: Long, val outcome: Outcome, val coversCurrentAuthoring: Boolean, val catalogueRecorded: Boolean = false)
     enum class Outcome { Published, ProviderVerified, Uncertain }
-    enum class FailureReason { RecoveryRequired, SourceChanged, QuotaExceeded, StagingNeedsAttention, IntegrityFailed, DestinationExists, Unavailable }
+    enum class FailureReason { RecoveryRequired, SourceChanged, QuotaExceeded, StagingNeedsAttention, IntegrityFailed, DestinationExists, PublicationHistoryUnavailable, Unavailable }
     class Failure internal constructor(val reason: FailureReason) : IOException("Backup operation unavailable")
 
     internal inner class Operation<T : Any>(val timeout: Long) {
@@ -191,6 +194,37 @@ class NotebookBackups internal constructor(
         }
         return Pending(operation.future, { operation.cancel() }, { operation.partialOutcome })
     }
+    /** Read-only publication history. Availability of external files/providers is
+     * deliberately unprobed; every receipt describes a past acknowledgement. */
+    fun status(timeoutMillis: Long = 120_000): Pending<BackupStatus> = submit(timeoutMillis, {}) { operation ->
+        operation.check()
+        val snapshot = statusSnapshot()
+        val result = try { catalogue.status(snapshot) } catch (_: BackupCatalogue.Unavailable) {
+            needsAttention = true; throw Failure(FailureReason.PublicationHistoryUnavailable)
+        }
+        operation.check()
+        if (statusSnapshot() != snapshot) throw Failure(FailureReason.SourceChanged)
+        result
+    }
+    fun history(before: Long? = null, limit: Int = 50, timeoutMillis: Long = 120_000): Pending<List<BackupPublicationRecord>> {
+        require(limit in 1..100 && (before == null || before > 0))
+        return submit(timeoutMillis, {}) { operation ->
+            operation.check(); val snapshot = statusSnapshot()
+            val result = try { catalogue.page(snapshot.library, before, limit) } catch (_: BackupCatalogue.Unavailable) {
+                needsAttention = true; throw Failure(FailureReason.PublicationHistoryUnavailable)
+            }
+            operation.check()
+            if (statusSnapshot().library != snapshot.library) throw Failure(FailureReason.SourceChanged)
+            result
+        }
+    }
+    private fun recordPublication(artifact: Prepared, kind: BackupDestinationKind, location: String, acknowledgement: BackupAcknowledgement, synced: Boolean): Boolean = try {
+        val digest = artifact.digest.joinToString("") { "%02x".format(it.toInt() and 255) }
+        catalogue.append(artifact.snapshot, kind, location, artifact.bytes, digest, acknowledgement, synced,
+            artifact.includesOriginalInk, artifact.sourceAssets, artifact.omissions)
+        true
+    } catch (_: Exception) { needsAttention = true; false }
+
     fun review(originalInk: Boolean = true, sourceAssets: Boolean = false, timeoutMillis: Long = 120_000): Pending<Review> {
         synchronized(lock) { check(review == null && prepared == null) { "Backup review or artifact still owned" } }
         return submit(timeoutMillis, { it.close() }) { operation ->
@@ -257,7 +291,7 @@ class NotebookBackups internal constructor(
                         operation.check(); syncDirectory(directory); barrier(review.epoch); operation.check()
                         synchronized(lock) {
                             operation.check()
-                            Prepared(file!!, checkNotNull(key), review.epoch, sink.count,
+                            Prepared(file!!, checkNotNull(key), review.epoch, describeSnapshot(review.epoch), sink.count,
                                 review.includesOriginalInk, review.sourceAssets, review.omissions, sink.digest.digest()).also {
                                 prepared = it; file = null; key = null
                             }
@@ -376,8 +410,9 @@ class NotebookBackups internal constructor(
                         }
                     } finally { inputDescriptor.close() }
                     operation.check()
+                    val recorded = recordPublication(artifact, BackupDestinationKind.ProviderDocument, document.toString(), BackupAcknowledgement.ProviderReadBack, syncAcknowledged)
                     ProviderPublication(document, artifact.bytes, Outcome.ProviderVerified, syncAcknowledged,
-                        try { current(artifact.epoch) } catch (_: Exception) { false })
+                        try { current(artifact.epoch) } catch (_: Exception) { false }, recorded)
                 } catch (_: Exception) {
                     if (!operation.partialOutcome) throw Failure(FailureReason.Unavailable)
                     needsAttention = true
@@ -431,7 +466,8 @@ class NotebookBackups internal constructor(
                 Files.createLink(target, copy); linked = true
                 fault("publish-link"); syncDirectory(parent)
                 check(Files.deleteIfExists(copy)); pending = null; syncDirectory(parent)
-                Publication(artifact.bytes, Outcome.Published, try { current(artifact.epoch) } catch (_: Exception) { false })
+                val recorded = recordPublication(artifact, BackupDestinationKind.LocalFile, destination.absolutePath, BackupAcknowledgement.LocalDurable, true)
+                Publication(artifact.bytes, Outcome.Published, try { current(artifact.epoch) } catch (_: Exception) { false }, recorded)
             } catch (error: Exception) {
                 if (linked) { needsAttention = true; Publication(artifact.bytes, Outcome.Uncertain, false) } else throw error
             } finally {

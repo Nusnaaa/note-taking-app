@@ -44,7 +44,9 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
             require(!java.nio.file.Files.isSymbolicLink(directory.toPath()))
             val loadedBackups = NotebookBackups(File(directory, "backup-staging"), context.noBackupFilesDir, { handle.join() },
                 { expected -> backupBarrier(expected).join() },
-                { expected -> try { backupBarrier(expected).join() === expected } catch (_: Exception) { false } }, backupFault, backupDocuments)
+                { expected -> try { backupBarrier(expected).join() === expected && backupStatusSnapshot().join().authoringQuiescent } catch (_: Exception) { false } }, backupFault, backupDocuments,
+                { value -> (value as BackupStamp).let { BackupSnapshot(it.library, it.generation, true) } },
+                { backupStatusSnapshot().join() })
             createdBackups = loadedBackups
             backups = loadedBackups
             val loadedRestores = NotebookRestores(File(directory, "restore-staging"), File(context.noBackupFilesDir, "recovered-libraries"), { handle.join() }, {
@@ -137,7 +139,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
     /** Trusted worker API. Publication and pending-draft checks are separate from save receipts. */
     @Synchronized fun backups(): NotebookBackups { check(!closed); return backups }
     @Synchronized fun restores(): NotebookRestores { check(!closed); return restores }
-    private class BackupStamp(val epoch: Any, val generation: String)
+    private class BackupStamp(val epoch: Any, val generation: String, val library: String)
     @Synchronized private fun backupBarrier(expected: Any?): CompletableFuture<Any> {
         check(!closed)
         return submitAdmitted({
@@ -152,7 +154,29 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
             synchronized(this) {
                 if (closed || capturePriority.isNotEmpty() || recognitionPriorityFailed || backupEpoch.get() !== epoch || (stamp != null && (stamp.epoch !== epoch || stamp.generation != generation))) throw NotebookBackups.Failure(NotebookBackups.FailureReason.SourceChanged)
             }
-            stamp ?: BackupStamp(epoch, generation)
+            stamp ?: BackupStamp(epoch, generation, NativeBridge.captureLibraryIdentity(handle.join()))
+        }, executor, authoring = false)
+    }
+    @Synchronized private fun backupStatusSnapshot(): CompletableFuture<BackupSnapshot> {
+        check(!closed)
+        return submitAdmitted({
+            activeJournal.join(); outbox.join()
+            val epoch = backupEpoch.get()
+            // Native generation checks current app authority before private history
+            // can be read. Pending drafts affect coverage, never local Saved state.
+            val native = handle.join()
+            val generation = NativeBridge.backupGeneration(native)
+            val library = NativeBridge.captureLibraryIdentity(native)
+            var quiet = true
+            for (name in listOf("active-capture", "capture-recovery")) {
+                val folder = File(directory, name)
+                if (java.nio.file.Files.isSymbolicLink(folder.toPath()) || java.nio.file.Files.newDirectoryStream(folder.toPath()).use { it.iterator().hasNext() }) quiet = false
+            }
+            synchronized(this) {
+                check(!closed)
+                val admission = executor.snapshot()
+                BackupSnapshot(library, generation, quiet && !recoveryAttention && !admission.needsAttention && admission.pendingAuthoring == 0 && capturePriority.isEmpty() && !recognitionPriorityFailed && backupEpoch.get() === epoch)
+            }
         }, executor, authoring = false)
     }
     data class RecognitionStatus(val reserved: Int, val running: Int, val closed: Boolean, val captureActive: Boolean, val prioritySignalFailed: Boolean)

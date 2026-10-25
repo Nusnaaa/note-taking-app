@@ -345,3 +345,22 @@ prevents truncation, successful checkpoint after release and intact subsequent
 SQLite authoring. A non-WAL/no-op checkpoint cannot acknowledge stage sync. The
 open stage uses SQLite's FULL synchronous transaction/checkpoint path without
 opening/closing a raw stage descriptor that could disturb POSIX SQLite locks.
+
+## Backup publication history
+
+`BackupCatalogueTest` exercises restart/snapshot matching, independent libraries,
+provider readback versus sync, inclusion/omission retention, transaction rollback
+and lost acknowledgements, bounded descending pagination, unknown/future database
+preservation, hard/symbolic links, namespace replacement, trusted ancestor aliases,
+missing-index refusal and invalid/corrupt record fields. Platform SQLite is used
+only for the metadata fixture, never for a Rust-owned notebook database.
+
+`BackupCatalogueIntegrationTest` uses actual JNI with local encrypted publication,
+full backend restart, newer edits, unclassified pending capture evidence, fresh
+app lock/relock privacy, authoring failure, separately acknowledged catalogue
+failure and close during an entered metadata commit. Full close must retain the
+app lease until that worker really retires. Existing local/provider backup tests
+also run. These checks are host/Robolectric components; destination availability,
+physical/device/provider durability and complete backend acceptance are not
+inferred. Offline Help distinguishes saved state, past publication records,
+exclusions and actual external recovery files.

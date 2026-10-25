@@ -7,6 +7,7 @@ public final class BoundarySmoke {
         public boolean verify(String challenge) { return !challenge.isEmpty(); }
     }
     public static void main(String[] args) throws Exception {
+        check(NativeBridge.help("BackupStatus").contains("Publication history records past"));
         String guidance=NativeBridge.help("RestoreCleanup");
         check(guidance.contains("cannot be undone") && guidance.contains("Quarantine preserves"));
         for(String invalid:new String[]{null,"unknown private topic","x".repeat(10000)}) {
