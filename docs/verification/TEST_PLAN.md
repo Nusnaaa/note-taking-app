@@ -402,3 +402,15 @@ run retention during disablement and credential retirement, rollback, lost
 registration/run acknowledgements, restart interruption, exact recorded provider
 consent, immutable outcomes and replacement with fresh reviewed authority. It is
 a SQLite state-machine test; no real OS job is registered by these fixtures.
+
+### Shared runtime ownership
+
+`SharedNotebookPoolTest` exercises independent pending/claimed leases, cancellation
+without shared-open cancellation, actual-release gating, failed close/open,
+external close/replacement, bounded root/reservation admission, interrupted
+observation and slow openings without retirement starvation. `NotebookRuntimeTest`
+uses actual desktop JNI through Robolectric for overlapping consumers, last-owner
+reopen, canonical aliases, existing-only missing-library rejection, preserving
+direct exclusive ownership and main-thread refusal. Run these with the existing
+six `BackendOwnershipTest` cases and lint. No real OS job/device acceptance is
+implied; see [the runtime contract](../formats/SHARED_NOTEBOOK_RUNTIME.md).

@@ -3,7 +3,8 @@
 These internal components prepare the I0/I1 opt-in scheduling workflow.
 [Credential/consent storage](BACKUP_POLICY_STORE.md) and
 [persisted configuration/run state](BACKUP_SCHEDULE_POLICY.md) now exist.
-The public controller, shared runtime and OS job service remain unimplemented.
+A [shared live runtime](SHARED_NOTEBOOK_RUNTIME.md) now owns independent consumer
+leases. The public scheduling controller and OS job service remain unimplemented.
 No automatic job is registered or enabled. Manual backup/history is independent.
 
 ## Device credential wrapping
@@ -69,7 +70,7 @@ can require renewed permission. See [Android's storage access guidance](https://
 
 Still required: public scheduling/consent/credential controller integration,
 recovery-key management, JobScheduler
-registration/service, shared live-backend acquisition, due-run/stop/restart
+registration/service and its shared-runtime acquisition, due-run/stop/restart
 reconciliation and user-visible outcomes. Background verification must not be an
 always-true substitute for authentication. Native public-content backup does not
 request a protected-scope proof; protected-content policy still needs a deliberate

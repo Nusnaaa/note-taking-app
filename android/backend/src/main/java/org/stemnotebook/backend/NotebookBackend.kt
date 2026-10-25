@@ -19,6 +19,13 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
     private var closed = false
     private val nativeClosed = CompletableFuture<Void>()
     private val fullyClosed = CompletableFuture<Void>()
+    private val sharedClosing = CompletableFuture<Void>()
+    private val sharedOwnershipReleased = CompletableFuture<Void>()
+    internal fun runtimeReady(): CompletableFuture<Void> = handle.thenApply { null }
+    internal fun runtimeClosing(): CompletableFuture<Void> = sharedClosing
+    // An exceptional close is not proof of release. This signal stays pending
+    // on failures before ownership actually retires.
+    internal fun runtimeOwnershipReleased(): CompletableFuture<Void> = sharedOwnershipReleased
     private val reserve = File(directory, "emergency.reserve")
     private val pdf: PdfWorkspace
     private val selections: PdfSelectionManager
@@ -105,6 +112,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
             }
         } catch (error: Throwable) {
             closed = true
+            sharedClosing.complete(null)
             handle.completeExceptionally(error)
             try { createdRestores?.close() } catch (_: Exception) { }
             try { createdBackups?.close() } catch (_: Exception) { }
@@ -116,6 +124,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
                 try {
                     awaitStopped(executor); createdRestores?.awaitClosed(); createdBackups?.awaitClosed(); createdPdf?.awaitClosed(); createdSelections?.awaitClosed(); selectionProvider.awaitClosed()
                     ownership.close()
+                    sharedOwnershipReleased.complete(null)
                 } catch (_: Exception) { /* ownership remains unavailable if cleanup fails */ }
             }, "stem-failed-open").apply { isDaemon = true; start() }
             throw error
@@ -574,6 +583,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
             closed = true
             captureSessions.toList().also { captureSessions.clear() }
         }
+        sharedClosing.complete(null)
         // Session input takes its own monitor before backend admission. Freeze
         // outside the backend monitor so close cannot invert that lock order.
         val closingCaptures = sessions.flatMap { session -> session.freezeForClose().map { session to it } }
@@ -593,6 +603,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
                 nativeClosed.complete(null)
                 backups.awaitClosed(); restores.awaitClosed(); pdf.awaitClosed(); selections.awaitClosed()
                 ownership.close()
+                sharedOwnershipReleased.complete(null)
                 if (checkpointFailure == null) fullyClosed.complete(null) else fullyClosed.completeExceptionally(checkpointFailure)
             } catch (error: Exception) {
                 nativeClosed.completeExceptionally(error); fullyClosed.completeExceptionally(error)

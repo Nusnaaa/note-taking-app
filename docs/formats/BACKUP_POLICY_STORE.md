@@ -3,8 +3,8 @@
 The internal `BackupPolicyStore` and `BackupCredentialVault` persist credential
 and provider-consent authority. They do not register or enable scheduled work.
 Persisted [schedule configuration/run state](BACKUP_SCHEDULE_POLICY.md) now exists
-in the same store; the public controller, shared runtime and JobScheduler service
-remain pending. Manual backup publication history remains separate.
+in the same store; a [shared runtime](SHARED_NOTEBOOK_RUNTIME.md) is implemented, while its scheduling
+controller and JobScheduler service integration remain pending. Manual backup publication history remains separate.
 
 ## SQLite ownership
 

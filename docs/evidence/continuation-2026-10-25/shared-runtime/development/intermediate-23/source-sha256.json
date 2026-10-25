@@ -1,0 +1,7 @@
+{
+  "src/main/java/org/stemnotebook/backend/NotebookBackend.kt": "0f1e759d13e63ad816cb111964c8e72e1c97c5c2042a749cbf4692f523229ff4",
+  "src/main/java/org/stemnotebook/backend/NotebookRuntime.kt": "1b8b82524c714d0b165f6a5d60d74845dc86a6a321b62be472713ed3d1a0c287",
+  "src/main/java/org/stemnotebook/backend/SharedNotebookPool.kt": "22cc1ad8107b0465c942634ccfabd80423857089dc6ae0a08409f9bc8e63155a",
+  "src/test/java/org/stemnotebook/backend/SharedNotebookPoolTest.kt": "f5d2b046e5388c00fbf47b910423d08f11526b446aeefff599bb1e07d11b1b84",
+  "src/test/java/org/stemnotebook/backend/NotebookRuntimeTest.kt": "d5c1fa3b6e6d4f2790180343a158d182f20ca0a73b9d317a7b0418a1b16f1657"
+}

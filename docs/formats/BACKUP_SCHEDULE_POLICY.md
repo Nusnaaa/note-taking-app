@@ -58,7 +58,7 @@ OS wake-up timing, durable remote storage, background protected-content access o
 physical process-loss acceptance is established by this repository.
 
 Remaining implementation: trusted public review/enable/disable and recovery-key
-management, shared live backend leases, platform JobScheduler registration and
-service, resource/capture guards, stop/retirement reconciliation and honest
+management, integration with the implemented shared backend leases, platform JobScheduler
+registration and service, resource/capture guards, stop/retirement reconciliation and honest
 user-visible results. No service, permission, cloud backup, mandatory account or
 production H.I. is added here.

@@ -1,0 +1,7 @@
+{
+  "android/backend/src/main/java/org/stemnotebook/backend/SharedNotebookPool.kt": "8d8e89dcbef78f9707315e99d47343f900219ce37475dfa480007bb8c8121272",
+  "android/backend/src/main/java/org/stemnotebook/backend/NotebookRuntime.kt": "1b8b82524c714d0b165f6a5d60d74845dc86a6a321b62be472713ed3d1a0c287",
+  "android/backend/src/main/java/org/stemnotebook/backend/NotebookBackend.kt": "0f1e759d13e63ad816cb111964c8e72e1c97c5c2042a749cbf4692f523229ff4",
+  "android/backend/src/test/java/org/stemnotebook/backend/SharedNotebookPoolTest.kt": "a723b1a9d3014286dafe4afaf8602c4725bd26ab3562cb5cada8581818bb1cca",
+  "android/backend/src/test/java/org/stemnotebook/backend/NotebookRuntimeTest.kt": "d5c1fa3b6e6d4f2790180343a158d182f20ca0a73b9d317a7b0418a1b16f1657"
+}
