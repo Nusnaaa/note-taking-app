@@ -21,6 +21,16 @@ identity or provider tree identity is retained with the review. Authoring/access
 changes, close, explicit discard and the bounded review expiry invalidate it and
 clear the controller's password copy. Callers own and clear their input array.
 
+By default initial review requires current ordinary scope authority. A caller may
+explicitly set `allowProtectedContent=true` for initial preparation: the native
+worker then requires a fresh trusted owner proof for that exact library plan and
+creates only the private encrypted artifact. This permits complete backup setup
+without installing ordinary per-note/block/exercise access or depending on the
+ordinary authentication scope-list bound. App authority is still required for
+owner configuration. This fresh preparation consent/proof is distinct from the
+later persistent protected-content delegation consent; no publication, credential
+storage or job registration occurs until enablement. A declined proof creates none.
+
 The caller must deliberately copy the initial independent recovery key before
 `enable` can accept the review. That copy is caller-owned and must be cleared;
 physical separate/offline storage is the user's acknowledged choice, not a claim

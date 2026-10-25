@@ -1,0 +1,5 @@
+# Generated-map correction and fresh preparation promotion
+
+The exact fcc0716 native validator's 335 tests and release build passed, then its generated traceability check failed; the entire failed result is retained under `final-fcc0716/native-traceability-failure`. The maps were regenerated and checked after promoting the separately tested fresh protected preparation change (local source commit 8c3937c). The follow-up map check passes and still retains 94 canonical requirements, 103 inherited clauses and 158 candidate assertions without inventing PASS or completion.
+
+The preparation change's 2 targeted tests plus lint and 28 manual/scheduled controller regression tests passed in the isolated worktree; their commands/results/source hashes are retained under `fresh-preparation-development`. Its Rust implementation is unchanged from the fcc0716 335-test run. This correction is not a new complete clean-source native/Android validator run. All eight gaps, full combined verification and production H.I. acceptance remain open. Independent-root routing work remains isolated and unpromoted.

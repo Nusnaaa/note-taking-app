@@ -253,6 +253,41 @@ class NotebookSchedulesTest {
             assertThrows(NotebookBackups.Failure::class.java) { backend.backups().history().await() }
         } finally { backend.closeFullyAsync().get(20, TimeUnit.SECONDS) }
     }
+    @Test fun freshConsentedPreparationNeedsNoOrdinaryNoteUnlockAndDoesNotRunOnWriter() {
+        val root = temporary.newFolder(); val destination = temporary.newFolder(); val jobs = Jobs(); val backend = backend(root, jobs, Keys())
+        try {
+            val note = create(backend); protect(backend, note)
+            command(backend, """{"op":"Relock"}""")
+            backend.authenticate("""["App"]""", proof).get(10, TimeUnit.SECONDS)
+            assertFalse(command(backend, """{"op":"Read","id":"$note"}""").getBoolean("ok"))
+            assertThrows(NotebookSchedules.Unavailable::class.java) { prepare(backend, NotebookSchedules.Target.Directory(destination)) }
+            val calls = java.util.concurrent.atomic.AtomicInteger()
+            val fresh = NativeBridge.Verification { challenge ->
+                UUID.fromString(challenge); calls.incrementAndGet()
+                assertTrue(command(backend, """{"op":"Status"}""").getBoolean("ok")); true
+            }
+            val secret = password
+            val stage = try { backend.schedules().prepare(NotebookSchedules.Options(NotebookSchedules.Target.Directory(destination), 1000, 10000000), secret, fresh, allowProtectedContent = true).await() }
+                finally { secret.fill('\u0000') }
+            assertEquals(1, calls.get()); assertTrue(stage.requiresProtectedContentConsent); offered(stage)
+            assertFalse(command(backend, """{"op":"Read","id":"$note"}""").getBoolean("ok"))
+            assertTrue(destination.listFiles()!!.isEmpty()); assertNull(jobs.token)
+            val receipt = backend.schedules().enable(stage, proof, true, true, false, true, true).await()
+            assertEquals(NotebookSchedules.Publication.Published, receipt.initialPublication)
+            assertFalse(command(backend, """{"op":"Read","id":"$note"}""").getBoolean("ok"))
+        } finally { backend.closeFullyAsync().get(20, TimeUnit.SECONDS) }
+    }
+    @Test fun declinedFreshProtectedPreparationCreatesNoPublicationCredentialOrJob() {
+        val root = temporary.newFolder(); val destination = temporary.newFolder(); val jobs = Jobs(); val keys = Keys(); val backend = backend(root, jobs, keys)
+        try {
+            val note = create(backend); protect(backend, note)
+            val secret = password
+            try { assertThrows(NotebookSchedules.Unavailable::class.java) {
+                backend.schedules().prepare(NotebookSchedules.Options(NotebookSchedules.Target.Directory(destination), 1000, 10000000), secret, NativeBridge.Verification { false }, allowProtectedContent = true).await()
+            } } finally { secret.fill('\u0000') }
+            assertTrue(destination.listFiles()!!.isEmpty()); assertTrue(keys.keys.isEmpty()); assertEquals(0, jobs.registrations)
+        } finally { backend.closeFullyAsync().get(20, TimeUnit.SECONDS) }
+    }
     @Test fun protectedScopeExpansionRejectsOldDelegationWithoutPublishingOrUnlocking() {
         val root = temporary.newFolder(); val destination = temporary.newFolder(); val jobs = Jobs(); val backend = backend(root, jobs, Keys())
         try {

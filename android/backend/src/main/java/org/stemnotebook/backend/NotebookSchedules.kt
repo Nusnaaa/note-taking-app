@@ -182,7 +182,7 @@ class NotebookSchedules internal constructor(
 
     /** Initial encryption validates native password policy and offers an actual
      * independent key before the caller can confirm scheduling/device storage. */
-    fun prepare(options: Options, password: CharArray, proof: NativeBridge.Verification, lifetimeMillis: Long = 120_000): Pending<Prepared> {
+    fun prepare(options: Options, password: CharArray, proof: NativeBridge.Verification, lifetimeMillis: Long = 120_000, allowProtectedContent: Boolean = false): Pending<Prepared> {
         require(password.size <= 1024 && options.maximumBytes > 0 && options.intervalMillis >= jobs.minimumPeriodMillis())
         require(lifetimeMillis in 1..3_600_000)
         val secret = password.clone()
@@ -203,7 +203,13 @@ class NotebookSchedules internal constructor(
                     }
                 }
                 op.check()
-                val nativeReview = op.observe(backups.review(options.originalInk, options.sourceAssets))
+                // This is a fresh, explicitly consented initial backup proof,
+                // never the verifier used for a later background run. It grants
+                // the exact native plan only and does not unlock ordinary reads.
+                val nativeReview = op.observe(if (!allowProtectedContent) backups.review(options.originalInk, options.sourceAssets)
+                    else backups.reviewDelegated(options.originalInk, options.sourceAssets, NativeBridge.BackupAuthorization { challenge, version, actualLibrary, _, _ ->
+                        version == 1 && actualLibrary == owner.toString() && proof.verify(challenge)
+                    }))
                 artifact = try { op.observe(backups.create(nativeReview, secret, proof, true, options.maximumBytes)) } finally { nativeReview.close() }
                 op.check(); authority(); check(library() == owner)
                 val result = Prepared(artifact, secret, options, identity, prior, manager, review, owner)

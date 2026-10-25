@@ -1,6 +1,6 @@
 {
-  "started_utc": "2026-10-25T19:07:11.148129+00:00",
-  "source_commit": "18dd2460adece2b68823f02c76900ca5007965ba",
+  "started_utc": "2026-10-25T21:50:20.005124+00:00",
+  "source_commit": "fcc07163b834f37560c3f2daea4d64160f2c9047",
   "working_tree_before": "",
   "full_working_tree_before": "?? docs/evidence/continuation-2026-10-24/host-restore/",
   "build_environment": {
@@ -16,29 +16,33 @@
     "Cargo.toml": "201677b8ae08f5c9da36f6ebc332a39457766527f1ceeb70d5d49abefe68caf1",
     "README.md": "d758f5bf2f47e2a460befc41515612d44d0d2c33545e9df8efc52390e32f2601",
     "android/backend/build.gradle.kts": "e972092a84e5e6e7a1a10fd6b421fa666dc1f18667279fd52c97cf68b2ba9c57",
-    "android/backend/consumer-rules.pro": "3e8b37cc1b047ffae3025626a053de7d57236cdb8108db4547c3c1a5951867cd",
+    "android/backend/consumer-rules.pro": "0b41f2eadcf6ed39f21ceea859e5dfba502cd1cbeaa909fdf6345d658b1cff8e",
     "android/backend/gradle.lockfile": "cbec11f0c961a5a5bfe6aab69d9bf761a8b8e27bc19034fd5b8eb6589005941e",
-    "android/backend/src/main/AndroidManifest.xml": "e6c3baa8a6e88d578962c679301f3d53cd4cb2eb39351457e47c0915cb368a24",
+    "android/backend/src/main/AndroidManifest.xml": "7c338d3ad2ad5d8d0c5a17e3b4ddd0c95a15bc2e94f41d2e5bd17ecb9e2d4cfc",
     "android/backend/src/main/java/org/stemnotebook/backend/ActiveCaptureJournal.kt": "ccbceb70b0c19eb3a2b604eeb095c7b9c2eab868cf582b063599b29b53ca5fa0",
     "android/backend/src/main/java/org/stemnotebook/backend/BackendWriter.kt": "b575c502c87a40b28463f81741299619242df323a08deb71acd37b50a3d78250",
-    "android/backend/src/main/java/org/stemnotebook/backend/BackupCatalogue.kt": "34e40cd10b3d1b89b55696e944d4edaff0c56cc3a1a6332516184a11af162ebb",
-    "android/backend/src/main/java/org/stemnotebook/backend/BackupCredentialVault.kt": "edbbab60342e0d59a10cc06277fe91824035a32089636e271750d0d313b8d245",
+    "android/backend/src/main/java/org/stemnotebook/backend/BackupCatalogue.kt": "011cd30a4a52d34a8bd0a931e680a3df4ca58870412b7c3d1dfd4870b2659ea1",
+    "android/backend/src/main/java/org/stemnotebook/backend/BackupCredentialVault.kt": "3d08214c54dae357aeef71e7c5462f91b6e31273392a1017a7fdf3ccadde38f2",
     "android/backend/src/main/java/org/stemnotebook/backend/BackupDocuments.kt": "b084d5dbef5d1c9226c59120671d44ef503924c33d59806b295cb50000b9b4a9",
+    "android/backend/src/main/java/org/stemnotebook/backend/BackupJobScheduler.kt": "711a2feaee2ebbd4cc75a6e89eae9fc545e5e5f53cb2331f80d112509b92b45b",
     "android/backend/src/main/java/org/stemnotebook/backend/BackupPersistentAccess.kt": "801c7026b3d22a48cd5379523b3a68561cb82f6eafe3c4d385030e2c47517c15",
-    "android/backend/src/main/java/org/stemnotebook/backend/BackupPolicyDatabase.kt": "8f7ef3e8f935f93364b9746e09b00af504dc4246cd5e440947c7e0cd4c62efb2",
-    "android/backend/src/main/java/org/stemnotebook/backend/BackupPolicyStore.kt": "52432d88c6a5ee12135df631708937e8fc05c21832f40fa23822dedfe7645495",
-    "android/backend/src/main/java/org/stemnotebook/backend/BackupSchedulePolicy.kt": "f4f6768790228bc424f5cfbd01272155449e9c93fe644ff712116bae731f1f41",
-    "android/backend/src/main/java/org/stemnotebook/backend/BackupSecretProtector.kt": "368e20d082da4c4c1f4a88845420cf5337ddc0260f030c3190441a9a5b8dacf1",
+    "android/backend/src/main/java/org/stemnotebook/backend/BackupPolicyDatabase.kt": "89da92b3412403dffa17428f478e9c04c4e3573980cda43872741af0e0078ff5",
+    "android/backend/src/main/java/org/stemnotebook/backend/BackupPolicyStore.kt": "622dec5e97549e815404a922c80e3775b6a7f87894469921ca04ec1f747dc783",
+    "android/backend/src/main/java/org/stemnotebook/backend/BackupSchedulePolicy.kt": "65da5bf58fd61d0a4b4e49082ec88883e32250aaf7c331702c30098a2df5b584",
+    "android/backend/src/main/java/org/stemnotebook/backend/BackupSecretProtector.kt": "ce48a5f1940d0fd3e7814f06b3ccfaa03419aae2c354d267f6a1eb002ca53153",
     "android/backend/src/main/java/org/stemnotebook/backend/CaptureLayer.kt": "b95f7a3eaee59a6b15536718cb936db685024b6daa09ea05aafe7e82b0a712d0",
     "android/backend/src/main/java/org/stemnotebook/backend/CaptureOutbox.kt": "58562a58cd2fa83797d36f300c3be4f0e1fff5c86a69df8f136a797fe825ba9b",
     "android/backend/src/main/java/org/stemnotebook/backend/DeletionCaptureReview.kt": "74d48dd5a0cd179e9eb1c7b5e97284e65701c611a5b0dde8d82da945f264bb17",
     "android/backend/src/main/java/org/stemnotebook/backend/InkAccumulator.kt": "f1961a5e673eb64b6a888ba3c92c290eb7761274d2316c4a19662b26c65e6a72",
     "android/backend/src/main/java/org/stemnotebook/backend/JournaledCaptureSession.kt": "91f770e5b44f2dd9eeb81ea974bc363265c476a4d7adfdacf8ff2d8b9b1b8d6b",
     "android/backend/src/main/java/org/stemnotebook/backend/LibraryOwnership.kt": "664e17e6fd36cd95e00ed10acf2f15d24c1efaed86cc7594f36ad038c59f8647",
-    "android/backend/src/main/java/org/stemnotebook/backend/NativeBridge.java": "22cf8ea0ce134ac298b991a5b735f2d7c3ecb29d9c6bce9912c3ac2d05d500e0",
-    "android/backend/src/main/java/org/stemnotebook/backend/NotebookBackend.kt": "c9250b89da39eb5942bd2ed88d3e339457eaa459abb725e80f4fc6a9d9f0a0d1",
-    "android/backend/src/main/java/org/stemnotebook/backend/NotebookBackups.kt": "3ee4f6dae663e42d1c65904736b61036861d58abbe1f01ab9386ad278d9086e6",
+    "android/backend/src/main/java/org/stemnotebook/backend/NativeBridge.java": "c468449326af6304a90af006f023050261144eee3eab453932255e5f7dffc9f5",
+    "android/backend/src/main/java/org/stemnotebook/backend/NotebookBackend.kt": "6fef27c4c850da229d9b761baf63f79a3aed25c0f0d01d9b0f0ee7b50d92d718",
+    "android/backend/src/main/java/org/stemnotebook/backend/NotebookBackupJobService.kt": "231aecd9636a64f8e8d51e971f30477dab24536d5b70a7af6f43ee66c0b41cef",
+    "android/backend/src/main/java/org/stemnotebook/backend/NotebookBackups.kt": "b2653a55f4157defe32ca6b89d97e53a609f4116368440caa1a86863985b8cbd",
     "android/backend/src/main/java/org/stemnotebook/backend/NotebookRestores.kt": "208f897761357bc2e77ef11f786d1974c7633c65543670c6549384dfb9053290",
+    "android/backend/src/main/java/org/stemnotebook/backend/NotebookRuntime.kt": "1016513df29e40fe3082e13d38b76f545fc0757c30e82111a5a2364cc62c9d51",
+    "android/backend/src/main/java/org/stemnotebook/backend/NotebookSchedules.kt": "74ea530a4bfec8d1157a0adc98a16b70a728fd547a4c3d88b2bdbe4bb485d7f7",
     "android/backend/src/main/java/org/stemnotebook/backend/ObservedInk.kt": "e805ee74103677a5304d858b2078374ba9ab1f1ee6ca695228d1d8729edca45d",
     "android/backend/src/main/java/org/stemnotebook/backend/PdfConnection.kt": "c7b5c61bc5d209f70a2867c8942d606556daf29a04a28e48872d1bd68af5504f",
     "android/backend/src/main/java/org/stemnotebook/backend/PdfParserClient.kt": "ae4fd736f00d29be432ffc4bb60d5443ba9bf9ca5a06ac3f83e2fe9c9b1c8214",
@@ -50,6 +54,7 @@
     "android/backend/src/main/java/org/stemnotebook/backend/PlatformAuthentication.kt": "4b1a1df69cf8c027e323f3eb9ba3094fde797224ae0d607b726babdd080781a8",
     "android/backend/src/main/java/org/stemnotebook/backend/RestoreDocuments.kt": "1a642b57dc6e721a559b9e6e7700543844bea17551b109047a38b3dca6d1a232",
     "android/backend/src/main/java/org/stemnotebook/backend/RestoreStages.kt": "415ab27c583e9cb920444df69396a3b2190c23883d8cc8f423230b500fc26e0d",
+    "android/backend/src/main/java/org/stemnotebook/backend/SharedNotebookPool.kt": "29495f4f5c8c968f3d01e78db1d14e22e10ad4f575f75a33e35b950638999722",
     "android/backend/src/main/res/xml/backup_rules.xml": "9dc73ebd39e95acff8a4c69fe70c054e82a1148459cfc684a8252678c83ffa91",
     "android/backend/src/main/res/xml/data_extraction_rules.xml": "ac3e390093eeb9ee64b598412c4b5baf2033972647f4d8354d19fb0e85ffea98",
     "android/backend/src/test/java/org/stemnotebook/backend/ActiveCaptureJournalTest.kt": "bd40f5354165468bc26b34577c0110dcdae0120721cc41101c2b443aabb5a328",
@@ -58,22 +63,27 @@
     "android/backend/src/test/java/org/stemnotebook/backend/BackendWriterTest.kt": "14f6c8c5bd1c6ca8a7c565b9d1ff63304de6529f178438e4692ae5137511604c",
     "android/backend/src/test/java/org/stemnotebook/backend/BackupCatalogueIntegrationTest.kt": "8a4911d96f905adaa25881846537fba6a3f1af756f6f8601474f717fd90b8b85",
     "android/backend/src/test/java/org/stemnotebook/backend/BackupCatalogueTest.kt": "58acddcefac31fd4bca08a7c3ce15f8e64cc871ca3b37d540ae3f49c7dbed9c7",
+    "android/backend/src/test/java/org/stemnotebook/backend/BackupJobSchedulerTest.kt": "8ca6c15118ebadf775b3756f605202d58c5bebb3b229d70ccdb8f8a7f2892176",
     "android/backend/src/test/java/org/stemnotebook/backend/BackupPersistentAccessTest.kt": "f91956502ef9dc6b78045966f166ed0ee1f45c124110b0fff87471c869c92b9e",
-    "android/backend/src/test/java/org/stemnotebook/backend/BackupPolicyStoreTest.kt": "546f1152ad72da8cf67fbdefc4df3c970002eee4cd8244bde556b3d46ce1ecbc",
+    "android/backend/src/test/java/org/stemnotebook/backend/BackupPolicyMigrationTest.kt": "bf315543bf49d6b1c73dd9c915d740977eef2c9bee36cb0d0bc66b949ca3a150",
+    "android/backend/src/test/java/org/stemnotebook/backend/BackupPolicyStoreTest.kt": "a0a4221b160fbeda084b5651987f2c0e482463fc72855792636c406a99fc59f8",
     "android/backend/src/test/java/org/stemnotebook/backend/BackupProviderTest.kt": "9232d979186c6b82ace0cd1bd34c854950f503faa0c761b7cf2f0513e44ad1bd",
-    "android/backend/src/test/java/org/stemnotebook/backend/BackupSchedulePolicyTest.kt": "9ec1bad7648fa6d394c947d4ea1a182874951d001decaec88b38e0b71e0fee8f",
+    "android/backend/src/test/java/org/stemnotebook/backend/BackupSchedulePolicyTest.kt": "8d721d32ad07018c086506ff49454608d0ead62902a7a439d40448e89c2dfcff",
     "android/backend/src/test/java/org/stemnotebook/backend/BackupSecretProtectorTest.kt": "115ac0cc4d7c530851efd78b7bd71137b7146949f9b36cba892e13abf0b83095",
     "android/backend/src/test/java/org/stemnotebook/backend/CaptureOutboxTest.kt": "ee9bd2ac5c457bcb5cad70b544aae1eb25c03107be28ca1e74542a8120aad725",
     "android/backend/src/test/java/org/stemnotebook/backend/DeletionCaptureIntegrationTest.kt": "22b35d9293acf992aa16366c64b67faf7f7e7077ed8ba92a075a99836f57f0e6",
     "android/backend/src/test/java/org/stemnotebook/backend/FixturePdfConnection.kt": "18109d1f2020732cf9aa7c4fb7393fbbcd05609a8ab7991d0b3b2b3d670cf62c",
     "android/backend/src/test/java/org/stemnotebook/backend/InkAccumulatorTest.kt": "96e7cd818d463329b33f37484de47900462f215cf8d7c314d9cb268d3414b83a",
     "android/backend/src/test/java/org/stemnotebook/backend/InterruptedCaptureTest.kt": "53c2e17d1c724ba553d39040f67a08a454323be2b8d0ea7c2e8d2422b291ef5b",
-    "android/backend/src/test/java/org/stemnotebook/backend/JniBackendRunner.kt": "dd985cfba681d08bcee071ee88754ed6f23aad6b0241d4fa3f75677f7bde745b",
+    "android/backend/src/test/java/org/stemnotebook/backend/JniBackendRunner.kt": "81fbe1eea838c203f21441987cdeb5fa067c022dca69d8ff494ed44cc2ddd700",
     "android/backend/src/test/java/org/stemnotebook/backend/JournaledCaptureIntegrationTest.kt": "b4957deab38500d3fe0ca41bb37338afe5d1be19bda4851c494eef4269fe42c8",
     "android/backend/src/test/java/org/stemnotebook/backend/MotionCaptureTest.kt": "256a7105fe9c0654caf919e9e7e3a7b230bdbaa19f66f3292f0469ca32653b39",
     "android/backend/src/test/java/org/stemnotebook/backend/NativeBackupBoundaryTest.kt": "3d38f785e57253b8d2ee29123d0153040dbd4bdacbbfca97a19fac9807d20d08",
+    "android/backend/src/test/java/org/stemnotebook/backend/NotebookBackupJobServiceTest.kt": "b5a78fa5fddc7228516d0884b76498d93c3d51d255443d9172a56656377efb81",
     "android/backend/src/test/java/org/stemnotebook/backend/NotebookBackupsTest.kt": "873e13b2e41cf89a619e42c054928e383137e2fa1560d19a5621aad06712265c",
     "android/backend/src/test/java/org/stemnotebook/backend/NotebookRestoresTest.kt": "a9931008863151888cbfab27dfb42d1c51b9aee16af47ecfe6379bf90ade1e7d",
+    "android/backend/src/test/java/org/stemnotebook/backend/NotebookRuntimeTest.kt": "d5c1fa3b6e6d4f2790180343a158d182f20ca0a73b9d317a7b0418a1b16f1657",
+    "android/backend/src/test/java/org/stemnotebook/backend/NotebookSchedulesTest.kt": "cf85e989d1ca5afc878577bca1046252ce97117b8bd35d7a209dcebd032f59ae",
     "android/backend/src/test/java/org/stemnotebook/backend/PdfConnectionTest.kt": "deeb311c819cb566bcc449fbd5c4b2e3810b789e1dd8af77f3eb0c694d81df77",
     "android/backend/src/test/java/org/stemnotebook/backend/PdfParserClientTest.kt": "9c8dbd693cd1b3fd42f575329ac2b9af3dea47d7ecc8063e6623568dcc8c124f",
     "android/backend/src/test/java/org/stemnotebook/backend/PdfPixelsTest.kt": "270dc6eaa0524da80518f400c5fa8055f2b4936fb45cc9509e7eb421b9b997d7",
@@ -85,14 +95,15 @@
     "android/backend/src/test/java/org/stemnotebook/backend/RestoreStageCrashProbe.kt": "06562098f8e04f32e4a177aee3e3c0ac053617f8df9d034a60f9ef9c18ae0211",
     "android/backend/src/test/java/org/stemnotebook/backend/RestoreStageLifecycleTest.kt": "97f13bc05739d80a38397078b69da32064e9b1809186fe55f63062503387819d",
     "android/backend/src/test/java/org/stemnotebook/backend/RestoreStagesTest.kt": "d068d08ffd269e97f5ba30d9c559e2cc1d2657c08ebba52804826da359972b3b",
+    "android/backend/src/test/java/org/stemnotebook/backend/SharedNotebookPoolTest.kt": "723aed035d843a4d51cab77c40989ec8514808e941f6dcaf73c6ce138437d771",
     "android/build.gradle.kts": "0f1f1142943fc4d17c9733a15d88c2c6b22a6d38bdcc87ef46f80a8c72b45cf5",
     "android/gradle.properties": "ffa11c46b1c6cd65f86aa9c8ddafa56fd440a8a8852b9631f61eb1207bb2e8f9",
     "android/settings.gradle.kts": "6436c45283cacfd750b43e199f4ce8703078f5c240db2d0e64b4d702283973c4",
     "bridge/Cargo.toml": "7fa6579766d201ee1d7da8f8dc28f1d7c92a43a4b0417f32804c264b51805b84",
-    "bridge/src/backup.rs": "6c787412a2c56c73673ba8bea2088ce4c26d3c494f9be09487ea0abec245ba6b",
+    "bridge/src/backup.rs": "181e42dc57fb616a0df21cd049735d36ad4b63ffcc540fe45640812b3e2ce341",
     "bridge/src/lib.rs": "0cf62ce4cbde1e53d1aad73fc097901dd03256a2e9963238211689693d8d4d24",
     "bridge/src/restore.rs": "64674692a0c3b092f18a813237babeac258dc0ec0ffe1154be6f7040e683208a",
-    "bridge/tests/java/BackupBoundarySmoke.java": "520140950da59a47d1aeefb3d6cc1ce5e3bd634a0cccdc70c7b5d5c36bcd3d17",
+    "bridge/tests/java/BackupBoundarySmoke.java": "0e346d79323233b1bc7e336a50c8560198d17ae73b60520a3dd3e705d3f25830",
     "bridge/tests/java/BoundarySmoke.java": "9dd1abda6c08c71dc1f6914863e48164e9fe00604c8a2e6848e9f2c1f1f42c43",
     "bridge/tests/java/OpenBoundarySmoke.java": "a381cc37286dfafd39d54b5adafc068aad90f6fa10f5825af8bceee0bfd26e28",
     "bridge/tests/java/RestoreBoundarySmoke.java": "b2d839ffd104edcac191f5231def8047e26438ff877d6a9207d57f8b6ff74e8d",
@@ -114,9 +125,10 @@
     "core/migrations/014.sql": "8526cb69c4da2add90f60161f3da93d3a8541aebaf5ebf9914625c1175832be7",
     "core/migrations/015.sql": "a8bf3d06e302e89106460cf3b0fc40c849eb8ca4fabe484101efdd730bbf0482",
     "core/src/attachments.rs": "f44d8206e8fb225d4047e11f73da9d0623e53ac1fdd74a87a8c0055ed291ae46",
-    "core/src/backup.rs": "e8e4c988c8f26961e6255b2506e0ab25f9cc4f9846311de5bab249b388e79b72",
-    "core/src/backup/streaming.rs": "290efc52d8d7fb172ea01ee7ad019a0ff40c483c4ae867e4a241bc9f7d485596",
-    "core/src/backup/streaming/pull.rs": "296fb748d6a239d14abe564766863d5e266bf6decd8109ecebb3dd03349ec426",
+    "core/src/backup.rs": "0be910a873a0f3982a7e15193da07768a234f4d44d627aac91c05e1fce3b9c63",
+    "core/src/backup/authority.rs": "ac86391d4d51d5065cc06e3d47b30432f4941d0186fa30e967c1c1bf5fe84312",
+    "core/src/backup/streaming.rs": "1b5c8bac750cd4e4508dfef465282a694680b5f9b205fc9283ffeb2a5cb60ce4",
+    "core/src/backup/streaming/pull.rs": "caa64614152fcf702789e2b0fafc67f0ec9e23835bdbdaa972e84ba5f61c4d3d",
     "core/src/backup/validation.rs": "a27e03b7f81839732c07e105d7069532a0f68825aae14715a17016167c0291a8",
     "core/src/bin/notebook_cli.rs": "26271e2457fe8d3fc1b72a61eb1463bf8e775e5d4929fea5d90235b6d299ff03",
     "core/src/bin/recovery_probe.rs": "f3e86f9fb8114498e56003199357ceb03bcc0e11a1b9257ac1e6325fe2ba23e9",
@@ -129,7 +141,7 @@
     "core/src/export.rs": "2364239249b1f3acf2854a72abdf2b5a0f6cc75c33a995daec2969136e7eeeda",
     "core/src/help.rs": "a829ef9b06668ff734dd5c1b72de00afd76c865f6fd6118dadc84a1d001b2988",
     "core/src/host.rs": "2f9e483ecd34e138d248a5d2ddaba973e1f86229dc16527dc1562d98af86ad1c",
-    "core/src/host/backup.rs": "efe66d07ccde23c7512ff126e3bf27db1d58a93caae35de9163520a7bcd10f7d",
+    "core/src/host/backup.rs": "d53b5ccf33babb86b26f986353e663794d7fa6753cf8155dbdfde69dabb73dce",
     "core/src/host/deletion.rs": "57db1f4ef7f3843a839f8a7906fde7b192b6bc6d682e5ea17f85728567f3c2e7",
     "core/src/host/mailbox.rs": "e94e7c33ed3e1c56172ba52f23169a54fa80f55f10f5365caa63b3418626186f",
     "core/src/host/ownership.rs": "2feadfed5255334d7f04834038bd2e7704cb9401f0adff6e499e2d559dbb438a",
@@ -162,6 +174,7 @@
     "core/src/store/writing.rs": "70211c7fd1696b30c97bb2ec54ce86ce979bd102de6bd7f617e961f555789ad9",
     "core/tests/authoring.rs": "ca360149874c259677323da39dce694a86ffb364e7f9e73ba82a79d3a6ab8f61",
     "core/tests/backup.rs": "6aca0349f7d7486d81fdee1c17487fe422dc1f4e85480406388bdcb04f29b9f2",
+    "core/tests/backup_delegation.rs": "7dc4dad24d92d15a8db61a8619cd97377edadeccbd02b56648a4139434771adc",
     "core/tests/backup_pull.rs": "74b1ab9f29ad797935f0b3d8cade2bfbc7c56a9979bac636f534aaf2312a356b",
     "core/tests/backup_stream.rs": "77a6ae90e191fe20efe21e5dbc7625a30dadb507df153e0b7a76c3b4843304b5",
     "core/tests/capture.rs": "07ff499ab18ead9a03e15cb31f292e5a8d39d1ae4dd25a7eb2cdbc6aef7a7dff",
@@ -207,13 +220,17 @@
     "docs/decisions/ADR-005-authoring-history-and-host-boundary.md": "b27ca28181b23372245a4acda384486c8e44235d7ab854543393a61e45e066a9",
     "docs/decisions/ADR-006-android-recovered-library-ownership.md": "e81f47566df386b0cd6fbf91870b6b08710d39e01edf5696466371386c31d92d",
     "docs/decisions/ADR-007-private-backup-publication-history.md": "0ea01e15ff4ef8402261e22617869773ca95ebe82d7b8d5489f67e7f20a0abd5",
-    "docs/decisions/ADR-008-scheduled-backup-authority-foundations.md": "f45af69e24d95762437e5e2ea0175105ea0af6086cb3206a1410a61a8115e2f5",
+    "docs/decisions/ADR-008-scheduled-backup-authority-foundations.md": "af8499dac530b85df9c617b1429bc674ec71dbfd55d388bff52413fd181430d8",
+    "docs/decisions/ADR-009-shared-notebook-runtime.md": "156d013ff10e0b43d2f911ff46b3943d371bb492f5defb00e3f32673c9002231",
+    "docs/decisions/ADR-010-opt-in-scheduled-backup-workflow.md": "103da83bb45d048d556096408dca8340a9a322dfbe74c18dc485c2d30348a4a3",
     "docs/decisions/owner-authorisation-2026-10-22.md": "4fedeef87589b9028ce27cc4ee64878fae9fdd42cbbe9a8d8c093ca3091c0788",
-    "docs/formats/BACKUP_POLICY_STORE.md": "c2f35a8bdffb4ad8e007fc5f7da8d3ea4a577d077841484c11554e7d465ff774",
-    "docs/formats/BACKUP_PUBLICATION_HISTORY.md": "df5908cd2c9d14fb0dae769aed8ba3fc1979f90796bd42fd92352cadbfa0a381",
-    "docs/formats/BACKUP_SCHEDULE_POLICY.md": "3e4cda73d2f37360448f9524c1bd1202aa4110cfd00dc30c3986f46c83fd7b2b",
+    "docs/formats/BACKUP_POLICY_STORE.md": "86e0fd1acad565e730be2f8c8a8870020ab822f1e5603858c31f4010fe53b975",
+    "docs/formats/BACKUP_PUBLICATION_HISTORY.md": "421c2dd947cc2b2128304fdeebfa801ee873c7b76f27582a5bbf05881536bd0a",
+    "docs/formats/BACKUP_SCHEDULE_POLICY.md": "45b83b2fb099de071f7450c52da8c621b2d386e0449132e3220ba4222b4f20fb",
     "docs/formats/RESTORE_STAGES.md": "423a2f8fce054ff0724616260bf25b988f700213917085c80ce7adecefdf2b7e",
-    "docs/formats/SCHEDULED_BACKUP_FOUNDATIONS.md": "ccfef2202dc9d6ffe0d40ce51ba3a5db2e8030a402fa0fee084f0f276eb5731b",
+    "docs/formats/SCHEDULED_BACKUPS.md": "35cfbad9e526a13b9ec4e4a511b5afbde618da289a0165edfc1c301e37f1efa1",
+    "docs/formats/SCHEDULED_BACKUP_FOUNDATIONS.md": "7721f1757739a464ae6261ee8b27461f94d2abb254e6644328539e5b51113db9",
+    "docs/formats/SHARED_NOTEBOOK_RUNTIME.md": "4ad8abf6fb22bf15842f4990d1ee3bdb18c7365df84ee7837c35c880c2df7e83",
     "docs/formats/full-library-backup-v1.md": "97cca01cad85e753e74d60cf8fd472ddd9943d9bcc1a9a9ddfeea8d64fe2c586",
     "docs/formats/native-subset-v1.md": "a2fa7e32fce52d5cdfe22c6f0722b0ac5c979e9c725dbc1d7be0efd70af94e92",
     "docs/formats/native-subset-v2.md": "465abc5203e3d0a34c890003ff5fe1c188675142919f6b153a586b60d59bfb9d",
@@ -250,18 +267,18 @@
     "docs/spec/approved-v0.5.8.md": "68612d4dc4d0e69c61f0018fbcf67bf779559bcbb120bcd0f6c3f9333f27b7b3",
     "docs/verification/DEFERRED_MANUAL.md": "c694b9fe185c216204dfd72aa6c55d1f8d21e06c431bb50b126bce1a6b514e1c",
     "docs/verification/HOST_INTEGRATION.md": "d9ce8070ccc73e4f55ce3d5c736abe330ead837819ef8d068253b83db52ac70b",
-    "docs/verification/TEST_PLAN.md": "bf81554f50d044c554bd667fa3d2c23215075d09eb5e10799925375888029fb5",
-    "docs/verification/backend-gaps.json": "b8f22d8a0df424f8717e01b77e828f195ceb37cf157777724138707ac76438ff",
-    "docs/verification/candidates-current.csv": "65462034c645689e183df1618bda76471ab4eac53d7c07faf66ef879f11e1baa",
-    "docs/verification/inherited-current.csv": "56a63235438c450a8d474852aff4a2676bf0a00857e8196e627cfd93470e487c",
-    "docs/verification/requirements-current.csv": "7c048f6c07d6ad70be4ecde316f8c87a98f77d2ea274b26076d854ece62d3098",
+    "docs/verification/TEST_PLAN.md": "9072e4e45bb15ff1a859d7cab76d45dd9289fbd19ec6556a636afebec2460c82",
+    "docs/verification/backend-gaps.json": "b10db9894d366728ac4408b2fb582ae53787508bc16eb867b1631a55bd601c3e",
+    "docs/verification/candidates-current.csv": "d66e024971622bd08d3fc9a4c2ca545bb52cd7097b3bac051058645a71687080",
+    "docs/verification/inherited-current.csv": "7b538b2ded9c7816fdeb90c59bb4ca64a0600ea26f26ad9cf7feec85a5bcfb2c",
+    "docs/verification/requirements-current.csv": "aa0262c25c89c6f5f88ed0ed6b4e59d1f7c9a7fd0fef4046aa9d034d154c7216",
     "docs/verification/traceability-manifest.json": "15d09e00b540a512b8e0b6afd98b06824e93d743d80317963ebe18d91d3adb22",
     "rust-toolchain.toml": "c33d1f0b1b8fda448bea32d7dc867aa64947c87169fd9de7122ffccad1dd80f9",
     "tools/backend_gate.py": "6c924452f65676d8534651723073555ae5657430c9580e73e87d712e9ad7671b",
     "tools/dependency_inventory.py": "51dc9dcd28cab69c8af36b976d65aa67557d6afe8827be162a431d1854232315",
-    "tools/traceability.py": "4d0bf4145a6f81c13d481f6c8b40a2afc2b66e0e209809edacb93dd0255e3426",
+    "tools/traceability.py": "43519021d5e16d86305dffb40e4ab630b0cc92e8ca5a630ea77108ad3f79e223",
     "tools/validate.py": "2a25d3f4c6d487754f7b73bc0f415809cdf9e8416fe9f651f0302522a373711a",
-    "tools/validate_android.py": "01aa58abc1fbe374f7c5629bb3703fa0a3b3038f024cc1a5a8496e0d9c36d8b4",
+    "tools/validate_android.py": "db39e2663790d7d807e1a6a50a60480bd69ae09a19930c76819fef29daea0a21",
     "tools/validate_jni.py": "f94111ea41b4a1d778cf9c9967a2a74251f93515e372b670c50a16c50aa7d45e"
   },
   "checks": [
@@ -276,7 +293,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 1.213,
+      "seconds": 1.017,
       "log": "format.log"
     },
     {
@@ -294,7 +311,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 4.256,
+      "seconds": 22.432,
       "log": "lint.log"
     },
     {
@@ -308,7 +325,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 1265.451,
+      "seconds": 1233.649,
       "log": "tests.log"
     },
     {
@@ -323,7 +340,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 0.394,
+      "seconds": 228.603,
       "log": "release-build.log"
     },
     {
@@ -333,9 +350,9 @@
         "tools/traceability.py",
         "--check"
       ],
-      "exit_code": 0,
-      "result": "PASS",
-      "seconds": 0.643,
+      "exit_code": 1,
+      "result": "FAIL",
+      "seconds": 0.973,
       "log": "traceability.log"
     }
   ],
@@ -365,11 +382,11 @@
       "result": "ok"
     },
     {
-      "name": "backup::validation::tests::checkpoint_checks_busy_readers_and_keeps_sqlite_in_charge_of_stage_io",
+      "name": "backup::validation::tests::cancellation_inside_semantic_validation_removes_work_indexes",
       "result": "ok"
     },
     {
-      "name": "host::ownership::tests::sqlite_managed_ownership_survives_commits_and_failed_duplicate_connections",
+      "name": "backup::validation::tests::unreferenced_raw_ink_is_rejected_instead_of_silently_omitted",
       "result": "ok"
     },
     {
@@ -381,35 +398,15 @@
       "result": "ok"
     },
     {
-      "name": "host::ownership::tests::strict_existing_open_never_initializes_missing_empty_or_unrelated_files",
+      "name": "backup::validation::tests::source_grant_retirement_is_incremental_and_cancellation_rolls_back",
       "result": "ok"
     },
     {
-      "name": "backup::publication_tests::post_link_failure_is_uncertain_and_never_removes_the_new_recovered_copy",
+      "name": "backup::validation::tests::containment_depth_cycles_and_retired_entities_keep_the_same_rules",
       "result": "ok"
     },
     {
       "name": "processing::authority_control_tests::linking_authority_keeps_parent_cancellation_deadline_and_exact_expiry",
-      "result": "ok"
-    },
-    {
-      "name": "host::ownership::tests::strict_existing_duplicate_open_keeps_owner_locks_and_committed_edits",
-      "result": "ok"
-    },
-    {
-      "name": "backup::validation::tests::cancellation_inside_semantic_validation_removes_work_indexes",
-      "result": "ok"
-    },
-    {
-      "name": "host::ownership::tests::bounded_backup_pulls_leave_exclusive_owner_free_to_commit_authoring",
-      "result": "ok"
-    },
-    {
-      "name": "backup::validation::tests::unreferenced_raw_ink_is_rejected_instead_of_silently_omitted",
-      "result": "ok"
-    },
-    {
-      "name": "backup::validation::tests::source_grant_retirement_is_incremental_and_cancellation_rolls_back",
       "result": "ok"
     },
     {
@@ -421,10 +418,6 @@
       "result": "ok"
     },
     {
-      "name": "host::ownership::tests::strict_existing_open_migrates_a_real_v1_library_but_rejects_bad_identity",
-      "result": "ok"
-    },
-    {
       "name": "backup::validation::tests::schema_feature_gates_match_aggregate_oracle",
       "result": "ok"
     },
@@ -433,15 +426,7 @@
       "result": "ok"
     },
     {
-      "name": "backup::validation::tests::containment_depth_cycles_and_retired_entities_keep_the_same_rules",
-      "result": "ok"
-    },
-    {
       "name": "security::tests::cached_backup_scope_validation_does_not_extend_an_unchanged_grants_expiry",
-      "result": "ok"
-    },
-    {
-      "name": "store::storage_tests::sqlite_full_reports_failure_and_preserves_committed_work",
       "result": "ok"
     },
     {
@@ -458,6 +443,38 @@
     },
     {
       "name": "backup::validation::tests::legacy_restore_worker_cancellation_reaches_semantic_validation",
+      "result": "ok"
+    },
+    {
+      "name": "backup::publication_tests::post_link_failure_is_uncertain_and_never_removes_the_new_recovered_copy",
+      "result": "ok"
+    },
+    {
+      "name": "store::storage_tests::sqlite_full_reports_failure_and_preserves_committed_work",
+      "result": "ok"
+    },
+    {
+      "name": "host::ownership::tests::strict_existing_open_never_initializes_missing_empty_or_unrelated_files",
+      "result": "ok"
+    },
+    {
+      "name": "backup::validation::tests::checkpoint_checks_busy_readers_and_keeps_sqlite_in_charge_of_stage_io",
+      "result": "ok"
+    },
+    {
+      "name": "host::ownership::tests::sqlite_managed_ownership_survives_commits_and_failed_duplicate_connections",
+      "result": "ok"
+    },
+    {
+      "name": "host::ownership::tests::bounded_backup_pulls_leave_exclusive_owner_free_to_commit_authoring",
+      "result": "ok"
+    },
+    {
+      "name": "host::ownership::tests::strict_existing_duplicate_open_keeps_owner_locks_and_committed_edits",
+      "result": "ok"
+    },
+    {
+      "name": "host::ownership::tests::strict_existing_open_migrates_a_real_v1_library_but_rejects_bad_identity",
       "result": "ok"
     },
     {
@@ -481,11 +498,11 @@
       "result": "ok"
     },
     {
-      "name": "presets_calibrate_and_reopen_without_moving_view_or_rewriting_observations",
+      "name": "schema14_upgrade_keeps_unconfigured_view_payload_exactly_without_inventing_presets_or_guides",
       "result": "ok"
     },
     {
-      "name": "schema14_upgrade_keeps_unconfigured_view_payload_exactly_without_inventing_presets_or_guides",
+      "name": "presets_calibrate_and_reopen_without_moving_view_or_rewriting_observations",
       "result": "ok"
     },
     {
@@ -505,15 +522,15 @@
       "result": "ok"
     },
     {
-      "name": "whole_library_backup_retains_trash_history_membership_undo_and_source_metadata",
-      "result": "ok"
-    },
-    {
       "name": "malformed_authenticated_backup_is_rejected_before_exposing_restored_store",
       "result": "ok"
     },
     {
       "name": "restore_publication_never_overwrites_live_database_and_reopens",
+      "result": "ok"
+    },
+    {
+      "name": "whole_library_backup_retains_trash_history_membership_undo_and_source_metadata",
       "result": "ok"
     },
     {
@@ -529,6 +546,34 @@
       "result": "ok"
     },
     {
+      "name": "fresh_interactive_verification_runs_off_writer_and_rechecks_generation",
+      "result": "ok"
+    },
+    {
+      "name": "delegated_verification_is_off_writer_and_capture_invalidates_pending_review",
+      "result": "ok"
+    },
+    {
+      "name": "wrong_library_digest_and_backup_options_cannot_reuse_approval",
+      "result": "ok"
+    },
+    {
+      "name": "new_protected_scope_requires_new_approval_and_does_not_unlock_ordinary_reads",
+      "result": "ok"
+    },
+    {
+      "name": "close_retains_exclusive_ownership_through_actual_authorizer_destruction",
+      "result": "ok"
+    },
+    {
+      "name": "approved_scope_remains_usable_for_new_authored_content_without_unlocking_host_reads",
+      "result": "ok"
+    },
+    {
+      "name": "delegated_encryption_preserves_app_and_note_locks_and_independent_restore",
+      "result": "ok"
+    },
+    {
       "name": "current_scope_and_generation_are_checked_on_every_pull_and_failed_cursors_never_revive",
       "result": "ok"
     },
@@ -537,11 +582,11 @@
       "result": "ok"
     },
     {
-      "name": "bounded_pulls_span_large_cells_and_restore_exact_source_with_independent_encryption",
+      "name": "long_runs_of_live_caches_yield_and_never_export_cache_bytes_when_retained_assets_are_selected",
       "result": "ok"
     },
     {
-      "name": "long_runs_of_live_caches_yield_and_never_export_cache_bytes_when_retained_assets_are_selected",
+      "name": "bounded_pulls_span_large_cells_and_restore_exact_source_with_independent_encryption",
       "result": "ok"
     },
     {
@@ -549,15 +594,11 @@
       "result": "ok"
     },
     {
-      "name": "cancelled_stream_restore_removes_private_staging_and_does_not_modify_source",
-      "result": "ok"
-    },
-    {
       "name": "stream_review_requires_ink_consent_fresh_scope_and_current_source_generation_before_any_output",
       "result": "ok"
     },
     {
-      "name": "restore_rejects_shared_or_symlinked_directories_before_creating_private_content",
+      "name": "cancelled_stream_restore_removes_private_staging_and_does_not_modify_source",
       "result": "ok"
     },
     {
@@ -565,11 +606,15 @@
       "result": "ok"
     },
     {
-      "name": "authorised_retained_pdf_bytes_are_explicit_while_revoked_relationships_stay_revoked",
+      "name": "restore_rejects_shared_or_symlinked_directories_before_creating_private_content",
       "result": "ok"
     },
     {
       "name": "concurrent_generation_change_prevents_finalising_an_old_read_snapshot",
+      "result": "ok"
+    },
+    {
+      "name": "authorised_retained_pdf_bytes_are_explicit_while_revoked_relationships_stay_revoked",
       "result": "ok"
     },
     {
@@ -637,11 +682,11 @@
       "result": "ok"
     },
     {
-      "name": "subtree_purge_preflight_and_commit_failure_do_not_partially_erase_protected_ink",
+      "name": "recovery_authority_preserves_inherited_and_app_locks_across_purge_and_reopen",
       "result": "ok"
     },
     {
-      "name": "recovery_authority_preserves_inherited_and_app_locks_across_purge_and_reopen",
+      "name": "subtree_purge_preflight_and_commit_failure_do_not_partially_erase_protected_ink",
       "result": "ok"
     },
     {
@@ -653,11 +698,11 @@
       "result": "ok"
     },
     {
-      "name": "offline_help_covers_recovery_and_unsearchable_ink_without_remote_dependency",
+      "name": "unsupported_maths_is_reported_and_xml_is_escaped",
       "result": "ok"
     },
     {
-      "name": "unsupported_maths_is_reported_and_xml_is_escaped",
+      "name": "offline_help_covers_recovery_and_unsearchable_ink_without_remote_dependency",
       "result": "ok"
     },
     {
@@ -665,11 +710,11 @@
       "result": "ok"
     },
     {
-      "name": "sink_failure_poisoning_prevents_retry_or_final_recovery_receipt",
+      "name": "authenticated_prefix_requires_explicit_finality_and_plaintext_budget_cannot_be_exceeded",
       "result": "ok"
     },
     {
-      "name": "authenticated_prefix_requires_explicit_finality_and_plaintext_budget_cannot_be_exceeded",
+      "name": "sink_failure_poisoning_prevents_retry_or_final_recovery_receipt",
       "result": "ok"
     },
     {
@@ -769,39 +814,11 @@
       "result": "ok"
     },
     {
-      "name": "removing_view_preserves_master_ink_membership_and_protection",
-      "result": "ok"
-    },
-    {
       "name": "protected_reassignment_carries_lock_even_when_unassigned",
       "result": "ok"
     },
     {
-      "name": "reassignment_rejects_stale_review_cross_master_and_aba_history",
-      "result": "ok"
-    },
-    {
-      "name": "extracting_a_protected_heading_does_not_disclose_its_title",
-      "result": "ok"
-    },
-    {
-      "name": "linked_append_is_atomic_and_keeps_master_order_and_shared_save_state",
-      "result": "ok"
-    },
-    {
-      "name": "legacy_v1_native_remains_readable_and_malformed_v2_membership_is_rejected",
-      "result": "ok"
-    },
-    {
-      "name": "duplicate_titles_keep_distinct_identity_and_metadata_failures_share_status",
-      "result": "ok"
-    },
-    {
-      "name": "failed_extraction_and_reassignment_roll_back_every_membership",
-      "result": "ok"
-    },
-    {
-      "name": "independent_copy_preserves_ink_but_has_separate_ids_edits_modes_and_status",
+      "name": "removing_view_preserves_master_ink_membership_and_protection",
       "result": "ok"
     },
     {
@@ -809,7 +826,35 @@
       "result": "ok"
     },
     {
+      "name": "extracting_a_protected_heading_does_not_disclose_its_title",
+      "result": "ok"
+    },
+    {
+      "name": "legacy_v1_native_remains_readable_and_malformed_v2_membership_is_rejected",
+      "result": "ok"
+    },
+    {
+      "name": "independent_copy_preserves_ink_but_has_separate_ids_edits_modes_and_status",
+      "result": "ok"
+    },
+    {
+      "name": "duplicate_titles_keep_distinct_identity_and_metadata_failures_share_status",
+      "result": "ok"
+    },
+    {
+      "name": "reassignment_rejects_stale_review_cross_master_and_aba_history",
+      "result": "ok"
+    },
+    {
       "name": "master_trash_restore_and_purge_preserve_then_remove_exercise_state",
+      "result": "ok"
+    },
+    {
+      "name": "linked_append_is_atomic_and_keeps_master_order_and_shared_save_state",
+      "result": "ok"
+    },
+    {
+      "name": "failed_extraction_and_reassignment_roll_back_every_membership",
       "result": "ok"
     },
     {
@@ -861,11 +906,19 @@
       "result": "ok"
     },
     {
+      "name": "offline_recovery_help_is_readonly_and_available_while_app_locked",
+      "result": "ok"
+    },
+    {
+      "name": "recovery_identity_is_stable_but_never_grants_content_or_receipt_access",
+      "result": "ok"
+    },
+    {
       "name": "byte_budgets_are_independent_and_rejection_does_not_acknowledge_a_save",
       "result": "ok"
     },
     {
-      "name": "offline_recovery_help_is_readonly_and_available_while_app_locked",
+      "name": "query_saturation_reserves_edit_admission_and_preserves_edit_undo_order",
       "result": "ok"
     },
     {
@@ -877,10 +930,6 @@
       "result": "ok"
     },
     {
-      "name": "query_saturation_reserves_edit_admission_and_preserves_edit_undo_order",
-      "result": "ok"
-    },
-    {
       "name": "host_restores_revision_bound_selection_without_silently_rebinding_after_edit",
       "result": "ok"
     },
@@ -889,11 +938,7 @@
       "result": "ok"
     },
     {
-      "name": "recovery_identity_is_stable_but_never_grants_content_or_receipt_access",
-      "result": "ok"
-    },
-    {
-      "name": "concurrent_host_calls_return_distinct_committed_content",
+      "name": "host_workspace_discovers_last_view_after_reopen_without_serializing_locked_targets",
       "result": "ok"
     },
     {
@@ -901,7 +946,7 @@
       "result": "ok"
     },
     {
-      "name": "host_workspace_discovers_last_view_after_reopen_without_serializing_locked_targets",
+      "name": "concurrent_host_calls_return_distinct_committed_content",
       "result": "ok"
     },
     {
@@ -909,11 +954,11 @@
       "result": "ok"
     },
     {
-      "name": "dropped_receipts_still_drain_on_close_and_observers_see_final_closed_state",
+      "name": "host_exercise_edits_share_identity_with_master_and_layout_undo_survives_restart",
       "result": "ok"
     },
     {
-      "name": "host_exercise_edits_share_identity_with_master_and_layout_undo_survives_restart",
+      "name": "dropped_receipts_still_drain_on_close_and_observers_see_final_closed_state",
       "result": "ok"
     },
     {
@@ -933,15 +978,11 @@
       "result": "ok"
     },
     {
-      "name": "reserved_cleanup_retires_backup_when_ordinary_queries_are_saturated",
-      "result": "ok"
-    },
-    {
-      "name": "close_waits_for_actual_sink_retirement_and_preserves_exclusive_library_ownership",
-      "result": "ok"
-    },
-    {
       "name": "capture_cancels_running_and_idle_reviews_without_reviving_them_after_pen_up",
+      "result": "ok"
+    },
+    {
+      "name": "reserved_cleanup_retires_backup_when_ordinary_queries_are_saturated",
       "result": "ok"
     },
     {
@@ -949,11 +990,15 @@
       "result": "ok"
     },
     {
+      "name": "close_waits_for_actual_sink_retirement_and_preserves_exclusive_library_ownership",
+      "result": "ok"
+    },
+    {
       "name": "sink_write_and_destructor_callbacks_cannot_self_join_or_publish_a_success_after_close",
       "result": "ok"
     },
     {
-      "name": "blocked_sink_does_not_hold_writer_and_source_edits_invalidate_completion",
+      "name": "finished_ciphertext_does_not_release_ownership_while_sink_destruction_is_blocked",
       "result": "ok"
     },
     {
@@ -961,7 +1006,7 @@
       "result": "ok"
     },
     {
-      "name": "finished_ciphertext_does_not_release_ownership_while_sink_destruction_is_blocked",
+      "name": "blocked_sink_does_not_hold_writer_and_source_edits_invalidate_completion",
       "result": "ok"
     },
     {
@@ -989,19 +1034,11 @@
       "result": "ok"
     },
     {
-      "name": "rejecting_a_prepared_revision_consumes_it_without_changing_the_source",
-      "result": "ok"
-    },
-    {
       "name": "new_link_selection_does_not_create_source_until_explicit_acceptance_and_uses_preallocated_identity",
       "result": "ok"
     },
     {
-      "name": "relock_scope_changes_and_failed_authentication_retire_old_capabilities",
-      "result": "ok"
-    },
-    {
-      "name": "selection_requires_fresh_verification_on_acceptance_and_rejection_is_single_use",
+      "name": "rejecting_a_prepared_revision_consumes_it_without_changing_the_source",
       "result": "ok"
     },
     {
@@ -1009,15 +1046,23 @@
       "result": "ok"
     },
     {
+      "name": "selection_requires_fresh_verification_on_acceptance_and_rejection_is_single_use",
+      "result": "ok"
+    },
+    {
+      "name": "relock_scope_changes_and_failed_authentication_retire_old_capabilities",
+      "result": "ok"
+    },
+    {
       "name": "selection_reviews_are_stale_safe_scope_checked_and_cleared_on_relock",
       "result": "ok"
     },
     {
-      "name": "changed_revision_can_be_reacquired_from_revoked_state_without_silent_anchor_relocation",
+      "name": "reviewed_pdf_replacement_updates_lineage_and_retires_the_old_live_read",
       "result": "ok"
     },
     {
-      "name": "reviewed_pdf_replacement_updates_lineage_and_retires_the_old_live_read",
+      "name": "changed_revision_can_be_reacquired_from_revoked_state_without_silent_anchor_relocation",
       "result": "ok"
     },
     {
@@ -1057,14 +1102,6 @@
       "result": "ok"
     },
     {
-      "name": "excessive_trusted_capture_sessions_disable_optional_work_but_preserve_authoring",
-      "result": "ok"
-    },
-    {
-      "name": "capture_priority_cancels_old_work_and_nested_contacts_never_resume_each_other",
-      "result": "ok"
-    },
-    {
       "name": "host_close_invalidates_prepared_work_while_pending_reviews_remain_explicit",
       "result": "ok"
     },
@@ -1073,11 +1110,23 @@
       "result": "ok"
     },
     {
+      "name": "blocked_inference_never_holds_writer_and_relock_rejects_late_output",
+      "result": "ok"
+    },
+    {
+      "name": "capture_priority_cancels_old_work_and_nested_contacts_never_resume_each_other",
+      "result": "ok"
+    },
+    {
+      "name": "excessive_trusted_capture_sessions_disable_optional_work_but_preserve_authoring",
+      "result": "ok"
+    },
+    {
       "name": "capture_priority_reaches_a_running_adapter_and_does_not_wait_for_it_to_save_ink",
       "result": "ok"
     },
     {
-      "name": "blocked_inference_never_holds_writer_and_relock_rejects_late_output",
+      "name": "processing_admission_counts_unrun_sources_and_close_retires_them_without_waiting_for_callers",
       "result": "ok"
     },
     {
@@ -1089,19 +1138,15 @@
       "result": "ok"
     },
     {
-      "name": "processing_admission_counts_unrun_sources_and_close_retires_them_without_waiting_for_callers",
-      "result": "ok"
-    },
-    {
       "name": "host_manual_recognition_review_correction_and_acceptance_preserve_original_ink",
       "result": "ok"
     },
     {
-      "name": "pending_reviews_are_discoverable_after_restart_without_a_loaded_model_and_hide_locked_source",
+      "name": "batch_acceptance_spanning_documents_records_independent_document_undo",
       "result": "ok"
     },
     {
-      "name": "batch_acceptance_spanning_documents_records_independent_document_undo",
+      "name": "pending_reviews_are_discoverable_after_restart_without_a_loaded_model_and_hide_locked_source",
       "result": "ok"
     },
     {
@@ -1129,15 +1174,15 @@
       "result": "ok"
     },
     {
-      "name": "capture_cancels_idle_and_running_restore_without_reviving_it_at_pen_up",
-      "result": "ok"
-    },
-    {
       "name": "close_retains_native_sqlite_ownership_through_read_and_reader_destructor_retirement",
       "result": "ok"
     },
     {
       "name": "current_and_legacy_password_and_recovery_roundtrip_exact_original_ink",
+      "result": "ok"
+    },
+    {
+      "name": "capture_cancels_idle_and_running_restore_without_reviving_it_at_pen_up",
       "result": "ok"
     },
     {
@@ -1161,15 +1206,15 @@
       "result": "ok"
     },
     {
-      "name": "single_slot_and_retained_closed_review_do_not_strand_host_close",
-      "result": "ok"
-    },
-    {
       "name": "reentrant_close_from_reader_drop_and_verifier_cannot_self_join_or_publish",
       "result": "ok"
     },
     {
       "name": "stream_restore_through_host_exceeds_the_legacy_whole_archive_limit",
+      "result": "ok"
+    },
+    {
+      "name": "single_slot_and_retained_closed_review_do_not_strand_host_close",
       "result": "ok"
     },
     {
@@ -1229,11 +1274,11 @@
       "result": "ok"
     },
     {
-      "name": "legacy_canvas_migrates_to_an_implicit_base_without_rewriting_original_payloads",
+      "name": "native_copy_remaps_layer_and_embed_overrides_and_derivatives_respect_default_visibility",
       "result": "ok"
     },
     {
-      "name": "native_copy_remaps_layer_and_embed_overrides_and_derivatives_respect_default_visibility",
+      "name": "legacy_canvas_migrates_to_an_implicit_base_without_rewriting_original_payloads",
       "result": "ok"
     },
     {
@@ -1253,7 +1298,7 @@
       "result": "ok"
     },
     {
-      "name": "protected_canvas_cannot_leak_through_embed_or_group",
+      "name": "images_cannot_bypass_locks_even_after_replacing_visible_content",
       "result": "ok"
     },
     {
@@ -1261,11 +1306,11 @@
       "result": "ok"
     },
     {
-      "name": "images_cannot_bypass_locks_even_after_replacing_visible_content",
+      "name": "table_cell_edit_preserves_identity_neighbours_and_source_ink",
       "result": "ok"
     },
     {
-      "name": "table_cell_edit_preserves_identity_neighbours_and_source_ink",
+      "name": "protected_canvas_cannot_leak_through_embed_or_group",
       "result": "ok"
     },
     {
@@ -1273,11 +1318,11 @@
       "result": "ok"
     },
     {
-      "name": "view_settings_and_protected_placeholders_reopen_without_secret_text",
+      "name": "native_v3_roundtrip_preserves_assets_layout_groups_and_embeds_with_new_ids",
       "result": "ok"
     },
     {
-      "name": "native_v3_roundtrip_preserves_assets_layout_groups_and_embeds_with_new_ids",
+      "name": "view_settings_and_protected_placeholders_reopen_without_secret_text",
       "result": "ok"
     },
     {
@@ -1285,7 +1330,7 @@
       "result": "ok"
     },
     {
-      "name": "stale_edit_and_interrupted_move_do_not_change_saved_state",
+      "name": "delete_review_is_invalidated_by_new_dependency",
       "result": "ok"
     },
     {
@@ -1293,15 +1338,15 @@
       "result": "ok"
     },
     {
-      "name": "delete_review_is_invalidated_by_new_dependency",
-      "result": "ok"
-    },
-    {
-      "name": "module_moves_check_descendants_cycles_and_depth_atomically",
+      "name": "stale_edit_and_interrupted_move_do_not_change_saved_state",
       "result": "ok"
     },
     {
       "name": "locked_dependencies_disclose_presence_without_name_or_id",
+      "result": "ok"
+    },
+    {
+      "name": "module_moves_check_descendants_cycles_and_depth_atomically",
       "result": "ok"
     },
     {
@@ -1321,15 +1366,15 @@
       "result": "ok"
     },
     {
-      "name": "source_revision_review_preserves_work_and_requires_anchor_reconnection",
-      "result": "ok"
-    },
-    {
       "name": "revision_change_is_atomic_stale_safe_and_cannot_change_locked_annotations",
       "result": "ok"
     },
     {
-      "name": "raw_ink_requires_deliberate_inclusion_and_subset_export_never_follows_links",
+      "name": "source_revision_review_preserves_work_and_requires_anchor_reconnection",
+      "result": "ok"
+    },
+    {
+      "name": "export_plan_cannot_survive_later_lock_or_source_change",
       "result": "ok"
     },
     {
@@ -1345,11 +1390,11 @@
       "result": "ok"
     },
     {
-      "name": "export_plan_cannot_survive_later_lock_or_source_change",
+      "name": "hostile_cross_kind_identifier_aliases_are_rejected_before_import",
       "result": "ok"
     },
     {
-      "name": "hostile_cross_kind_identifier_aliases_are_rejected_before_import",
+      "name": "raw_ink_requires_deliberate_inclusion_and_subset_export_never_follows_links",
       "result": "ok"
     },
     {
@@ -1369,6 +1414,10 @@
       "result": "ok"
     },
     {
+      "name": "exercise_membership_and_current_block_protection_gate_bookmark_metadata_and_replacement",
+      "result": "ok"
+    },
+    {
       "name": "structured_math_and_component_offsets_validate_without_interpreting_or_repairing_content",
       "result": "ok"
     },
@@ -1381,7 +1430,7 @@
       "result": "ok"
     },
     {
-      "name": "exercise_membership_and_current_block_protection_gate_bookmark_metadata_and_replacement",
+      "name": "observed_ink_region_bookmarks_copy_global_ids_and_old_format_tags_cannot_hide_them",
       "result": "ok"
     },
     {
@@ -1389,19 +1438,15 @@
       "result": "ok"
     },
     {
-      "name": "view_discovery_reopens_saved_positions_and_filters_fresh_block_protection",
-      "result": "ok"
-    },
-    {
       "name": "unicode_selection_reopens_and_changed_content_requires_explicit_fresh_bookmark",
       "result": "ok"
     },
     {
-      "name": "schema10_upgrade_keeps_legacy_view_payload_byte_for_byte_and_absent_bookmark_is_not_invented",
+      "name": "view_discovery_reopens_saved_positions_and_filters_fresh_block_protection",
       "result": "ok"
     },
     {
-      "name": "observed_ink_region_bookmarks_copy_global_ids_and_old_format_tags_cannot_hide_them",
+      "name": "schema10_upgrade_keeps_legacy_view_payload_byte_for_byte_and_absent_bookmark_is_not_invented",
       "result": "ok"
     },
     {
@@ -1465,19 +1510,19 @@
       "result": "ok"
     },
     {
-      "name": "cancel_timeout_and_worker_panic_discard_results",
-      "result": "ok"
-    },
-    {
       "name": "locked_ink_and_proposals_cannot_be_sent_or_reviewed_without_access",
       "result": "ok"
     },
     {
-      "name": "stale_inference_and_stale_proposal_cannot_overwrite_corrections",
+      "name": "cancel_timeout_and_worker_panic_discard_results",
       "result": "ok"
     },
     {
       "name": "rejection_and_failed_atomic_accept_leave_ink_untouched",
+      "result": "ok"
+    },
+    {
+      "name": "stale_inference_and_stale_proposal_cannot_overwrite_corrections",
       "result": "ok"
     },
     {
@@ -1489,6 +1534,10 @@
       "result": "ok"
     },
     {
+      "name": "proposal_review_acceptance_and_source_survive_reopen",
+      "result": "ok"
+    },
+    {
       "name": "stored_proposal_identity_mismatch_cannot_acknowledge_a_correction",
       "result": "ok"
     },
@@ -1497,19 +1546,15 @@
       "result": "ok"
     },
     {
-      "name": "proposal_review_acceptance_and_source_survive_reopen",
-      "result": "ok"
-    },
-    {
       "name": "two_connections_cannot_silently_overwrite_same_revision",
       "result": "ok"
     },
     {
-      "name": "failed_migration_rolls_back_and_newer_schema_is_not_downgraded",
+      "name": "process_exit_before_and_after_commit_preserves_correct_durable_boundary",
       "result": "ok"
     },
     {
-      "name": "process_exit_before_and_after_commit_preserves_correct_durable_boundary",
+      "name": "failed_migration_rolls_back_and_newer_schema_is_not_downgraded",
       "result": "ok"
     },
     {
@@ -1569,11 +1614,11 @@
       "result": "ok"
     },
     {
-      "name": "legacy_source_payload_hash_and_receipt_are_not_rewritten_by_schema13_upgrade",
+      "name": "source_style_and_receipt_survive_edits_reopen_native_copy_and_legacy_format_validation",
       "result": "ok"
     },
     {
-      "name": "source_style_and_receipt_survive_edits_reopen_native_copy_and_legacy_format_validation",
+      "name": "legacy_source_payload_hash_and_receipt_are_not_rewritten_by_schema13_upgrade",
       "result": "ok"
     },
     {
@@ -1617,11 +1662,7 @@
       "result": "ok"
     },
     {
-      "name": "mode_defaults_and_inheritance_do_not_convert_existing_ink",
-      "result": "ok"
-    },
-    {
-      "name": "stale_edits_and_view_toggles_never_mutate_source",
+      "name": "exact_code_and_incorrect_math_survive_edits_and_restore_as_new_revision",
       "result": "ok"
     },
     {
@@ -1629,7 +1670,7 @@
       "result": "ok"
     },
     {
-      "name": "active_use_retirement_keeps_checkpoint_and_originals",
+      "name": "mode_defaults_and_inheritance_do_not_convert_existing_ink",
       "result": "ok"
     },
     {
@@ -1637,11 +1678,11 @@
       "result": "ok"
     },
     {
-      "name": "unauthorised_history_retirement_skips_locked_content",
+      "name": "stale_edits_and_view_toggles_never_mutate_source",
       "result": "ok"
     },
     {
-      "name": "exact_code_and_incorrect_math_survive_edits_and_restore_as_new_revision",
+      "name": "active_use_retirement_keeps_checkpoint_and_originals",
       "result": "ok"
     },
     {
@@ -1649,15 +1690,13 @@
       "result": "ok"
     },
     {
+      "name": "unauthorised_history_retirement_skips_locked_content",
+      "result": "ok"
+    },
+    {
       "name": "source_ink_is_lossless_after_reopen_transform_erase_and_history_retirement",
       "result": "ok"
     }
   ],
-  "backend_accepted": false,
-  "finished_utc": "2026-10-25T19:28:23.188869+00:00",
-  "totals": {
-    "passed": 328,
-    "failed": 0,
-    "ignored": 0
-  }
+  "backend_accepted": false
 }
