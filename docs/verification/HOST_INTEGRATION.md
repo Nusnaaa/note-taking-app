@@ -1539,3 +1539,14 @@ restart discovery, live draft preservation, quota and malformed input rejection,
 failed retirement, revoked grants, blocked read/open/cancellation-listener close,
 relock, off-writer cleanup and ambiguous publication. These are synthetic provider
 and filesystem fixtures, not ART, real provider or device-power-loss evidence.
+
+Recovered activation uses `Host.open_existing` / `NativeBridge.openExisting` after
+app LibraryOwnership admission. SQLite opens without CREATE and checks the stored
+supported schema, baseline notebook tables, generation/protection settings and
+library identity before migration/write admission. It rejects missing, empty,
+foreign or invalid-identity databases instead of initializing them. Existing
+legacy notebook schemas still migrate through the normal transactional path.
+No Java/raw database descriptor is opened for preflight: closing an unrelated raw
+FD could otherwise disturb this process's POSIX SQLite locks. Duplicate-open tests
+verify that both app and native rejected duplicates leave the original writer's
+exclusive ownership and subsequent edits intact.

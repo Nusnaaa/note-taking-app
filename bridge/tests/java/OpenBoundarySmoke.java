@@ -4,9 +4,10 @@ import org.stemnotebook.backend.NativeBridge;
 
 /** Desktop JNI input-boundary fixture; no Android/device acceptance claim. */
 public final class OpenBoundarySmoke {
-    private static void rejected(String path) {
+    private static void rejected(String path) { rejected(path, false); }
+    private static void rejected(String path, boolean existing) {
         try {
-            long host = NativeBridge.open(path);
+            long host = existing ? NativeBridge.openExisting(path) : NativeBridge.open(path);
             NativeBridge.close(host);
             throw new AssertionError("Invalid database path accepted");
         } catch (IllegalStateException expected) {
@@ -27,8 +28,24 @@ public final class OpenBoundarySmoke {
                 if (files.findAny().isPresent()) throw new AssertionError("Scratch directory changed");
             }
             Path database = directory.resolve("library.db");
+            Path missing=directory.resolve("missing.db");
+            rejected(missing.toString(),true);
+            if(Files.exists(missing)) throw new AssertionError("Strict open created a file");
+            Path empty=directory.resolve("empty.db");Files.write(empty,new byte[0]);
+            rejected(empty.toString(),true);
+            if(Files.size(empty)!=0) throw new AssertionError("Strict open initialized an empty file");
+            Path invalid=directory.resolve("invalid.db");Files.write(invalid,new byte[]{1,2,3});
+            rejected(invalid.toString(),true);
+            if(!java.util.Arrays.equals(Files.readAllBytes(invalid),new byte[]{1,2,3})) throw new AssertionError("Invalid input changed");
             NativeBridge.close(NativeBridge.open(database.toString()));
-            NativeBridge.close(NativeBridge.open(database.toString()));
+            long owner=NativeBridge.openExisting(database.toString());
+            try {
+                rejected(database.toString(),true);
+                String result=NativeBridge.request(owner,"{\"version\":1,\"command\":{\"op\":\"Create\",\"kind\":\"Note\",\"parent\":null,\"title\":\"locks retained\"}}");
+                if(!result.contains("\"ok\":true")) throw new AssertionError("Failed duplicate disturbed writer locks");
+                rejected(database.toString(),true);
+            } finally {NativeBridge.close(owner);}
+            NativeBridge.close(NativeBridge.openExisting(database.toString()));
             System.out.println("PASS: invalid paths rejected; valid library opens and reopens (1)");
         } finally {
             try (var files = Files.list(directory)) {

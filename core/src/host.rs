@@ -491,7 +491,23 @@ impl Host {
             },
         )
     }
+    /// Open an already existing notebook only; never initialize a new library.
+    pub fn open_existing(path: PathBuf, capacity: usize) -> Result<Self> {
+        Self::open_mode(
+            path,
+            WriterLimits {
+                authoring_count: capacity,
+                query_count: capacity,
+                authoring_bytes: 32 * 1024 * 1024,
+                query_bytes: 8 * 1024 * 1024,
+            },
+            true,
+        )
+    }
     pub fn open_with_limits(path: PathBuf, limits: WriterLimits) -> Result<Self> {
+        Self::open_mode(path, limits, false)
+    }
+    fn open_mode(path: PathBuf, limits: WriterLimits, existing: bool) -> Result<Self> {
         let mailbox = Mailbox::new(limits)?;
         if path == std::path::Path::new(":memory:") {
             return Err(Error::Invalid("file-backed library path"));
@@ -507,7 +523,12 @@ impl Host {
         let worker = thread::Builder::new()
             .name("stem-writer".into())
             .spawn(move || {
-                let mut store = match ownership::open(&path) {
+                let opened = if existing {
+                    ownership::open_existing(&path)
+                } else {
+                    ownership::open(&path)
+                };
+                let mut store = match opened {
                     Ok(s) => {
                         let _ = ready_tx.send(Ok(()));
                         s

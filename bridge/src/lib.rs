@@ -32,10 +32,21 @@ fn fail(env: &mut JNIEnv<'_>) {
 }
 #[no_mangle]
 pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_open(
-    mut env: JNIEnv<'_>,
+    env: JNIEnv<'_>,
     _: JClass<'_>,
     path: JString<'_>,
 ) -> jlong {
+    open_host(env, path, false)
+}
+#[no_mangle]
+pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_openExisting(
+    env: JNIEnv<'_>,
+    _: JClass<'_>,
+    path: JString<'_>,
+) -> jlong {
+    open_host(env, path, true)
+}
+fn open_host(mut env: JNIEnv<'_>, path: JString<'_>, existing: bool) -> jlong {
     let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> Option<i64> {
         let path = bounded_string(&mut env, &path, 4096)?;
         if path.len() > 4096 || !std::path::Path::new(&path).is_absolute() {
@@ -43,7 +54,12 @@ pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_open(
         }
         // Allocate before opening SQLite so exhausted handles have no disk side effects.
         let id = allocate_handle(&NEXT)?;
-        let host = Host::open(path.into(), 64).ok()?;
+        let host = if existing {
+            Host::open_existing(path.into(), 64)
+        } else {
+            Host::open(path.into(), 64)
+        }
+        .ok()?;
         hosts().lock().ok()?.insert(id, Arc::new(host));
         Some(id)
     }));

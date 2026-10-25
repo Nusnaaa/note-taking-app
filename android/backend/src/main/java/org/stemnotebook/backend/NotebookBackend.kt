@@ -10,7 +10,7 @@ import java.util.UUID
 import org.json.JSONObject
 
 /** Owns native lifetime and serialises requests away from the Android main thread. */
-class NotebookBackend internal constructor(context: Context, pdfFactory: (Context, (JSONObject) -> JSONObject) -> PdfWorkspace, selectionProvider: PdfProvider = PdfProvider(context), captureJournalFault: (String) -> Unit = {}, backupFault: (String) -> Unit = {}, backupDocuments: BackupDocuments = BackupDocuments.platform(context), restoreFault: (String) -> Unit = {}, restoreDocuments: RestoreDocuments = RestoreDocuments.platform(context)) : Closeable {
+class NotebookBackend internal constructor(context: Context, pdfFactory: (Context, (JSONObject) -> JSONObject) -> PdfWorkspace, selectionProvider: PdfProvider = PdfProvider(context), captureJournalFault: (String) -> Unit = {}, backupFault: (String) -> Unit = {}, backupDocuments: BackupDocuments = BackupDocuments.platform(context), restoreFault: (String) -> Unit = {}, restoreDocuments: RestoreDocuments = RestoreDocuments.platform(context), existingLibrary: Boolean = false) : Closeable {
     constructor(context: Context) : this(context, { platform, native -> PdfWorkspace(platform, native) })
     private val ownership = try { LibraryOwnership.acquire(context.noBackupFilesDir) } catch (error: Exception) { selectionProvider.close(); throw error }
     private val directory = File(context.noBackupFilesDir, "notebook")
@@ -95,7 +95,10 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
                 if (!closed) capturePriority.keys.forEach { signalCapturePriority(it, true) }
             } }
             // No native handle is opened until every synchronous factory succeeds.
-            CompletableFuture.supplyAsync({ NativeBridge.open(File(directory, "library.db").absolutePath) }, executor).whenComplete { value, error ->
+            CompletableFuture.supplyAsync({
+                val path = File(directory, "library.db").absolutePath
+                if (existingLibrary) NativeBridge.openExisting(path) else NativeBridge.open(path)
+            }, executor).whenComplete { value, error ->
                 if (error == null) handle.complete(value) else { handle.completeExceptionally(error); close() }
             }
         } catch (error: Throwable) {

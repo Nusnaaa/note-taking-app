@@ -105,18 +105,13 @@ class NotebookRestores internal constructor(
             val record = readRestoreMarker(marker)
             require(record.getInt("format") == 1 && record.getString("id") == id.toString())
             require(record.getString("state") in setOf("pending", "Published", "Uncertain"))
-            val header = ByteArray(16)
-            Files.newInputStream(database.toPath(), StandardOpenOption.READ, LinkOption.NOFOLLOW_LINKS).use { input ->
-                var count = 0
-                while (count < header.size) {
-                    val read = input.read(header, count, header.size - count)
-                    require(read > 0); count += read
-                }
-            }
-            require(header.contentEquals("SQLite format 3\u0000".toByteArray(Charsets.US_ASCII)))
-            return NotebookBackend(object : ContextWrapper(context.applicationContext) {
+            // Metadata checks do not open a database descriptor. SQLite itself
+            // validates/claims the existing file after LibraryOwnership admission.
+            require(database.length() > 0)
+            val selected = object : ContextWrapper(context.applicationContext) {
                 override fun getNoBackupFilesDir(): File = root
-            })
+            }
+            return NotebookBackend(selected, { platform, native -> PdfWorkspace(platform, native) }, existingLibrary = true)
         }
     }
     private inner class Operation<T : Any>(val timeout: Long) {

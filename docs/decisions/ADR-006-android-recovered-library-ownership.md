@@ -41,3 +41,13 @@ empty exactly owned directory. Explicit orphan review/cleanup, hard staging quot
 bounded whole-graph semantic validation, malformed/storage interruption coverage
 and real-provider/device acceptance remain open. No UI, automatic cloud backup,
 remote inference or model installation is introduced by this decision.
+
+Review correction before push: activation must not inspect a SQLite header using
+a raw Java file descriptor before admission. Such descriptor closure can disturb
+same-process POSIX SQLite locking. Strict existing-only opening is implemented by
+the native SQLite connection, without CREATE and with notebook-format checks
+before migration; app ownership precedes it. This also rejects unknown/empty files
+without initializing them. Duplicate activation is tested with subsequent authoring
+and an independent native duplicate attempt, rather than only testing a thrown
+exception. The initial whole-run attempt predating this correction is development
+evidence and will not be claimed as final exact-source acceptance.

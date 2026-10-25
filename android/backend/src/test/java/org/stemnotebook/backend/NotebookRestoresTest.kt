@@ -105,6 +105,11 @@ class NotebookRestoresTest {
             result.library.open(platform(root)).let { recovered ->
                 try {
                     assertEquals(before, call(recovered, source).get("data").toString())
+                    try { result.library.open(platform(root)); fail("Recovered duplicate owner admitted") } catch (_: IllegalStateException) { }
+                    note(recovered, "recovered authoring after failed duplicate")
+                    val recoveredDatabase = File(root, "recovered-libraries/${result.library.id}/notebook/library.db")
+                    try { NativeBridge.openExisting(recoveredDatabase.absolutePath); fail("Native duplicate admitted") } catch (_: IllegalStateException) { }
+                    note(recovered, "writer locks stay owned")
                     val titles = call(recovered, JSONObject().put("op", "List").put("parent", JSONObject.NULL)).toString()
                     assertTrue(titles.contains("restored fixture")); assertFalse(titles.contains("new live work"))
                 } finally { finish(recovered) }
