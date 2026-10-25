@@ -1,7 +1,8 @@
-$ /usr/lib/jvm/java-21-openjdk-amd64/bin/java -Xcheck:jni -Djava.library.path=target/debug -cp /home/linus/Projects/software/note-taking-app/repo/target/jni-2w1op_fc/shrunk.jar BoundarySmoke
+$ /usr/lib/jvm/java-21-openjdk-amd64/bin/java -Xcheck:jni -Djava.library.path=target/debug -cp /home/linus/Projects/software/note-taking-app/repo/target/jni-hzo6nvzm/shrunk.jar BoundarySmoke
 exit_code=0
 
 Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/stem-android-user
+PASS: bounded offline recovery Help without a library handle (1)
 PASS: JNI backup ciphertext/char-array key, single-use/cancel, explicit confirmation, callback exception, retirement failure, capture invalidation and close ownership (7)
 PASS: invalid paths rejected; valid library opens and reopens (1)
 PASS: restore publication, callback bounds/retirement, failure redaction, cancellation and close (7)
