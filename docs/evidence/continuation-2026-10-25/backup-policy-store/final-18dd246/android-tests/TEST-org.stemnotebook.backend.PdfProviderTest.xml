@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.PdfProviderTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-25T19:17:46" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="3.64">
+  <properties/>
+  <testcase name="explicitCancellationAndGrantRevocationDiscardLateResults" classname="org.stemnotebook.backend.PdfProviderTest" time="0.098"/>
+  <testcase name="openingIsOffThreadAndTransfersOneReadOnlyDescriptor" classname="org.stemnotebook.backend.PdfProviderTest" time="0.071"/>
+  <testcase name="abandoningReadyDescriptorAndProviderCloseReleaseOwnership" classname="org.stemnotebook.backend.PdfProviderTest" time="0.077"/>
+  <testcase name="cancellationListenerCannotBlockOtherDeadlinesAndCancelledQueueNeverOpens" classname="org.stemnotebook.backend.PdfProviderTest" time="2.074"/>
+  <testcase name="timeoutDoesNotFreeUncooperativeProviderAndLateDescriptorCloses" classname="org.stemnotebook.backend.PdfProviderTest" time="1.077"/>
+  <testcase name="malformedAcquisitionDoesNotEnterProviderOrRetainAnImplicitGrant" classname="org.stemnotebook.backend.PdfProviderTest" time="0.098"/>
+  <testcase name="deniedAndFailedProviderErrorsAreContentFree" classname="org.stemnotebook.backend.PdfProviderTest" time="0.075"/>
+  <testcase name="explicitCancelSignalsProviderWithoutFreeingItsSlotEarly" classname="org.stemnotebook.backend.PdfProviderTest" time="0.07"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
