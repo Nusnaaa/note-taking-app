@@ -1,0 +1,176 @@
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/stem-android-user
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.9/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :backend:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :backend:preBuild UP-TO-DATE
+> Task :backend:preDebugBuild UP-TO-DATE
+> Task :backend:generateDebugResValues UP-TO-DATE
+> Task :backend:generateDebugResources UP-TO-DATE
+> Task :backend:packageDebugResources UP-TO-DATE
+> Task :backend:parseDebugLocalResources UP-TO-DATE
+> Task :backend:generateDebugRFile UP-TO-DATE
+> Task :backend:javaPreCompileDebug UP-TO-DATE
+> Task :backend:preDebugUnitTestBuild UP-TO-DATE
+> Task :backend:writeDebugAarMetadata UP-TO-DATE
+> Task :backend:checkDebugUnitTestAarMetadata UP-TO-DATE
+> Task :backend:compileDebugLibraryResources UP-TO-DATE
+> Task :backend:generateDebugUnitTestResValues UP-TO-DATE
+> Task :backend:mapDebugUnitTestSourceSetPaths UP-TO-DATE
+> Task :backend:generateDebugUnitTestResources UP-TO-DATE
+> Task :backend:mergeDebugUnitTestResources UP-TO-DATE
+> Task :backend:extractDeepLinksDebug UP-TO-DATE
+> Task :backend:processDebugManifest UP-TO-DATE
+> Task :backend:processDebugUnitTestManifest UP-TO-DATE
+> Task :backend:processDebugUnitTestResources UP-TO-DATE
+> Task :backend:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :backend:mergeDebugShaders UP-TO-DATE
+> Task :backend:compileDebugShaders NO-SOURCE
+> Task :backend:generateDebugAssets UP-TO-DATE
+> Task :backend:mergeDebugAssets UP-TO-DATE
+> Task :backend:generateDebugUnitTestAssets UP-TO-DATE
+> Task :backend:packageDebugAssets UP-TO-DATE
+> Task :backend:mergeDebugUnitTestAssets UP-TO-DATE
+> Task :backend:packageDebugUnitTestForUnitTest UP-TO-DATE
+> Task :backend:generateDebugUnitTestConfig UP-TO-DATE
+> Task :backend:mergeDebugJniLibFolders UP-TO-DATE
+> Task :backend:mergeDebugNativeLibs NO-SOURCE
+> Task :backend:stripDebugDebugSymbols NO-SOURCE
+> Task :backend:copyDebugJniLibsProjectAndLocalJars UP-TO-DATE
+> Task :backend:extractDeepLinksForAarDebug UP-TO-DATE
+> Task :backend:prepareDebugArtProfile UP-TO-DATE
+> Task :backend:prepareLintJarForPublish UP-TO-DATE
+> Task :backend:preDebugAndroidTestBuild UP-TO-DATE
+> Task :backend:generateDebugAndroidTestResValues UP-TO-DATE
+> Task :backend:writeDebugLintModelMetadata UP-TO-DATE
+> Task :backend:extractProguardFiles UP-TO-DATE
+> Task :backend:compileDebugKotlin
+> Task :backend:compileDebugJavaWithJavac UP-TO-DATE
+> Task :backend:bundleLibRuntimeToJarDebug
+> Task :backend:bundleLibCompileToJarDebug
+> Task :backend:processDebugJavaRes UP-TO-DATE
+> Task :backend:extractDebugAnnotations
+> Task :backend:mergeDebugGeneratedProguardFiles UP-TO-DATE
+> Task :backend:mergeDebugConsumerProguardFiles UP-TO-DATE
+> Task :backend:mergeDebugJavaResource UP-TO-DATE
+> Task :backend:syncDebugLibJars
+> Task :backend:bundleDebugLocalLintAar
+> Task :backend:createFullJarDebug
+> Task :backend:generateDebugAndroidTestLintModel
+> Task :backend:generateDebugLintReportModel
+> Task :backend:generateDebugUnitTestLintModel
+> Task :backend:compileDebugUnitTestKotlin
+> Task :backend:lintAnalyzeDebug
+> Task :backend:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :backend:processDebugUnitTestJavaRes UP-TO-DATE
+
+> Task :backend:testDebugUnitTest
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/stem-android-user
+
+> Task :backend:lintAnalyzeDebugAndroidTest
+> Task :backend:lintAnalyzeDebugUnitTest
+
+> Task :backend:lintReportDebug
+Wrote HTML report to file:///tmp/stem-scheduled-backup-work/android/backend/build/reports/lint-results-debug.html
+
+> Task :backend:lintDebug FAILED
+Lint found 1 errors, 0 warnings. First failure:
+
+/tmp/stem-scheduled-backup-work/android/backend/src/main/java/org/stemnotebook/backend/BackupPolicyStore.kt:122: Error: Suspicious indentation: This is indented but is not nested under the previous expression (if (c.isNull(index))...) [SuspiciousIndentation]
+            val read = bool(c, 7); val write = bool(c, 8)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    /tmp/stem-scheduled-backup-work/android/backend/src/main/java/org/stemnotebook/backend/BackupPolicyStore.kt:121: Previous statement here
+
+   Explanation for issues of type "SuspiciousIndentation":
+   This check looks for cases where the indentation suggests a grouping that
+   isn't actually there in the code. A common example of this would be
+   something like
+   if (column > width)
+       line++
+       column = 0
+   Here, the column = 0 line will be executed every single time, not just if
+   the condition is true.
+
+   Available options:
+
+   **always-run** (default is false):
+   Whether this check should be included while editing.
+
+   While you're editing, it's common to have a temporary situation where you have suspicious indentation scenarios -- e.g. you start typing an `if` statement on the line above something you want to make conditional, and you haven't indented it yet. It can be distracting and misleading to suddenly have both statements light up as errors. Therefore, lint will avoid including this check when running on the fly in the editor, unless it looks like the file has not been recently edited. With this option, you can turn it on in all cases.
+
+   To configure this option, use a `lint.xml` file with an <option> like this:
+
+   ```xml
+   <lint>
+       <issue id="SuspiciousIndentation">
+           <option name="always-run" value="false" />
+       </issue>
+   </lint>
+   ```
+
+
+The full lint text report is located at:
+  /tmp/stem-scheduled-backup-work/android/backend/build/intermediates/lint_intermediate_text_report/debug/lintReportDebug/lint-results-debug.txt
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':backend:lintDebug'.
+> Lint found errors in the project; aborting build.
+  
+  Fix the issues identified by lint, or create a baseline to see only new errors.
+  To create a baseline, run `gradlew updateLintBaseline` after adding the following to the module's build.gradle file:
+  ```
+  android {
+      lint {
+          baseline = file("lint-baseline.xml")
+      }
+  }
+  ```
+  For more details, see https://developer.android.com/studio/write/lint#snapshot
+  
+  Lint found 1 errors, 0 warnings. First failure:
+  
+  /tmp/stem-scheduled-backup-work/android/backend/src/main/java/org/stemnotebook/backend/BackupPolicyStore.kt:122: Error: Suspicious indentation: This is indented but is not nested under the previous expression (if (c.isNull(index))...) [SuspiciousIndentation]
+              val read = bool(c, 7); val write = bool(c, 8)
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      /tmp/stem-scheduled-backup-work/android/backend/src/main/java/org/stemnotebook/backend/BackupPolicyStore.kt:121: Previous statement here
+  
+     Explanation for issues of type "SuspiciousIndentation":
+     This check looks for cases where the indentation suggests a grouping that
+     isn't actually there in the code. A common example of this would be
+     something like
+     if (column > width)
+         line++
+         column = 0
+     Here, the column = 0 line will be executed every single time, not just if
+     the condition is true.
+  
+     Available options:
+  
+     **always-run** (default is false):
+     Whether this check should be included while editing.
+  
+     While you're editing, it's common to have a temporary situation where you have suspicious indentation scenarios -- e.g. you start typing an `if` statement on the line above something you want to make conditional, and you haven't indented it yet. It can be distracting and misleading to suddenly have both statements light up as errors. Therefore, lint will avoid including this check when running on the fly in the editor, unless it looks like the file has not been recently edited. With this option, you can turn it on in all cases.
+  
+     To configure this option, use a `lint.xml` file with an <option> like this:
+  
+     ```xml
+     <lint>
+         <issue id="SuspiciousIndentation">
+             <option name="always-run" value="false" />
+         </issue>
+     </lint>
+     ```
+  
+  
+  The full lint text report is located at:
+    /tmp/stem-scheduled-backup-work/android/backend/build/intermediates/lint_intermediate_text_report/debug/lintReportDebug/lint-results-debug.txt
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 2m 34s
+55 actionable tasks: 17 executed, 38 up-to-date

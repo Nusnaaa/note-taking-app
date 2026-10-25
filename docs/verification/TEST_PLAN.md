@@ -383,3 +383,22 @@ acknowledgements. It never creates a backup or grants source-content access.
 Both production Android adapter sources compile and lint. Real Keystore/provider
 persistence, a durable consent/credential store and the scheduler service/run
 lifecycle are not proven by these component tests and remain implementation work.
+
+### Device-local credential/consent store component coverage
+
+`BackupPolicyStoreTest` uses Robolectric SQLite and injected JCA AES-GCM keys to
+exercise durable intent-before-key creation, restart decryption, required consent,
+rollback/lost acknowledgements, consumer-held retirement, failed deletion and
+restart retry, purpose/library/backup binding, bounded discovery and malformed
+blobs, permission decision/outcome matching, cancellation and foreign/linked
+namespace preservation. See [the store contract](../formats/BACKUP_POLICY_STORE.md).
+No scheduler, real Android Keystore/provider, device or physical-interruption
+acceptance follows from these host component checks. Whole requirement statuses
+remain incomplete.
+
+`BackupSchedulePolicyTest` covers persisted Arming/Enabled/Disabled transitions,
+exact registration revisions, stale/duplicate/concurrent job admission, active
+run retention during disablement and credential retirement, rollback, lost
+registration/run acknowledgements, restart interruption, exact recorded provider
+consent, immutable outcomes and replacement with fresh reviewed authority. It is
+a SQLite state-machine test; no real OS job is registered by these fixtures.

@@ -1,0 +1,6 @@
+{
+  "android/backend/src/main/java/org/stemnotebook/backend/BackupPolicyDatabase.kt": "80df69e4c68bc55c82e426be606133d55bcfa07b0f91356405564facdd54e62b",
+  "android/backend/src/main/java/org/stemnotebook/backend/BackupPolicyStore.kt": "aa44038d654585c730336859f73d44de40c7efea1b1940817550694f8da21273",
+  "android/backend/src/main/java/org/stemnotebook/backend/BackupCredentialVault.kt": "edbbab60342e0d59a10cc06277fe91824035a32089636e271750d0d313b8d245",
+  "android/backend/src/test/java/org/stemnotebook/backend/BackupPolicyStoreTest.kt": "546f1152ad72da8cf67fbdefc4df3c970002eee4cd8244bde556b3d46ce1ecbc"
+}

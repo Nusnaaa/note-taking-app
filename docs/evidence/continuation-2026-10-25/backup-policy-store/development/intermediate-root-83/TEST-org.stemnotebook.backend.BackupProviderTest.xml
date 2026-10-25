@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.BackupProviderTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-25T18:59:15" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="87.59">
+  <properties/>
+  <testcase name="ambiguousCreationAndNonChildDocumentNeverBecomeVerifiedBackups" classname="org.stemnotebook.backend.BackupProviderTest" time="5.475"/>
+  <testcase name="providerDeadlineCancelsCooperativeOpenAndStillReportsThePossibleNewDocument" classname="org.stemnotebook.backend.BackupProviderTest" time="11.055"/>
+  <testcase name="relockRetiresDestinationReviewBeforeAnyProviderCreation" classname="org.stemnotebook.backend.BackupProviderTest" time="5.825"/>
+  <testcase name="reviewedFreshDocumentContainsOnlyVerifiedCiphertextAndNoCloudDurabilityClaim" classname="org.stemnotebook.backend.BackupProviderTest" time="7.728"/>
+  <testcase name="cancellationListenerRetirementKeepsLibraryOwnershipAndAdmissionBounded" classname="org.stemnotebook.backend.BackupProviderTest" time="7.815"/>
+  <testcase name="revocationAfterCreationLeavesAnUncertainNewDocumentWithoutTruncatingOthers" classname="org.stemnotebook.backend.BackupProviderTest" time="6.935"/>
+  <testcase name="suppliedPickerBitsNeverReplaceActualAccessAndExistingDocumentsAreUntouched" classname="org.stemnotebook.backend.BackupProviderTest" time="6.298"/>
+  <testcase name="productionAdapterRejectsOsDeniedGrantBeforeReadingProviderMetadata" classname="org.stemnotebook.backend.BackupProviderTest" time="0.062"/>
+  <testcase name="corruptedPrivateArtifactIsRejectedBeforeExternalCreation" classname="org.stemnotebook.backend.BackupProviderTest" time="6.408"/>
+  <testcase name="writeOnlyPipeCanBeVerifiedWithoutInventingDescriptorDurability" classname="org.stemnotebook.backend.BackupProviderTest" time="7.26"/>
+  <testcase name="changedDestinationOrRevokedGrantRequiresNewReviewWithoutCreatingAFile" classname="org.stemnotebook.backend.BackupProviderTest" time="6.982"/>
+  <testcase name="readbackMismatchIsUncertainAndKeepsCredentialsForExplicitRecovery" classname="org.stemnotebook.backend.BackupProviderTest" time="7.503"/>
+  <testcase name="blockedProviderReadbackLeavesAuthoringAvailableAndDoesNotCoverLaterEdits" classname="org.stemnotebook.backend.BackupProviderTest" time="8.244"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

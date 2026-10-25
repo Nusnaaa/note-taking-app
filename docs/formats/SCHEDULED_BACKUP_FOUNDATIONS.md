@@ -1,8 +1,10 @@
 # Scheduled-backup foundations (scheduling is not enabled)
 
-These internal components prepare the I0/I1 opt-in scheduling workflow. No
-schedule, job service, credential database or persisted job configuration is
-currently wired to them. Manual backup and its history remain independent.
+These internal components prepare the I0/I1 opt-in scheduling workflow.
+[Credential/consent storage](BACKUP_POLICY_STORE.md) and
+[persisted configuration/run state](BACKUP_SCHEDULE_POLICY.md) now exist.
+The public controller, shared runtime and OS job service remain unimplemented.
+No automatic job is registered or enabled. Manual backup/history is independent.
 
 ## Device credential wrapping
 
@@ -38,8 +40,10 @@ requesting deletion and preserve its encrypted row on uncertain failure.
 
 A commit callback can commit before losing its acknowledgement. The primitive
 therefore keeps the key on failure rather than guessing that deletion is safe.
-Durable intents, orphan review and policy/reference checks belong to the pending
-store/controller. Keystore/device behavior is not inferred from the JCA test-key
+Durable intents and credential retirement now have an internal
+[store/vault](BACKUP_POLICY_STORE.md); orphan review still needs controller integration. Atomic referencing-policy
+disablement now precedes credential retirement. Keystore/device behavior is not
+inferred from the JCA test-key
 provider used in the host correctness tests.
 
 ## Persistable provider permission
@@ -63,8 +67,8 @@ can require renewed permission. See [Android's storage access guidance](https://
 
 ## Remaining integration
 
-Still required: durable scheduling consent/configuration and encrypted credential
-storage, ownership/reference retirement, recovery-key management, JobScheduler
+Still required: public scheduling/consent/credential controller integration,
+recovery-key management, JobScheduler
 registration/service, shared live-backend acquisition, due-run/stop/restart
 reconciliation and user-visible outcomes. Background verification must not be an
 always-true substitute for authentication. Native public-content backup does not
