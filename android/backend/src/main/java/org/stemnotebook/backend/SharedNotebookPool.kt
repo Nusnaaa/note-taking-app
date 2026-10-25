@@ -29,10 +29,12 @@ internal class SharedNotebookPool<K : Any, T : Any>(
         var closeSucceeded = false
         var ownershipReleased = false
         val closeAck = CompletableFuture<Void>()
+        val ownershipAck = CompletableFuture<Void>()
     }
     class Ticket<K, T>(val entry: Entry<K, T>) {
         var state = TicketState.Waiting
         val signal = CompletableFuture<Void>()
+        var lastOnRelease = false
     }
     private val lock = Any()
     private val entries = mutableMapOf<K, Entry<K, T>>()
@@ -62,6 +64,7 @@ internal class SharedNotebookPool<K : Any, T : Any>(
                 if (ticket.entry.state != State.Open) {
                     ticket.state = TicketState.Failed
                     close = releaseLocked(ticket.entry)
+                    ticket.lastOnRelease = ticket.entry.users == 0
                     failure = true
                     null
                 } else {
@@ -80,12 +83,22 @@ internal class SharedNotebookPool<K : Any, T : Any>(
                     ticket.entry.waiters.remove(ticket)
                     ticket.state = TicketState.Cancelled
                     close = releaseLocked(ticket.entry)
+                    ticket.lastOnRelease = ticket.entry.users == 0
                     true
                 }
             }
             if (applied) ticket.signal.completeExceptionally(java.util.concurrent.CancellationException("Notebook runtime request cancelled"))
             close?.let { enqueueClose(it) }
             return applied
+        }
+        /** A canceled last reservation may still own an opening/retiring
+         * resource. Observation cancellation is not its retirement witness. */
+        fun awaitRetired() {
+            val wait = synchronized(lock) {
+                check(ticket.state != TicketState.Waiting && ticket.state != TicketState.Available)
+                ticket.lastOnRelease
+            }
+            if (wait) ticket.entry.ownershipAck.join()
         }
         override fun close() { cancel() }
     }
@@ -109,6 +122,11 @@ internal class SharedNotebookPool<K : Any, T : Any>(
         fun awaitClosed() {
             val await = synchronized(lock) { check(closed); last }
             if (await) try { entry.closeAck.join() } catch (_: CompletionException) { throw Unavailable() }
+        }
+        /** Actual release even when close reported an earlier failure. */
+        fun awaitRetired() {
+            val wait = synchronized(lock) { check(closed); last }
+            if (wait) entry.ownershipAck.join()
         }
     }
     fun acquire(key: K, create: Boolean): Pending {
@@ -145,7 +163,7 @@ internal class SharedNotebookPool<K : Any, T : Any>(
         val abandoned = synchronized(lock) {
             if (entry.users == 0) { removeLocked(entry); true } else false
         }
-        if (abandoned) { entry.closeAck.complete(null); return }
+        if (abandoned) { entry.ownershipAck.complete(null); entry.closeAck.complete(null); return }
         var resource: T? = null
         try {
             resource = open(entry.key, entry.create)
@@ -159,6 +177,7 @@ internal class SharedNotebookPool<K : Any, T : Any>(
             released(resource).whenComplete { _, error ->
                 if (error == null) {
                     val acknowledged = synchronized(lock) { entry.ownershipReleased = true; removeLocked(entry); entry.closeSucceeded }
+                    entry.ownershipAck.complete(null)
                     if (acknowledged) entry.closeAck.complete(null)
                 }
             }
@@ -178,13 +197,13 @@ internal class SharedNotebookPool<K : Any, T : Any>(
             val waiters = synchronized(lock) {
                 val tickets = entry.waiters.toList(); entry.waiters.clear()
                 if (resource == null) removeLocked(entry) else if (entry.state != State.Retired) entry.state = State.Retiring
-                tickets.forEach { it.state = TicketState.Failed; close = releaseLocked(entry) ?: close }
+                tickets.forEach { it.state = TicketState.Failed; close = releaseLocked(entry) ?: close; it.lastOnRelease = entry.users == 0 }
                 if (resource != null && entry.users == 0 && !entry.closeStarted) { entry.closeStarted = true; close = entry }
                 tickets
             }
             waiters.forEach { it.signal.completeExceptionally(Unavailable()) }
             close?.let { enqueueClose(it) }
-            if (resource == null) entry.closeAck.completeExceptionally(Unavailable())
+            if (resource == null) { entry.ownershipAck.complete(null); entry.closeAck.completeExceptionally(Unavailable()) }
         }
     }
     private fun enqueueClose(entry: Entry<K, T>) {

@@ -105,6 +105,14 @@ def main():
         assert app.get(ns+'usesCleartextTraffic')=='false'
         services=app.findall('service');pdf_services=[s for s in services if s.get(ns+'name','').endswith('.PdfWorkerService')]
         assert len(pdf_services)==1 and pdf_services[0].get(ns+'isolatedProcess')=='true' and pdf_services[0].get(ns+'exported')=='false'
+        backup_services=[s for s in services if s.get(ns+'name','').endswith('.NotebookBackupJobService')]
+        assert len(backup_services)==1
+        job=backup_services[0]
+        assert job.get(ns+'permission')=='android.permission.BIND_JOB_SERVICE' and job.get(ns+'exported')=='true'
+        assert job.get(ns+'isolatedProcess','false')=='false' and job.get(ns+'directBootAware','false')=='false'
+        boot=[p for p in permissions if p.get(ns+'name')=='android.permission.RECEIVE_BOOT_COMPLETED']
+        assert len(boot)==1 and boot[0].get('{http://schemas.android.com/tools}node')!='remove'
+
     aar=ROOT/'android/backend/build/outputs/aar/backend-debug.aar'
     with zipfile.ZipFile(aar) as bundle:
         packaged=bundle.read('jni/arm64-v8a/libstem_bridge.so')
@@ -124,7 +132,7 @@ def main():
     report['aar_sha256']=hashlib.sha256(aar.read_bytes()).hexdigest()
     report['packaged_arm64_library_bytes']=len(packaged)
     report['android_tests']=totals;report['merged_manifest_policy']='PASS';report['native_sha256']=hashlib.sha256(native.read_bytes()).hexdigest()
-    report['manifest_scope']='Debug/release AAR merge contracts only: INTERNET removal marker, no backup/transfer, no cleartext, isolated non-exported PDF service. Final APK/device enforcement NOT RUN.'
+    report['manifest_scope']='Debug/release AAR merge contracts only: INTERNET removal marker, no backup/transfer, no cleartext, isolated non-exported PDF service, BIND_JOB_SERVICE-protected backup service and boot permission. Final APK/device enforcement NOT RUN.'
     report['finished_utc']=datetime.datetime.now(datetime.timezone.utc).isoformat();save();print(json.dumps(totals))
     return 0
 

@@ -10,17 +10,22 @@ import java.util.UUID
 import org.json.JSONObject
 
 /** Owns native lifetime and serialises requests away from the Android main thread. */
-class NotebookBackend internal constructor(context: Context, pdfFactory: (Context, (JSONObject) -> JSONObject) -> PdfWorkspace, selectionProvider: PdfProvider = PdfProvider(context), captureJournalFault: (String) -> Unit = {}, backupFault: (String) -> Unit = {}, backupDocuments: BackupDocuments = BackupDocuments.platform(context), restoreFault: (String) -> Unit = {}, restoreDocuments: RestoreDocuments = RestoreDocuments.platform(context), existingLibrary: Boolean = false) : Closeable {
+class NotebookBackend internal constructor(context: Context, pdfFactory: (Context, (JSONObject) -> JSONObject) -> PdfWorkspace, selectionProvider: PdfProvider = PdfProvider(context), captureJournalFault: (String) -> Unit = {}, backupFault: (String) -> Unit = {}, backupDocuments: BackupDocuments = BackupDocuments.platform(context), restoreFault: (String) -> Unit = {}, restoreDocuments: RestoreDocuments = RestoreDocuments.platform(context), existingLibrary: Boolean = false, scheduleKeys: BackupSecretKeys? = null, scheduleJobs: BackupJobScheduler? = null, schedulePermissions: BackupPersistentPermissions? = null, runtimeOwnershipObserver: ((CompletableFuture<Void>) -> Unit)? = null) : Closeable {
     constructor(context: Context) : this(context, { platform, native -> PdfWorkspace(platform, native) })
-    private val ownership = try { LibraryOwnership.acquire(context.noBackupFilesDir) } catch (error: Exception) { selectionProvider.close(); throw error }
+    private val sharedClosing = CompletableFuture<Void>()
+    private val sharedOwnershipReleased = CompletableFuture<Void>()
+    private val ownership = try {
+        LibraryOwnership.acquire(context.noBackupFilesDir).also { acquired ->
+            try { runtimeOwnershipObserver?.invoke(sharedOwnershipReleased) }
+            catch (error: Exception) { acquired.close(); sharedOwnershipReleased.complete(null); throw error }
+        }
+    } catch (error: Exception) { selectionProvider.close(); throw error }
     private val directory = File(context.noBackupFilesDir, "notebook")
     private val executor = BackendWriter()
     private val handle = CompletableFuture<Long>()
     private var closed = false
     private val nativeClosed = CompletableFuture<Void>()
     private val fullyClosed = CompletableFuture<Void>()
-    private val sharedClosing = CompletableFuture<Void>()
-    private val sharedOwnershipReleased = CompletableFuture<Void>()
     internal fun runtimeReady(): CompletableFuture<Void> = handle.thenApply { null }
     internal fun runtimeClosing(): CompletableFuture<Void> = sharedClosing
     // An exceptional close is not proof of release. This signal stays pending
@@ -30,6 +35,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
     private val pdf: PdfWorkspace
     private val selections: PdfSelectionManager
     private val backups: NotebookBackups
+    private val schedules: NotebookSchedules
     private val restores: NotebookRestores
     private val backupEpoch = java.util.concurrent.atomic.AtomicReference(Any())
     private val outbox: CompletableFuture<CaptureOutbox>
@@ -45,6 +51,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
         var createdPdf: PdfWorkspace? = null
         var createdSelections: PdfSelectionManager? = null
         var createdBackups: NotebookBackups? = null
+        var createdSchedules: NotebookSchedules? = null
         var createdRestores: NotebookRestores? = null
         try {
             check(directory.isDirectory || directory.mkdirs())
@@ -56,6 +63,13 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
                 { backupStatusSnapshot().join() })
             createdBackups = loadedBackups
             backups = loadedBackups
+            val loadedSchedules = NotebookSchedules(context, File(directory, "backup-policy"), loadedBackups,
+                { scheduleLibrary().join() }, { scheduleAuthority().join() },
+                scheduleJobs ?: BackupJobScheduler.platform(context), backupDocuments,
+                schedulePermissions ?: BackupPersistentPermissions.platform(context),
+                scheduleKeys ?: AndroidBackupSecretKeys(context))
+            createdSchedules = loadedSchedules
+            schedules = loadedSchedules
             val loadedRestores = NotebookRestores(File(directory, "restore-staging"), File(context.noBackupFilesDir, "recovered-libraries"), { handle.join() }, {
                 val result = JSONObject(request(JSONObject().put("version", 1).put("command", JSONObject().put("op", "Status")).toString()).join())
                 if (!result.getBoolean("ok")) throw NotebookRestores.Failure(NotebookRestores.FailureReason.AccessChanged)
@@ -115,6 +129,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
             sharedClosing.complete(null)
             handle.completeExceptionally(error)
             try { createdRestores?.close() } catch (_: Exception) { }
+            try { createdSchedules?.close() } catch (_: Exception) { }
             try { createdBackups?.close() } catch (_: Exception) { }
             try { createdPdf?.close() } catch (_: Exception) { }
             try { createdSelections?.close() } catch (_: Exception) { }
@@ -122,7 +137,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
             executor.shutdown()
             Thread({
                 try {
-                    awaitStopped(executor); createdRestores?.awaitClosed(); createdBackups?.awaitClosed(); createdPdf?.awaitClosed(); createdSelections?.awaitClosed(); selectionProvider.awaitClosed()
+                    awaitStopped(executor); createdRestores?.awaitClosed(); createdSchedules?.awaitClosed(); createdBackups?.awaitClosed(); createdPdf?.awaitClosed(); createdSelections?.awaitClosed(); selectionProvider.awaitClosed()
                     ownership.close()
                     sharedOwnershipReleased.complete(null)
                 } catch (_: Exception) { /* ownership remains unavailable if cleanup fails */ }
@@ -133,7 +148,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
 
     /** Observation cancellation does not cancel an admitted edit/checkpoint. */
     private fun <T> submitAdmitted(action: () -> T, writer: BackendWriter, authoring: Boolean = true, bytes: Long = 256): CompletableFuture<T> {
-        if (authoring) backupEpoch.set(Any())
+        if (authoring) { schedules.invalidate(); backupEpoch.set(Any()) }
         return writer.admit(authoring, bytes, action)
     }
     private fun submitAdmittedVoid(action: () -> Unit, writer: BackendWriter, bytes: Long = 256): CompletableFuture<Void> {
@@ -146,6 +161,15 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
     private fun inputBytes(vararg values: String): Long = 512L + values.sumOf { it.length.toLong() * 4 }
     private fun strokeBytes(strokes: List<CapturedStroke>, space: String): Long = inputBytes(space) + strokes.sumOf { 512L + inputBytes(it.id, it.session) + it.points.size.toLong() * 128 }
     /** Trusted worker API. Publication and pending-draft checks are separate from save receipts. */
+    @Synchronized fun schedules(): NotebookSchedules { check(!closed); return schedules }
+    @Synchronized private fun scheduleLibrary(): CompletableFuture<UUID> {
+        check(!closed)
+        return submitAdmitted({ UUID.fromString(NativeBridge.captureLibraryIdentity(handle.join())) }, executor, authoring = false)
+    }
+    @Synchronized private fun scheduleAuthority(): CompletableFuture<Void> {
+        check(!closed)
+        return submitAdmitted({ NativeBridge.backupGeneration(handle.join()); Unit }, executor, authoring = false).thenApply { null }
+    }
     @Synchronized fun backups(): NotebookBackups { check(!closed); return backups }
     @Synchronized fun restores(): NotebookRestores { check(!closed); return restores }
     private class BackupStamp(val epoch: Any, val generation: String, val library: String)
@@ -405,7 +429,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
      * disposal of the exact reviewed sealed recovery copies. Active/unknown stay. */
     @Synchronized fun confirmDeletionWithCaptures(review: DeletionCaptureReview, disposition: CaptureDeletionDisposition, confirmed: Boolean): CompletableFuture<DeletionCaptureReceipt> {
         check(!closed && review.owner === this); require(confirmed)
-        backups.invalidate(); restores.invalidate(); pdf.invalidate(); selections.invalidate()
+        schedules.invalidate(); backups.invalidate(); restores.invalidate(); pdf.invalidate(); selections.invalidate()
         return submitAdmitted({
             check(!review.consumed); review.consumed = true
             try {
@@ -480,7 +504,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
         require(json.length <= 8 * 1024 * 1024)
         val command = JSONObject(json).getJSONObject("command")
         val authoring = !isQuery(command)
-        if (affectsPdfPolicy(command)) { backups.invalidate(); restores.invalidate(); pdf.invalidate(); selections.invalidate() }
+        if (affectsPdfPolicy(command)) { schedules.invalidate(); backups.invalidate(); restores.invalidate(); pdf.invalidate(); selections.invalidate() }
         return submitAdmitted({
             releaseReserveIfNeeded()
             val reply = NativeBridge.request(handle.join(), json)
@@ -492,7 +516,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
     @Synchronized fun authenticate(scopesJson: String, proof: NativeBridge.Verification): CompletableFuture<Void> {
         check(!closed)
         require(scopesJson.length <= 65536)
-        backups.invalidate(); restores.invalidate(); pdf.invalidate(); selections.invalidate()
+        schedules.invalidate(); backups.invalidate(); restores.invalidate(); pdf.invalidate(); selections.invalidate()
         return submitAdmittedVoid({
             NativeBridge.authenticate(handle.join(), scopesJson, proof)
             try { replayCaptures() } catch (_: Exception) { recoveryAttention = true; executor.markAttention() }
@@ -587,7 +611,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
         // Session input takes its own monitor before backend admission. Freeze
         // outside the backend monitor so close cannot invert that lock order.
         val closingCaptures = sessions.flatMap { session -> session.freezeForClose().map { session to it } }
-        backups.close(); restores.close(); pdf.close(); selections.close()
+        schedules.close(); backups.close(); restores.close(); pdf.close(); selections.close()
         Thread({
             try {
                 executor.shutdown()
@@ -601,7 +625,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
                     NativeBridge.close(handle.join())
                 }
                 nativeClosed.complete(null)
-                backups.awaitClosed(); restores.awaitClosed(); pdf.awaitClosed(); selections.awaitClosed()
+                schedules.awaitClosed(); backups.awaitClosed(); restores.awaitClosed(); pdf.awaitClosed(); selections.awaitClosed()
                 ownership.close()
                 sharedOwnershipReleased.complete(null)
                 if (checkpointFailure == null) fullyClosed.complete(null) else fullyClosed.completeExceptionally(checkpointFailure)

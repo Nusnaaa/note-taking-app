@@ -3,12 +3,13 @@ package org.stemnotebook.backend
 import android.database.sqlite.SQLiteDatabase
 import android.system.Os
 import java.io.File
+import java.util.UUID
 import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.attribute.PosixFilePermissions
 
 /** Owns only device-local backup policy SQLite connections. Unknown files are
- * never adopted, repaired or migrated. Callers serialize complete transactions. */
+ * never adopted or repaired; only the exact known v1 format is migrated. Callers serialize complete transactions. */
 internal class BackupPolicyDatabase(private val directory: File) {
     private data class Identity(val device: Long, val inode: Long, val links: Long, val mode: Int, val uid: Int)
     private var anchor: Identity? = null
@@ -23,7 +24,7 @@ internal class BackupPolicyDatabase(private val directory: File) {
         if (!new) {
             SQLiteDatabase.openDatabase(file.path, null, flags or SQLiteDatabase.OPEN_READONLY).use {
                 validate(it)
-                if (!write) return action(it)
+                if (!write && it.version == 2) return action(it)
             }
             checkFiles(); require(stat(file) == identity)
         }
@@ -34,10 +35,31 @@ internal class BackupPolicyDatabase(private val directory: File) {
                 try {
                     schema.forEach { (name, columns) -> db.execSQL("CREATE TABLE $name($columns)") }
                     db.execSQL("INSERT INTO metadata VALUES('purpose','STEM-BACKUP-POLICY-1')")
-                    db.version = 1; db.setTransactionSuccessful()
+                    db.version = 2; db.setTransactionSuccessful()
                 } finally { db.endTransaction() }
             }
             validate(db)
+            if (db.version == 1) {
+                db.execSQL("PRAGMA synchronous=FULL")
+                db.beginTransaction()
+                try {
+                    // Legacy configuration did not record a consented size cap.
+                    // Keep all credential/consent/run records; require renewed
+                    // scheduling review instead of guessing a cap or enabling.
+                    db.execSQL("CREATE TABLE schedule_limits(${schema.getValue("schedule_limits")})")
+                    var after = ""
+                    while (true) {
+                        val id = db.rawQuery("SELECT id FROM configurations WHERE id>? ORDER BY id LIMIT 1", arrayOf(after)).use { c ->
+                            if (!c.moveToFirst()) null else c.getString(0)
+                        } ?: break
+                        require(UUID.fromString(id).toString() == id)
+                        db.execSQL("UPDATE configurations SET state='Disabled',revision=? WHERE id=?", arrayOf(UUID.randomUUID().toString(), id))
+                        after = id
+                    }
+                    db.version = 2; db.setTransactionSuccessful()
+                } finally { db.endTransaction() }
+                validate(db)
+            }
             if (write) db.execSQL("PRAGMA synchronous=FULL")
             action(db)
         }
@@ -50,21 +72,23 @@ internal class BackupPolicyDatabase(private val directory: File) {
         "credentials" to "id TEXT PRIMARY KEY,library TEXT NOT NULL,purpose TEXT NOT NULL,backup TEXT,state TEXT NOT NULL,consented_ms INTEGER NOT NULL,envelope BLOB",
         "configurations" to "id TEXT PRIMARY KEY,library TEXT NOT NULL UNIQUE,revision TEXT NOT NULL,state TEXT NOT NULL,kind TEXT NOT NULL,destination TEXT NOT NULL,credential TEXT NOT NULL,permission TEXT,interval_ms INTEGER NOT NULL,original_ink INTEGER NOT NULL,source_assets INTEGER NOT NULL,consented_ms INTEGER NOT NULL,active_run TEXT",
         "runs" to "id TEXT PRIMARY KEY,schedule TEXT NOT NULL,revision TEXT NOT NULL,started_ms INTEGER NOT NULL,finished_ms INTEGER,result TEXT,publication_sequence INTEGER",
+        "schedule_limits" to "schedule TEXT PRIMARY KEY,revision TEXT NOT NULL,maximum_bytes INTEGER NOT NULL,destination_identity TEXT NOT NULL",
         "permissions" to "id TEXT PRIMARY KEY,library TEXT NOT NULL,tree TEXT NOT NULL,identity TEXT NOT NULL,previous_read INTEGER NOT NULL,previous_write INTEGER NOT NULL,consented_ms INTEGER NOT NULL,outcome TEXT,observed_read INTEGER,observed_write INTEGER",
     )
     private fun validate(db: SQLiteDatabase) {
-        require(db.version == 1)
+        require(db.version == 1 || db.version == 2)
         db.rawQuery("SELECT key,value FROM metadata", null).use { c ->
             require(c.moveToFirst() && c.getString(0) == "purpose" && c.getString(1) == "STEM-BACKUP-POLICY-1" && !c.moveToNext())
         }
-        db.rawQuery("SELECT type,name,sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' LIMIT 7", null).use { c ->
+        val expected = if (db.version == 1) schema.filterKeys { it != "schedule_limits" } else schema
+        db.rawQuery("SELECT type,name,sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' LIMIT 8", null).use { c ->
             val found = mutableSetOf<String>()
             while (c.moveToNext()) {
                 val name = c.getString(1)
-                require(c.getString(0) == "table" && schema[name]?.let { c.getString(2) == "CREATE TABLE $name($it)" } == true)
+                require(c.getString(0) == "table" && expected[name]?.let { c.getString(2) == "CREATE TABLE $name($it)" } == true)
                 require(found.add(name))
             }
-            require(found == schema.keys)
+            require(found == expected.keys)
         }
     }
     private fun secureDirectory() {

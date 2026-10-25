@@ -1,16 +1,20 @@
 # Device-local backup policy and credential records
 
 The internal `BackupPolicyStore` and `BackupCredentialVault` persist credential
-and provider-consent authority. They do not register or enable scheduled work.
+and provider-consent authority. The store/vault alone do not register or enable
+scheduled work; the separate
+[reviewed controller](SCHEDULED_BACKUPS.md) now performs deliberate opt-in.
 Persisted [schedule configuration/run state](BACKUP_SCHEDULE_POLICY.md) now exists
-in the same store; a [shared runtime](SHARED_NOTEBOOK_RUNTIME.md) is implemented, while its scheduling
-controller and JobScheduler service integration remain pending. Manual backup publication history remains separate.
+in the same store; the [shared runtime](SHARED_NOTEBOOK_RUNTIME.md), scheduling
+controller and service for the primary app root are integrated. Protected-content delegation and independent-root
+routing remain unfinished. Manual backup publication history remains separate.
 
 ## SQLite ownership
 
 A dedicated private directory holds `policy.db`, purpose
-`STEM-BACKUP-POLICY-1`, user version 1. Only the exact metadata, credentials, permissions, configurations and runs
-table definitions are accepted; unknown/future schemas, additional
+`STEM-BACKUP-POLICY-1`, current user version 2. Only the exact metadata,
+credentials, permissions, configurations, runs and
+schedule_limits table definitions are accepted; unknown/future schemas, additional
 objects and unexpected files are preserved and rejected. Existing files are
 validated read-only before a write connection is admitted. Private anchored
 namespace, leaf mode/UID/link checks and no-follow inspection precede SQLite
@@ -20,7 +24,8 @@ only directory descriptors are synced after closing SQLite connections.
 This database is device-local metadata, never a portable notebook/backup and
 never publication history. Its future controller must place it under
 Context.noBackupFilesDir, hold app/library ownership and run operations on the
-optional worker. No instance is constructed by production NotebookBackend yet.
+optional worker. NotebookBackend now constructs the controller/store object; database access is
+lazy on its optional worker. Construction alone creates no policy database/job.
 
 ## Credential state
 
@@ -77,3 +82,14 @@ rejection, malformed/tampered/oversized blobs, bounded discovery, grant decision
 identity and unknown effects, and preserving foreign/linked/replaced namespaces.
 These are component correctness tests. Actual Android Keystore, real provider,
 physical interruption and JobScheduler behavior are not established by them.
+
+## Exact v1 migration
+
+Known v1 is validated read-only before any write connection. One FULL-synchronous
+transaction creates schedule_limits and disables each prior configuration with a
+fresh revision because no consented maximum bytes/destination identity existed.
+Credentials, permission decisions/outcomes and unfinished run fences remain. The
+owner must review fresh choices before enablement. Invalid legacy identity rolls
+back the entire change. Unknown objects/future versions remain preserved. Normal
+known-file access uses NO_LOCALIZED_COLLATORS; fixture mutations must use it too
+to avoid adding Android metadata and testing the wrong failure.

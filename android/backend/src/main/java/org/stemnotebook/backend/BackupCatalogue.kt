@@ -43,15 +43,16 @@ internal class BackupCatalogue(private val directory: File, private val fault: (
 
     @Synchronized fun append(snapshot: BackupSnapshot, kind: BackupDestinationKind, location: String,
         bytes: Long, digest: String, acknowledgement: BackupAcknowledgement, descriptorSynced: Boolean,
-        includesOriginalInk: Boolean = false, sourceAssets: Long = 0, omissions: List<String> = emptyList()): BackupPublicationRecord = guarded {
+        includesOriginalInk: Boolean = false, sourceAssets: Long = 0, omissions: List<String> = emptyList(), publicationId: String = UUID.randomUUID().toString()): BackupPublicationRecord = guarded {
         validateSnapshot(snapshot)
+        requireUuid(publicationId)
         validateLocation(kind, location)
         require(bytes > 0 && digest.matches(Regex("[0-9a-f]{64}")))
         require((kind == BackupDestinationKind.LocalFile) == (acknowledgement == BackupAcknowledgement.LocalDurable))
         require(kind != BackupDestinationKind.LocalFile || descriptorSynced)
         validateInclusions(sourceAssets, omissions)
         database(write = true) { db ->
-            val id = UUID.randomUUID().toString()
+            val id = publicationId
             val now = System.currentTimeMillis().coerceAtLeast(0)
             val values = ContentValues().apply {
                 put("id", id); put("library", snapshot.library); put("generation", snapshot.generation)

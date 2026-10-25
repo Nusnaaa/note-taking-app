@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.NotebookBackupJobServiceTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-25T20:37:23" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="0.176">
+  <properties/>
+  <testcase name="stopUsesTokenAcrossDistinctParameterObjectsAndRetainsBlockedWorkerUntilItRetires" classname="org.stemnotebook.backend.NotebookBackupJobServiceTest" time="0.084"/>
+  <testcase name="missingLibraryFinishesWithoutCreatingANotebookAndNeverOpensOnMain" classname="org.stemnotebook.backend.NotebookBackupJobServiceTest" time="0.052"/>
+  <testcase name="malformedExtrasNeverStartNotebookWork" classname="org.stemnotebook.backend.NotebookBackupJobServiceTest" time="0.04"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

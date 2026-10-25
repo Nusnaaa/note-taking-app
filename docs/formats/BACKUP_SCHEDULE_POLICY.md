@@ -1,15 +1,17 @@
-# Persisted scheduled-backup state (OS execution not integrated)
+# Persisted scheduled-backup policy
 
 `BackupSchedulePolicy` shares the purpose-specific device-private policy SQLite
-file with credential intents and provider consent. It registers no OS job and is
-not instantiated by production NotebookBackend. It prepares the optional I0/I1
-scheduling controller without enabling anything from a manual backup/history row.
+file with credential intents and provider consent. It registers no OS job itself and is
+used by the [reviewed controller](SCHEDULED_BACKUPS.md) owned by NotebookBackend.
+It never enables anything from a manual backup/history row alone.
 
 The current configuration is library-bound, with a stable schedule UUID and a
 fresh revision UUID for each reviewed replacement or disablement. It records the
 chosen directory/tree, credential reference, provider-consent decision where
 required, requested interval, original-ink/source-asset choices and explicit
-scheduling consent time. The future controller must obtain fresh verification,
+scheduling consent time. Version 2 stores an explicit positive encrypted-backup
+byte limit and reviewed destination identity against the same revision; old known
+v1 configurations migrate to Disabled instead of guessing those choices. The future controller must obtain fresh verification,
 review the actual destination, validate the password through native initial
 backup creation and query platform interval constraints. The repository's
 positive interval check is defensive storage validation, not a platform timing
@@ -57,8 +59,8 @@ Run discovery is bounded library-scoped keyset pagination. No device performance
 OS wake-up timing, durable remote storage, background protected-content access or
 physical process-loss acceptance is established by this repository.
 
-Remaining implementation: trusted public review/enable/disable and recovery-key
-management, integration with the implemented shared backend leases, platform JobScheduler
-registration and service, resource/capture guards, stop/retirement reconciliation and honest
-user-visible results. No service, permission, cloud backup, mandatory account or
-production H.I. is added here.
+The public consent/credential controller, recovery-key management, shared-runtime
+acquisition and primary-root JobService are now implemented. Still required:
+protected-backup delegation and independent-root dispatch, with actual OS/device/
+provider/Keystore/interruption acceptance. The policy repository does not itself
+make a complete-backend acceptance claim; no production H.I. is added.

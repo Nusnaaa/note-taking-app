@@ -31,6 +31,7 @@ class BackupPolicyStoreTest {
     private class Keys : BackupSecretKeys {
         val keys = mutableMapOf<String, SecretKey>()
         var failDelete = false
+        var decryptCalls = 0
         var beforeCreate: () -> Unit = {}
         override fun create(alias: String) { beforeCreate(); check(!keys.containsKey(alias)); keys[alias] = KeyGenerator.getInstance("AES").apply { init(256) }.generateKey() }
         override fun encrypt(alias: String, plain: ByteArray, aad: ByteArray): BackupSecretKeys.Ciphertext {
@@ -38,6 +39,7 @@ class BackupPolicyStoreTest {
             return BackupSecretKeys.Ciphertext(cipher.iv, cipher.doFinal(plain))
         }
         override fun decrypt(alias: String, value: BackupSecretKeys.Ciphertext, aad: ByteArray): ByteArray {
+            decryptCalls++
             val cipher = Cipher.getInstance("AES/GCM/NoPadding"); cipher.init(Cipher.DECRYPT_MODE, keys.getValue(alias), GCMParameterSpec(128, value.nonce)); cipher.updateAAD(aad)
             return cipher.doFinal(value.bytes)
         }
@@ -157,13 +159,15 @@ class BackupPolicyStoreTest {
         vault.store(context, null, "credential".toCharArray(), true, true)
         val original = store.credential(context)!!.envelope!!
         for (value in listOf(byteArrayOf(1), ByteArray(2090), original.copyOf().apply { this[lastIndex] = (this[lastIndex].toInt() xor 1).toByte() })) {
-            SQLiteDatabase.openDatabase(File(folder, "policy.db").path, null, 0).use { db ->
+            SQLiteDatabase.openDatabase(File(folder, "policy.db").path, null, SQLiteDatabase.NO_LOCALIZED_COLLATORS).use { db ->
                 db.execSQL("UPDATE credentials SET envelope=? WHERE id=?", arrayOf(value, context.id.toString()))
             }
             var called = false
+            keys.decryptCalls = 0
             unavailable { vault.use(context) { called = true } }; assertFalse(called)
+            assertEquals(if (value.size == original.size) 1 else 0, keys.decryptCalls)
         }
-        SQLiteDatabase.openDatabase(File(folder, "policy.db").path, null, 0).use { db ->
+        SQLiteDatabase.openDatabase(File(folder, "policy.db").path, null, SQLiteDatabase.NO_LOCALIZED_COLLATORS).use { db ->
             db.execSQL("UPDATE credentials SET envelope=zeroblob(4000000) WHERE id=?", arrayOf(context.id.toString()))
         }
         unavailable { store.credential(context) }
@@ -193,7 +197,7 @@ class BackupPolicyStoreTest {
             val folder = folder()
             if (mode == 2) {
                 BackupPolicyStore(folder).credentials(library)
-                SQLiteDatabase.openDatabase(File(folder, "policy.db").path, null, 0).use { it.execSQL("CREATE TABLE unexpected(value TEXT)") }
+                SQLiteDatabase.openDatabase(File(folder, "policy.db").path, null, SQLiteDatabase.NO_LOCALIZED_COLLATORS).use { it.execSQL("CREATE TABLE unexpected(value TEXT)") }
             } else {
                 Files.createDirectory(folder.toPath(), PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------")))
                 SQLiteDatabase.openOrCreateDatabase(File(folder, "policy.db"), null).use { it.execSQL("CREATE TABLE original(value TEXT)"); it.version = mode + 1 }

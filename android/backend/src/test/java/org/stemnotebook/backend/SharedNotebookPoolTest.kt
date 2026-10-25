@@ -145,6 +145,24 @@ class SharedNotebookPoolTest {
         }
         pool.shutdownIdle()
     }
+    @Test fun cancelledOpeningWaitsForActualOwnershipAndCloseFailureIsNotAReleaseWitness() {
+        val resource = Resource(); val entered = CountDownLatch(1); val pool = pool { _, _ -> entered.countDown(); resource }
+        val request = pool.acquire("one", false); assertTrue(entered.await(10, TimeUnit.SECONDS)); request.cancel()
+        await { resource.retireCalls.get() == 1 }
+        val done = CountDownLatch(1)
+        val observer = Thread { request.awaitRetired(); done.countDown() }.apply { start() }
+        resource.closed.completeExceptionally(IllegalStateException("close failed before release"))
+        assertFalse(done.await(30, TimeUnit.MILLISECONDS)); unavailable { pool.acquire("one", false) }
+        resource.ready.completeExceptionally(IllegalStateException("opening retired")); resource.released.complete(null)
+        assertTrue(done.await(10, TimeUnit.SECONDS)); observer.join(); pool.shutdownIdle()
+    }
+    @Test fun nonLastCancelledReservationDoesNotWaitForAnotherConsumersOwnership() {
+        val resource = Resource(); val pool = pool { _, _ -> resource }
+        val first = pool.acquire("one", false); val second = pool.acquire("one", false)
+        first.cancel(); first.awaitRetired(); assertEquals(0, resource.retireCalls.get())
+        resource.ready.complete(null); val lease = second.await(); lease.close()
+        await { resource.retireCalls.get() == 1 }; resource.release(); lease.awaitClosed(); lease.awaitRetired(); pool.shutdownIdle()
+    }
     @Test fun callerCanAwaitCloseWithoutBlockingRegistryOrTheOpenWorker() {
         val resource = Resource(); resource.ready.complete(null); val pool = pool { _, _ -> resource }
         val done = CountDownLatch(1); val error = AtomicReference<Throwable?>()

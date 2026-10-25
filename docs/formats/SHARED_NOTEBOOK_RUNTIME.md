@@ -4,7 +4,8 @@
 canonical no-backup root. Foreground work and the future scheduled-backup service
 must use this same entry point to share a live backend. Existing direct backend
 constructors stay exclusive; the runtime never adopts or displaces their owner.
-No job, service, schedule enablement or production H.I. is introduced here.
+The [optional scheduling service](SCHEDULED_BACKUPS.md) now uses this entry point;
+runtime acquisition alone enables no schedule and adds no production H.I.
 
 Acquire, await and awaitClosed run on a worker. The default existing-only open
 cannot create an empty notebook; the deliberate foreground first-use workflow
@@ -62,7 +63,15 @@ Host lifecycle tests use controlled resources for overlap, cancellation, slow op
 ownership release, failed close/open, external close/replacement and bounded
 admission. JNI/Robolectric integration covers a real shared backend, last-owner
 release/reopen, canonical aliases, existing-only missing-library rejection,
-exclusive-owner preservation and main-thread refusal. Device scheduling,
-JobScheduler stop, real providers/Keystore and physical interruptions remain
-unexecuted. Public scheduling/credential controllers and OS job integration are
-still required; this component does not close the full backend gap by itself.
+exclusive-owner preservation and main-thread refusal. JobService stop is additionally covered by host callback fixtures, while real
+OS/device/provider/Keystore and physical interruptions remain unexecuted. The
+public scheduling controller/service is now integrated for the primary root; this
+component does not close the full backend gap by itself.
+
+The OS service also needs actual reservation retirement after canceling an open.
+Pending.awaitRetired waits the ownership witness when its abandoned reservation
+was last; it does not wait for unrelated consumers. Lease.awaitRetired similarly
+waits actual release even if awaitClosed reports an earlier failure. Runtime Owner
+wrappers preserve the success-only witness captured immediately on ownership
+acquisition, including synchronous constructor failure. A canceled observer alone
+is never proof that native opening/provider cleanup retired.

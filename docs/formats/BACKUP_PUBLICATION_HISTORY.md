@@ -86,3 +86,10 @@ These are host/JNI/Robolectric-tested contracts. They do not establish device,
 power-loss or real-provider durability acceptance. Optional scheduling, persisted
 destination-grant consent, complete orphan salvage and broader native allocation
 controls remain separate work.
+
+For scheduled recovery-key association, an artifact reserves its first application
+publication UUID before external publication. Further intentionally published
+copies receive fresh record IDs; identical encrypted bytes can therefore have
+multiple independent destination acknowledgements. The optional internal append
+ID is canonical-UUID validated. It is not a password, portable-format parser
+capability or promise that a destination remains available.

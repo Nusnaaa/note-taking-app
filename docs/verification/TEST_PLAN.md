@@ -414,3 +414,24 @@ reopen, canonical aliases, existing-only missing-library rejection, preserving
 direct exclusive ownership and main-thread refusal. Run these with the existing
 six `BackendOwnershipTest` cases and lint. No real OS job/device acceptance is
 implied; see [the runtime contract](../formats/SHARED_NOTEBOOK_RUNTIME.md).
+
+### Opt-in scheduled backup workflow
+
+`NotebookSchedulesTest` uses actual native encryption/publication and JCA test keys
+to exercise initial key offer/consent, due backups, separate local/provider
+acknowledgement, recovery-key reveal/delete, unused intent cleanup, source and
+directory invalidation, quotas, multi-copy publication and preserved protected
+verification. `NotebookBackupJobServiceTest` exercises worker-only existing
+opening, malformed extras, token-based stop across parameter instances and actual
+retirement before releasing the service slot. `BackupJobSchedulerTest` verifies
+platform periods, opaque extras, owned-job checks, rejection, cancellation and
+unroutable-root refusal. `BackupPolicyMigrationTest` checks exact known v1 upgrade,
+retained credentials/run fences, future-file preservation and rollback.
+
+Known SQLite-file mutation fixtures explicitly use NO_LOCALIZED_COLLATORS; the
+policy tamper test also counts actual decrypt entry so an earlier schema rejection
+cannot falsely stand for AEAD-tamper coverage. Include existing manual local/
+provider, catalogue/JNI, pool/runtime and ownership regressions with lint. These
+are host correctness checks, not actual Keystore/Binder/provider/device/timing/
+physical interruption acceptance or completed protected/independent-root
+scheduling. See [the workflow contract](../formats/SCHEDULED_BACKUPS.md).

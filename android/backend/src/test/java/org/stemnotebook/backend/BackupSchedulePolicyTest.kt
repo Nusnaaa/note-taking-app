@@ -27,7 +27,7 @@ class BackupSchedulePolicyTest {
         return context
     }
     private fun arm(policy: BackupSchedulePolicy, key: BackupSecretContext, previous: BackupSchedulePolicy.Configuration? = null) =
-        policy.arm(library, previous?.revision, BackupSchedulePolicy.Destination.LocalDirectory, "/explicit/private/backups", key.id, null, 123456L, true, false, true)
+        policy.arm(library, previous?.revision, BackupSchedulePolicy.Destination.LocalDirectory, "/explicit/private/backups", key.id, null, 123456L, true, false, true, maximumBytes = 1_000_000, destinationIdentity = "synthetic-directory-identity")
     private fun unavailable(action: () -> Unit) { try { action(); fail("Invalid schedule operation accepted") } catch (_: IOException) {} }
     @Test fun persistedSetupNeverRunsUntilExactRegistrationAcknowledges() {
         val folder = folder(); val store = BackupPolicyStore(folder); val key = credential(store); val policy = BackupSchedulePolicy(folder)
@@ -49,7 +49,7 @@ class BackupSchedulePolicyTest {
         unavailable { arm(policy, credential(store, UUID.randomUUID())) }
         unavailable { arm(policy, credential(store, recovery = true)) }
         val ready = credential(store)
-        unavailable { policy.arm(library, null, BackupSchedulePolicy.Destination.LocalDirectory, "/explicit/backups", ready.id, null, 123456L, true, false, false) }
+        unavailable { policy.arm(library, null, BackupSchedulePolicy.Destination.LocalDirectory, "/explicit/backups", ready.id, null, 123456L, true, false, false, maximumBytes = 1_000_000, destinationIdentity = "synthetic-directory-identity") }
         assertNull(policy.configuration(library))
         val arming = arm(policy, ready)
         unavailable { arm(policy, ready) }
@@ -128,15 +128,15 @@ class BackupSchedulePolicyTest {
         val folder = folder(); val store = BackupPolicyStore(folder); val key = credential(store); val policy = BackupSchedulePolicy(folder)
         val decision = BackupPersistentAccess.Decision(UUID.randomUUID(), library, "content://example/tree/directory", "directory", false, false, 123)
         store.recordPermissionDecision(decision)
-        fun attempt(tree: String = decision.tree) = policy.arm(library, null, BackupSchedulePolicy.Destination.ProviderTree, tree, key.id, decision.id, 123456L, true, true, true)
+        fun attempt(tree: String = decision.tree) = policy.arm(library, null, BackupSchedulePolicy.Destination.ProviderTree, tree, key.id, decision.id, 123456L, true, true, true, maximumBytes = 1_000_000, destinationIdentity = "synthetic-directory-identity")
         unavailable { attempt() }
         store.recordPermissionOutcome(BackupPersistentAccess.Receipt(decision, BackupPersistentAccess.Outcome.Uncertain, true, true))
         unavailable { attempt() }
         val fresh = decision.copy(id = UUID.randomUUID())
         store.recordPermissionDecision(fresh)
         store.recordPermissionOutcome(BackupPersistentAccess.Receipt(fresh, BackupPersistentAccess.Outcome.AlreadyHeld, true, true))
-        unavailable { policy.arm(library, null, BackupSchedulePolicy.Destination.ProviderTree, "content://example/tree/other", key.id, fresh.id, 123456L, true, true, true) }
-        val config = policy.arm(library, null, BackupSchedulePolicy.Destination.ProviderTree, fresh.tree, key.id, fresh.id, 123456L, true, true, true)
+        unavailable { policy.arm(library, null, BackupSchedulePolicy.Destination.ProviderTree, "content://example/tree/other", key.id, fresh.id, 123456L, true, true, true, maximumBytes = 1_000_000, destinationIdentity = "synthetic-directory-identity") }
+        val config = policy.arm(library, null, BackupSchedulePolicy.Destination.ProviderTree, fresh.tree, key.id, fresh.id, 123456L, true, true, true, maximumBytes = 1_000_000, destinationIdentity = "synthetic-directory-identity")
         assertEquals(fresh.id, config.permission); assertTrue(config.sourceAssets)
     }
     @Test fun publicationOutcomeIsImmutableAndDoesNotReenableDisabledPolicy() {

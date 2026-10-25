@@ -15,7 +15,7 @@ internal class BackupSchedulePolicy(directory: File, private val fault: (String)
     data class Configuration(val id: UUID, val library: UUID, val revision: UUID, val state: State,
         val kind: Destination, val destination: String, val credential: UUID, val permission: UUID?,
         val intervalMillis: Long, val originalInk: Boolean, val sourceAssets: Boolean,
-        val consentedAtMillis: Long, val activeRun: UUID?)
+        val consentedAtMillis: Long, val activeRun: UUID?, val maximumBytes: Long?, val destinationIdentity: String?)
     data class Run(val id: UUID, val schedule: UUID, val revision: UUID, val startedAtMillis: Long,
         val finishedAtMillis: Long?, val result: Result?, val publicationSequence: Long?)
     private val database = BackupPolicyDatabase(directory)
@@ -27,8 +27,9 @@ internal class BackupSchedulePolicy(directory: File, private val fault: (String)
      * SLO or target-availability promise is introduced by intervalMillis. */
     fun arm(library: UUID, expectedRevision: UUID?, kind: Destination, destination: String,
         credential: UUID, permission: UUID?, intervalMillis: Long, originalInk: Boolean, sourceAssets: Boolean,
-        confirmedScheduling: Boolean): Configuration = guarded {
-        require(confirmedScheduling && intervalMillis > 0)
+        confirmedScheduling: Boolean, maximumBytes: Long, destinationIdentity: String): Configuration = guarded {
+        require(confirmedScheduling && intervalMillis > 0 && maximumBytes > 0)
+        require(destinationIdentity.length in 1..4096 && !destinationIdentity.contains('\u0000'))
         validateDestination(kind, destination, permission)
         transaction { db ->
             val prior = configuration(db, library)
@@ -39,10 +40,12 @@ internal class BackupSchedulePolicy(directory: File, private val fault: (String)
             if (permission != null) requirePermission(db, library, permission, destination)
             val next = Configuration(prior?.id ?: UUID.randomUUID(), library, UUID.randomUUID(), State.Arming,
                 kind, destination, credential, permission, intervalMillis, originalInk, sourceAssets,
-                System.currentTimeMillis().coerceAtLeast(0), null)
+                System.currentTimeMillis().coerceAtLeast(0), null, maximumBytes, destinationIdentity)
             val values = values(next)
             if (prior == null) db.insertOrThrow("configurations", null, values)
             else require(db.update("configurations", values, "id=? AND revision=?", arrayOf(prior.id.toString(), prior.revision.toString())) == 1)
+            db.execSQL("INSERT OR REPLACE INTO schedule_limits(schedule,revision,maximum_bytes,destination_identity) VALUES(?,?,?,?)",
+                arrayOf(next.id.toString(), next.revision.toString(), maximumBytes, destinationIdentity))
             next
         }
     }
@@ -66,6 +69,7 @@ internal class BackupSchedulePolicy(directory: File, private val fault: (String)
             require(prior.revision == revision)
             val next = prior.copy(state = State.Disabled, revision = UUID.randomUUID())
             require(db.update("configurations", values(next), "id=? AND revision=?", arrayOf(prior.id.toString(), revision.toString())) == 1)
+            if (next.maximumBytes != null) db.execSQL("UPDATE schedule_limits SET revision=? WHERE schedule=?", arrayOf(next.revision.toString(), next.id.toString()))
             next
         }
     }
@@ -127,7 +131,7 @@ internal class BackupSchedulePolicy(directory: File, private val fault: (String)
         }
     }
     private fun configuration(db: SQLiteDatabase, library: UUID): Configuration? = db.rawQuery("SELECT $columns FROM configurations WHERE library=?", arrayOf(library.toString())).use { c ->
-        if (!c.moveToFirst()) null else decode(c).also { require(it.library == library && !c.moveToNext()) }
+        if (!c.moveToFirst()) null else decode(db, c).also { require(it.library == library && !c.moveToNext()) }
     }
     private fun values(c: Configuration) = ContentValues().apply {
         put("id", c.id.toString()); put("library", c.library.toString()); put("revision", c.revision.toString()); put("state", c.state.name)
@@ -135,15 +139,25 @@ internal class BackupSchedulePolicy(directory: File, private val fault: (String)
         put("interval_ms", c.intervalMillis); put("original_ink", if (c.originalInk) 1 else 0); put("source_assets", if (c.sourceAssets) 1 else 0)
         put("consented_ms", c.consentedAtMillis); put("active_run", c.activeRun?.toString())
     }
-    private fun decode(c: Cursor): Configuration {
+    private fun decode(db: SQLiteDatabase, c: Cursor): Configuration {
         for (i in 0..6) require(c.getType(i) == Cursor.FIELD_TYPE_STRING)
         for (i in listOf(8, 9, 10, 11)) require(c.getType(i) == Cursor.FIELD_TYPE_INTEGER)
+        val limits = limit(db, uuid(c.getString(0)), uuid(c.getString(2)))
         val value = Configuration(uuid(c.getString(0)), uuid(c.getString(1)), uuid(c.getString(2)), State.valueOf(c.getString(3)),
-            Destination.valueOf(c.getString(4)), c.getString(5), uuid(c.getString(6)), nullableUuid(c, 7), c.getLong(8), boolean(c, 9), boolean(c, 10), c.getLong(11), nullableUuid(c, 12))
+            Destination.valueOf(c.getString(4)), c.getString(5), uuid(c.getString(6)), nullableUuid(c, 7), c.getLong(8), boolean(c, 9), boolean(c, 10), c.getLong(11), nullableUuid(c, 12), limits?.first, limits?.second)
         require(value.intervalMillis > 0 && value.consentedAtMillis >= 0)
+        require(value.maximumBytes != null || value.state == State.Disabled)
         validateDestination(value.kind, value.destination, value.permission)
         return value
     }
+    private fun limit(db: SQLiteDatabase, id: UUID, revision: UUID): Pair<Long, String>? =
+        db.rawQuery("SELECT maximum_bytes,destination_identity FROM schedule_limits WHERE schedule=? AND revision=?", arrayOf(id.toString(), revision.toString())).use { c ->
+            if (!c.moveToFirst()) null else {
+                require(c.getType(0) == Cursor.FIELD_TYPE_INTEGER && c.getLong(0) > 0)
+                require(c.getType(1) == Cursor.FIELD_TYPE_STRING && c.getString(1).length in 1..4096 && !c.getString(1).contains('\u0000'))
+                (c.getLong(0) to c.getString(1)).also { require(!c.moveToNext()) }
+            }
+        }
     private fun run(db: SQLiteDatabase, id: UUID): Run? = db.rawQuery("SELECT $runColumns FROM runs WHERE id=?", arrayOf(id.toString())).use { c ->
         if (!c.moveToFirst()) null else decodeRun(c).also { require(!c.moveToNext()) }
     }

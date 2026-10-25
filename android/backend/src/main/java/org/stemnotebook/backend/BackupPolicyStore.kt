@@ -58,8 +58,11 @@ internal class BackupPolicyStore(directory: File, private val fault: (String) ->
         transaction { db ->
             val old = find(db, context) ?: throw Unavailable()
             if (old.state != CredentialState.Deleted && old.state != CredentialState.Retired) {
+                val revision = UUID.randomUUID().toString()
+                db.execSQL("UPDATE schedule_limits SET revision=? WHERE schedule IN (SELECT id FROM configurations WHERE library=? AND credential=? AND state<>?)",
+                    arrayOf(revision, context.library.toString(), context.id.toString(), BackupSchedulePolicy.State.Disabled.name))
                 db.execSQL("UPDATE configurations SET state=?,revision=? WHERE library=? AND credential=? AND state<>?",
-                    arrayOf(BackupSchedulePolicy.State.Disabled.name, UUID.randomUUID().toString(), context.library.toString(), context.id.toString(), BackupSchedulePolicy.State.Disabled.name))
+                    arrayOf(BackupSchedulePolicy.State.Disabled.name, revision, context.library.toString(), context.id.toString(), BackupSchedulePolicy.State.Disabled.name))
                 db.execSQL("UPDATE credentials SET state=? WHERE id=?", arrayOf(CredentialState.Retired.name, context.id.toString()))
             }
         }

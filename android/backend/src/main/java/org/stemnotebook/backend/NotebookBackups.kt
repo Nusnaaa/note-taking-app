@@ -86,6 +86,11 @@ class NotebookBackups internal constructor(
     inner class Prepared internal constructor(internal val file: File, private val key: CharArray,
         internal val epoch: Any, internal val snapshot: BackupSnapshot, val bytes: Long, val includesOriginalInk: Boolean,
         val sourceAssets: Long, val omissions: List<String>, internal val digest: ByteArray) : Closeable {
+        val id: java.util.UUID = java.util.UUID.randomUUID()
+        private var publicationClaimed = false
+        internal fun claimPublicationId(): java.util.UUID = synchronized(lock) {
+            if (publicationClaimed) java.util.UUID.randomUUID() else { publicationClaimed = true; id }
+        }
         internal var live = true
         internal var cleanupQueued = false
         /** Explicit trusted recovery workflow; caller owns and clears this copy. */
@@ -218,10 +223,10 @@ class NotebookBackups internal constructor(
             result
         }
     }
-    private fun recordPublication(artifact: Prepared, kind: BackupDestinationKind, location: String, acknowledgement: BackupAcknowledgement, synced: Boolean): Boolean = try {
+    private fun recordPublication(artifact: Prepared, kind: BackupDestinationKind, location: String, acknowledgement: BackupAcknowledgement, synced: Boolean, publicationId: java.util.UUID): Boolean = try {
         val digest = artifact.digest.joinToString("") { "%02x".format(it.toInt() and 255) }
         catalogue.append(artifact.snapshot, kind, location, artifact.bytes, digest, acknowledgement, synced,
-            artifact.includesOriginalInk, artifact.sourceAssets, artifact.omissions)
+            artifact.includesOriginalInk, artifact.sourceAssets, artifact.omissions, publicationId.toString())
         true
     } catch (_: Exception) { needsAttention = true; false }
 
@@ -350,6 +355,7 @@ class NotebookBackups internal constructor(
         return submit(timeout, {}) { operation ->
             withProviderSignal(operation) { signal ->
                 val artifact = selected.artifact
+                val publicationId = artifact.claimPublicationId()
                 if (documents.inspect(selected.tree, signal) != selected.observed) throw Failure(FailureReason.SourceChanged)
                 verifyCiphertext(artifact, operation)
                 var created: Uri? = null
@@ -362,7 +368,7 @@ class NotebookBackups internal constructor(
                         // here cancellation/errors must report an uncertain outcome.
                         operation.partialOutcome = true
                     }
-                    val document = documents.create(selected.tree, "STEM-backup-${java.util.UUID.randomUUID()}.stemenc")
+                    val document = documents.create(selected.tree, "STEM-backup-${publicationId}.stemenc")
                     require(document.scheme == "content" && document.toString().length <= 4096 && document.authority == selected.tree.authority)
                     require(DocumentsContract.getTreeDocumentId(document) == selected.observed.identity)
                     require(DocumentsContract.getDocumentId(document) != selected.observed.identity)
@@ -410,7 +416,7 @@ class NotebookBackups internal constructor(
                         }
                     } finally { inputDescriptor.close() }
                     operation.check()
-                    val recorded = recordPublication(artifact, BackupDestinationKind.ProviderDocument, document.toString(), BackupAcknowledgement.ProviderReadBack, syncAcknowledged)
+                    val recorded = recordPublication(artifact, BackupDestinationKind.ProviderDocument, document.toString(), BackupAcknowledgement.ProviderReadBack, syncAcknowledged, publicationId)
                     ProviderPublication(document, artifact.bytes, Outcome.ProviderVerified, syncAcknowledged,
                         try { current(artifact.epoch) } catch (_: Exception) { false }, recorded)
                 } catch (_: Exception) {
@@ -432,6 +438,7 @@ class NotebookBackups internal constructor(
             require(parent.isDirectory && !Files.isSymbolicLink(parent.toPath()) && !Files.isSymbolicLink(target))
             require(!parent.canonicalFile.toPath().startsWith(privateRoot.canonicalFile.toPath()))
             synchronized(lock) { check(prepared === artifact && artifact.live) }
+            val publicationId = artifact.claimPublicationId()
             var pending: File? = null
             var linked = false
             try {
@@ -466,7 +473,7 @@ class NotebookBackups internal constructor(
                 Files.createLink(target, copy); linked = true
                 fault("publish-link"); syncDirectory(parent)
                 check(Files.deleteIfExists(copy)); pending = null; syncDirectory(parent)
-                val recorded = recordPublication(artifact, BackupDestinationKind.LocalFile, destination.absolutePath, BackupAcknowledgement.LocalDurable, true)
+                val recorded = recordPublication(artifact, BackupDestinationKind.LocalFile, destination.absolutePath, BackupAcknowledgement.LocalDurable, true, publicationId)
                 Publication(artifact.bytes, Outcome.Published, try { current(artifact.epoch) } catch (_: Exception) { false }, recorded)
             } catch (error: Exception) {
                 if (linked) { needsAttention = true; Publication(artifact.bytes, Outcome.Uncertain, false) } else throw error
@@ -510,6 +517,24 @@ class NotebookBackups internal constructor(
         }
         old.first?.cancel(); old.second?.close()
         deadlines.shutdownNow(); cancellations.shutdown()
+    }
+    /** Worker-only retirement fence, after closing this consumer's artifacts.
+     * Timer callbacks may enqueue cancellation/cleanup; drain in that order and
+     * finish with a second file-worker fence. Shutdown waits actual termination. */
+    internal fun awaitRetired() {
+        fun fence(executor: java.util.concurrent.ExecutorService) {
+            val done = CompletableFuture<Void>()
+            try { executor.execute { done.complete(null) }; done.join() }
+            catch (_: RejectedExecutionException) {
+                check(executor.isShutdown)
+                var interrupted = false
+                try {
+                    while (!executor.isTerminated) try { executor.awaitTermination(1, TimeUnit.SECONDS) }
+                    catch (_: InterruptedException) { interrupted = true }
+                } finally { if (interrupted) Thread.currentThread().interrupt() }
+            }
+        }
+        fence(worker); fence(deadlines); fence(cancellations); fence(worker)
     }
     internal fun awaitClosed() = awaitStopped(worker, cancellations, deadlines)
 }

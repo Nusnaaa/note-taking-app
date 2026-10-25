@@ -1,11 +1,10 @@
 # Scheduled-backup foundations (scheduling is not enabled)
 
-These internal components prepare the I0/I1 opt-in scheduling workflow.
-[Credential/consent storage](BACKUP_POLICY_STORE.md) and
-[persisted configuration/run state](BACKUP_SCHEDULE_POLICY.md) now exist.
-A [shared live runtime](SHARED_NOTEBOOK_RUNTIME.md) now owns independent consumer
-leases. The public scheduling controller and OS job service remain unimplemented.
-No automatic job is registered or enabled. Manual backup/history is independent.
+These components now support the [reviewed scheduling workflow](SCHEDULED_BACKUPS.md)
+through a public controller and JobService for the primary app root. Constructing
+or opening a backend still enables no job, grant or stored credential. Protected
+backup delegation and independent-root job routing remain required unfinished
+work. Manual backup/history stays independent.
 
 ## Device credential wrapping
 
@@ -68,12 +67,11 @@ can require renewed permission. See [Android's storage access guidance](https://
 
 ## Remaining integration
 
-Still required: public scheduling/consent/credential controller integration,
-recovery-key management, JobScheduler
-registration/service and its shared-runtime acquisition, due-run/stop/restart
-reconciliation and user-visible outcomes. Background verification must not be an
-always-true substitute for authentication. Native public-content backup does not
-request a protected-scope proof; protected-content policy still needs a deliberate
-implementation that preserves the approved lock rules. Automatic backup is not
-claimed implemented by these primitives. No OS notebook cloud backup, mandatory
-account, remote inference, model installation or production H.I. is introduced.
+The public controller, native initial backup/key offer, device credential and
+provider-consent integration, reviewed enable/disable, due-run outcomes,
+recovery-key reveal/delete and primary-root JobService are now implemented.
+Still required: narrowly authorized protected-content scheduling and routing for
+independent recovered roots, plus real device/provider/Keystore and interruption
+acceptance. Background verification is never an always-true substitute for
+owner authentication. No OS notebook cloud backup, mandatory account, remote
+inference, model installation or production H.I. is introduced.

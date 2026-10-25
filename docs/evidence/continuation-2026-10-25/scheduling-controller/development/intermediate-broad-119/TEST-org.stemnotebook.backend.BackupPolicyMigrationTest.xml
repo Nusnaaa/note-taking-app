@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.BackupPolicyMigrationTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T20:36:12" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="0.542">
+  <properties/>
+  <testcase name="exactLegacyMigrationPreservesCredentialsAndRequiresFreshLimitAndSchedulingReview" classname="org.stemnotebook.backend.BackupPolicyMigrationTest" time="0.196"/>
+  <testcase name="migrationKeepsUnfinishedRunForExclusiveRestartReconciliation" classname="org.stemnotebook.backend.BackupPolicyMigrationTest" time="0.153"/>
+  <testcase name="futureSchemaIsPreservedWithoutDowngradeOrMigration" classname="org.stemnotebook.backend.BackupPolicyMigrationTest" time="0.1"/>
+  <testcase name="invalidLegacyIdentityRollsBackTheWholeMigration" classname="org.stemnotebook.backend.BackupPolicyMigrationTest" time="0.092"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
