@@ -3,4 +3,4 @@ exit_code=0
 
     Checking stem-core v0.1.0 (/home/linus/Projects/software/note-taking-app/repo/core)
     Checking stem-bridge v0.1.0 (/home/linus/Projects/software/note-taking-app/repo/bridge)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 17.78s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 17.77s

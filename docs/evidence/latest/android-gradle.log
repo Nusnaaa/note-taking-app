@@ -15,8 +15,8 @@ Daemon will be stopped at the end of the build
 > Task :backend:stripDebugDebugSymbols
 > Task :backend:copyDebugJniLibsProjectAndLocalJars
 > Task :backend:extractDeepLinksForAarDebug
-> Task :backend:javaPreCompileDebug
 > Task :backend:parseDebugLocalResources
+> Task :backend:javaPreCompileDebug
 > Task :backend:mergeDebugShaders
 > Task :backend:compileDebugShaders NO-SOURCE
 > Task :backend:generateDebugAssets UP-TO-DATE
@@ -84,37 +84,37 @@ Daemon will be stopped at the end of the build
 /home/linus/Projects/software/note-taking-app/repo/android/backend/src/main/AndroidManifest.xml:4:5-6:19 Warning:
 	application@android:usesCleartextTraffic was tagged at AndroidManifest.xml:4 to replace other declarations but no other declaration present
 
-> Task :backend:writeReleaseAarMetadata
 > Task :backend:mergeReleaseJavaResource
-> Task :backend:mapReleaseSourceSetPaths
+> Task :backend:writeReleaseAarMetadata
 > Task :backend:syncReleaseLibJars
 > Task :backend:bundleReleaseAar
+> Task :backend:mapReleaseSourceSetPaths
 > Task :backend:mergeReleaseResources
 > Task :backend:bundleLibRuntimeToJarDebug
 > Task :backend:bundleLibCompileToJarDebug
 > Task :backend:preDebugUnitTestBuild UP-TO-DATE
 > Task :backend:checkDebugUnitTestAarMetadata
-> Task :backend:compileDebugLibraryResources
+> Task :backend:verifyReleaseResources
+> Task :backend:assembleRelease
 > Task :backend:generateDebugUnitTestResValues
+> Task :backend:compileDebugLibraryResources
 > Task :backend:mapDebugUnitTestSourceSetPaths
 > Task :backend:generateDebugUnitTestResources
 > Task :backend:mergeDebugUnitTestResources
 > Task :backend:extractDeepLinksDebug
-> Task :backend:verifyReleaseResources
 
 > Task :backend:processDebugUnitTestManifest
-/home/linus/Projects/software/note-taking-app/repo/android/backend/build/intermediates/tmp/manifest/test/debug/tempFile1ProcessTestManifest14724450331997456140.xml Warning:
-	uses-permission#android.permission.INTERNET was tagged at tempFile1ProcessTestManifest14724450331997456140.xml:0 to remove other declarations but no other declaration present
-/home/linus/Projects/software/note-taking-app/repo/android/backend/build/intermediates/tmp/manifest/test/debug/tempFile1ProcessTestManifest14724450331997456140.xml:7:5-9:19 Warning:
-	application@android:allowBackup was tagged at tempFile1ProcessTestManifest14724450331997456140.xml:7 to replace other declarations but no other declaration present
-/home/linus/Projects/software/note-taking-app/repo/android/backend/build/intermediates/tmp/manifest/test/debug/tempFile1ProcessTestManifest14724450331997456140.xml:7:5-9:19 Warning:
-	application@android:fullBackupContent was tagged at tempFile1ProcessTestManifest14724450331997456140.xml:7 to replace other declarations but no other declaration present
-/home/linus/Projects/software/note-taking-app/repo/android/backend/build/intermediates/tmp/manifest/test/debug/tempFile1ProcessTestManifest14724450331997456140.xml:7:5-9:19 Warning:
-	application@android:dataExtractionRules was tagged at tempFile1ProcessTestManifest14724450331997456140.xml:7 to replace other declarations but no other declaration present
-/home/linus/Projects/software/note-taking-app/repo/android/backend/build/intermediates/tmp/manifest/test/debug/tempFile1ProcessTestManifest14724450331997456140.xml:7:5-9:19 Warning:
-	application@android:usesCleartextTraffic was tagged at tempFile1ProcessTestManifest14724450331997456140.xml:7 to replace other declarations but no other declaration present
+/home/linus/Projects/software/note-taking-app/repo/android/backend/build/intermediates/tmp/manifest/test/debug/tempFile1ProcessTestManifest6642664076638633261.xml Warning:
+	uses-permission#android.permission.INTERNET was tagged at tempFile1ProcessTestManifest6642664076638633261.xml:0 to remove other declarations but no other declaration present
+/home/linus/Projects/software/note-taking-app/repo/android/backend/build/intermediates/tmp/manifest/test/debug/tempFile1ProcessTestManifest6642664076638633261.xml:7:5-9:19 Warning:
+	application@android:allowBackup was tagged at tempFile1ProcessTestManifest6642664076638633261.xml:7 to replace other declarations but no other declaration present
+/home/linus/Projects/software/note-taking-app/repo/android/backend/build/intermediates/tmp/manifest/test/debug/tempFile1ProcessTestManifest6642664076638633261.xml:7:5-9:19 Warning:
+	application@android:fullBackupContent was tagged at tempFile1ProcessTestManifest6642664076638633261.xml:7 to replace other declarations but no other declaration present
+/home/linus/Projects/software/note-taking-app/repo/android/backend/build/intermediates/tmp/manifest/test/debug/tempFile1ProcessTestManifest6642664076638633261.xml:7:5-9:19 Warning:
+	application@android:dataExtractionRules was tagged at tempFile1ProcessTestManifest6642664076638633261.xml:7 to replace other declarations but no other declaration present
+/home/linus/Projects/software/note-taking-app/repo/android/backend/build/intermediates/tmp/manifest/test/debug/tempFile1ProcessTestManifest6642664076638633261.xml:7:5-9:19 Warning:
+	application@android:usesCleartextTraffic was tagged at tempFile1ProcessTestManifest6642664076638633261.xml:7 to replace other declarations but no other declaration present
 
-> Task :backend:assembleRelease
 > Task :backend:javaPreCompileDebugUnitTest
 > Task :backend:mergeDebugAssets
 > Task :backend:generateDebugUnitTestAssets UP-TO-DATE
@@ -144,5 +144,5 @@ Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/stem-android-user
 > Task :backend:lintReportDebug
 > Task :backend:lintDebug
 
-BUILD SUCCESSFUL in 6m 46s
+BUILD SUCCESSFUL in 7m 35s
 86 actionable tasks: 86 executed
