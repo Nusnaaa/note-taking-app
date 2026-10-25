@@ -162,6 +162,7 @@ class NotebookSchedules internal constructor(
         internal var timer: java.util.concurrent.ScheduledFuture<*>? = null
         val label: String get() = synchronized(lock) { check(live && prepared === this); providerReview?.label ?: (options.target as Target.Directory).folder.name }
         val storesDevicePasswordAndRecoveryKeys: Boolean get() = true
+        val requiresProtectedContentConsent: Boolean get() = artifact.authority.protectedContent
         fun copyRecoveryKey(): CharArray = synchronized(lock) { check(live && prepared === this); artifact.copyRecoveryKey().also { keyOffered = true } }
         internal fun take(): CharArray = synchronized(lock) {
             check(live && prepared === this && keyOffered)
@@ -215,8 +216,9 @@ class NotebookSchedules internal constructor(
     }
     fun enable(review: Prepared, proof: NativeBridge.Verification, confirmedScheduling: Boolean,
         allowDevicePasswordAndRecoveryKeyStorage: Boolean, allowPersistentProviderAccess: Boolean,
-        independentRecoveryAcknowledged: Boolean): Pending<EnableReceipt> = submit(preserve = true) { op ->
+        independentRecoveryAcknowledged: Boolean, allowProtectedContentDelegation: Boolean = false): Pending<EnableReceipt> = submit(preserve = true) { op ->
         require(confirmedScheduling && allowDevicePasswordAndRecoveryKeyStorage && independentRecoveryAcknowledged)
+        require(!review.requiresProtectedContentConsent || allowProtectedContentDelegation)
         authority(); check(library() == review.ownerLibrary)
         check(proof.verify(UUID.randomUUID().toString())); op.check(); authority()
         check(policies.configuration(review.ownerLibrary)?.revision == review.prior?.revision)
@@ -242,12 +244,16 @@ class NotebookSchedules internal constructor(
             storeRecovery(review.ownerLibrary, review.artifact)
             val kind = when (review.options.target) { is Target.Directory -> BackupSchedulePolicy.Destination.LocalDirectory; is Target.Provider -> BackupSchedulePolicy.Destination.ProviderTree }
             val location = when (val target = review.options.target) { is Target.Directory -> target.folder.absolutePath; is Target.Provider -> target.tree.toString() }
+            val delegation = BackupSecretContext(review.ownerLibrary, UUID.randomUUID(), BackupSecretContext.Purpose.BackupDelegation)
+            store.beginCredential(delegation, null, true, true)
             config = policies.arm(review.ownerLibrary, review.prior?.revision, kind, location, password.id, permission,
-                review.options.intervalMillis, review.options.originalInk, review.options.sourceAssets, true, review.options.maximumBytes, review.identity)
+                review.options.intervalMillis, review.options.originalInk, review.options.sourceAssets, true, review.options.maximumBytes, review.identity, delegation.id)
+            val approval = approvalPayload(config, delegation.id, review.artifact.authority)
+            try { vault.sealIntent(delegation, approval) } finally { approval.fill('\u0000') }
             registration = Registration.valueOf(jobs.register(config).name)
             if (registration == Registration.Registered) config = policies.registrationAcknowledged(review.ownerLibrary, config.revision)
             val retiredPrior = if (review.prior != null) try {
-                vault.retire(BackupSecretContext(review.ownerLibrary, review.prior.credential, BackupSecretContext.Purpose.SchedulePassword)).join(); true
+                retireConfigurationCredentials(review.prior); true
             } catch (_: Exception) { false } else true
             EnableReceipt(review.artifact.id, initial.publication, initial.catalogueRecorded, config.public(), credential, registration, registration != Registration.Registered || !initial.catalogueRecorded || backups.needsAttention || !retiredPrior,
                 grant?.outcome?.name, grant?.decision?.id)
@@ -268,7 +274,7 @@ class NotebookSchedules internal constructor(
         val abandoned = synchronized(lock) { prepared to operations.filter { it !== op } }
         abandoned.first?.close(); abandoned.second.forEach { it.cancel() }
         val cancelled = try { jobs.cancel(BackupJobScheduler.Token(prior.id, prior.revision)) in setOf(BackupJobScheduler.Cancellation.Cancelled, BackupJobScheduler.Cancellation.Absent) } catch (_: Exception) { false }
-        val deleted = try { vault.retire(BackupSecretContext(owner, prior.credential, BackupSecretContext.Purpose.SchedulePassword)).join(); true } catch (_: Exception) { false }
+        val deleted = try { retireConfigurationCredentials(prior); true } catch (_: Exception) { false }
         abandoned.second.forEach { try { it.future.join() } catch (_: Exception) { } }
         val current = try { policies.configuration(owner) ?: disabled } catch (_: Exception) { disabled }
         DisableReceipt(current.public(), cancelled, deleted, current.activeRun == null)
@@ -307,6 +313,26 @@ class NotebookSchedules internal constructor(
         }
         return try { checkTarget(target, identity); result } catch (_: Exception) { result.copy(publication = Publication.Uncertain) }
     }
+    /** The encrypted payload binds review metadata to this exact policy and
+     * credential. Plain SQLite scope metadata cannot manufacture approval. */
+    private fun approvalPayload(config: BackupSchedulePolicy.Configuration, grant: UUID, authority: NativeBridge.BackupAuthority): CharArray =
+        approvalPayload(config, grant, authority.version, authority.library, authority.scopeDigest, authority.protectedContent)
+    private fun approvalPayload(config: BackupSchedulePolicy.Configuration, grant: UUID, version: Int, actualLibrary: String, digest: String, protected: Boolean): CharArray {
+        require(version == 1 && actualLibrary == config.library.toString() && digest.length == 64 && digest.all { it in '0'..'9' || it in 'a'..'f' })
+        val policy = org.json.JSONArray().put(config.kind.name).put(config.destination).put(config.credential.toString())
+            .put(config.permission?.toString()).put(config.intervalMillis).put(config.originalInk).put(config.sourceAssets)
+            .put(config.maximumBytes).put(config.destinationIdentity).toString().toByteArray(Charsets.UTF_8)
+        val binding = java.security.MessageDigest.getInstance("SHA-256").digest(policy).joinToString("") { "%02x".format(it.toInt() and 255) }
+        return "STEM-BACKUP-DELEGATION-1:$version:$actualLibrary:${config.id}:${config.revision}:$grant:$digest:$protected:$binding".toCharArray()
+    }
+    private fun retireConfigurationCredentials(config: BackupSchedulePolicy.Configuration) {
+        // Attempt both retirements even when one device-key deletion fails.
+        var failure: Exception? = null
+        val contexts = listOfNotNull(BackupSecretContext(config.library, config.credential, BackupSecretContext.Purpose.SchedulePassword),
+            config.authority?.let { BackupSecretContext(config.library, it, BackupSecretContext.Purpose.BackupDelegation) })
+        for (context in contexts) try { vault.retire(context).join() } catch (error: Exception) { if (failure == null) failure = error }
+        failure?.let { throw it }
+    }
     private fun storeRecovery(owner: UUID, artifact: NotebookBackups.Prepared) {
         val key = artifact.copyRecoveryKey()
         try { vault.store(BackupSecretContext(owner, UUID.randomUUID(), BackupSecretContext.Purpose.RecoveryKey), artifact.id, key, true, true) }
@@ -325,12 +351,27 @@ class NotebookSchedules internal constructor(
                 BackupSchedulePolicy.Destination.ProviderTree -> Target.Provider(Uri.parse(config.destination), Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
             }
             if (target is Target.Provider) check(permissions.current(target.tree).complete)
-            authority(); op.check(); checkTarget(target, checkNotNull(config.destinationIdentity))
+            if (config.authority == null) authority()
+            op.check(); checkTarget(target, checkNotNull(config.destinationIdentity))
             val outcome = vault.use(BackupSecretContext(owner, config.credential, BackupSecretContext.Purpose.SchedulePassword)) { secret ->
                 // Preserve operation errors separately from a device-key error.
                 var artifact: NotebookBackups.Prepared? = null
                 try {
-                    val review = op.observe(backups.review(config.originalInk, config.sourceAssets))
+                    val review = op.observe(if (config.authority == null) backups.review(config.originalInk, config.sourceAssets)
+                        else backups.reviewDelegated(config.originalInk, config.sourceAssets, NativeBridge.BackupAuthorization { _, version, actualLibrary, digest, protected ->
+                            try {
+                                op.check()
+                                val grantId = checkNotNull(config.authority)
+                                vault.use(BackupSecretContext(owner, grantId, BackupSecretContext.Purpose.BackupDelegation)) { approved ->
+                                    val current = policies.configuration(owner)
+                                    if (current?.id != config.id || current.revision != config.revision || current.state != BackupSchedulePolicy.State.Enabled || current.authority != grantId) false
+                                    else {
+                                        val expected = approvalPayload(config, grantId, version, actualLibrary, digest, protected)
+                                        try { op.check(); approved.contentEquals(expected) } finally { expected.fill('\u0000') }
+                                    }
+                                }
+                            } catch (_: Exception) { false }
+                        }))
                     artifact = try { op.observe(backups.create(review, secret, NativeBridge.Verification { false }, true, checkNotNull(config.maximumBytes))) } finally { review.close() }
                     backup = artifact.id
                     op.check()
@@ -371,6 +412,14 @@ class NotebookSchedules internal constructor(
     }
     /** No password reveal. Referenced Arming/Enabled or active-run credentials
      * need deliberate policy disablement first. Fresh setup always uses new IDs. */
+    fun retireUnusedDelegation(id: UUID, proof: NativeBridge.Verification, confirmed: Boolean): Pending<DeletionReceipt> = submit(isControl = true, preserve = true) { op ->
+        require(confirmed); authority(); check(proof.verify(UUID.randomUUID().toString())); op.check(); authority()
+        val owner = library(); val config = policies.configuration(owner)
+        check(config?.authority != id || (config.state == BackupSchedulePolicy.State.Disabled && config.activeRun == null))
+        val context = BackupSecretContext(owner, id, BackupSecretContext.Purpose.BackupDelegation)
+        check(store.credential(context) != null)
+        try { vault.retire(context).join(); DeletionReceipt(true) } catch (_: Exception) { DeletionReceipt(false) }
+    }
     fun retireUnusedPassword(id: UUID, proof: NativeBridge.Verification, confirmed: Boolean): Pending<DeletionReceipt> = submit(isControl = true, preserve = true) { op ->
         require(confirmed); authority(); check(proof.verify(UUID.randomUUID().toString())); op.check(); authority()
         val owner = library(); val config = policies.configuration(owner)

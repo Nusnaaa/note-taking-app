@@ -59,10 +59,12 @@ internal class BackupPolicyStore(directory: File, private val fault: (String) ->
             val old = find(db, context) ?: throw Unavailable()
             if (old.state != CredentialState.Deleted && old.state != CredentialState.Retired) {
                 val revision = UUID.randomUUID().toString()
-                db.execSQL("UPDATE schedule_limits SET revision=? WHERE schedule IN (SELECT id FROM configurations WHERE library=? AND credential=? AND state<>?)",
-                    arrayOf(revision, context.library.toString(), context.id.toString(), BackupSchedulePolicy.State.Disabled.name))
-                db.execSQL("UPDATE configurations SET state=?,revision=? WHERE library=? AND credential=? AND state<>?",
-                    arrayOf(BackupSchedulePolicy.State.Disabled.name, revision, context.library.toString(), context.id.toString(), BackupSchedulePolicy.State.Disabled.name))
+                val affected = "SELECT id FROM configurations WHERE library=? AND (credential=? OR id IN (SELECT schedule FROM schedule_authorities WHERE credential=?)) AND state<>?"
+                val arguments = arrayOf(context.library.toString(), context.id.toString(), context.id.toString(), BackupSchedulePolicy.State.Disabled.name)
+                db.execSQL("UPDATE schedule_limits SET revision=? WHERE schedule IN ($affected)", arrayOf(revision, *arguments))
+                db.execSQL("UPDATE schedule_authorities SET revision=? WHERE schedule IN ($affected)", arrayOf(revision, *arguments))
+                db.execSQL("UPDATE configurations SET state=?,revision=? WHERE id IN ($affected)",
+                    arrayOf(BackupSchedulePolicy.State.Disabled.name, revision, *arguments))
                 db.execSQL("UPDATE credentials SET state=? WHERE id=?", arrayOf(CredentialState.Retired.name, context.id.toString()))
             }
         }

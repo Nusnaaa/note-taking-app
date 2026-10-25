@@ -2,7 +2,10 @@
 //! encryption, sink callbacks and sink retirement stay on the caller's worker.
 use super::{Host, Message, RecognitionScope};
 use crate::{
-    backup::{BackupOptions, StreamBackupCursor, StreamBackupPlan},
+    backup::{
+        BackupAuthority, BackupAuthorizer, BackupOptions, BackupReadPermit, StreamBackupCursor,
+        StreamBackupPlan,
+    },
     crypto::stream::EncryptStream,
     processing::{JobControl, WorkAuthority},
     security::{Access, Authenticator},
@@ -22,6 +25,8 @@ pub struct BackupSummary {
     pub includes_original_ink: bool,
     pub source_assets: usize,
     pub omissions: Vec<String>,
+    pub authority: BackupAuthority,
+    pub generation: String,
 }
 #[derive(Clone, Copy, Serialize)]
 pub struct BackupStatus {
@@ -40,6 +45,7 @@ impl BackupReceipt {
 pub struct BackupReview {
     slot: Arc<Slot>,
     summary: BackupSummary,
+    approved: Option<BackupReadPermit>,
 }
 impl BackupReview {
     pub fn summary(&self) -> &BackupSummary {
@@ -252,6 +258,11 @@ struct Active {
 impl Drop for Active {
     fn drop(&mut self) {
         self.scope.worker_done(self.ticket);
+        // Close may have encountered an authorizer worker before its plan was
+        // restored. Retire any now-idle metadata after the callback is gone.
+        if self.scope.state().closed {
+            self.scope.clear_idle(true);
+        }
     }
 }
 struct ActorLease {
@@ -271,6 +282,7 @@ struct Slot {
 // Field drop order keeps the worker counted through owned sink/slot retirement.
 struct Running<W: Write> {
     sink: Option<W>,
+    auth: Option<Box<dyn Authenticator + Send>>,
     _slot: Arc<Slot>,
     _active: Active,
 }
@@ -283,13 +295,14 @@ struct CursorState {
 pub(super) enum Request {
     Review {
         options: BackupOptions,
+        delegated: bool,
         permit: Permit,
         reply: mpsc::Sender<Result<BackupReview>>,
     },
     Open {
         plan: Box<StreamBackupPlan>,
         authority: WorkAuthority,
-        auth: Box<dyn Authenticator + Send>,
+        permission: BackupReadPermit,
         control: JobControl,
         reply: mpsc::Sender<Result<()>>,
     },
@@ -302,6 +315,11 @@ pub(super) enum Request {
         ticket: Id,
         control: JobControl,
         reply: mpsc::Sender<Result<()>>,
+    },
+    Matches {
+        library: String,
+        generation: String,
+        reply: mpsc::Sender<Result<bool>>,
     },
     Release {
         ticket: Id,
@@ -349,11 +367,18 @@ impl BackupActor {
         match request {
             Request::Review {
                 options,
+                delegated,
                 permit,
                 reply,
             } => answer!(reply, || {
-                let authority = recognition.optional_authority(access, permit.ticket)?;
-                let plan = store.prepare_stream_backup(options, access)?;
+                let public = Access::public();
+                let authority = recognition
+                    .optional_authority(if delegated { &public } else { access }, permit.ticket)?;
+                let plan = if delegated {
+                    store.prepare_delegated_stream_backup(options)?
+                } else {
+                    store.prepare_stream_backup(options, access)?
+                };
                 if plan.admission_bytes()? > self.scope.metadata_limit {
                     return Err(Error::ResourceLimit);
                 }
@@ -362,6 +387,8 @@ impl BackupActor {
                     includes_original_ink: plan.includes_original_ink(),
                     source_assets: plan.source_assets(),
                     omissions: plan.omissions().to_vec(),
+                    authority: plan.authority()?,
+                    generation: plan.generation().to_string(),
                 };
                 let slot = Arc::new(Slot {
                     plan: Mutex::new(Some(plan)),
@@ -369,16 +396,20 @@ impl BackupActor {
                     lease: permit,
                 });
                 self.scope.bind(&slot)?;
-                Ok(BackupReview { slot, summary })
+                Ok(BackupReview {
+                    slot,
+                    summary,
+                    approved: None,
+                })
             }),
             Request::Open {
                 plan,
                 authority,
-                mut auth,
+                permission,
                 control,
                 reply,
             } => answer!(reply, || {
-                let result = (|| {
+                (|| {
                     recognition.check_optional_authority(&authority)?;
                     control.check()?;
                     if self.cursor.is_some() {
@@ -386,7 +417,7 @@ impl BackupActor {
                     }
                     let lease = self.scope.attach(authority.ticket)?;
                     let cursor =
-                        store.open_stream_backup_cursor(*plan, auth.as_mut(), true, &control)?;
+                        store.open_stream_backup_cursor_authorized(*plan, permission, &control)?;
                     authority.check()?;
                     control.check()?;
                     self.cursor = Some(CursorState {
@@ -396,9 +427,7 @@ impl BackupActor {
                         _lease: lease,
                     });
                     Ok(())
-                })();
-                drop(auth);
-                result
+                })()
             }),
             Request::Pull {
                 ticket,
@@ -421,6 +450,12 @@ impl BackupActor {
                 s.authority.check()?;
                 Ok(())
             }),
+            Request::Matches {
+                library,
+                generation,
+                reply,
+            } => answer!(reply, || store
+                .backup_snapshot_matches(&library, &generation)),
             Request::Release { ticket, reply } => answer!(reply, || {
                 if self.cursor.as_ref().is_some_and(|s| s.ticket != ticket) {
                     return Err(Error::Denied);
@@ -432,12 +467,73 @@ impl BackupActor {
     }
 }
 impl Host {
+    /// Compare only an already authorized artifact stamp; never expose rows or
+    /// the live generation to an ordinary JSON caller.
+    pub fn backup_snapshot_matches(&self, library: String, generation: String) -> Result<bool> {
+        if library.len() != 36 || generation.len() > 32 || generation.parse::<u64>().is_err() {
+            return Err(Error::Invalid("backup stamp"));
+        }
+        Id::parse(&library)?;
+        if self.writer_thread == thread::current().id() {
+            return Err(Error::WorkerFailed);
+        }
+        let (tx, rx) = mpsc::channel();
+        self.mailbox.admit(
+            Message::Backup(Box::new(Request::Matches {
+                library,
+                generation,
+                reply: tx,
+            })),
+            false,
+            256,
+        )?;
+        rx.recv().map_err(|_| Error::WorkerFailed)?
+    }
     pub fn backup_status(&self) -> BackupStatus {
         self.backups.status()
     }
     /// Trusted core review, off the input thread. No ordinary JSON can construct
     /// a review, output claim, protected proof or sink capability.
     pub fn review_backup(&self, options: BackupOptions) -> Result<BackupReview> {
+        self.review_backup_mode(options, false)
+    }
+    /// Trusted encrypted-backup-only delegation. Verification and its owned
+    /// destructor run on this caller's worker, counted through actual retirement.
+    /// No ordinary Host Access is modified and no notebook JSON can supply it.
+    pub fn review_backup_delegated(
+        &self,
+        options: BackupOptions,
+        mut authorizer: Box<dyn BackupAuthorizer>,
+    ) -> Result<BackupReview> {
+        let mut review = self.review_backup_mode(options, true)?;
+        let (plan, active) = self.backups.start(&review.slot)?;
+        let permission = catch_unwind(AssertUnwindSafe(|| {
+            plan.authorize_backup(authorizer.as_mut())
+        }))
+        .unwrap_or(Err(Error::WorkerFailed));
+        let retired =
+            catch_unwind(AssertUnwindSafe(|| drop(authorizer))).map_err(|_| Error::WorkerFailed);
+        let permission = permission.and_then(|permit| {
+            retired?;
+            review.slot.authority.check()?;
+            if self.backups.state().closed {
+                return Err(Error::Cancelled);
+            }
+            Ok(permit)
+        });
+        if permission.is_ok() {
+            *review.slot.plan.lock().map_err(|_| Error::WorkerFailed)? = Some(plan);
+        } else {
+            drop(plan);
+        }
+        drop(active);
+        review.approved = Some(permission?);
+        if !review.is_current() {
+            return Err(Error::Cancelled);
+        }
+        Ok(review)
+    }
+    fn review_backup_mode(&self, options: BackupOptions, delegated: bool) -> Result<BackupReview> {
         if self.writer_thread == thread::current().id() {
             return Err(Error::WorkerFailed);
         }
@@ -446,6 +542,7 @@ impl Host {
         self.mailbox.admit(
             Message::Backup(Box::new(Request::Review {
                 options,
+                delegated,
                 permit,
                 reply: tx,
             })),
@@ -458,7 +555,7 @@ impl Host {
     /// Generic Write flush is not an OS file-sync/publication guarantee.
     pub fn finish_backup<W: Write>(
         &self,
-        review: BackupReview,
+        mut review: BackupReview,
         password: &str,
         auth: Box<dyn Authenticator + Send>,
         confirmed: bool,
@@ -479,18 +576,32 @@ impl Host {
         let authority = review.slot.authority.clone();
         let ticket = authority.ticket;
         let control = control.linked(Arc::clone(&authority.valid));
+        let approved = review.approved.take();
         let mut running = Running {
             sink: Some(sink),
+            auth: Some(auth),
             _slot: review.slot,
             _active: active,
         };
         let result = catch_unwind(AssertUnwindSafe(|| -> Result<Zeroizing<String>> {
+            // Platform verification may block/reenter. Keep it and its destructor
+            // off the writer; generation/authority are rechecked by Open.
+            let permission = match approved {
+                Some(permission) => permission,
+                None => {
+                    plan.authenticate(running.auth.as_mut().ok_or(Error::WorkerFailed)?.as_mut())?
+                }
+            };
+            catch_unwind(AssertUnwindSafe(|| drop(running.auth.take())))
+                .map_err(|_| Error::WorkerFailed)?;
+            authority.check()?;
+            control.check()?;
             let (tx, rx) = mpsc::channel();
             self.mailbox.admit(
                 Message::Backup(Box::new(Request::Open {
                     plan: Box::new(plan),
                     authority: authority.clone(),
-                    auth,
+                    permission,
                     control: control.clone(),
                     reply: tx,
                 })),
@@ -533,9 +644,12 @@ impl Host {
         .unwrap_or(Err(Error::WorkerFailed));
         // Catch callback panics before dropping user-owned W, then catch its
         // destructor separately: a write panic must not unwind through W::drop.
+        let retired_auth = catch_unwind(AssertUnwindSafe(|| drop(running.auth.take())))
+            .map_err(|_| Error::WorkerFailed);
         let retired = catch_unwind(AssertUnwindSafe(|| drop(running.sink.take())))
             .map_err(|_| Error::WorkerFailed);
         let result = result.and_then(|key| {
+            retired_auth?;
             retired?;
             authority.check()?;
             control.check()?;

@@ -24,7 +24,7 @@ internal class BackupPolicyDatabase(private val directory: File) {
         if (!new) {
             SQLiteDatabase.openDatabase(file.path, null, flags or SQLiteDatabase.OPEN_READONLY).use {
                 validate(it)
-                if (!write && it.version == 2) return action(it)
+                if (!write && it.version == 3) return action(it)
             }
             checkFiles(); require(stat(file) == identity)
         }
@@ -35,7 +35,7 @@ internal class BackupPolicyDatabase(private val directory: File) {
                 try {
                     schema.forEach { (name, columns) -> db.execSQL("CREATE TABLE $name($columns)") }
                     db.execSQL("INSERT INTO metadata VALUES('purpose','STEM-BACKUP-POLICY-1')")
-                    db.version = 2; db.setTransactionSuccessful()
+                    db.version = 3; db.setTransactionSuccessful()
                 } finally { db.endTransaction() }
             }
             validate(db)
@@ -60,6 +60,17 @@ internal class BackupPolicyDatabase(private val directory: File) {
                 } finally { db.endTransaction() }
                 validate(db)
             }
+            if (db.version == 2) {
+                db.execSQL("PRAGMA synchronous=FULL")
+                db.beginTransaction()
+                try {
+                    db.execSQL("CREATE TABLE schedule_authorities(${schema.getValue("schedule_authorities")})")
+                    // No historical delegation is invented. Old schedules retain
+                    // the public-only execution semantics they were approved for.
+                    db.version = 3; db.setTransactionSuccessful()
+                } finally { db.endTransaction() }
+                validate(db)
+            }
             if (write) db.execSQL("PRAGMA synchronous=FULL")
             action(db)
         }
@@ -73,15 +84,16 @@ internal class BackupPolicyDatabase(private val directory: File) {
         "configurations" to "id TEXT PRIMARY KEY,library TEXT NOT NULL UNIQUE,revision TEXT NOT NULL,state TEXT NOT NULL,kind TEXT NOT NULL,destination TEXT NOT NULL,credential TEXT NOT NULL,permission TEXT,interval_ms INTEGER NOT NULL,original_ink INTEGER NOT NULL,source_assets INTEGER NOT NULL,consented_ms INTEGER NOT NULL,active_run TEXT",
         "runs" to "id TEXT PRIMARY KEY,schedule TEXT NOT NULL,revision TEXT NOT NULL,started_ms INTEGER NOT NULL,finished_ms INTEGER,result TEXT,publication_sequence INTEGER",
         "schedule_limits" to "schedule TEXT PRIMARY KEY,revision TEXT NOT NULL,maximum_bytes INTEGER NOT NULL,destination_identity TEXT NOT NULL",
+        "schedule_authorities" to "schedule TEXT PRIMARY KEY,revision TEXT NOT NULL,credential TEXT NOT NULL",
         "permissions" to "id TEXT PRIMARY KEY,library TEXT NOT NULL,tree TEXT NOT NULL,identity TEXT NOT NULL,previous_read INTEGER NOT NULL,previous_write INTEGER NOT NULL,consented_ms INTEGER NOT NULL,outcome TEXT,observed_read INTEGER,observed_write INTEGER",
     )
     private fun validate(db: SQLiteDatabase) {
-        require(db.version == 1 || db.version == 2)
+        require(db.version in 1..3)
         db.rawQuery("SELECT key,value FROM metadata", null).use { c ->
             require(c.moveToFirst() && c.getString(0) == "purpose" && c.getString(1) == "STEM-BACKUP-POLICY-1" && !c.moveToNext())
         }
-        val expected = if (db.version == 1) schema.filterKeys { it != "schedule_limits" } else schema
-        db.rawQuery("SELECT type,name,sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' LIMIT 8", null).use { c ->
+        val expected = schema.filterKeys { (db.version >= 2 || it != "schedule_limits") && (db.version >= 3 || it != "schedule_authorities") }
+        db.rawQuery("SELECT type,name,sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' LIMIT 9", null).use { c ->
             val found = mutableSetOf<String>()
             while (c.moveToNext()) {
                 val name = c.getString(1)

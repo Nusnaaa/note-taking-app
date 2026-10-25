@@ -1,0 +1,5 @@
+PASS: bounded offline recovery Help without a library handle (1)
+Exception in thread "main" java.lang.IllegalStateException: Native backup operation failed
+	at org.stemnotebook.backend.NativeBridge.reviewBackup(Native Method)
+	at BackupBoundarySmoke.run(BackupBoundarySmoke.java:28)
+	at BoundarySmoke.main(BoundarySmoke.java:88)

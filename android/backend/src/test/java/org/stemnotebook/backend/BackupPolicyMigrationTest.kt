@@ -27,14 +27,14 @@ class BackupPolicyMigrationTest {
     }
     private fun legacy(directory: File) {
         SQLiteDatabase.openDatabase(File(directory, "policy.db").path, null, SQLiteDatabase.NO_LOCALIZED_COLLATORS).use { db ->
-            db.execSQL("DROP TABLE schedule_limits"); db.version = 1
+            db.execSQL("DROP TABLE schedule_authorities"); db.execSQL("DROP TABLE schedule_limits"); db.version = 1
         }
     }
     @Test fun exactLegacyMigrationPreservesCredentialsAndRequiresFreshLimitAndSchedulingReview() {
         val (directory, enabled) = fixture(); val key = BackupSecretContext(library, enabled.credential, BackupSecretContext.Purpose.SchedulePassword)
         val before = BackupPolicyStore(directory).credential(key)!!.envelope!!
         legacy(directory)
-        BackupPolicyDatabase(directory).access(false) { assertEquals(2, it.version) }
+        BackupPolicyDatabase(directory).access(false) { assertEquals(3, it.version) }
         val policy = BackupSchedulePolicy(directory); val disabled = policy.configuration(library)!!
         assertEquals(BackupSchedulePolicy.State.Disabled, disabled.state)
         assertNotEquals(enabled.revision, disabled.revision); assertNull(disabled.maximumBytes)
@@ -47,15 +47,24 @@ class BackupPolicyMigrationTest {
         val (directory, enabled) = fixture(); val old = BackupSchedulePolicy(directory)
         val run = old.start(library, enabled.id, enabled.revision)!!
         legacy(directory)
-        BackupPolicyDatabase(directory).access(false) { assertEquals(2, it.version) }
+        BackupPolicyDatabase(directory).access(false) { assertEquals(3, it.version) }
         val reopened = BackupSchedulePolicy(directory); val disabled = reopened.configuration(library)!!
         assertEquals(run.id, disabled.activeRun); assertEquals(BackupSchedulePolicy.State.Disabled, disabled.state)
         assertEquals(BackupSchedulePolicy.Result.Interrupted, reopened.reconcileInterrupted(library)!!.result)
         assertNull(reopened.configuration(library)!!.activeRun)
     }
+    @Test fun exactV2MigrationRetainsPublicOnlyScheduleWithoutInventingDelegation() {
+        val (directory, enabled) = fixture()
+        SQLiteDatabase.openDatabase(File(directory, "policy.db").path, null, SQLiteDatabase.NO_LOCALIZED_COLLATORS).use {
+            it.execSQL("DROP TABLE schedule_authorities"); it.version = 2
+        }
+        val config = BackupSchedulePolicy(directory).configuration(library)!!
+        assertEquals(enabled, config); assertNull(config.authority)
+        BackupPolicyDatabase(directory).access(false) { assertEquals(3, it.version) }
+    }
     @Test fun futureSchemaIsPreservedWithoutDowngradeOrMigration() {
         val (directory, _) = fixture(); val file = File(directory, "policy.db")
-        SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.NO_LOCALIZED_COLLATORS).use { it.version = 3 }
+        SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.NO_LOCALIZED_COLLATORS).use { it.version = 4 }
         val bytes = file.readBytes()
         assertThrows(BackupPolicyStore.Unavailable::class.java) { BackupSchedulePolicy(directory).configuration(library) }
         assertArrayEquals(bytes, file.readBytes())

@@ -41,6 +41,32 @@ class BackupSchedulePolicyTest {
         assertEquals(enabled, BackupSchedulePolicy(folder).configuration(library))
         assertNotNull(restarted.start(library, enabled.id, enabled.revision))
     }
+    @Test fun delegationIntentCannotEnableOrRunAndRetirementDisablesTheBoundSchedule() {
+        val folder = folder(); val store = BackupPolicyStore(folder); val key = credential(store); val policy = BackupSchedulePolicy(folder)
+        val grant = BackupSecretContext(library, UUID.randomUUID(), BackupSecretContext.Purpose.BackupDelegation)
+        store.beginCredential(grant, null, true, true)
+        val arming = policy.arm(library, null, BackupSchedulePolicy.Destination.LocalDirectory, "/explicit/backups", key.id, null, 123456L, true, false, true, 1000000, "reviewed-identity", grant.id)
+        assertEquals(grant.id, arming.authority)
+        unavailable { policy.registrationAcknowledged(library, arming.revision) }
+        assertNull(policy.start(library, arming.id, arming.revision))
+        store.commitCredential(grant, "STEMKEY1".toByteArray() + byteArrayOf(1) + ByteArray(30))
+        val enabled = policy.registrationAcknowledged(library, arming.revision)
+        store.markRetired(grant)
+        val disabled = BackupSchedulePolicy(folder).configuration(library)!!
+        assertEquals(BackupSchedulePolicy.State.Disabled, disabled.state); assertNotEquals(enabled.revision, disabled.revision)
+        assertEquals(grant.id, disabled.authority); assertEquals(enabled.maximumBytes, disabled.maximumBytes)
+        assertNull(policy.start(library, enabled.id, enabled.revision))
+        assertEquals(BackupPolicyStore.CredentialState.Ready, store.credential(key)!!.state)
+    }
+    @Test fun wrongRoleOrLibraryCannotSupplyDelegationIntent() {
+        val folder = folder(); val store = BackupPolicyStore(folder); val key = credential(store); val policy = BackupSchedulePolicy(folder)
+        val foreign = BackupSecretContext(UUID.randomUUID(), UUID.randomUUID(), BackupSecretContext.Purpose.BackupDelegation)
+        store.beginCredential(foreign, null, true, true)
+        for (invalid in listOf(key.id, foreign.id)) unavailable {
+            policy.arm(library, null, BackupSchedulePolicy.Destination.LocalDirectory, "/explicit/backups", key.id, null, 123456L, true, false, true, 1000000, "reviewed-identity", invalid)
+        }
+        assertNull(policy.configuration(library))
+    }
     @Test fun scheduleRequiresConsentReadySameLibraryPasswordAndExactCurrentRevision() {
         val folder = folder(); val store = BackupPolicyStore(folder); val policy = BackupSchedulePolicy(folder)
         val intent = BackupSecretContext(library, UUID.randomUUID(), BackupSecretContext.Purpose.SchedulePassword)

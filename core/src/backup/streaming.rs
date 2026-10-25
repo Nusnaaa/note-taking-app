@@ -25,10 +25,10 @@ const MODEL_OMISSION: &str =
 /// Review metadata only, not an in-memory copy of the library. Generation and
 /// library binding are checked again before taking the consistent read snapshot.
 pub struct StreamBackupPlan {
-    library: String,
-    generation: String,
-    scopes: BTreeSet<Scope>,
-    options: BackupOptions,
+    pub(super) library: String,
+    pub(super) generation: String,
+    pub(super) scopes: BTreeSet<Scope>,
+    pub(super) options: BackupOptions,
     includes_original_ink: bool,
     source_assets: usize,
     omissions: Vec<String>,
@@ -40,6 +40,9 @@ impl StreamBackupPlan {
             .checked_mul(64)
             .and_then(|n| n.checked_add(self.library.len() + self.generation.len() + 1024))
             .ok_or(Error::ResourceLimit)
+    }
+    pub fn generation(&self) -> &str {
+        &self.generation
     }
     pub fn includes_original_ink(&self) -> bool {
         self.includes_original_ink
@@ -93,12 +96,36 @@ impl Store {
         options: BackupOptions,
         access: &Access,
     ) -> Result<StreamBackupPlan> {
-        Self::require_app(&self.db, access)?;
+        self.prepare_stream_backup_inner(options, Some(access))
+    }
+    /// Trusted encrypted-artifact freshness check only. No row data or current
+    /// generation is exposed through ordinary notebook JSON.
+    pub(crate) fn backup_snapshot_matches(&self, library: &str, generation: &str) -> Result<bool> {
+        Ok(
+            crate::Id::parse(&Self::setting(&self.db, "library_id")?)?
+                == crate::Id::parse(library)?
+                && Self::setting(&self.db, "generation")? == generation,
+        )
+    }
+    pub(crate) fn prepare_delegated_stream_backup(
+        &self,
+        options: BackupOptions,
+    ) -> Result<StreamBackupPlan> {
+        self.prepare_stream_backup_inner(options, None)
+    }
+    fn prepare_stream_backup_inner(
+        &self,
+        options: BackupOptions,
+        access: Option<&Access>,
+    ) -> Result<StreamBackupPlan> {
+        if let Some(access) = access {
+            Self::require_app(&self.db, access)?;
+        }
         let tx = self.db.unchecked_transaction()?;
         let library = Self::setting(&tx, "library_id")?;
         let generation = Self::setting(&tx, "generation")?;
         let scopes = self.backup_scopes()?;
-        if scopes.iter().any(|s| !access.permits(s)) {
+        if access.is_some_and(|access| scopes.iter().any(|s| !access.permits(s))) {
             return Err(Error::Denied);
         }
         let ink = tx.prepare("SELECT 1 FROM strokes LIMIT 1")?.exists([])?;

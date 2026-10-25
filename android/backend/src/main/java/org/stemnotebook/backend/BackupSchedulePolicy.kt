@@ -15,7 +15,7 @@ internal class BackupSchedulePolicy(directory: File, private val fault: (String)
     data class Configuration(val id: UUID, val library: UUID, val revision: UUID, val state: State,
         val kind: Destination, val destination: String, val credential: UUID, val permission: UUID?,
         val intervalMillis: Long, val originalInk: Boolean, val sourceAssets: Boolean,
-        val consentedAtMillis: Long, val activeRun: UUID?, val maximumBytes: Long?, val destinationIdentity: String?)
+        val consentedAtMillis: Long, val activeRun: UUID?, val maximumBytes: Long?, val destinationIdentity: String?, val authority: UUID? = null)
     data class Run(val id: UUID, val schedule: UUID, val revision: UUID, val startedAtMillis: Long,
         val finishedAtMillis: Long?, val result: Result?, val publicationSequence: Long?)
     private val database = BackupPolicyDatabase(directory)
@@ -27,7 +27,7 @@ internal class BackupSchedulePolicy(directory: File, private val fault: (String)
      * SLO or target-availability promise is introduced by intervalMillis. */
     fun arm(library: UUID, expectedRevision: UUID?, kind: Destination, destination: String,
         credential: UUID, permission: UUID?, intervalMillis: Long, originalInk: Boolean, sourceAssets: Boolean,
-        confirmedScheduling: Boolean, maximumBytes: Long, destinationIdentity: String): Configuration = guarded {
+        confirmedScheduling: Boolean, maximumBytes: Long, destinationIdentity: String, authority: UUID? = null): Configuration = guarded {
         require(confirmedScheduling && intervalMillis > 0 && maximumBytes > 0)
         require(destinationIdentity.length in 1..4096 && !destinationIdentity.contains('\u0000'))
         validateDestination(kind, destination, permission)
@@ -37,15 +37,19 @@ internal class BackupSchedulePolicy(directory: File, private val fault: (String)
             // Reconfiguration is a fresh reviewed decision. No old job or secret
             // reference is silently re-enabled by a historical receipt.
             requireCredential(db, library, credential)
+            if (authority != null) requireAuthority(db, library, authority, false)
             if (permission != null) requirePermission(db, library, permission, destination)
             val next = Configuration(prior?.id ?: UUID.randomUUID(), library, UUID.randomUUID(), State.Arming,
                 kind, destination, credential, permission, intervalMillis, originalInk, sourceAssets,
-                System.currentTimeMillis().coerceAtLeast(0), null, maximumBytes, destinationIdentity)
+                System.currentTimeMillis().coerceAtLeast(0), null, maximumBytes, destinationIdentity, authority)
             val values = values(next)
             if (prior == null) db.insertOrThrow("configurations", null, values)
             else require(db.update("configurations", values, "id=? AND revision=?", arrayOf(prior.id.toString(), prior.revision.toString())) == 1)
             db.execSQL("INSERT OR REPLACE INTO schedule_limits(schedule,revision,maximum_bytes,destination_identity) VALUES(?,?,?,?)",
                 arrayOf(next.id.toString(), next.revision.toString(), maximumBytes, destinationIdentity))
+            db.execSQL("DELETE FROM schedule_authorities WHERE schedule=?", arrayOf(next.id.toString()))
+            if (authority != null) db.execSQL("INSERT INTO schedule_authorities(schedule,revision,credential) VALUES(?,?,?)",
+                arrayOf(next.id.toString(), next.revision.toString(), authority.toString()))
             next
         }
     }
@@ -56,6 +60,7 @@ internal class BackupSchedulePolicy(directory: File, private val fault: (String)
             val prior = configuration(db, library) ?: throw BackupPolicyStore.Unavailable()
             require(prior.revision == revision && prior.state == State.Arming && prior.activeRun == null)
             requireCredential(db, library, prior.credential)
+            prior.authority?.let { requireAuthority(db, library, it, true) }
             if (prior.permission != null) requirePermission(db, library, prior.permission, prior.destination)
             db.execSQL("UPDATE configurations SET state=? WHERE id=? AND revision=?", arrayOf(State.Enabled.name, prior.id.toString(), revision.toString()))
             prior.copy(state = State.Enabled)
@@ -70,6 +75,7 @@ internal class BackupSchedulePolicy(directory: File, private val fault: (String)
             val next = prior.copy(state = State.Disabled, revision = UUID.randomUUID())
             require(db.update("configurations", values(next), "id=? AND revision=?", arrayOf(prior.id.toString(), revision.toString())) == 1)
             if (next.maximumBytes != null) db.execSQL("UPDATE schedule_limits SET revision=? WHERE schedule=?", arrayOf(next.revision.toString(), next.id.toString()))
+            db.execSQL("UPDATE schedule_authorities SET revision=? WHERE schedule=?", arrayOf(next.revision.toString(), next.id.toString()))
             next
         }
     }
@@ -82,6 +88,7 @@ internal class BackupSchedulePolicy(directory: File, private val fault: (String)
             if (config == null || config.id != schedule || config.revision != revision || config.state != State.Enabled || config.activeRun != null) null
             else {
                 requireCredential(db, library, config.credential)
+                config.authority?.let { requireAuthority(db, library, it, true) }
                 if (config.permission != null) requirePermission(db, library, config.permission, config.destination)
                 val run = Run(UUID.randomUUID(), config.id, revision, System.currentTimeMillis().coerceAtLeast(0), null, null, null)
                 db.execSQL("INSERT INTO runs(id,schedule,revision,started_ms) VALUES(?,?,?,?)", arrayOf(run.id.toString(), run.schedule.toString(), run.revision.toString(), run.startedAtMillis))
@@ -144,7 +151,7 @@ internal class BackupSchedulePolicy(directory: File, private val fault: (String)
         for (i in listOf(8, 9, 10, 11)) require(c.getType(i) == Cursor.FIELD_TYPE_INTEGER)
         val limits = limit(db, uuid(c.getString(0)), uuid(c.getString(2)))
         val value = Configuration(uuid(c.getString(0)), uuid(c.getString(1)), uuid(c.getString(2)), State.valueOf(c.getString(3)),
-            Destination.valueOf(c.getString(4)), c.getString(5), uuid(c.getString(6)), nullableUuid(c, 7), c.getLong(8), boolean(c, 9), boolean(c, 10), c.getLong(11), nullableUuid(c, 12), limits?.first, limits?.second)
+            Destination.valueOf(c.getString(4)), c.getString(5), uuid(c.getString(6)), nullableUuid(c, 7), c.getLong(8), boolean(c, 9), boolean(c, 10), c.getLong(11), nullableUuid(c, 12), limits?.first, limits?.second, authority(db, uuid(c.getString(0)), uuid(c.getString(2))))
         require(value.intervalMillis > 0 && value.consentedAtMillis >= 0)
         require(value.maximumBytes != null || value.state == State.Disabled)
         validateDestination(value.kind, value.destination, value.permission)
@@ -170,6 +177,20 @@ internal class BackupSchedulePolicy(directory: File, private val fault: (String)
         require((finished == null) == (result == null))
         require(sequence == null || result == Result.Published || result == Result.ProviderVerified)
         return Run(uuid(c.getString(0)), uuid(c.getString(1)), uuid(c.getString(2)), c.getLong(3), finished, result, sequence)
+    }
+    private fun authority(db: SQLiteDatabase, schedule: UUID, revision: UUID): UUID? =
+        db.rawQuery("SELECT revision,credential FROM schedule_authorities WHERE schedule=?", arrayOf(schedule.toString())).use { c ->
+            if (!c.moveToFirst()) null else {
+                require(c.getType(0) == Cursor.FIELD_TYPE_STRING && c.getString(0) == revision.toString() && c.getType(1) == Cursor.FIELD_TYPE_STRING)
+                uuid(c.getString(1)).also { require(!c.moveToNext()) }
+            }
+        }
+    private fun requireAuthority(db: SQLiteDatabase, library: UUID, id: UUID, ready: Boolean) {
+        db.rawQuery("SELECT library,purpose,state FROM credentials WHERE id=?", arrayOf(id.toString())).use { c ->
+            require(c.moveToFirst() && c.getString(0) == library.toString() && c.getString(1) == BackupSecretContext.Purpose.BackupDelegation.name)
+            require(c.getString(2) == if (ready) BackupPolicyStore.CredentialState.Ready.name else BackupPolicyStore.CredentialState.Intent.name)
+            require(!c.moveToNext())
+        }
     }
     private fun requireCredential(db: SQLiteDatabase, library: UUID, id: UUID) {
         db.rawQuery("SELECT library,purpose,state,length(envelope) FROM credentials WHERE id=?", arrayOf(id.toString())).use { c ->

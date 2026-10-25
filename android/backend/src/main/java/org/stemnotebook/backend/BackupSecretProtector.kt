@@ -15,7 +15,7 @@ import javax.crypto.spec.GCMParameterSpec
 
 /** Device-local purpose separation; these references never grant notebook access. */
 internal data class BackupSecretContext(val library: UUID, val id: UUID, val purpose: Purpose) {
-    enum class Purpose { SchedulePassword, RecoveryKey }
+    enum class Purpose { SchedulePassword, RecoveryKey, BackupDelegation }
     val alias get() = "stem.backup.${purpose.name}.${library}.${id}"
     fun aad(): ByteArray = "STEM-BACKUP-SECRET-1:${purpose.name}:$library:$id".toByteArray(Charsets.US_ASCII)
 }

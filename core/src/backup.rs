@@ -1,7 +1,10 @@
 //! Whole-library logical backup. Fixed schema and parameterised row writes: never
 //! execute SQL supplied by a backup. Restore builds an independent database and
 //! cannot overwrite the live Store. Encrypted output is the only public writer.
+mod authority;
 mod streaming;
+pub(crate) use authority::BackupReadPermit;
+pub use authority::{BackupAuthority, BackupAuthorizer};
 mod validation;
 pub use streaming::{RestoreSummary, StagedBackupRestore, StreamBackupCursor, StreamBackupPlan};
 

@@ -5,7 +5,9 @@ backend creates no job, credential, persisted URI permission or enabled policy.
 The current platform dispatcher supports the application's primary no-backup
 root. It refuses registration for an independent root it cannot route; manual
 backup remains available there. Root dispatch for independent recovered libraries
-and narrowly authorized protected-content scheduling still require implementation.
+still requires implementation. Protected-content delegation is implemented through
+the native encrypted-backup-only boundary described below; complete acceptance
+remains subject to the recorded verification evidence.
 These limitations do not redefine the complete I0/I1 backend requirement.
 
 ## Review and enable
@@ -25,6 +27,8 @@ physical separate/offline storage is the user's acknowledged choice, not a claim
 that the backend can verify it. Enable requires fresh trusted verification and
 separate confirmations for scheduling, device password/per-backup recovery-key
 storage, provider persistence where relevant, and the independent-recovery warning.
+If the reviewed descriptor includes protected scopes, separate explicit protected
+content delegation consent is required before any publication or credential storage.
 Losing every portable credential can make an encrypted backup unrecoverable; a
 stored device key is not an independently stored offline copy or a reset service.
 
@@ -61,13 +65,31 @@ native encrypted staging on every run. A replaced local directory is not silentl
 accepted at the same pathname. Provider success remains read-back verification,
 not future availability or cloud durability.
 
-There is no approving background authenticator. The current automated path can
-export public content but fails when fresh protected-backup verification is
-required; it does not silently omit protected content, unlock ordinary navigation
-or fabricate owner approval. Completing narrowly scoped encrypted-backup authority
-for protected content remains required. The controller does not invent a precise
-authentication/storage failure cause when the native boundary reports only a
-generic failure. Interrupted/failed work is distinct from a known publication.
+Each new schedule seals an encrypted backup-only approval under its own device
+key, distinct from the password and per-backup recovery keys. Its payload binds
+library, schedule/revision, credential UUID, exact protected-scope/options digest
+and the reviewed policy destination, identity, byte cap and interval. The native
+scope descriptor uses canonical library UUIDs and includes the app lock and all
+entity locks; changed scopes/options require renewed review. Content revisions
+within that same scope can be backed up without renewing ordinary read access.
+The descriptor alone is metadata and cannot construct the private native permit.
+
+The due worker authenticates that sealed payload and current enabled policy in a
+key lease on the optional worker. Verification and owned verifier destruction stay
+off the authoritative writer and registry locks. Native permits only feed encrypted
+backup creation; they never install ordinary Host access. App/note navigation,
+search and history remain locked. Every pull still checks generation, cancellation,
+proof expiry and capture/work authority. Android compares an already authorized
+artifact stamp through a dedicated boolean native check rather than asking for
+ordinary app authority or exposing the current generation. No always-approving
+background proof or silent omission is used. Legacy v1/v2 schedules receive no
+invented delegation; their protected work remains unavailable until fresh review.
+
+The private policy schema is v3. Exact v2 migration adds only the delegation
+reference table; exact v1 migration also preserves credentials/consent/runs and
+disables configurations lacking a reviewed limit/target identity. Unknown/future
+schemas are preserved and unavailable. Interrupted/failed work remains distinct
+from a known publication; generic native errors are not guessed into precise causes.
 
 A run owns a durable active-run fence until actual native/provider/key work
 retires. Cancellation observation is not retirement. File-worker, deadline,
@@ -82,7 +104,7 @@ witnesses cover canceled openings, constructor cleanup and failed close.
 
 Fresh verified disablement persists Disabled with a new revision before OS
 cancellation, abandons pending preparation/active work and retires the referenced
-password key after real consumers finish. The receipt separately acknowledges
+password and delegation keys after real consumers finish. The receipt separately acknowledges
 job cancellation, key deletion and run retirement. It never revokes a shared URI
 grant. An interrupted run can be explicitly reconciled only on the controller's
 serialized work path with no surviving scheduled producer and drained backup
@@ -91,9 +113,9 @@ work; Interrupted never asserts that an external publication had no effect.
 Each scheduled backup retains an encrypted recovery-key reference for its specific
 application publication UUID. Fresh verified reveal returns a caller-owned array;
 delete marks it retired before actual key deletion and keeps uncertain state for
-review. Owner-authorized unused-password retirement handles interrupted setup
+review. Owner-authorized unused-password/delegation retirement handles interrupted setup
 without exposing the password; a referenced live policy must be disabled first.
-Pagination exposes a scan cursor even when a page contains only password
+Pagination exposes a scan cursor even when a page contains only non-recovery
 metadata, so filtering cannot hide later recovery keys. Retaining a key on the
 originating device does not claim independent offline storage. Original passwords,
 old external files and caller-owned copies are not silently erased.

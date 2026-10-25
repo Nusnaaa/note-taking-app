@@ -19,6 +19,7 @@ enum Phase {
 pub struct StreamBackupCursor {
     plan: StreamBackupPlan,
     proof: Access,
+    delegated: bool,
     table: usize,
     last_row: Option<i64>,
     row: Option<(i64, usize)>,
@@ -51,13 +52,32 @@ impl Store {
             Ok(())
         };
         matches()?;
-        let proof = if plan.scopes.is_empty() {
-            Access::public()
-        } else {
-            Access::authenticate(auth, plan.scopes.clone())?
-        };
+        let permit = plan.authenticate(auth)?;
         matches()?;
+        self.open_stream_backup_cursor_authorized(plan, permit, control)
+    }
+    pub(crate) fn open_stream_backup_cursor_authorized(
+        &self,
+        plan: StreamBackupPlan,
+        permit: crate::backup::BackupReadPermit,
+        control: &JobControl,
+    ) -> Result<StreamBackupCursor> {
         control.check()?;
+        if permit.library != plan.library
+            || permit.generation != plan.generation
+            || permit.options
+                != (
+                    plan.options.include_original_ink,
+                    plan.options.include_authorised_source_assets,
+                )
+            || Self::setting(&self.db, "library_id")? != plan.library
+            || Self::setting(&self.db, "generation")? != plan.generation
+        {
+            return Err(Error::Conflict);
+        }
+        if !plan.scopes.is_empty() && permit.proof.remaining().is_none_or(|d| d.is_zero()) {
+            return Err(Error::Denied);
+        }
         let mut pending = BODY.to_vec();
         pending.extend_from_slice(&15u32.to_be_bytes());
         pending.extend_from_slice(&(plan.omissions.len() as u32).to_be_bytes());
@@ -66,7 +86,8 @@ impl Store {
         }
         Ok(StreamBackupCursor {
             plan,
-            proof,
+            proof: permit.proof,
+            delegated: permit.delegated,
             table: 0,
             last_row: None,
             row: None,
@@ -143,7 +164,11 @@ impl StreamBackupCursor {
         current: &Access,
         control: &JobControl,
     ) -> Result<Option<Vec<u8>>> {
-        self.read_chunk(store, Some(current), control)
+        self.read_chunk(
+            store,
+            if self.delegated { None } else { Some(current) },
+            control,
+        )
     }
     pub fn validate_complete(
         &mut self,
@@ -151,7 +176,11 @@ impl StreamBackupCursor {
         current: &Access,
         control: &JobControl,
     ) -> Result<()> {
-        let result = self.check_complete(store, Some(current), control);
+        let result = self.check_complete(
+            store,
+            if self.delegated { None } else { Some(current) },
+            control,
+        );
         if result.is_err() {
             self.poison();
         }

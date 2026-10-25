@@ -39,8 +39,27 @@ public final class BackupBoundarySmoke {
                 check(!new String(bytes,java.nio.charset.StandardCharsets.ISO_8859_1).contains("Deliberate native"));
                 rejected(() -> job.run(PASSWORD,c -> true,true,new Sink()));
             }
+            check(review.authority.version==1 && review.authority.library.length()==36 && review.authority.scopeDigest.length()==64);
+            check(NativeBridge.backupSnapshotMatches(host,review.authority.library,review.generation));
+            check(!NativeBridge.backupSnapshotMatches(host,java.util.UUID.randomUUID().toString(),review.generation));
+            rejected(() -> NativeBridge.backupSnapshotMatches(host,review.authority.library,"invalid"));
+            rejected(() -> NativeBridge.backupSnapshotMatches(host,"x".repeat(37),"0"));
             // Review/job handles are single use and cancellation retires idle plans.
             review.close();rejected(() -> review.begin(120000));
+            rejected(() -> NativeBridge.reviewBackupDelegated(host,true,false,(challenge,version,library,digest,protectedContent) -> false));
+            rejected(() -> NativeBridge.reviewBackupDelegated(host,true,false,(challenge,version,library,digest,protectedContent) -> { throw new IllegalArgumentException("private authorization diagnostic"); }));
+            AtomicInteger authorizations=new AtomicInteger();
+            try(var delegated=NativeBridge.reviewBackupDelegated(host,true,false,(challenge,version,library,digest,protectedContent) -> {
+                check(challenge.length()==36 && version==1 && library.equals(review.authority.library) && digest.equals(review.authority.scopeDigest) && !protectedContent);
+                // Reentry proves callback execution holds neither writer nor registry lock.
+                check(NativeBridge.request(host,STATUS).contains("\"ok\":true"));
+                authorizations.incrementAndGet();return true;
+            });var delegatedJob=delegated.begin(120000)) {
+                Sink delegatedSink=new Sink();
+                char[] delegatedKey=delegatedJob.run(PASSWORD,c -> { throw new AssertionError("ordinary proof substituted"); },true,delegatedSink);
+                Arrays.fill(delegatedKey,'\0');
+                check(authorizations.get()==1 && delegatedSink.bytes.size()>0 && delegatedSink.retired.get()==1);
+            }
             try(var cancelled=NativeBridge.reviewBackup(host,true,false).begin(120000)) {
                 cancelled.close();Sink sink=new Sink();
                 rejected(() -> cancelled.run(PASSWORD,c -> true,true,sink));check(sink.retired.get()==1);
@@ -96,6 +115,6 @@ public final class BackupBoundarySmoke {
         check(sink.retired.get()==1);
         long reopened=NativeBridge.open(path);NativeBridge.close(reopened);
         Arrays.fill(PASSWORD,'\0');
-        System.out.println("PASS: JNI backup ciphertext/char-array key, single-use/cancel, explicit confirmation, callback exception, retirement failure, capture invalidation and close ownership (7)");
+        System.out.println("PASS: JNI backup ciphertext/char-array key, single-use/cancel, explicit confirmation, callback exception, retirement failure, capture invalidation close ownership, delegated callback/reentry/exception and artifact stamp isolation (9)");
     }
 }

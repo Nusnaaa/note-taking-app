@@ -58,9 +58,10 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
             require(!java.nio.file.Files.isSymbolicLink(directory.toPath()))
             val loadedBackups = NotebookBackups(File(directory, "backup-staging"), context.noBackupFilesDir, { handle.join() },
                 { expected -> backupBarrier(expected).join() },
-                { expected -> try { backupBarrier(expected).join() === expected && backupStatusSnapshot().join().authoringQuiescent } catch (_: Exception) { false } }, backupFault, backupDocuments,
+                { expected -> try { backupBarrier(expected).join() === expected && backupStatusSnapshot((expected as BackupStamp).takeIf { it.delegated }).join().authoringQuiescent } catch (_: Exception) { false } }, backupFault, backupDocuments,
                 { value -> (value as BackupStamp).let { BackupSnapshot(it.library, it.generation, true) } },
-                { backupStatusSnapshot().join() })
+                { backupStatusSnapshot().join() },
+                { expected, native -> backupDelegatedBarrier(expected, native).join() })
             createdBackups = loadedBackups
             backups = loadedBackups
             val loadedSchedules = NotebookSchedules(context, File(directory, "backup-policy"), loadedBackups,
@@ -172,7 +173,8 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
     }
     @Synchronized fun backups(): NotebookBackups { check(!closed); return backups }
     @Synchronized fun restores(): NotebookRestores { check(!closed); return restores }
-    private class BackupStamp(val epoch: Any, val generation: String, val library: String)
+    private class BackupStamp(val epoch: Any, val generation: String, val library: String, val delegated: Boolean = false)
+    private class BackupStart(val epoch: Any)
     @Synchronized private fun backupBarrier(expected: Any?): CompletableFuture<Any> {
         check(!closed)
         return submitAdmitted({
@@ -182,15 +184,39 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
                 val folder = File(directory, name)
                 if (java.nio.file.Files.isSymbolicLink(folder.toPath()) || java.nio.file.Files.newDirectoryStream(folder.toPath()).use { it.iterator().hasNext() }) throw NotebookBackups.Failure(NotebookBackups.FailureReason.RecoveryRequired)
             }
-            val generation = NativeBridge.backupGeneration(handle.join())
             val stamp = expected as BackupStamp?
+            val generation = if (stamp?.delegated == true) {
+                if (!NativeBridge.backupSnapshotMatches(handle.join(), stamp.library, stamp.generation)) throw NotebookBackups.Failure(NotebookBackups.FailureReason.SourceChanged)
+                stamp.generation
+            } else NativeBridge.backupGeneration(handle.join())
             synchronized(this) {
                 if (closed || capturePriority.isNotEmpty() || recognitionPriorityFailed || backupEpoch.get() !== epoch || (stamp != null && (stamp.epoch !== epoch || stamp.generation != generation))) throw NotebookBackups.Failure(NotebookBackups.FailureReason.SourceChanged)
             }
             stamp ?: BackupStamp(epoch, generation, NativeBridge.captureLibraryIdentity(handle.join()))
         }, executor, authoring = false)
     }
-    @Synchronized private fun backupStatusSnapshot(): CompletableFuture<BackupSnapshot> {
+    @Synchronized private fun backupDelegatedBarrier(expected: Any?, native: NativeBridge.BackupReview?): CompletableFuture<Any> {
+        check(!closed)
+        return submitAdmitted({
+            activeJournal.join(); outbox.join()
+            val epoch = backupEpoch.get()
+            for (name in listOf("active-capture", "capture-recovery")) {
+                val folder = File(directory, name)
+                if (java.nio.file.Files.isSymbolicLink(folder.toPath()) || java.nio.file.Files.newDirectoryStream(folder.toPath()).use { it.iterator().hasNext() }) throw NotebookBackups.Failure(NotebookBackups.FailureReason.RecoveryRequired)
+            }
+            synchronized(this) {
+                if (closed || capturePriority.isNotEmpty() || recognitionPriorityFailed || recoveryAttention || backupEpoch.get() !== epoch ||
+                    (expected != null && (expected as BackupStart).epoch !== epoch)) throw NotebookBackups.Failure(NotebookBackups.FailureReason.SourceChanged)
+            }
+            if (native == null) BackupStart(epoch) else {
+                val current = handle.join()
+                if (NativeBridge.captureLibraryIdentity(current) != native.authority.library || !NativeBridge.backupSnapshotMatches(current, native.authority.library, native.generation))
+                    throw NotebookBackups.Failure(NotebookBackups.FailureReason.SourceChanged)
+                BackupStamp(epoch, native.generation, native.authority.library, true)
+            }
+        }, executor, authoring = false)
+    }
+    @Synchronized private fun backupStatusSnapshot(delegated: BackupStamp? = null): CompletableFuture<BackupSnapshot> {
         check(!closed)
         return submitAdmitted({
             activeJournal.join(); outbox.join()
@@ -198,8 +224,12 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
             // Native generation checks current app authority before private history
             // can be read. Pending drafts affect coverage, never local Saved state.
             val native = handle.join()
-            val generation = NativeBridge.backupGeneration(native)
+            val generation = if (delegated == null) NativeBridge.backupGeneration(native) else {
+                if (!NativeBridge.backupSnapshotMatches(native, delegated.library, delegated.generation)) throw NotebookBackups.Failure(NotebookBackups.FailureReason.SourceChanged)
+                delegated.generation
+            }
             val library = NativeBridge.captureLibraryIdentity(native)
+            if (delegated != null && (delegated.library != library || delegated.epoch !== epoch)) throw NotebookBackups.Failure(NotebookBackups.FailureReason.SourceChanged)
             var quiet = true
             for (name in listOf("active-capture", "capture-recovery")) {
                 val folder = File(directory, name)

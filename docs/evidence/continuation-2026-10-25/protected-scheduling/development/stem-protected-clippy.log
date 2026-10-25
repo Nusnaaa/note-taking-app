@@ -1,0 +1,16 @@
+    Checking bitflags v2.13.2
+    Checking linux-raw-sys v0.12.1
+    Checking rustybuzz v0.20.1
+    Checking png v0.18.1
+    Checking image v0.25.10
+    Checking usvg v0.45.1
+    Checking pdf-writer v0.12.1
+    Checking resvg v0.45.1
+    Checking rusqlite v0.32.1
+    Checking svg2pdf v0.13.0
+    Checking rustix v1.1.5
+    Checking stem-core v0.1.0 (/tmp/stem-protected-backup-work/core)
+    Checking fastrand v2.5.0
+    Checking tempfile v3.27.0
+    Checking stem-bridge v0.1.0 (/tmp/stem-protected-backup-work/bridge)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 35.94s

@@ -24,20 +24,39 @@ public final class NativeBridge {
      * outside this dataset. App transport must reconcile those before publication. */
     public static native String backupGeneration(long handle);
     public static native BackupReview reviewBackup(long handle, boolean originalInk, boolean sourceAssets);
+    /** Trusted policy/Keystore verifier for encrypted backup only; never model JSON. */
+    public interface BackupAuthorization {
+        boolean verify(String challenge, int version, String library, String scopeDigest, boolean protectedContent);
+    }
+    public static native BackupReview reviewBackupDelegated(long handle, boolean originalInk, boolean sourceAssets, BackupAuthorization proof);
+    /** Compare a previously authorized artifact stamp; never exposes row data. */
+    public static native boolean backupSnapshotMatches(long handle, String library, String generation);
     private static native void armBackup(long handle, long token, long budgetMillis);
     private static native char[] runBackup(long handle, long token, char[] password,
             Verification proof, boolean confirmed, BackupOutput output);
     private static native void releaseBackup(long handle, long token);
 
+    public static final class BackupAuthority {
+        public final int version;
+        public final String library, scopeDigest;
+        public final boolean protectedContent;
+        private BackupAuthority(int version, String library, String digest, boolean protectedContent) {
+            if(version!=1 || library==null || library.length()!=36 || digest==null || !digest.matches("[0-9a-f]{64}")) throw backupFailure();
+            this.version=version; this.library=library; scopeDigest=digest; this.protectedContent=protectedContent;
+        }
+    }
     public static final class BackupReview implements AutoCloseable {
         private final long host;
         private long token;
         public final boolean includesOriginalInk;
         public final long sourceAssets;
         private final String[] omissions;
-        private BackupReview(long host, long token, boolean ink, long assets, String[] omissions) {
+        public final BackupAuthority authority;
+        public final String generation;
+        private BackupReview(long host, long token, boolean ink, long assets, String[] omissions, int version, String library, String digest, String generation, boolean protectedContent) {
             this.host=host; this.token=token; includesOriginalInk=ink;
             sourceAssets=assets; this.omissions=omissions.clone();
+            authority=new BackupAuthority(version,library,digest,protectedContent); this.generation=generation;
         }
         public String[] omissions() { return omissions.clone(); }
         /** Engineering input bound, not a performance guarantee. Authority may expire sooner. */

@@ -1,0 +1,15 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-protected-backup-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 38.29s
+     Running tests/backup_delegation.rs (/tmp/stem-protected-backup-target/debug/deps/backup_delegation-84c3240fd2898ef2)
+
+running 7 tests
+test new_protected_scope_requires_new_approval_and_does_not_unlock_ordinary_reads ... ok
+test delegated_verification_is_off_writer_and_capture_invalidates_pending_review ... ok
+test wrong_library_digest_and_backup_options_cannot_reuse_approval ... ok
+test fresh_interactive_verification_runs_off_writer_and_rechecks_generation ... ok
+test close_retains_exclusive_ownership_through_actual_authorizer_destruction ... ok
+test approved_scope_remains_usable_for_new_authored_content_without_unlocking_host_reads ... ok
+test delegated_encryption_preserves_app_and_note_locks_and_independent_restore ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 9.89s
+

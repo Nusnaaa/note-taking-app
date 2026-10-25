@@ -9,6 +9,9 @@ internal class BackupCredentialVault(private val store: BackupPolicyStore, priva
     fun store(context: BackupSecretContext, backup: UUID?, secret: CharArray, confirmedDeviceStorage: Boolean,
         independentRecoveryAcknowledged: Boolean) {
         store.beginCredential(context, backup, confirmedDeviceStorage, independentRecoveryAcknowledged)
+        sealIntent(context, secret)
+    }
+    fun sealIntent(context: BackupSecretContext, secret: CharArray) {
         protector.seal(context, secret) { envelope -> store.commitCredential(context, envelope) }
     }
     fun <T> use(context: BackupSecretContext, action: (CharArray) -> T): T {

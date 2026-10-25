@@ -20,3 +20,7 @@
     public int read(byte[]);
     public void retire();
 }
+
+-keepclassmembers class * implements org.stemnotebook.backend.NativeBridge$BackupAuthorization {
+    public boolean verify(java.lang.String, int, java.lang.String, java.lang.String, boolean);
+}

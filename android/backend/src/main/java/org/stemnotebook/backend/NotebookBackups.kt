@@ -34,6 +34,7 @@ class NotebookBackups internal constructor(
     private val documents: BackupDocuments,
     private val describeSnapshot: (Any) -> BackupSnapshot,
     private val statusSnapshot: () -> BackupSnapshot,
+    private val delegatedBarrier: (Any?, NativeBridge.BackupReview?) -> Any = { _, _ -> throw Failure(FailureReason.Unavailable) },
 ) : Closeable {
     private val catalogue = BackupCatalogue(File(directory.parentFile, "backup-publications"), fault)
     private val lock = Any()
@@ -85,7 +86,7 @@ class NotebookBackups internal constructor(
     }
     inner class Prepared internal constructor(internal val file: File, private val key: CharArray,
         internal val epoch: Any, internal val snapshot: BackupSnapshot, val bytes: Long, val includesOriginalInk: Boolean,
-        val sourceAssets: Long, val omissions: List<String>, internal val digest: ByteArray) : Closeable {
+        val sourceAssets: Long, val omissions: List<String>, internal val digest: ByteArray, val authority: NativeBridge.BackupAuthority) : Closeable {
         val id: java.util.UUID = java.util.UUID.randomUUID()
         private var publicationClaimed = false
         internal fun claimPublicationId(): java.util.UUID = synchronized(lock) {
@@ -230,15 +231,21 @@ class NotebookBackups internal constructor(
         true
     } catch (_: Exception) { needsAttention = true; false }
 
-    fun review(originalInk: Boolean = true, sourceAssets: Boolean = false, timeoutMillis: Long = 120_000): Pending<Review> {
+    fun review(originalInk: Boolean = true, sourceAssets: Boolean = false, timeoutMillis: Long = 120_000): Pending<Review> =
+        reviewImpl(originalInk, sourceAssets, null, timeoutMillis)
+    internal fun reviewDelegated(originalInk: Boolean, sourceAssets: Boolean, proof: NativeBridge.BackupAuthorization, timeoutMillis: Long = 120_000): Pending<Review> =
+        reviewImpl(originalInk, sourceAssets, proof, timeoutMillis)
+    private fun reviewImpl(originalInk: Boolean, sourceAssets: Boolean, delegated: NativeBridge.BackupAuthorization?, timeoutMillis: Long): Pending<Review> {
         synchronized(lock) { check(review == null && prepared == null) { "Backup review or artifact still owned" } }
         return submit(timeoutMillis, { it.close() }) { operation ->
             synchronized(lock) { check(review == null && prepared == null) }
-            val epoch = barrier(null)
+            val before = if (delegated == null) barrier(null) else delegatedBarrier(null, null)
             operation.check()
-            val native = NativeBridge.reviewBackup(nativeHandle(), originalInk, sourceAssets)
+            val native = if (delegated == null) NativeBridge.reviewBackup(nativeHandle(), originalInk, sourceAssets)
+                else NativeBridge.reviewBackupDelegated(nativeHandle(), originalInk, sourceAssets, delegated)
             var owned = true
             try {
+                val epoch = if (delegated == null) before else delegatedBarrier(before, native)
                 barrier(epoch); operation.check()
                 synchronized(lock) {
                     operation.check()
@@ -297,7 +304,7 @@ class NotebookBackups internal constructor(
                         synchronized(lock) {
                             operation.check()
                             Prepared(file!!, checkNotNull(key), review.epoch, describeSnapshot(review.epoch), sink.count,
-                                review.includesOriginalInk, review.sourceAssets, review.omissions, sink.digest.digest()).also {
+                                review.includesOriginalInk, review.sourceAssets, review.omissions, sink.digest.digest(), review.native.authority).also {
                                 prepared = it; file = null; key = null
                             }
                         }

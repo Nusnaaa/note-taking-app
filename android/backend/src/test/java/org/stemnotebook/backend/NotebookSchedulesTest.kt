@@ -228,17 +228,58 @@ class NotebookSchedulesTest {
             assertTrue(JSONObject(backend.request("""{"version":1,"command":{"op":"Status"}}""").get(10, TimeUnit.SECONDS)).getBoolean("ok"))
         } finally { backend.closeFullyAsync().get(20, TimeUnit.SECONDS) }
     }
-    @Test fun backgroundDoesNotSubstituteApprovalForFreshProtectedBackupVerification() {
+    private fun command(backend: NotebookBackend, value: String): JSONObject =
+        JSONObject(backend.request("""{"version":1,"command":$value}""").get(10, TimeUnit.SECONDS))
+    private fun protect(backend: NotebookBackend, note: UUID) {
+        backend.authenticate("""[{"Entity":"$note"},"App"]""", proof).get(10, TimeUnit.SECONDS)
+        assertTrue(command(backend, """{"op":"SetLock","entity":"$note","revision":0,"locked":true}""").getBoolean("ok"))
+        assertTrue(command(backend, """{"op":"SetAppLock","enabled":true}""").getBoolean("ok"))
+    }
+    @Test fun protectedBackupNeedsSeparateConsentAndLeavesAppAndNoteReadsLocked() {
+        val root = temporary.newFolder(); val destination = temporary.newFolder(); val jobs = Jobs(); val keys = Keys(); val backend = backend(root, jobs, keys)
+        try {
+            val note = create(backend); protect(backend, note)
+            val stage = prepare(backend, NotebookSchedules.Target.Directory(destination)); offered(stage)
+            assertTrue(stage.requiresProtectedContentConsent)
+            assertThrows(NotebookSchedules.Unavailable::class.java) { backend.schedules().enable(stage, proof, true, true, false, true).await() }
+            assertTrue(destination.listFiles()!!.isEmpty()); assertTrue(keys.keys.isEmpty()); assertEquals(0, jobs.registrations)
+            val initial = backend.schedules().enable(stage, proof, true, true, false, true, true).await()
+            assertEquals(NotebookSchedules.Publication.Published, initial.initialPublication)
+            assertTrue(command(backend, """{"op":"Relock"}""").getBoolean("ok"))
+            assertFalse(command(backend, """{"op":"Read","id":"$note"}""").getBoolean("ok"))
+            assertEquals("Published", backend.schedules().runDue(jobs.token!!).await().result)
+            assertEquals(2, destination.listFiles()!!.size)
+            assertFalse(command(backend, """{"op":"Read","id":"$note"}""").getBoolean("ok"))
+            assertThrows(NotebookBackups.Failure::class.java) { backend.backups().history().await() }
+        } finally { backend.closeFullyAsync().get(20, TimeUnit.SECONDS) }
+    }
+    @Test fun protectedScopeExpansionRejectsOldDelegationWithoutPublishingOrUnlocking() {
         val root = temporary.newFolder(); val destination = temporary.newFolder(); val jobs = Jobs(); val backend = backend(root, jobs, Keys())
         try {
             val note = create(backend)
-            backend.authenticate("""[{"Entity":"$note"}]""", proof).get(10, TimeUnit.SECONDS)
-            assertTrue(JSONObject(backend.request("""{"version":1,"command":{"op":"SetLock","entity":"$note","revision":0,"locked":true}}""").get(10, TimeUnit.SECONDS)).getBoolean("ok"))
             val stage = prepare(backend, NotebookSchedules.Target.Directory(destination)); offered(stage)
-            val initial = backend.schedules().enable(stage, proof, true, true, false, true).await()
-            assertEquals(NotebookSchedules.Publication.Published, initial.initialPublication)
+            backend.schedules().enable(stage, proof, true, true, false, true).await()
+            protect(backend, note)
+            command(backend, """{"op":"Relock"}""")
             assertEquals("Failed", backend.schedules().runDue(jobs.token!!).await().result)
-            assertEquals(1, destination.listFiles()!!.size) // No silent omission or protected-scope bypass.
+            assertEquals(1, destination.listFiles()!!.size)
+            assertFalse(command(backend, """{"op":"Read","id":"$note"}""").getBoolean("ok"))
+        } finally { backend.closeFullyAsync().get(20, TimeUnit.SECONDS) }
+    }
+    @Test fun sameRevisionPlainPolicyTamperingCannotBroadenEncryptedDelegation() {
+        val root = temporary.newFolder(); val destination = temporary.newFolder(); val jobs = Jobs(); val backend = backend(root, jobs, Keys())
+        try {
+            val note = create(backend); protect(backend, note)
+            val stage = prepare(backend, NotebookSchedules.Target.Directory(destination)); offered(stage)
+            backend.schedules().enable(stage, proof, true, true, false, true, true).await()
+            command(backend, """{"op":"Relock"}""")
+            val policy = File(root, "notebook/backup-policy/policy.db")
+            android.database.sqlite.SQLiteDatabase.openDatabase(policy.path, null, android.database.sqlite.SQLiteDatabase.NO_LOCALIZED_COLLATORS).use {
+                it.execSQL("UPDATE schedule_limits SET maximum_bytes=9000000")
+            }
+            assertEquals("Failed", backend.schedules().runDue(jobs.token!!).await().result)
+            assertEquals(1, destination.listFiles()!!.size)
+            assertFalse(command(backend, """{"op":"Read","id":"$note"}""").getBoolean("ok"))
         } finally { backend.closeFullyAsync().get(20, TimeUnit.SECONDS) }
     }
     @Test fun grantPossibleEffectReturnsUncertainReceiptWithoutBackupOrGuessedPermissionRollback() {

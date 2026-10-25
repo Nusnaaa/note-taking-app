@@ -20,15 +20,21 @@ instead of the intended data/migration fault.
 Use platform JobScheduler period limits and persisted UUID/revision-only jobs,
 with BIND_JOB_SERVICE and explicit opt-in before registration. Scope the current
 platform route to the primary app root; refuse unroutable independent roots until
-a real dispatcher is implemented. Keep protected-content scheduling authority
-and independent-root dispatch as required unfinished work, not completion by
-restriction or silent omission. No account, cloud sync or OS content backup.
+a real dispatcher is implemented. Independent-root dispatch remains required
+unfinished work, not completion by restriction or silent omission.
+
+Protected scheduling uses a separately consented encrypted approval, bound to the
+canonical library, schedule/revision, scope/options digest, credential and reviewed
+policy. Native non-serialisable read permits only feed encryption and never grant
+ordinary Host access. Verify and retire owned verifiers off the writer. Preserve
+generation/capture/cancellation/expiry checks on every pull. Add only an exact v2
+to v3 migration for delegation references; old configurations gain no approval. No account, cloud sync or OS content backup.
 
 Hold shared runtime reservations/leases through actual retirement, including
 canceled opening and constructor-failure cleanup. Match stop by token across
 parameter instances. Retain source/key/provider work until real worker and
 cancellation fences retire; OS stop/future cancellation is only an observation.
-Disable durable policy/revision before canceling jobs and retiring the password.
+Disable durable policy/revision before canceling jobs and retiring password and delegation credentials.
 Expose separate acknowledgements and retain uncertain state for owner review.
 
 Use application publication UUIDs for per-backup encrypted recovery references.

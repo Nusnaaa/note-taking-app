@@ -2,7 +2,7 @@
 //! from ordinary notebook JSON. Registry locks never span Java callbacks.
 use super::{hosts, JavaAuth};
 use jni::{
-    objects::{GlobalRef, JCharArray, JClass, JObject, JValue},
+    objects::{GlobalRef, JCharArray, JClass, JObject, JString, JValue},
     sys::{jboolean, jcharArray, jlong, jobject},
     JNIEnv, JavaVM,
 };
@@ -15,7 +15,11 @@ use std::{
     },
     time::Duration,
 };
-use stem_core::{backup::BackupOptions, host::BackupReview, processing::JobControl};
+use stem_core::{
+    backup::{BackupAuthority, BackupAuthorizer, BackupOptions},
+    host::BackupReview,
+    processing::JobControl,
+};
 use zeroize::Zeroizing;
 
 struct Entry {
@@ -59,6 +63,150 @@ impl Drop for Running {
         }
     }
 }
+struct JavaBackupAuthorization {
+    vm: JavaVM,
+    proof: GlobalRef,
+}
+impl BackupAuthorizer for JavaBackupAuthorization {
+    fn verify(&mut self, challenge: stem_core::Id, authority: &BackupAuthority) -> bool {
+        let Ok(mut env) = self.vm.attach_current_thread() else {
+            return false;
+        };
+        let result = env.with_local_frame(8, |env| -> jni::errors::Result<bool> {
+            let challenge = env.new_string(challenge.to_string())?;
+            let library = env.new_string(&authority.library)?;
+            let digest = env.new_string(&authority.scope_digest)?;
+            env.call_method(
+                self.proof.as_obj(),
+                "verify",
+                "(Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;Z)Z",
+                &[
+                    JValue::Object(&challenge),
+                    JValue::Int(authority.version as i32),
+                    JValue::Object(&library),
+                    JValue::Object(&digest),
+                    JValue::Bool(authority.protected_content.into()),
+                ],
+            )?
+            .z()
+        });
+        if env.exception_check().unwrap_or(true) {
+            let _ = env.exception_clear();
+            return false;
+        }
+        result.unwrap_or(false)
+    }
+}
+fn review_native(
+    env: &mut JNIEnv<'_>,
+    handle: jlong,
+    ink: jboolean,
+    assets: jboolean,
+    delegated: Option<JObject<'_>>,
+) -> Option<jobject> {
+    let host = Arc::clone(hosts().lock().ok()?.get(&handle)?);
+    let options = BackupOptions {
+        include_original_ink: ink != 0,
+        include_authorised_source_assets: assets != 0,
+    };
+    let review = match delegated {
+        Some(proof) => {
+            if proof.is_null() {
+                return None;
+            }
+            host.review_backup_delegated(
+                options,
+                Box::new(JavaBackupAuthorization {
+                    vm: env.get_java_vm().ok()?,
+                    proof: env.new_global_ref(proof).ok()?,
+                }),
+            )
+            .ok()?
+        }
+        None => host.review_backup(options).ok()?,
+    };
+    let summary = review.summary();
+    let omissions = env
+        .new_object_array(
+            i32::try_from(summary.omissions.len()).ok()?,
+            "java/lang/String",
+            JObject::null(),
+        )
+        .ok()?;
+    for (i, text) in summary.omissions.iter().enumerate() {
+        let text = env.new_string(text).ok()?;
+        env.set_object_array_element(&omissions, i as i32, &text)
+            .ok()?;
+        env.delete_local_ref(text).ok()?;
+    }
+    let token = NEXT
+        .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |id| id.checked_add(1))
+        .ok()?;
+    let library = env.new_string(&summary.authority.library).ok()?;
+    let digest = env.new_string(&summary.authority.scope_digest).ok()?;
+    let generation = env.new_string(&summary.generation).ok()?;
+    let object = env
+        .new_object(
+            "org/stemnotebook/backend/NativeBridge$BackupReview",
+            "(JJZJ[Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)V",
+            &[
+                JValue::Long(handle),
+                JValue::Long(token),
+                JValue::Bool(summary.includes_original_ink.into()),
+                JValue::Long(i64::try_from(summary.source_assets).ok()?),
+                JValue::Object(&omissions),
+                JValue::Int(i32::try_from(summary.authority.version).ok()?),
+                JValue::Object(&library),
+                JValue::Object(&digest),
+                JValue::Object(&generation),
+                JValue::Bool(summary.authority.protected_content.into()),
+            ],
+        )
+        .ok()?;
+    // Pair insertion with host registry membership. Close removes membership
+    // before clearing jobs, so a delayed review cannot resurrect a token.
+    let registered = hosts().lock().ok()?;
+    if !registered
+        .get(&handle)
+        .is_some_and(|h| Arc::ptr_eq(h, &host))
+    {
+        return None;
+    }
+    let mut entries = jobs().lock().ok()?;
+    // Recheck after acquiring the registry: a delayed obsolete insertion
+    // must never evict a newer review admitted after capture cancellation.
+    if !review.is_current() {
+        return None;
+    }
+    entries.retain(|_, e| e.host != handle || e.running);
+    entries.insert(
+        token,
+        Entry {
+            host: handle,
+            review: Some(review),
+            control: None,
+            running: false,
+        },
+    );
+    Some(object.into_raw())
+}
+fn review_result(
+    env: &mut JNIEnv<'_>,
+    handle: jlong,
+    ink: jboolean,
+    assets: jboolean,
+    delegated: Option<JObject<'_>>,
+) -> jobject {
+    match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        review_native(env, handle, ink, assets, delegated)
+    })) {
+        Ok(Some(object)) => object,
+        _ => {
+            fail(env);
+            std::ptr::null_mut()
+        }
+    }
+}
 #[no_mangle]
 pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_reviewBackup(
     mut env: JNIEnv<'_>,
@@ -67,76 +215,53 @@ pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_reviewBackup(
     ink: jboolean,
     assets: jboolean,
 ) -> jobject {
-    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> Option<jobject> {
-        let host = Arc::clone(hosts().lock().ok()?.get(&handle)?);
-        let review = host
-            .review_backup(BackupOptions {
-                include_original_ink: ink != 0,
-                include_authorised_source_assets: assets != 0,
-            })
-            .ok()?;
-        let summary = review.summary();
-        let omissions = env
-            .new_object_array(
-                i32::try_from(summary.omissions.len()).ok()?,
-                "java/lang/String",
-                JObject::null(),
-            )
-            .ok()?;
-        for (i, text) in summary.omissions.iter().enumerate() {
-            let text = env.new_string(text).ok()?;
-            env.set_object_array_element(&omissions, i as i32, &text)
-                .ok()?;
-            env.delete_local_ref(text).ok()?;
-        }
-        let token = NEXT
-            .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |id| id.checked_add(1))
-            .ok()?;
-        let object = env
-            .new_object(
-                "org/stemnotebook/backend/NativeBridge$BackupReview",
-                "(JJZJ[Ljava/lang/String;)V",
-                &[
-                    JValue::Long(handle),
-                    JValue::Long(token),
-                    JValue::Bool(summary.includes_original_ink.into()),
-                    JValue::Long(i64::try_from(summary.source_assets).ok()?),
-                    JValue::Object(&omissions),
-                ],
-            )
-            .ok()?;
-        // Pair insertion with host registry membership. Close removes membership
-        // before clearing jobs, so a delayed review cannot resurrect a token.
-        let registered = hosts().lock().ok()?;
-        if !registered
-            .get(&handle)
-            .is_some_and(|h| Arc::ptr_eq(h, &host))
+    review_result(&mut env, handle, ink, assets, None)
+}
+#[no_mangle]
+pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_reviewBackupDelegated(
+    mut env: JNIEnv<'_>,
+    _: JClass<'_>,
+    handle: jlong,
+    ink: jboolean,
+    assets: jboolean,
+    proof: JObject<'_>,
+) -> jobject {
+    review_result(&mut env, handle, ink, assets, Some(proof))
+}
+#[no_mangle]
+pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_backupSnapshotMatches(
+    mut env: JNIEnv<'_>,
+    _: JClass<'_>,
+    handle: jlong,
+    library: JString<'_>,
+    generation: JString<'_>,
+) -> jboolean {
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> Option<bool> {
+        if env
+            .call_method(&library, "length", "()I", &[])
+            .ok()?
+            .i()
+            .ok()?
+            > 36
+            || env
+                .call_method(&generation, "length", "()I", &[])
+                .ok()?
+                .i()
+                .ok()?
+                > 32
         {
             return None;
         }
-        let mut entries = jobs().lock().ok()?;
-        // Recheck after acquiring the registry: a delayed obsolete insertion
-        // must never evict a newer review admitted after capture cancellation.
-        if !review.is_current() {
-            return None;
-        }
-        entries.retain(|_, e| e.host != handle || e.running);
-        entries.insert(
-            token,
-            Entry {
-                host: handle,
-                review: Some(review),
-                control: None,
-                running: false,
-            },
-        );
-        Some(object.into_raw())
+        let library: String = env.get_string(&library).ok()?.into();
+        let generation: String = env.get_string(&generation).ok()?.into();
+        let host = Arc::clone(hosts().lock().ok()?.get(&handle)?);
+        host.backup_snapshot_matches(library, generation).ok()
     }));
     match result {
-        Ok(Some(value)) => value,
+        Ok(Some(value)) => value.into(),
         _ => {
             fail(&mut env);
-            std::ptr::null_mut()
+            0
         }
     }
 }
