@@ -105,6 +105,98 @@ public final class NativeBridge {
             releaseBackup(host,token);
         }
     }
+    private static native long armRestore(long host, long budgetMillis);
+    private static native String prepareRestore(long host, long token, char[] credential,
+            boolean recoveryKey, RestoreInput input, String privateDirectory, long maxPlaintextBytes);
+    private static native String publishRestore(long host, long token, String destination,
+            Verification proof, boolean confirmed);
+    private static native void releaseRestore(long host, long token);
+    /** Ciphertext only. read returns -1 at EOF, otherwise 1..buffer.length.
+     * retire must close all owned input resources, even when it reports failure. */
+    public interface RestoreInput {
+        int read(byte[] ciphertext) throws Exception;
+        void retire() throws Exception;
+    }
+    private static final class RetiringInput implements RestoreInput {
+        private final RestoreInput target;
+        private boolean retired;
+        private boolean failed;
+        RetiringInput(RestoreInput target) { this.target=target; }
+        public int read(byte[] bytes) throws Exception { return target.read(bytes); }
+        public synchronized void retire() throws Exception {
+            if(retired) { if(failed) throw restoreFailure(); return; }
+            retired=true;
+            try { target.retire(); } catch(Throwable error) { failed=true; throw restoreFailure(); }
+        }
+    }
+    /** Trusted optional worker capability. Paths must be app-private. The app must
+     * own pre/post-native work through full shutdown, independently of this job. */
+    public static RestoreJob beginRestore(long host, long budgetMillis) {
+        if(budgetMillis<1 || budgetMillis>3600000) throw restoreFailure();
+        return new RestoreJob(host, armRestore(host,budgetMillis));
+    }
+    public static final class RestoreJob implements AutoCloseable {
+        private final long host;
+        private final long token;
+        private boolean started;
+        private boolean prepared;
+        private boolean publishing;
+        private boolean closed;
+        private RestoreJob(long host,long token) { this.host=host; this.token=token; }
+        /** Caller owns and must clear its credential. Summary contains counts only;
+         * no plaintext content, stage path or credential is returned. */
+        public String prepare(char[] credential, boolean recoveryKey, RestoreInput input,
+                String privateDirectory, long maxPlaintextBytes) {
+            if(input==null) throw restoreFailure();
+            RetiringInput source=new RetiringInput(input);
+            char[] snapshot=null;
+            boolean success=false;
+            try {
+                synchronized(this) {
+                    if(started || closed) throw restoreFailure();
+                    started=true;
+                }
+                if(credential==null || credential.length>1024 || maxPlaintextBytes<1) throw restoreFailure();
+                snapshot=credential.clone();
+                String summary=prepareRestore(host,token,snapshot,recoveryKey,source,privateDirectory,maxPlaintextBytes);
+                source.retire();
+                if(summary==null) throw restoreFailure();
+                synchronized(this) {
+                    if(closed) throw restoreFailure();
+                    prepared=true;
+                }
+                success=true;
+                return summary;
+            } catch(Throwable error) { throw restoreFailure(); }
+            finally {
+                if(snapshot!=null) java.util.Arrays.fill(snapshot,'\0');
+                try { source.retire(); } catch(Throwable error) { /* Failure already suppresses success above. */ }
+                if(!success) close();
+            }
+        }
+        /** Fresh proof and explicit confirmation publish a separate, absent path.
+         * Returns JSON "Published" or "Uncertain"; never activates the copy. */
+        public String publish(String destination, Verification proof, boolean confirmed) {
+            try {
+                synchronized(this) {
+                    if(!prepared || publishing || closed) throw restoreFailure();
+                    publishing=true;
+                }
+                if(proof==null) throw restoreFailure();
+                String result=publishRestore(host,token,destination,proof,confirmed);
+                if(result==null) throw restoreFailure();
+                return result;
+            } catch(Throwable error) { throw restoreFailure(); }
+            finally { close(); }
+        }
+        @Override public void close() {
+            synchronized(this) { if(closed) return; closed=true; }
+            releaseRestore(host,token);
+        }
+    }
+    private static IllegalStateException restoreFailure() {
+        return new IllegalStateException("Native restore operation failed");
+    }
     private static IllegalStateException backupFailure() {
         return new IllegalStateException("Native backup operation failed");
     }

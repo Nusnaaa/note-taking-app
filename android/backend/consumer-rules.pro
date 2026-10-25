@@ -15,3 +15,8 @@
     public void flush();
     public void retire();
 }
+
+-keepclassmembers class * implements org.stemnotebook.backend.NativeBridge$RestoreInput {
+    public int read(byte[]);
+    public void retire();
+}

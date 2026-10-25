@@ -1,0 +1,3 @@
+$ /usr/bin/java -cp /tmp/stem-r8/d8.jar com.android.tools.r8.R8 --classfile --release --lib /usr/lib/jvm/java-21-openjdk-amd64 --pg-conf android/backend/consumer-rules.pro --pg-conf bridge/tests/java/shrinker-entry.pro --pg-map-output /home/linus/Projects/software/note-taking-app/repo/docs/evidence/continuation-2026-10-25/jni-restore/jni-shrinker.map --output /tmp/stem-jni-7opznj5v/shrunk.jar /tmp/stem-jni-7opznj5v/input.jar
+exit_code=0
+

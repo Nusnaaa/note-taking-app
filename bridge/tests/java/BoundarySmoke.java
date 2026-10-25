@@ -78,6 +78,8 @@ public final class BoundarySmoke {
             try { NativeBridge.preparePdfSelection(selectionHandle,target,uri,revision,(c,t,l,r) -> {throw new IllegalArgumentException("private provider diagnostic");});throw new AssertionError(); } catch(IllegalStateException expected) {check(!expected.getMessage().contains("private"));}
         } finally {NativeBridge.close(selectionHandle);}
         BackupBoundarySmoke.run();
+        OpenBoundarySmoke.main(new String[0]);
+        RestoreBoundarySmoke.main(new String[0]);
         System.out.println("PASS: JNI Unicode, platform-verifier callback, relock, restart, malformed input, closed handles, independent registry access fresh source-selection proof and concurrent close drain and recovery identity/generation (10)");
 
     }

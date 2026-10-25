@@ -1,6 +1,7 @@
 //! The only JNI boundary. No raw Rust pointer crosses it; opaque, non-reused handles
 //! refer to a locked registry. Panic containment and bounded requests fail closed.
 mod backup;
+mod restore;
 use jni::{
     objects::{JClass, JString},
     sys::{jlong, jstring},
@@ -17,6 +18,12 @@ static NEXT: AtomicI64 = AtomicI64::new(1);
 fn hosts() -> &'static Mutex<BTreeMap<i64, Arc<Host>>> {
     HOSTS.get_or_init(|| Mutex::new(BTreeMap::new()))
 }
+fn allocate_handle(next: &AtomicI64) -> Option<i64> {
+    next.fetch_update(Ordering::Relaxed, Ordering::Relaxed, |id| {
+        (id > 0).then(|| id.checked_add(1)).flatten()
+    })
+    .ok()
+}
 fn fail(env: &mut JNIEnv<'_>) {
     let _ = env.throw_new(
         "java/lang/IllegalStateException",
@@ -30,15 +37,13 @@ pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_open(
     path: JString<'_>,
 ) -> jlong {
     let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> Option<i64> {
-        let path: String = env.get_string(&path).ok()?.into();
+        let path = bounded_string(&mut env, &path, 4096)?;
         if path.len() > 4096 || !std::path::Path::new(&path).is_absolute() {
             return None;
         }
+        // Allocate before opening SQLite so exhausted handles have no disk side effects.
+        let id = allocate_handle(&NEXT)?;
         let host = Host::open(path.into(), 64).ok()?;
-        let id = NEXT.fetch_add(1, Ordering::Relaxed);
-        if id <= 0 {
-            return None;
-        }
         hosts().lock().ok()?.insert(id, Arc::new(host));
         Some(id)
     }));
@@ -111,6 +116,7 @@ pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_close(
     let result = std::panic::catch_unwind(|| {
         let host = hosts().lock().ok()?.remove(&handle)?;
         backup::close(handle);
+        restore::close(handle);
         host.close().ok()?;
         Some(())
     });
@@ -367,5 +373,21 @@ pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_recognitionSta
             fail(&mut env);
             std::ptr::null_mut()
         }
+    }
+}
+
+#[cfg(test)]
+mod handle_tests {
+    use super::*;
+
+    #[test]
+    fn exhaustion_never_wraps_or_reuses_a_handle() {
+        let next = AtomicI64::new(i64::MAX - 1);
+        assert_eq!(allocate_handle(&next), Some(i64::MAX - 1));
+        assert_eq!(allocate_handle(&next), None);
+        assert_eq!(allocate_handle(&next), None);
+        assert_eq!(next.load(Ordering::Relaxed), i64::MAX);
+        assert_eq!(allocate_handle(&AtomicI64::new(0)), None);
+        assert_eq!(allocate_handle(&AtomicI64::new(-1)), None);
     }
 }

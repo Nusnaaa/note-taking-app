@@ -1,0 +1,6 @@
+$ javac -d /tmp/stem-jni-boundary-classes android/backend/src/main/java/org/stemnotebook/backend/NativeBridge.java bridge/tests/OpenBoundarySmoke.java
+exit_code=0
+
+$ java -Djava.library.path=target/debug/deps -cp /tmp/stem-jni-boundary-classes OpenBoundarySmoke
+exit_code=0
+PASS: invalid paths rejected; valid library opens and reopens

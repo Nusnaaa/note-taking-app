@@ -84,10 +84,11 @@ results in `docs/evidence/Backend_Progress_Report.md`.
 
 ## Repository and future host
 
-Branch: `phase-a/backend`. This is a local Git repository with individual readable
-source, tests and documentation. No remote has been selected or pushed. A private
-remote can be connected later using its explicitly authorised URL. A Git bundle,
-when supplied alongside the readable files, preserves the actual commit graph:
+Branch: `phase-a/backend`. Source, tests and documentation are kept as individual
+readable files. The owner authorised periodic pushes to the configured origin,
+`https://github.com/Nusnaaa/note-taking-app.git`; the backend branch was first pushed
+on 2026-10-25. A Git bundle, when supplied alongside the readable files, preserves
+the actual commit graph:
 
 ```sh
 git clone STEM_Notebook_Phase_A.git.bundle stem-notebook

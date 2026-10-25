@@ -1446,9 +1446,44 @@ and unsafe/symlink destinations, a real above-64-MiB host restore, exact authori
 expiry and post-link uncertainty. Resource-heavy restore fixtures are serialized
 inside their integration test binary; timings are host observations, not device SLOs.
 
-These are native trusted APIs, not yet JNI/Android restore transport or a new UI.
+These native trusted APIs now also have the JNI transport described below;
+Android worker/provider orchestration and production H.I. remain unimplemented.
 Android must bind guarded input/grants/credentials, outer worker ownership, explicit
 recovered-library selection/activation and orphan/quota workflows before an app
 restore can acknowledge success. Provider/device acceptance, bounded semantic
 validation, crash cleanup and the other backend gaps remain open. Production H.I.
 remains gated.
+
+
+### Trusted JNI recovered-copy transport
+
+`NativeBridge.beginRestore` reserves one host-bound, non-reused job token with a
+bounded cooperative deadline. `RestoreJob.prepare` consumes ciphertext from an
+owned `RestoreInput`, copies the caller-owned credential into bounded zero-cleared
+storage, and returns only count metadata. Password and recovery-key modes share
+the existing current/legacy core decoder and semantic validation. Neither source
+content nor a stage path is returned. Caller input/credential validation failures
+also run exactly-once retirement through the Java wrapper. A callback exception,
+zero/oversized read result, or failed retirement suppresses review exposure and
+is reported with a generic diagnostic. Read callback arrays are at most 65,552
+bytes; this is an engineering bound, not a performance target.
+
+`RestoreJob.publish` consumes the stage after fresh trusted proof and explicit
+confirmation, to a separate absent app-private destination. It returns the JSON
+publication state (`"Published"` or `"Uncertain"`) without activating the copy.
+Closing the job cancels running work but keeps the token reserved until actual
+reader/stage retirement; idle stage cleanup occurs outside the global registry
+mutex. Foreign-host tokens are rejected before consumption. Closing the native
+host cancels its restore jobs and retains the core's draining ownership contract.
+App-owned pre-admission and post-native input/grant work still needs Android
+controller ownership through `closeFullyAsync` before releasing library ownership.
+
+The desktop `RestoreBoundarySmoke` fixture covers actual JVM/JNI callback
+roundtrip/publication, foreign-token rejection, failure redaction, bounded reads,
+failed retirement, pre-native rejection, blocked-read cancellation/admission and
+idle-review host close. It joins the normal and optimized R8/JVM runner; consumer
+rules retain `RestoreInput` concrete callback members. Running the fixture on a
+desktop does not establish ART, provider, disk-quota, crash cleanup or device
+acceptance. A poisoned/corrupt runtime or uncooperative input is not claimed to be
+hard-terminated. Trusted private paths and all input resource clones remain the
+app transport's responsibility.
