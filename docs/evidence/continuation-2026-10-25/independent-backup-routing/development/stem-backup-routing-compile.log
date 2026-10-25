@@ -1,0 +1,32 @@
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/stem-android-user
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.9/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :backend:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :backend:preBuild UP-TO-DATE
+> Task :backend:preDebugBuild UP-TO-DATE
+> Task :backend:generateDebugResValues UP-TO-DATE
+> Task :backend:generateDebugResources UP-TO-DATE
+> Task :backend:packageDebugResources UP-TO-DATE
+> Task :backend:parseDebugLocalResources UP-TO-DATE
+> Task :backend:generateDebugRFile UP-TO-DATE
+> Task :backend:javaPreCompileDebug UP-TO-DATE
+> Task :backend:preDebugUnitTestBuild UP-TO-DATE
+> Task :backend:writeDebugAarMetadata UP-TO-DATE
+> Task :backend:checkDebugUnitTestAarMetadata UP-TO-DATE
+> Task :backend:compileDebugLibraryResources UP-TO-DATE
+> Task :backend:generateDebugUnitTestResValues UP-TO-DATE
+> Task :backend:mapDebugUnitTestSourceSetPaths UP-TO-DATE
+> Task :backend:generateDebugUnitTestResources UP-TO-DATE
+> Task :backend:mergeDebugUnitTestResources UP-TO-DATE
+> Task :backend:extractDeepLinksDebug UP-TO-DATE
+> Task :backend:processDebugManifest UP-TO-DATE
+> Task :backend:processDebugUnitTestManifest UP-TO-DATE
+> Task :backend:processDebugUnitTestResources UP-TO-DATE
+> Task :backend:compileDebugKotlin
+> Task :backend:compileDebugJavaWithJavac UP-TO-DATE
+> Task :backend:bundleLibCompileToJarDebug
+> Task :backend:compileDebugUnitTestKotlin
+w: file:///tmp/stem-backup-review-work/android/backend/src/test/java/org/stemnotebook/backend/BackupJobSchedulerTest.kt:30:53 'val networkType: Int' is deprecated. Deprecated in Java.
+
+BUILD SUCCESSFUL in 1m 33s
+21 actionable tasks: 3 executed, 18 up-to-date

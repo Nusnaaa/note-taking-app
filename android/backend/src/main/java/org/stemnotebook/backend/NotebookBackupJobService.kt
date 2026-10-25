@@ -17,19 +17,19 @@ open class NotebookBackupJobService : JobService() {
         var operation: NotebookSchedules.Pending<NotebookSchedules.RunReceipt>? = null
     }
     private val lock = Any()
-    private var active: Run? = null
+    private val activeRuns = mutableMapOf<Int, Run>()
     private var destroyed = false
     private val main = Handler(Looper.getMainLooper())
-    private val worker = ThreadPoolExecutor(1, 1, 0, TimeUnit.MILLISECONDS, ArrayBlockingQueue<Runnable>(1),
+    private val worker = ThreadPoolExecutor(1, 1, 0, TimeUnit.MILLISECONDS, ArrayBlockingQueue<Runnable>(BackupJobScheduler.JOB_SLOTS),
         { action -> Thread(action, "stem-backup-job").apply { isDaemon = true } }, ThreadPoolExecutor.AbortPolicy())
     override fun onStartJob(parameters: JobParameters): Boolean {
         val token = BackupJobScheduler.decode(parameters.jobId, parameters.extras) ?: return false
         val run = Run(parameters, token)
         synchronized(lock) {
-            if (destroyed || active != null) return false
-            active = run
+            if (destroyed || activeRuns.containsKey(parameters.jobId) || activeRuns.size >= BackupJobScheduler.JOB_SLOTS) return false
+            activeRuns[parameters.jobId] = run
             try { worker.execute { execute(run) } }
-            catch (_: Exception) { active = null; return false }
+            catch (_: Exception) { activeRuns.remove(parameters.jobId); return false }
         }
         return true
     }
@@ -37,11 +37,15 @@ open class NotebookBackupJobService : JobService() {
         var lease: NotebookRuntime.Lease? = null
         var opening: NotebookRuntime.Pending? = null
         try {
-            opening = NotebookRuntime.acquire(applicationContext)
+            synchronized(lock) { if (run.stopped) return }
+            val platform = applicationContext
+            val route = BackupJobRoutes.forApplication(platform).resolve(run.parameters.jobId, run.token)
+            synchronized(lock) { if (run.stopped) return }
+            opening = NotebookRuntime.acquireRouted(platform, route.root)
             synchronized(lock) { run.opening = opening; if (run.stopped) opening.cancel() }
             lease = opening.use { it.await() }
             synchronized(lock) { run.opening = null; if (run.stopped) return }
-            val operation = lease.backend.schedules().runDue(run.token)
+            val operation = lease.backend.schedules().runDue(run.token, route.library)
             synchronized(lock) { run.operation = operation; if (run.stopped) operation.cancel() }
             try { operation.await() } finally { operation.close(); operation.awaitRetired() }
         } catch (_: Exception) {
@@ -53,7 +57,7 @@ open class NotebookBackupJobService : JobService() {
             opening?.let { it.close(); it.awaitRetired() }
             main.post {
                 val finish = synchronized(lock) {
-                    if (active === run) active = null
+                    if (activeRuns[run.parameters.jobId] === run) activeRuns.remove(run.parameters.jobId)
                     !destroyed && !run.stopped
                 }
                 if (finish) jobFinished(run.parameters, false)
@@ -63,7 +67,7 @@ open class NotebookBackupJobService : JobService() {
     override fun onStopJob(parameters: JobParameters): Boolean {
         val token = BackupJobScheduler.decode(parameters.jobId, parameters.extras) ?: return false
         val run = synchronized(lock) {
-            active?.takeIf { it.token == token }?.also { it.stopped = true }
+            activeRuns[parameters.jobId]?.takeIf { it.token == token }?.also { it.stopped = true }
         }
         run?.opening?.cancel(); run?.operation?.cancel()
         // The periodic registration remains. No immediate retry storm, and the
@@ -71,8 +75,8 @@ open class NotebookBackupJobService : JobService() {
         return false
     }
     override fun onDestroy() {
-        val run = synchronized(lock) { destroyed = true; active?.also { it.stopped = true } }
-        run?.opening?.cancel(); run?.operation?.cancel()
+        val runs = synchronized(lock) { destroyed = true; activeRuns.values.toList().onEach { it.stopped = true } }
+        runs.forEach { it.opening?.cancel(); it.operation?.cancel() }
         worker.shutdown() // Never interrupt/abandon an admitted native callback.
         super.onDestroy()
     }

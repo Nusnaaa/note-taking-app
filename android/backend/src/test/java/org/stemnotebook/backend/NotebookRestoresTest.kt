@@ -80,6 +80,31 @@ class NotebookRestoresTest {
             if (reason != null) assertEquals(reason, (expected as NotebookRestores.Failure).reason)
         }
     }
+    @Test(timeout = 90000) fun recoveredLibrarySharesForegroundLeasesAndNeverCreatesAMissingCopy() {
+        val root = temporary.newFolder(); val documents = Documents(); val backend = backend(root, documents)
+        val worker = java.util.concurrent.Executors.newSingleThreadExecutor()
+        try {
+            note(backend); archive(backend, documents).fill('\u0000')
+            val copy = prepared(backend).await().publish({ true }, true).await().library
+            worker.submit {
+                val first = copy.acquire(platform(root)).use { it.await() }
+                val second = copy.acquire(platform(root)).use { it.await() }
+                try {
+                    assertSame(first.backend, second.backend)
+                    first.close(); first.awaitRetired()
+                    note(second.backend, "shared recovered authoring")
+                    assertTrue(call(second.backend, JSONObject().put("op", "Status")).getBoolean("ok"))
+                } finally {
+                    first.close(); second.close(); first.awaitRetired(); second.awaitRetired()
+                }
+                val database = File(root, "recovered-libraries/${copy.id}/notebook/library.db")
+                assertTrue(database.delete())
+                assertThrows(IllegalArgumentException::class.java) { copy.acquire(platform(root)) }
+                assertFalse(database.exists())
+            }.get(60, TimeUnit.SECONDS)
+            assertTrue(call(backend, JSONObject().put("op", "Status")).getBoolean("ok"))
+        } finally { worker.shutdownNow(); finish(backend) }
+    }
     @Test(timeout = 90000) fun recoveredCopyPreservesInkAndDraftsAndOpensOnlyByExplicitActionAcrossRestart() {
         val root = temporary.newFolder(); val documents = Documents(); var backend = backend(root, documents)
         var recoveredId: UUID? = null

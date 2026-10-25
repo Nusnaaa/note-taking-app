@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.BackupJobRoutesTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-25T22:29:08" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="11.887">
+  <properties/>
+  <testcase name="foreignSlotsAreSkippedAndExhaustionNeverEvictsOrOverwrites" classname="org.stemnotebook.backend.BackupJobRoutesTest" time="10.928"/>
+  <testcase name="distinctRootsPersistDistinctSlotsAndExactRevisionSurvivesRestartAndAliases" classname="org.stemnotebook.backend.BackupJobRoutesTest" time="0.243"/>
+  <testcase name="anotherPathWithTheSameLibraryIdentityCannotEvictOrDuplicateItsRoute" classname="org.stemnotebook.backend.BackupJobRoutesTest" time="0.129"/>
+  <testcase name="absentReadCreatesNoMapAndOnlyLegacyPrimaryHasAFallback" classname="org.stemnotebook.backend.BackupJobRoutesTest" time="0.059"/>
+  <testcase name="unknownAndFutureSchemasRemainByteForBytePreserved" classname="org.stemnotebook.backend.BackupJobRoutesTest" time="0.118"/>
+  <testcase name="linkedFilesAndReplacedRegistryNamespaceAreUnavailableWithoutRepair" classname="org.stemnotebook.backend.BackupJobRoutesTest" time="0.076"/>
+  <testcase name="overflowingIntegerMetadataCannotAliasAnOwnedJobOrUid" classname="org.stemnotebook.backend.BackupJobRoutesTest" time="0.113"/>
+  <testcase name="replacedRootOrAnotherLibraryCannotAdoptAnExistingRoute" classname="org.stemnotebook.backend.BackupJobRoutesTest" time="0.12"/>
+  <testcase name="independentControllersSerializeFirstInitializationAndSlotReservation" classname="org.stemnotebook.backend.BackupJobRoutesTest" time="0.1"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

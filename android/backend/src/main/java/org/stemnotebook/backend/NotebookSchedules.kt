@@ -344,9 +344,11 @@ class NotebookSchedules internal constructor(
         try { vault.store(BackupSecretContext(owner, UUID.randomUUID(), BackupSecretContext.Purpose.RecoveryKey), artifact.id, key, true, true) }
         finally { key.fill('\u0000') }
     }
-    internal fun runDue(token: BackupJobScheduler.Token): Pending<RunReceipt> = submit(preserve = true) { op ->
+    internal fun runDue(token: BackupJobScheduler.Token, expectedLibrary: UUID? = null): Pending<RunReceipt> = submit(preserve = true) { op ->
         synchronized(lock) { if (prepared != null) return@submit RunReceipt(null, "DeferredForReview", null, false) }
-        val owner = library(); val config = policies.configuration(owner)
+        val owner = library()
+        if (expectedLibrary != null && expectedLibrary != owner) return@submit RunReceipt(null, "Ignored", null, false)
+        val config = policies.configuration(owner)
         if (config == null || config.id != token.schedule || config.revision != token.revision || config.state != BackupSchedulePolicy.State.Enabled) return@submit RunReceipt(null, "Ignored", null, false)
         val run = policies.start(owner, token.schedule, token.revision) ?: return@submit RunReceipt(null, "Ignored", null, false)
         synchronized(lock) { running = op }

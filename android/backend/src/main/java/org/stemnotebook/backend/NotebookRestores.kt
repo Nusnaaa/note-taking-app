@@ -99,7 +99,15 @@ class NotebookRestores internal constructor(
      * a missing/uncertain database never silently becomes an empty library. */
     class RecoveredLibrary internal constructor(private val root: File, val id: UUID, val createdAtMillis: Long, val summary: Summary, val publicationState: Outcome?) {
         val label: String get() = "Recovered library"
-        fun open(context: Context): NotebookBackend {
+        /** Legacy exclusive opening. Shared foreground/background consumers
+         * should use acquire, and release the lease after their work retires. */
+        fun open(context: Context): NotebookBackend = NotebookBackend(checkedContext(context),
+            { platform, native -> PdfWorkspace(platform, native) }, existingLibrary = true)
+        fun acquire(context: Context): NotebookRuntime.Pending {
+            check(android.os.Looper.myLooper() != android.os.Looper.getMainLooper()) { "Recovered library observation requires a worker" }
+            return NotebookRuntime.acquire(checkedContext(context))
+        }
+        private fun checkedContext(context: Context): Context {
             val database = File(root, "notebook/library.db")
             require(!Files.isSymbolicLink(root.toPath()) && !Files.isSymbolicLink(File(root, "notebook").toPath()))
             require(Files.isRegularFile(database.toPath(), LinkOption.NOFOLLOW_LINKS))
@@ -111,10 +119,9 @@ class NotebookRestores internal constructor(
             // Metadata checks do not open a database descriptor. SQLite itself
             // validates/claims the existing file after LibraryOwnership admission.
             require(database.length() > 0)
-            val selected = object : ContextWrapper(context.applicationContext) {
+            return object : ContextWrapper(context.applicationContext) {
                 override fun getNoBackupFilesDir(): File = root
             }
-            return NotebookBackend(selected, { platform, native -> PdfWorkspace(platform, native) }, existingLibrary = true)
         }
     }
     private inner class Operation<T : Any>(val timeout: Long) {

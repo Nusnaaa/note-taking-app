@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicReference
  * Acquire/await/canonical-path checks belong on a worker. No job is enabled here.
  * Legacy NotebookBackend constructors remain exclusive and cannot be adopted. */
 object NotebookRuntime {
-    internal class Root(val path: String, val application: Context) {
+    internal class Root(val path: String, val application: Context, val guard: (() -> File)? = null) {
         override fun equals(other: Any?): Boolean = other is Root && path == other.path
         override fun hashCode(): Int = path.hashCode()
     }
@@ -21,7 +21,7 @@ object NotebookRuntime {
     private val pool = SharedNotebookPool<Root, Owner>(
         { root, create ->
             val context = object : ContextWrapper(root.application) {
-                override fun getNoBackupFilesDir(): File = File(root.path)
+                override fun getNoBackupFilesDir(): File = root.guard?.invoke() ?: File(root.path)
             }
             val witness = AtomicReference<CompletableFuture<Void>?>()
             try {
@@ -57,6 +57,12 @@ object NotebookRuntime {
         val root = context.noBackupFilesDir.canonicalFile
         val key = Root(root.path, context.applicationContext)
         return Pending(pool.acquire(key, createIfMissing))
+    }
+    /** Only the private scheduler map supplies this capability. Construction and
+     * every backend root observation recheck its recorded filesystem identity. */
+    internal fun acquireRouted(context: Context, route: BackupJobRoutes.Root): Pending {
+        workerOnly(); route.file()
+        return Pending(pool.acquire(Root(route.path, context.applicationContext, route::file), false))
     }
     private fun workerOnly() {
         check(Looper.myLooper() != Looper.getMainLooper()) { "Notebook runtime observation requires a worker" }

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.NotebookRestoresTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-25T22:29:20" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="16.785">
+  <properties/>
+  <testcase name="recoveredLibrarySharesForegroundLeasesAndNeverCreatesAMissingCopy" classname="org.stemnotebook.backend.NotebookRestoresTest" time="16.785"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

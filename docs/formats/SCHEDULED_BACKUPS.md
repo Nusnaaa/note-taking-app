@@ -2,13 +2,24 @@
 
 `NotebookBackend.schedules()` owns `NotebookSchedules`. Constructing or opening a
 backend creates no job, credential, persisted URI permission or enabled policy.
-The current platform dispatcher supports the application's primary no-backup
-root. It refuses registration for an independent root it cannot route; manual
-backup remains available there. Root dispatch for independent recovered libraries
-still requires implementation. Protected-content delegation is implemented through
-the native encrypted-backup-only boundary described below; complete acceptance
-remains subject to the recorded verification evidence.
-These limitations do not redefine the complete I0/I1 backend requirement.
+A private SQLite route map in the application's primary no-backup directory
+supports primary and independent library roots. It stores canonical root paths,
+filesystem device/inode/UID, library identity and schedule/revision references;
+none enter OS extras. Construction and absent-map reads create no routing state.
+Only explicit registration persists a route before the OS call. The reserved OS
+identifier namespace has 32 slots as a defensive admission bound; a full namespace
+returns unavailable and never evicts a library or overwrites a foreign job.
+RecoveredLibrary.acquire provides explicit existing-only foreground leases shared
+with background jobs; legacy open remains exclusive. Known canonical aliases share a slot; another path with the same logical library
+identity cannot duplicate or displace it. Independent recovered libraries retain
+their separately minted native identities and require their own scheduling consent.
+
+Unknown/future route schemas, linked files, replaced private registry namespaces,
+changed root identity and stale revisions fail closed without repair. Old primary
+jobs without a route keep their existing primary-only path; an unmapped independent
+job never falls back to the primary or creates a notebook. Device-backed
+Keystore/provider/OS/physical interruption and complete I0/I1 backend acceptance
+remain separate from host-side routing/delegation evidence.
 
 ## Review and enable
 
@@ -60,15 +71,20 @@ matching registration. Startup does not guess that unknown Arming state is enabl
 
 ## Due work and stop
 
-The platform adapter reserves its backend job ID and refuses a foreign or
-malformed occupant. Extras contain only a version and opaque schedule/revision
+The platform adapter reserves bounded backend job IDs and refuses a foreign or
+malformed occupant; independent allocation skips occupied foreign slots. Extras contain only a version and opaque schedule/revision
 UUIDs. OS persistence uses RECEIVE_BOOT_COMPLETED, with the service protected by
 BIND_JOB_SERVICE. This permission/service declaration creates no job by itself.
 OS notebook cloud backup and transfer remain disabled, and INTERNET remains
 removed. No account or two-way notebook synchronization is introduced.
 
-The service opens through the shared runtime in existing-only mode, never creating
-an empty notebook. It verifies current private policy identity/revision/state,
+The service resolves the exact private job/token route on its worker, checks the
+recorded root identity and opens through the shared runtime in existing-only mode,
+never creating an empty notebook. Routed root observations recheck that identity;
+run admission also compares the expected native library identity. Distinct jobs
+queue on one bounded worker instead of excluding each other. Stop matches both
+job ID and token, so a different queued job cannot stop the active library. A
+stopped queued job retires without resolving/opening its root. It verifies current private policy identity/revision/state,
 credential and recorded permission, checks live permission/target identity, and
 uses the existing backup/capture/recovery/source guards. Maximum bytes apply to
 native encrypted staging on every run. A replaced local directory is not silently
@@ -104,8 +120,8 @@ from a known publication; generic native errors are not guessed into precise cau
 A run owns a durable active-run fence until actual native/provider/key work
 retires. Cancellation observation is not retirement. File-worker, deadline,
 cancellation-worker and final file-worker fences drain possible queued cleanup.
-The JobService matches stop by validated token rather than parameter object
-identity, retains its active slot/runtime reservation or lease through actual
+The JobService matches stop by job ID and validated token rather than parameter
+object identity, retains each admitted slot/runtime reservation or lease through actual
 retirement, and does not call jobFinished after stop. Destruction cancels without
 interrupting or abandoning an admitted callback. Separate runtime ownership
 witnesses cover canceled openings, constructor cleanup and failed close.

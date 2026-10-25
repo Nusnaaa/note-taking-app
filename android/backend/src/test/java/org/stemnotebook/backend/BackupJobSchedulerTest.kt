@@ -64,13 +64,22 @@ class BackupJobSchedulerTest {
         Shadows.shadowOf(scheduler).failOnJob(BackupJobScheduler.JOB_ID)
         assertEquals(BackupJobScheduler.Registration.Rejected, BackupJobScheduler.platform(context).register(configuration()))
     }
-    @Test fun productionAdapterDoesNotRegisterAnUnroutableIndependentLibraryRoot() {
-        val alternate = java.nio.file.Files.createTempDirectory("unroutable-backup-root").toFile()
+    @Test fun productionAdapterRegistersAndCancelsIndependentRootWithoutAffectingPrimary() {
+        val alternate = java.nio.file.Files.createTempDirectory("routed-backup-root").toFile()
         try {
+            val primary = BackupJobScheduler.platform(context); val initial = configuration()
+            assertEquals(BackupJobScheduler.Registration.Registered, primary.register(initial))
             val wrapper = object : android.content.ContextWrapper(context) { override fun getNoBackupFilesDir() = alternate }
-            val adapter = BackupJobScheduler.platform(wrapper)
-            assertFalse(adapter.supportsCurrentRoot())
-            assertThrows(BackupJobScheduler.Unavailable::class.java) { adapter.register(configuration()) }
+            val adapter = BackupJobScheduler.platform(wrapper); val config = configuration()
+            assertTrue(adapter.supportsCurrentRoot())
+            assertEquals(BackupJobScheduler.Registration.Registered, adapter.register(config))
+            assertEquals(BackupJobScheduler.Token(config.id, config.revision), BackupJobScheduler.platform(wrapper).pending())
+            val jobs = context.getSystemService(JobScheduler::class.java).allPendingJobs
+            assertEquals(2, jobs.size); assertEquals(2, jobs.map { it.id }.toSet().size)
+            jobs.forEach { assertEquals(setOf("version", "schedule", "revision"), it.extras.keySet()) }
+            assertEquals(BackupJobScheduler.Cancellation.Cancelled, adapter.cancel(BackupJobScheduler.Token(config.id, config.revision)))
+            assertEquals(BackupJobScheduler.Token(initial.id, initial.revision), primary.pending())
+            assertFalse(java.io.File(alternate, "notebook").exists())
         } finally { alternate.delete() }
     }
     @Test fun tokenDecoderRejectsExtraSecretFieldsForeignIdsAndMalformedUuids() {

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.BackupJobSchedulerTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-25T22:21:44" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="0.646">
+  <properties/>
+  <testcase name="productionAdapterRegistersAndCancelsIndependentRootWithoutAffectingPrimary" classname="org.stemnotebook.backend.BackupJobSchedulerTest" time="0.255"/>
+  <testcase name="invalidPolicyCannotEnterOsRegistration" classname="org.stemnotebook.backend.BackupJobSchedulerTest" time="0.047"/>
+  <testcase name="knownOsRejectionDoesNotBecomeRegistered" classname="org.stemnotebook.backend.BackupJobSchedulerTest" time="0.066"/>
+  <testcase name="registrationContainsOnlyVersionAndOpaqueReferencesAndUsesPlatformPeriod" classname="org.stemnotebook.backend.BackupJobSchedulerTest" time="0.065"/>
+  <testcase name="unownedOrMalformedJobIsNeverOverwrittenOrCancelled" classname="org.stemnotebook.backend.BackupJobSchedulerTest" time="0.086"/>
+  <testcase name="cancelledOnlyWhenObservedOwnedTokenStillMatches" classname="org.stemnotebook.backend.BackupJobSchedulerTest" time="0.081"/>
+  <testcase name="tokenDecoderRejectsExtraSecretFieldsForeignIdsAndMalformedUuids" classname="org.stemnotebook.backend.BackupJobSchedulerTest" time="0.046"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
