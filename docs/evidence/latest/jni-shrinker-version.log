@@ -1,4 +1,4 @@
-$ /tmp/stem-build-tools/jdk-17.0.21+9/bin/java -cp /tmp/stem-android-sdk/build-tools/35.0.0/lib/d8.jar com.android.tools.r8.R8 --version
+$ /usr/lib/jvm/java-21-openjdk-amd64/bin/java -cp /tmp/stem-android-sdk/build-tools/35.0.0/lib/d8.jar com.android.tools.r8.R8 --version
 exit_code=0
 
 Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/stem-android-user

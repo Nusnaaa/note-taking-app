@@ -1,6 +1,16 @@
 # Phase A progress — authoring, Android boundary and backend testing
 
-> Current continuation status — 24 October 2026: backend acceptance remains NOT MET
+> Current continuation status — 25 October 2026: committed source `c3173f4`
+> adds Android recovered-copy ownership/discovery and strict SQLite-owned existing
+> activation. Its 184 Android tests, 25 JNI groups before/after R8, ARM64 packaging,
+> lint and AAR/manifest checks passed with matching clean-source hashes.
+> The final full Rust run is still pending at this checkpoint; earlier mixed-source
+> development results are not substituted for it. See
+> [restore evidence](continuation-2026-10-25/android-restore/README.md).
+> Backend acceptance remains NOT MET; production H.I. remains gated. The owner
+> authorised periodic pushes to the configured GitHub origin on 25 October.
+
+> Previous continuation status — 24 October 2026: backend acceptance remains NOT MET
 > and production H.I. is not authorised. The latest validated source is `c4df7ab`;
 > see [provider backup evidence](Provider_Backup_2026-10-24.md) and
 > [continuation provenance](Backend_Continuation_2026-10-23.md). Its 294 Rust

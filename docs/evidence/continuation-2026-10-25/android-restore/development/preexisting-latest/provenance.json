@@ -1,0 +1,15 @@
+{
+  "scope": "Pre-existing uncommitted evidence preserved before new validation; not execution by this continuation",
+  "source_head": "8e7086c1d7ed6b37a4672994d99b9efeaf8a4ada",
+  "sha256": {
+    "docs/evidence/latest/android-elf.log": "bbfc2c6c344ea73f7a32e1800cef92c3c3f53bef8cfa39d55a686741136f1a58",
+    "docs/evidence/latest/android-gradle.log": "7840908b721195cd3a5e3770f8b657e9c4e3fa63933d172fe54b281f8c518afa",
+    "docs/evidence/latest/android-native.log": "02f5dfd3934493bf98bd43f445ffcf0c003b39f2194b6a79a11256e004bc9f15",
+    "docs/evidence/latest/android-validation.json": "391a5756d9b1bbec138ea40eff2824bd773b505680754bd3522f6d07a9906f8f",
+    "docs/evidence/latest/jni-compile.log": "9853e7937395ba6d030e47aa2a1b7d34fc2eaa54cff3654e86880a2ec7787b3f",
+    "docs/evidence/latest/jni-library.log": "1109ceb0f7b5bf2b12aa446c68db73f824c7da21051ce65a8df17f2e7eae0f5b",
+    "docs/evidence/latest/jni-shrink.log": "689224654d970691fe14bc7639c0ef37aacc237f8845f9960a5bc6fa756f71a4",
+    "docs/evidence/latest/jni-shrunk-smoke.log": "02f47453011fe67be3385f359d2b415f88f94445ee37ae936a9b5aa05a2ce109",
+    "docs/evidence/latest/jni-smoke.log": "7cbe40afbe8b20e9b225d50883d57f04bdeb9743337ef77ec83551342e3e9b25"
+  }
+}
