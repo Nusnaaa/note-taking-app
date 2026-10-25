@@ -1447,10 +1447,9 @@ expiry and post-link uncertainty. Resource-heavy restore fixtures are serialized
 inside their integration test binary; timings are host observations, not device SLOs.
 
 These native trusted APIs now also have the JNI transport described below;
-Android worker/provider orchestration and production H.I. remain unimplemented.
-Android must bind guarded input/grants/credentials, outer worker ownership, explicit
-recovered-library selection/activation and orphan/quota workflows before an app
-restore can acknowledge success. Provider/device acceptance, bounded semantic
+Android worker/provider ownership and explicit recovered-root opening are
+implemented below; production H.I. remains gated. Explicit orphan cleanup and
+hard quota workflows remain unfinished. Provider/device acceptance, bounded semantic
 validation, crash cleanup and the other backend gaps remain open. Production H.I.
 remains gated.
 
@@ -1487,3 +1486,56 @@ desktop does not establish ART, provider, disk-quota, crash cleanup or device
 acceptance. A poisoned/corrupt runtime or uncooperative input is not claimed to be
 hard-terminated. Trusted private paths and all input resource clones remain the
 app transport's responsibility.
+
+### Android recovered-copy controller and explicit library opening
+
+`NotebookBackend.restores()` owns one bounded optional restore worker and one
+review. A deliberate read picker supplies the URI and returned read flag;
+`RestoreDocuments` independently checks current OS read permission, opens a
+read-only descriptor and retires it through the Java/native input wrapper. No
+persistable grant is taken automatically. Permission is rechecked at reads,
+after staging and before publication. Credentials are copied into bounded,
+zero-cleared storage; the caller still owns and clears its original array.
+
+`prepare` takes caller-selected ciphertext/plaintext bounds and a minimum free
+space reserve. The controller checks input bytes and free space on admission,
+while reading and after native validation. These checks are not a hard SQLite
+staging disk quota: native allocation/whole-graph validation and crash-orphan
+cleanup remain open. Stage directories are mode 0700. Unknown/nonempty orphan
+staging blocks new admission and sets `needsAttention`; it is never swept as a
+cache. Normal retirement deletes only the exact empty owned stage directory.
+
+`Review.publish` requires explicit confirmation and fresh platform verification,
+creates a distinct app-private recovered root, and preserves `Published` versus
+`Uncertain`. It never replaces the working database or consumes current capture
+journals. The root and its bounded catalogue marker are synced; a marker update
+or post-publication acknowledgement failure preserves an uncertain receipt and
+the possible copy. Catalogue discovery is paged with bounded retained entries,
+validates bounded markers without following symlinks, and exposes no titles or
+content. Snapshot counts remain historical after the recovered copy is edited.
+
+A returned or rediscovered `RecoveredLibrary` is a trusted capability, not an
+ordinary JSON path. `open(context)` is an explicit separate action that validates
+its marker and existing SQLite file before creating an independent backend. A
+missing copy cannot silently become an empty library. Restored protections and
+original ink remain in the recovered database; original runtime/source grants do
+not become new access. This is backend integration, with no Activity or production
+H.I. Storage corruption and device durability still require broader acceptance.
+
+Cancellation asks the native job and provider signal to stop on a separate
+bounded cancellation worker. Admission and `closeFullyAsync` retain ownership
+through actual pre-native open, read/close, post-native work, cancellation listener
+and private stage cleanup. No blocked callback is claimed hard-terminated.
+`Pending.await` waits for terminal retirement, including after cancellation;
+thread interruption can stop observation while work remains owned. Public cancel
+returns false after publication entry so a possible publication receipt is not
+lost. Lifecycle close/relock may still request cancellation and retain an honest
+uncertain result. Authentication and permission/containment policy changes
+invalidate private reviews, with stage retirement off the authoring/control thread.
+
+`NotebookRestoresTest` uses actual desktop JNI in Robolectric API 35. It covers
+independent ink/protection recovery with password/key paths, explicit opening and
+restart discovery, live draft preservation, quota and malformed input rejection,
+failed retirement, revoked grants, blocked read/open/cancellation-listener close,
+relock, off-writer cleanup and ambiguous publication. These are synthetic provider
+and filesystem fixtures, not ART, real provider or device-power-loss evidence.

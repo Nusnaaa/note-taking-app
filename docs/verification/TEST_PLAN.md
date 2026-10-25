@@ -279,3 +279,15 @@ and density rejection, view-local native copy, schema-15 backup, older-tag rejec
 and byte-preserving schema-14 upgrade. Actual JNI tests apply presets during an active
 contact, verify only future-contact styles change, preserve measured coordinates, query
 export omission and restore the selected preset/camera after full backend reopen.
+
+## Android recovered-copy workflow coverage
+
+`NotebookRestoresTest` adds actual-JNI Robolectric coverage of encrypted input,
+private review, fresh publication and independent recovered-root opening. Its
+blocked provider/read/cleanup fixtures check native versus full-close ownership;
+cancellation is acknowledged only after actual operation retirement. Catalogue
+markers and current source grants are checked separately from restored content
+protection. Malformed input, credential and quota failures must not change the
+live library or pending capture files. Post-publication ambiguity keeps the copy
+and receipt. Real provider/ART/device durability, hard disk quota, bounded native
+semantic validation and explicit orphan review/cleanup remain required work.

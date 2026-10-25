@@ -70,6 +70,11 @@ platform authentication and read-only PDF provider/isolated parser components. I
 no Activity or production H.I. The library's manifest excludes OS backup/device transfer
 and INTERNET permission; final app and device enforcement still need verification.
 
+The Android backend also owns encrypted backup publication and separate-library
+restore workers, including input grants, cancellation retirement and explicit
+recovered-root discovery/opening. Orphan cleanup, hard staging disk quotas and
+real-provider/device acceptance remain open.
+
 Converted-only PDF output embeds selectable text and vector maths using a caller-supplied
 local font. Unsupported glyphs/images/embed fidelity fail explicitly. Resumable consented
 local resources and durable converter activation supplement the existing engine ledger.
