@@ -1,10 +1,4 @@
 $ /usr/bin/python3 tools/traceability.py --check
-exit_code=1
+exit_code=0
 
-Traceback (most recent call last):
-  File "/home/linus/Projects/software/note-taking-app/repo/tools/traceability.py", line 166, in <module>
-    main()
-  File "/home/linus/Projects/software/note-taking-app/repo/tools/traceability.py", line 159, in main
-    assert path.read_text() == content, f"Stale map: run python3 tools/traceability.py ({name})"
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: Stale map: run python3 tools/traceability.py (requirements-current.csv)
+Traceability intact: 94 requirements, 103 inherited clauses, 158 candidates; no candidate PASS inferred.
