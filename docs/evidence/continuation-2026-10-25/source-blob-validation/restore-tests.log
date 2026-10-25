@@ -1,0 +1,43 @@
+   Compiling stem-core v0.1.0 (/home/linus/Projects/software/note-taking-app/repo/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 32.59s
+     Running tests/backup.rs (target/debug/deps/backup-0687bb0dc72a88ab)
+
+running 9 tests
+test backup_plan_cannot_cross_library_or_survive_a_write ... ok
+test rich_library_restores_objects_views_anchors_proposals_profiles_and_capture_receipts ... ok
+test backup_requires_deliberate_ink_scope_and_fresh_protected_authentication ... ok
+test malformed_authenticated_backup_is_rejected_before_exposing_restored_store ... ok
+test external_asset_backup_is_explicit_authorised_and_revocation_safe ... ok
+test whole_library_backup_retains_trash_history_membership_undo_and_source_metadata ... ok
+test restore_publication_never_overwrites_live_database_and_reopens ... ok
+test schema8_logical_backup_upgrades_without_inventing_old_undo_actions ... ok
+test purge_retires_detailed_undo_payloads_and_backup_rejects_forged_journal_rows ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 27.59s
+
+     Running tests/backup_pull.rs (target/debug/deps/backup_pull-f09eb5ed43dd319a)
+
+running 5 tests
+test current_scope_and_generation_are_checked_on_every_pull_and_failed_cursors_never_revive ... ok
+test replacing_or_relocking_a_cached_access_capability_never_reuses_its_old_scope_decision ... ok
+test long_runs_of_live_caches_yield_and_never_export_cache_bytes_when_retained_assets_are_selected ... ok
+test bounded_pulls_span_large_cells_and_restore_exact_source_with_independent_encryption ... ok
+test a_blocked_ciphertext_sink_holds_no_read_transaction_or_authoring_writer ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.02s
+
+     Running tests/backup_stream.rs (target/debug/deps/backup_stream-a72b128a12c1b691)
+
+running 8 tests
+test cancelled_stream_restore_removes_private_staging_and_does_not_modify_source ... ok
+test stream_review_requires_ink_consent_fresh_scope_and_current_source_generation_before_any_output ... ok
+test restore_rejects_shared_or_symlinked_directories_before_creating_private_content ... ok
+test incremental_library_restore_preserves_ink_undo_and_source_relationships_then_publishes_without_overwrite ... ok
+test concurrent_generation_change_prevents_finalising_an_old_read_snapshot ... ok
+test authorised_retained_pdf_bytes_are_explicit_while_revoked_relationships_stay_revoked ... ok
+test truncation_trailing_data_malformed_tables_and_budget_failures_leave_no_restore_scratch ... ok
+test whole_library_larger_than_legacy_limit_roundtrips_with_incremental_encryption_and_private_sqlite_restore has been running for over 60 seconds
+test whole_library_larger_than_legacy_limit_roundtrips_with_incremental_encryption_and_private_sqlite_restore ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 75.18s
+

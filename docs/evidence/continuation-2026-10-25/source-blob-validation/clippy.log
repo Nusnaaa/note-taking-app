@@ -1,0 +1,4 @@
+    Blocking waiting for file lock on build directory
+    Checking rusqlite v0.32.1
+    Checking stem-core v0.1.0 (/home/linus/Projects/software/note-taking-app/repo/core)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 46.85s

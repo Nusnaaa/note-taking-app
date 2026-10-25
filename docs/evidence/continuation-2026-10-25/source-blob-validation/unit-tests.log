@@ -1,0 +1,9 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.16s
+     Running unittests src/lib.rs (target/debug/deps/stem_core-33ed9416f1b2aa8b)
+
+running 2 tests
+test backup::source_asset_validation_tests::source_asset_hash_rejects_text_and_missing_rows ... ok
+test backup::source_asset_validation_tests::sqlite_chunk_hash_matches_bytes_at_boundaries_and_detects_late_corruption ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 17 filtered out; finished in 0.06s
+

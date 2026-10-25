@@ -366,7 +366,13 @@ fn authorised_retained_pdf_bytes_are_explicit_while_revoked_relationships_stay_r
     let note = source
         .create(Kind::Note, None, "retention", &public)
         .unwrap();
-    let bytes = b"%PDF authorised independent snapshot";
+    // Synthetic retained bytes cross several incremental SQLite BLOB reads.
+    let mut retained = vec![0_u8; 3 * 65536 + 19];
+    for (index, byte) in retained.iter_mut().enumerate() {
+        *byte = (index % 251) as u8;
+    }
+    retained[..5].copy_from_slice(b"%PDF-");
+    let bytes = retained.as_slice();
     let hash = format!("{:x}", Sha256::digest(bytes));
     let pdf = source
         .link_pdf(note.id, "file://external", &hash, &public)

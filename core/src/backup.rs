@@ -6,7 +6,7 @@ pub use streaming::{RestoreSummary, StagedBackupRestore, StreamBackupCursor, Str
 
 use crate::{
     attachments::{Attachments, NativeAsset, NativeLayout},
-    crypto, digest,
+    crypto,
     portable::{NativeBlock, NativeDocument, NativeMembership, NativeMode, NativeRule},
     security::{Access, Authenticator, Scope},
     sources::{AssetClass, Availability, PdfAnchor, Retention, Source},
@@ -967,18 +967,18 @@ impl Store {
             s.view.validate()?;
         }
 
-        let mut q = db.prepare("SELECT source,class,authority,bytes,digest FROM source_assets")?;
+        let mut q = db.prepare("SELECT source,class,authority,rowid,digest FROM source_assets")?;
 
         for row in q.query_map([], |r| {
             Ok((
                 r.get::<_, String>(0)?,
                 r.get::<_, String>(1)?,
                 r.get::<_, Option<String>>(2)?,
-                r.get::<_, Vec<u8>>(3)?,
+                r.get::<_, i64>(3)?,
                 r.get::<_, String>(4)?,
             ))
         })? {
-            let (source, class, authority, bytes, hash) = row?;
+            let (source, class, authority, rowid, hash) = row?;
 
             let class: AssetClass = serde_json::from_str(&class)?;
 
@@ -987,7 +987,7 @@ impl Store {
             if class == AssetClass::LiveCache
                 || !retention.export_allowed
                 || retention.authority.is_empty()
-                || digest(&bytes) != hash
+                || source_asset_digest(db, rowid)? != hash
             {
                 return Err(Error::Integrity);
             }
@@ -1077,6 +1077,78 @@ impl Store {
         }
 
         Ok(())
+    }
+}
+
+// SQLite owns all access to an open database. Keep source-asset verification
+// in bounded Rust buffers without opening a second raw database descriptor.
+// This does not bound SQLite pager allocation or streaming cell decoding.
+fn source_asset_digest(db: &rusqlite::Connection, rowid: i64) -> Result<String> {
+    use sha2::{Digest, Sha256};
+    let kind: String = db.query_row(
+        "SELECT typeof(bytes) FROM source_assets WHERE rowid=?1",
+        [rowid],
+        |r| r.get(0),
+    )?;
+    if kind != "blob" {
+        return Err(Error::Integrity);
+    }
+    let blob = db.blob_open(
+        rusqlite::DatabaseName::Main,
+        "source_assets",
+        "bytes",
+        rowid,
+        true,
+    )?;
+    let mut hash = Sha256::new();
+    let mut buffer = [0_u8; 64 * 1024];
+    let mut offset = 0;
+    while offset < blob.len() {
+        let count = buffer.len().min(blob.len() - offset);
+        blob.read_at_exact(&mut buffer[..count], offset)?;
+        hash.update(&buffer[..count]);
+        offset += count;
+    }
+    Ok(format!("{:x}", hash.finalize()))
+}
+
+#[cfg(test)]
+mod source_asset_validation_tests {
+    use super::*;
+
+    #[test]
+    fn sqlite_chunk_hash_matches_bytes_at_boundaries_and_detects_late_corruption() {
+        let db = rusqlite::Connection::open_in_memory().unwrap();
+        db.execute_batch("CREATE TABLE source_assets(bytes BLOB)")
+            .unwrap();
+        for length in [0, 1, 65535, 65536, 65537, 3 * 65536 + 19] {
+            let mut bytes: Vec<u8> = (0..length).map(|n| (n % 251) as u8).collect();
+            db.execute("INSERT INTO source_assets(bytes) VALUES(?1)", [&bytes])
+                .unwrap();
+            let rowid = db.last_insert_rowid();
+            let expected = crate::digest(&bytes);
+            assert_eq!(source_asset_digest(&db, rowid).unwrap(), expected);
+            if let Some(last) = bytes.last_mut() {
+                *last ^= 1;
+                db.execute(
+                    "UPDATE source_assets SET bytes=?1 WHERE rowid=?2",
+                    rusqlite::params![bytes, rowid],
+                )
+                .unwrap();
+                assert_ne!(source_asset_digest(&db, rowid).unwrap(), expected);
+            }
+        }
+    }
+
+    #[test]
+    fn source_asset_hash_rejects_text_and_missing_rows() {
+        let db = rusqlite::Connection::open_in_memory().unwrap();
+        db.execute_batch(
+            "CREATE TABLE source_assets(bytes); INSERT INTO source_assets VALUES('not a blob')",
+        )
+        .unwrap();
+        assert!(matches!(source_asset_digest(&db, 1), Err(Error::Integrity)));
+        assert!(source_asset_digest(&db, 2).is_err());
     }
 }
 
