@@ -111,6 +111,52 @@ class BackupJobRoutesTest {
             assertArrayEquals(bytes, file.readBytes())
         }
     }
+    @Test fun reviewedRetirementReusesTheSlotAndOldCallbacksCannotResolveTheNewRoot() {
+        val primary = temporary.newFolder(); val old = temporary.newFolder(); val next = temporary.newFolder(); val routes = BackupJobRoutes(primary)
+        val original = routes.reserve(BackupJobRoutes.Root.inspect(old), UUID.randomUUID(), token()) { true }
+        val marker = File(old, "retained-content").apply { writeText("synthetic original content") }
+        var checks = 0
+        assertEquals(BackupJobScheduler.Retirement.Released, routes.retire(original.root, original.library, original.token.schedule, { checks++ }) {
+            assertEquals(original, it); BackupJobScheduler.Retirement.Absent
+        })
+        assertTrue(checks >= 2); assertNull(routes.root(old)); assertEquals("synthetic original content", marker.readText())
+        val replacement = routes.reserve(BackupJobRoutes.Root.inspect(next), UUID.randomUUID(), token()) { true }
+        assertEquals(original.job, replacement.job)
+        unavailable { routes.resolve(original.job, original.token) }
+        assertEquals(replacement.root, routes.resolve(replacement.job, replacement.token).root)
+    }
+    @Test fun foreignOrUncertainRetirementNeverDeletesAMapping() {
+        val primary = temporary.newFolder(); val routes = BackupJobRoutes(primary)
+        val original = routes.reserve(BackupJobRoutes.Root.inspect(temporary.newFolder()), UUID.randomUUID(), token()) { true }
+        for (outcome in listOf(BackupJobScheduler.Retirement.Conflict, BackupJobScheduler.Retirement.Uncertain)) {
+            assertEquals(outcome, routes.retire(original.root, original.library, original.token.schedule, {}) { outcome })
+            assertEquals(original, routes.job(original.job))
+        }
+        assertEquals(BackupJobScheduler.Retirement.Conflict, routes.retire(original.root, UUID.randomUUID(), original.token.schedule, {}) { fail("Foreign mapping consumed"); BackupJobScheduler.Retirement.Released })
+        assertEquals(original, routes.job(original.job))
+    }
+    @Test fun changedPolicyAfterOsObservationRetainsMappingAndReturnsUncertain() {
+        val primary = temporary.newFolder(); val routes = BackupJobRoutes(primary)
+        val original = routes.reserve(BackupJobRoutes.Root.inspect(primary), UUID.randomUUID(), token()) { true }
+        var disabled = true
+        val outcome = routes.retire(original.root, original.library, original.token.schedule, { check(disabled) }) {
+            disabled = false; BackupJobScheduler.Retirement.Released
+        }
+        assertEquals(BackupJobScheduler.Retirement.Uncertain, outcome); assertEquals(original, routes.job(original.job))
+    }
+    @Test fun missingRetirementCreatesNoMapAndLostCommitAcknowledgementRemainsUncertain() {
+        val empty = temporary.newFolder(); val root = BackupJobRoutes.Root.inspect(empty)
+        assertEquals(BackupJobScheduler.Retirement.Absent, BackupJobRoutes(empty).retire(root, UUID.randomUUID(), token().schedule, {}) {
+            assertNull(it); BackupJobScheduler.Retirement.Absent
+        })
+        assertFalse(File(empty, "backup-job-routes").exists())
+        val primary = temporary.newFolder(); var loseAck = false
+        val routes = BackupJobRoutes(primary) { if (loseAck) throw java.io.IOException("synthetic acknowledgement loss") }
+        val original = routes.reserve(BackupJobRoutes.Root.inspect(primary), UUID.randomUUID(), token()) { true }
+        loseAck = true
+        assertEquals(BackupJobScheduler.Retirement.Uncertain, routes.retire(original.root, original.library, original.token.schedule, {}) { BackupJobScheduler.Retirement.Absent })
+        assertNull(BackupJobRoutes(primary).root(primary)) // Commit happened; its acknowledgement did not.
+    }
     @Test fun linkedFilesAndReplacedRegistryNamespaceAreUnavailableWithoutRepair() {
         val primary = temporary.newFolder(); val routes = BackupJobRoutes(primary)
         routes.reserve(BackupJobRoutes.Root.inspect(primary), UUID.randomUUID(), token()) { true }

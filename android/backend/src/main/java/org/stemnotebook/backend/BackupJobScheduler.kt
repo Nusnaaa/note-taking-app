@@ -12,6 +12,8 @@ import java.util.UUID
 internal abstract class BackupJobScheduler {
     data class Token(val schedule: UUID, val revision: UUID)
     enum class Registration { Registered, Rejected, Uncertain }
+    enum class Retirement { Released, Absent, Conflict, Uncertain }
+    open fun retire(configuration: BackupSchedulePolicy.Configuration, stillDisabled: () -> Unit): Retirement = throw Unavailable()
     enum class Cancellation { Cancelled, Absent, Conflict, Uncertain }
     class Unavailable : IOException("Backup job scheduling unavailable")
     open fun supportsCurrentRoot(): Boolean = true
@@ -78,6 +80,36 @@ internal abstract class BackupJobScheduler {
                 if (error is InterruptedException) Thread.currentThread().interrupt()
                 Registration.Uncertain
             }
+        }
+        override fun retire(configuration: BackupSchedulePolicy.Configuration, stillDisabled: () -> Unit): Retirement {
+            require(configuration.state == BackupSchedulePolicy.State.Disabled && configuration.activeRun == null)
+            return try {
+                routes.retire(BackupJobRoutes.Root.inspect(suppliedRoot), configuration.library, configuration.id, stillDisabled) { route ->
+                    if (route == null) {
+                        // No mapping is invented to cancel an orphan/foreign job.
+                        val remaining = (0 until JOB_SLOTS).any { offset ->
+                            scheduler.getPendingJob(JOB_ID + offset)?.let { owned(it)?.schedule == configuration.id } == true
+                        }
+                        if (remaining) Retirement.Conflict else Retirement.Absent
+                    } else {
+                        val current = scheduler.getPendingJob(route.job)
+                        if (current == null) Retirement.Absent else {
+                            val token = owned(current)
+                            if (token == null || token.schedule != configuration.id) Retirement.Conflict
+                            else {
+                                stillDisabled()
+                                val rechecked = scheduler.getPendingJob(route.job)
+                                if (rechecked == null) Retirement.Absent
+                                else if (owned(rechecked) != token) Retirement.Conflict
+                                else {
+                                    scheduler.cancel(route.job)
+                                    if (scheduler.getPendingJob(route.job) == null) Retirement.Released else Retirement.Uncertain
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (_: Exception) { Retirement.Uncertain }
         }
         override fun cancel(token: Token): Cancellation {
             val jobId = try { route()?.job ?: if (suppliedRoot.canonicalFile == primaryRoot.canonicalFile) JOB_ID else return Cancellation.Absent }

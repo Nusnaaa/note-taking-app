@@ -36,3 +36,12 @@ backups and is excluded from OS content backup/transfer. This does not claim
 hostile privileged-filesystem resistance or actual device/Keystore/provider/boot
 acceptance. Host tests establish component behavior only; the complete backend
 and production H.I. gate remain open.
+
+Owner-reviewed retirement of a current disabled root reclaims its slot only after
+live policy/no-run checks and owned OS registration acknowledgement. Use the same
+map lock through observation/cancellation/removal so new registrations cannot
+reuse a slot between those steps. CAS deletion, non-creating existing-map writes
+and conservative Uncertain outcomes retain prefix effects after lost OS or SQLite
+commit acknowledgement. Retirement does not delete notebook content, private
+policy/history, credentials/recovery keys, shared permissions or external backups.
+Unknown/abandoned roots still require explicit recovery rather than guessed repair.

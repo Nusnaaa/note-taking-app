@@ -285,6 +285,23 @@ class NotebookSchedules internal constructor(
         val current = try { policies.configuration(owner) ?: disabled } catch (_: Exception) { disabled }
         DisableReceipt(current.public(), cancelled, deleted, current.activeRun == null)
     }
+    enum class RouteRetirement { Released, Absent, Conflict, Uncertain }
+    data class RouteRetirementReceipt(val schedule: UUID, val reviewedRevision: UUID, val outcome: RouteRetirement)
+    /** Retires only a disabled current root's OS registration/routing record.
+     * Policy history and device recovery/password records remain discoverable. */
+    fun retireDisabledRoute(expected: UUID, proof: NativeBridge.Verification, confirmed: Boolean): Pending<RouteRetirementReceipt> = submit(isControl = true, preserve = true) { op ->
+        require(confirmed); authority(); check(proof.verify(UUID.randomUUID().toString())); op.check(); authority()
+        val owner = library(); val config = policies.configuration(owner) ?: throw Unavailable()
+        check(config.revision == expected && config.state == BackupSchedulePolicy.State.Disabled && config.activeRun == null)
+        fun current() {
+            op.check()
+            val observed = policies.configuration(owner)
+            check(observed?.id == config.id && observed.revision == expected && observed.state == BackupSchedulePolicy.State.Disabled && observed.activeRun == null)
+        }
+        current()
+        val outcome = jobs.retire(config, ::current)
+        RouteRetirementReceipt(config.id, expected, RouteRetirement.valueOf(outcome.name))
+    }
     /** Explicit owner reconciliation, never automatic startup enablement. */
     fun reconcileRegistration(expected: UUID, proof: NativeBridge.Verification, confirmed: Boolean): Pending<Configuration> = submit { op ->
         require(confirmed); authority(); check(proof.verify(UUID.randomUUID().toString())); op.check(); authority()

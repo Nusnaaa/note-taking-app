@@ -86,7 +86,7 @@ class NotebookSchedulesTest {
         }
     }
     private fun context(root: File) = object : ContextWrapper(RuntimeEnvironment.getApplication()) { override fun getNoBackupFilesDir() = root }
-    private fun backend(root: File, jobs: Jobs, keys: Keys, permissions: Permissions = Permissions(), documents: BackupDocuments = BackupDocuments.platform(context(root))) =
+    private fun backend(root: File, jobs: BackupJobScheduler, keys: Keys, permissions: Permissions = Permissions(), documents: BackupDocuments = BackupDocuments.platform(context(root))) =
         NotebookBackend(context(root), pdfFactory = { platform, native -> PdfWorkspace(platform, native) }, backupDocuments = documents,
             scheduleKeys = keys, scheduleJobs = jobs, schedulePermissions = permissions)
     private fun create(backend: NotebookBackend): UUID {
@@ -128,6 +128,37 @@ class NotebookSchedulesTest {
             assertTrue(disabled.credentialDeletionAcknowledged); assertTrue(disabled.jobCancellationAcknowledged); assertTrue(disabled.workRetirementAcknowledged)
             assertEquals("Ignored", schedules.runDue(token).await().result); assertEquals(2, destination.listFiles()!!.size)
             assertEquals(1, keys.keys.size) // Retained independent first-backup key only.
+        } finally { backend.closeFullyAsync().get(20, TimeUnit.SECONDS) }
+    }
+    @Test fun reviewedDisabledRouteRetirementPreservesPolicyKeysHistoryAndBackupFiles() {
+        val root = temporary.newFolder(); val destination = temporary.newFolder(); val keys = Keys()
+        val platformJobs = BackupJobScheduler.platform(context(root)); val backend = backend(root, platformJobs, keys)
+        try {
+            create(backend)
+            val input = password
+            val stage = try { backend.schedules().prepare(NotebookSchedules.Options(NotebookSchedules.Target.Directory(destination), platformJobs.minimumPeriodMillis(), 10000000), input, proof).await() }
+                finally { input.fill('\u0000') }
+            offered(stage)
+            val enabled = backend.schedules().enable(stage, proof, true, true, false, true).await()
+            val enabledRevision = enabled.configuration!!.revision
+            assertEquals(NotebookSchedules.State.Enabled, enabled.configuration.state)
+            assertThrows(NotebookSchedules.Unavailable::class.java) { backend.schedules().retireDisabledRoute(enabledRevision, proof, true).await() }
+            val disabled = backend.schedules().disable(enabledRevision, proof, true).await().configuration
+            val routes = BackupJobRoutes(RuntimeEnvironment.getApplication().noBackupFilesDir)
+            assertNotNull(routes.root(root))
+            assertThrows(NotebookSchedules.Unavailable::class.java) { backend.schedules().retireDisabledRoute(disabled.revision, NativeBridge.Verification { false }, true).await() }
+            assertThrows(NotebookSchedules.Unavailable::class.java) { backend.schedules().retireDisabledRoute(disabled.revision, proof, false).await() }
+            assertNotNull(routes.root(root))
+            val credentials = backend.schedules().storedCredentials().await().credentials
+            val history = backend.backups().history().await()
+            val receipt = backend.schedules().retireDisabledRoute(disabled.revision, proof, true).await()
+            assertEquals(NotebookSchedules.RouteRetirement.Released, receipt.outcome)
+            assertNull(routes.root(root)); assertNull(platformJobs.pending())
+            assertEquals(disabled, backend.schedules().status().await().configuration)
+            assertEquals(credentials, backend.schedules().storedCredentials().await().credentials)
+            assertEquals(history, backend.backups().history().await())
+            assertTrue(File(destination, "backup-${enabled.backup}.stemenc").isFile)
+            assertEquals(NotebookSchedules.RouteRetirement.Absent, backend.schedules().retireDisabledRoute(disabled.revision, proof, true).await().outcome)
         } finally { backend.closeFullyAsync().get(20, TimeUnit.SECONDS) }
     }
     @Test fun sameEncryptedArtifactCanPublishDistinctAcknowledgedCopiesWithoutCatalogueIdCollision() {

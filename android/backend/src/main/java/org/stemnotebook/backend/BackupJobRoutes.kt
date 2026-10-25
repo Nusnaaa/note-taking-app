@@ -13,7 +13,7 @@ import java.util.UUID
 
 /** Device-private routing only. No notebook data, credential, URI permission or
  * enabled policy is created by constructing this object or reading an absent map. */
-internal class BackupJobRoutes(private val primary: File) {
+internal class BackupJobRoutes(private val primary: File, private val fault: (String) -> Unit = {}) {
     class Unavailable : IOException("Backup job routing unavailable")
     data class Root(val path: String, val device: String, val inode: String, val uid: Int) {
         fun file(): File = File(path).also { require(inspect(it) == this) }
@@ -73,6 +73,36 @@ internal class BackupJobRoutes(private val primary: File) {
             } finally { db.endTransaction() }
         })
     }
+    /** Called only after reviewed native disablement and actual run retirement.
+     * The callback observes/cancels OS registration while holding the same map
+     * lock used by registration. A lost commit/OS acknowledgement is uncertain. */
+    fun retire(root: Root, library: UUID, schedule: UUID, stillDisabled: () -> Unit,
+        registration: (Route?) -> BackupJobScheduler.Retirement): BackupJobScheduler.Retirement = try {
+        synchronized(databaseLock) {
+            stillDisabled()
+            access(false, true) { db ->
+                db.beginTransaction()
+                try {
+                    val prior = byRoot(db, root.path)
+                    val result = if (prior == null) registration(null)
+                    else if (prior.root != root || prior.library != library || prior.token.schedule != schedule) BackupJobScheduler.Retirement.Conflict
+                    else {
+                        root.file(); stillDisabled()
+                        when (val observed = registration(prior)) {
+                            BackupJobScheduler.Retirement.Released, BackupJobScheduler.Retirement.Absent -> {
+                                stillDisabled()
+                                require(db.delete("routes", "job=? AND root=? AND library=? AND schedule=? AND revision=?",
+                                    arrayOf(prior.job.toString(), root.path, library.toString(), schedule.toString(), prior.token.revision.toString())) == 1)
+                                BackupJobScheduler.Retirement.Released
+                            }
+                            else -> observed
+                        }
+                    }
+                    db.setTransactionSuccessful(); result
+                } finally { db.endTransaction() }
+            } ?: registration(null)
+        }
+    } catch (_: Exception) { BackupJobScheduler.Retirement.Uncertain }
     fun root(root: File): Route? = guarded { access(false) { byRoot(it, root.canonicalPath) } }
     fun job(job: Int): Route? = guarded { access(false) { byJob(it, job) } }
     data class Resolved(val root: Root, val library: UUID?)
@@ -107,8 +137,8 @@ internal class BackupJobRoutes(private val primary: File) {
         }
         return Route(job, root, uuid(5), BackupJobScheduler.Token(uuid(6), uuid(7))).also { require(!cursor.moveToNext()) }
     }
-    private fun <T> access(create: Boolean, action: (SQLiteDatabase) -> T): T? = synchronized(databaseLock) { accessUnlocked(create, action) }
-    private fun <T> accessUnlocked(create: Boolean, action: (SQLiteDatabase) -> T): T? {
+    private fun <T> access(create: Boolean, write: Boolean = create, action: (SQLiteDatabase) -> T): T? = synchronized(databaseLock) { accessUnlocked(create, write, action) }
+    private fun <T> accessUnlocked(create: Boolean, write: Boolean, action: (SQLiteDatabase) -> T): T? {
         if (!Files.exists(directory.toPath(), LinkOption.NOFOLLOW_LINKS)) {
             require(anchor == null)
             if (!create) return null
@@ -125,7 +155,7 @@ internal class BackupJobRoutes(private val primary: File) {
         if (!new) {
             SQLiteDatabase.openDatabase(file.path, null, flags or SQLiteDatabase.OPEN_READONLY).use { db ->
                 validate(db)
-                if (!create) return action(db)
+                if (!write) return action(db)
             }
             checkFiles(); require(stat(file) == identity)
         }
@@ -141,6 +171,7 @@ internal class BackupJobRoutes(private val primary: File) {
             }
             validate(db); action(db)
         }
+        fault("after-route-commit")
         java.nio.channels.FileChannel.open(directory.toPath(), java.nio.file.StandardOpenOption.READ).use { it.force(true) }
         if (new) java.nio.channels.FileChannel.open(directory.parentFile!!.toPath(), java.nio.file.StandardOpenOption.READ).use { it.force(true) }
         return result

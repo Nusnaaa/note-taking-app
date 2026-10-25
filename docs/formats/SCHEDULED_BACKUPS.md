@@ -136,6 +136,21 @@ grant. An interrupted run can be explicitly reconciled only on the controller's
 serialized work path with no surviving scheduled producer and drained backup
 work; Interrupted never asserts that an external publication had no effect.
 
+After a known disabled policy has no active run, `retireDisabledRoute` requires
+fresh owner verification, explicit confirmation and the exact disabled revision.
+It coordinates live-policy checks, exact owned OS registration cancellation and
+route removal under the registration lock. Matching owned stale revisions can be
+retired only while that native policy remains disabled; foreign/malformed jobs
+are preserved. Freed independent slots may be reused, while old callback tokens
+cannot resolve a new route. Policy/run history, credentials, recovery-key records,
+provider permissions and backup files remain independently discoverable.
+
+Lost OS/commit/directory-sync acknowledgements return Uncertain; a route may
+already be removed, and retry is explicit. Conflict preserves an unowned mapping
+or occupied foreign slot. Missing routing state does not invent an orphan job's
+root or create a new map. Abandoned/missing-library recovery remains required;
+this API deliberately acts only on a current, verified disabled library root.
+
 Each scheduled backup retains an encrypted recovery-key reference for its specific
 application publication UUID. Fresh verified reveal returns a caller-owned array;
 delete marks it retired before actual key deletion and keeps uncertain state for

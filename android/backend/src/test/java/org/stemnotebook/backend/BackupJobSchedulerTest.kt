@@ -82,6 +82,30 @@ class BackupJobSchedulerTest {
             assertFalse(java.io.File(alternate, "notebook").exists())
         } finally { alternate.delete() }
     }
+    @Test fun retiringDisabledRegistrationCancelsOnlyItsOwnedSlotAndReusesCapacity() {
+        val alternate = java.nio.file.Files.createTempDirectory("retired-job-root").toFile()
+        val replacement = java.nio.file.Files.createTempDirectory("replacement-job-root").toFile()
+        try {
+            fun adapter(root: java.io.File) = BackupJobScheduler.platform(object : android.content.ContextWrapper(context) { override fun getNoBackupFilesDir() = root })
+            val original = configuration(); val first = adapter(alternate)
+            first.register(original)
+            val job = context.getSystemService(JobScheduler::class.java).allPendingJobs.single().id
+            assertEquals(BackupJobScheduler.Retirement.Released, first.retire(original.copy(state = BackupSchedulePolicy.State.Disabled, revision = UUID.randomUUID()), {}))
+            assertTrue(context.getSystemService(JobScheduler::class.java).allPendingJobs.isEmpty())
+            val next = adapter(replacement); val nextConfig = configuration(); next.register(nextConfig)
+            assertEquals(job, context.getSystemService(JobScheduler::class.java).allPendingJobs.single().id)
+            assertEquals(BackupJobScheduler.Token(nextConfig.id, nextConfig.revision), next.pending())
+        } finally { alternate.delete(); replacement.delete() }
+    }
+    @Test fun retiringCannotCancelAForeignOccupantOrAnEnabledPolicy() {
+        val config = configuration(); val adapter = BackupJobScheduler.platform(context); adapter.register(config)
+        assertThrows(IllegalArgumentException::class.java) { adapter.retire(config, {}) }
+        val scheduler = context.getSystemService(JobScheduler::class.java)
+        val foreign = JobInfo.Builder(BackupJobScheduler.JOB_ID, ComponentName(context.packageName, "foreign.Service")).setMinimumLatency(1).build()
+        scheduler.schedule(foreign)
+        assertEquals(BackupJobScheduler.Retirement.Conflict, adapter.retire(config.copy(state = BackupSchedulePolicy.State.Disabled), {}))
+        assertSame(foreign, scheduler.getPendingJob(BackupJobScheduler.JOB_ID))
+    }
     @Test fun tokenDecoderRejectsExtraSecretFieldsForeignIdsAndMalformedUuids() {
         val config = configuration(); val bundle = PersistableBundle().apply {
             putInt("version", 1); putString("schedule", config.id.toString()); putString("revision", config.revision.toString())
