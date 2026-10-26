@@ -1,5 +1,5 @@
 {
-  "source_commit": "0f477119baa1555d1cc34ab2ac35fa5da3960d29",
+  "source_commit": "d9d2e6815dcd8a85b3c070dec2318c2efafb3fb7",
   "working_tree_before": "",
   "source_sha256": {
     ".gitignore": "47df1768ba52b16ac4fd14a3042d10ecc149fe248e1ddeb2b100a177d279f9f9",
@@ -137,14 +137,15 @@
     "core/src/export/image_crop.rs": "dbd1e86eb5988dd24c0602b4f36185e19b9f02f59602c33fafbc566b639ae625",
     "core/src/export/source_ink.rs": "e63c1a751651d95b110eda38abedd84c386d54bffce40a8c96c95f4b518064d6",
     "core/src/help.rs": "a829ef9b06668ff734dd5c1b72de00afd76c865f6fd6118dadc84a1d001b2988",
-    "core/src/host.rs": "95f79eeffcf2073370740be16c677d1de1c49e11d4f3c6c458078d6ed83f36f4",
+    "core/src/host.rs": "8d7bc2787bdb8040dc911de9812c7c7a7fb6723d256d894bbd939e52b65299ea",
     "core/src/host/backup.rs": "d53b5ccf33babb86b26f986353e663794d7fa6753cf8155dbdfde69dabb73dce",
     "core/src/host/deletion.rs": "57db1f4ef7f3843a839f8a7906fde7b192b6bc6d682e5ea17f85728567f3c2e7",
     "core/src/host/mailbox.rs": "e94e7c33ed3e1c56172ba52f23169a54fa80f55f10f5365caa63b3418626186f",
     "core/src/host/ownership.rs": "4754a1671bfb7410bd741696d5004732fa354f71a2bbb5a5badef40e4098af7f",
     "core/src/host/pdf.rs": "a2234618fcfa05e273402a57eecacb515e517eba27d17211e0dfe5d8b9fdc8da",
-    "core/src/host/recognition.rs": "feebdaab92387b979c6b3c2b003a676017c93975d62547b845f7719f3fbb0433",
-    "core/src/host/recognition/activation.rs": "9d9a37633774671085da25524eb5753bf843532730533aa87ecac1a8938873d2",
+    "core/src/host/recognition.rs": "543cf702cbffcbcc6f488cc58ddd512060fc420a5d1a33a70d5fff8d577a4bb5",
+    "core/src/host/recognition/activation.rs": "fe429023f3d0c0b14094bb3156ee6ce57e552be3a7e9c013225d6c193331682b",
+    "core/src/host/recognition/stored_activation.rs": "5b015858900d3ee4fa56ac00e156e33b05e6e149573c13f83915b9e164eec6e1",
     "core/src/host/restore.rs": "022abbb1934d6443331c6978875b262dff8be43a122cbfdf16271781bcc89530",
     "core/src/ink.rs": "b7188c46a2a72387132b853f8bd33a37b4329b9963547076657278b3aedb2070",
     "core/src/ink/erasure.rs": "61c70a4a04f03231de3e3c0915448afd8cde489feb7377bc68ba6f8a7ae4eb0b",
@@ -200,6 +201,7 @@
     "core/tests/host_activation.rs": "cd2783a2659f9e380ec95fb82218064ce2f668b94ddbad96a6fea01444e5e8fb",
     "core/tests/host_backup.rs": "7bce2e54b91a7c87674b858e19dbf04e5b2866ccaafede774af83cb4cf92f59d",
     "core/tests/host_deletion.rs": "20eaffe1f0fd2a88ebb2f2547a037cd318601aa86a49639437d722ab1606c8f8",
+    "core/tests/host_engine_activation_plan.rs": "482e98aa74bc7852971f8720c302b4561268090ba4e0e4a8200ce0ad69cfba3f",
     "core/tests/host_pdf.rs": "04a2868e327f8210b68a581fbe2032bd09d1fbe5cd0b17a08a687e501df6f038",
     "core/tests/host_recognition.rs": "8f2f7e13faf1ef35de1ba8367c5e87d5e5a4a424b04a53e6a5de963794f3998b",
     "core/tests/host_restore.rs": "26044b3f7740bef06b05d4184d0896648eba8a00196d609bc727f53200098005",
@@ -244,7 +246,7 @@
     "docs/decisions/ADR-017-host-owned-activation.md": "e3ae90b7f47cd5650eb0848110935be86429c2d2928e00e81699c69daf4854f6",
     "docs/decisions/ADR-018-owned-runtime-detachment.md": "2bc75ec3414eee7456d15f5fcff961cb6b2b69432f8ec686d9f8d46f42063975",
     "docs/decisions/ADR-019-ready-runtime-handoff.md": "037d47b9c3a5469ac0bfb872c07c0cfe02d9c625931d50a3d2a6c75135485ddf",
-    "docs/decisions/ADR-020-stored-activation-plans.md": "95b795a110e8c91c8a7c771d118ef6608978dc868dd9b896bddba8a2b4aa764c",
+    "docs/decisions/ADR-020-stored-activation-plans.md": "ffe6ac292fa0ec4fa3eee3e10ce926d3df33a188c761471bc12ec1b705214a86",
     "docs/decisions/owner-authorisation-2026-10-22.md": "4fedeef87589b9028ce27cc4ee64878fae9fdd42cbbe9a8d8c093ca3091c0788",
     "docs/formats/BACKUP_POLICY_STORE.md": "86e0fd1acad565e730be2f8c8a8870020ab822f1e5603858c31f4010fe53b975",
     "docs/formats/BACKUP_PUBLICATION_HISTORY.md": "421c2dd947cc2b2128304fdeebfa801ee873c7b76f27582a5bbf05881536bd0a",
@@ -312,7 +314,7 @@
     "tools/validate_android.py": "db39e2663790d7d807e1a6a50a60480bd69ae09a19930c76819fef29daea0a21",
     "tools/validate_jni.py": "f94111ea41b4a1d778cf9c9967a2a74251f93515e372b670c50a16c50aa7d45e"
   },
-  "started_utc": "2026-10-26T03:08:02.498240+00:00",
+  "started_utc": "2026-10-26T03:38:13.275712+00:00",
   "checks": [
     {
       "name": "android-native",
@@ -358,7 +360,7 @@
       "command": [
         "/usr/lib/jvm/java-21-openjdk-amd64/bin/javac",
         "-d",
-        "/home/linus/Projects/software/note-taking-app/repo/target/jni-jbwmtril",
+        "/home/linus/Projects/software/note-taking-app/repo/target/jni-z86w0o6p",
         "android/backend/src/main/java/org/stemnotebook/backend/NativeBridge.java",
         "bridge/tests/java/BoundarySmoke.java",
         "bridge/tests/java/BackupBoundarySmoke.java",
@@ -375,7 +377,7 @@
         "-Xcheck:jni",
         "-Djava.library.path=target/debug",
         "-cp",
-        "/home/linus/Projects/software/note-taking-app/repo/target/jni-jbwmtril",
+        "/home/linus/Projects/software/note-taking-app/repo/target/jni-z86w0o6p",
         "BoundarySmoke"
       ],
       "exit_code": 0,
@@ -411,8 +413,8 @@
         "--pg-map-output",
         "/home/linus/Projects/software/note-taking-app/repo/docs/evidence/latest/jni-shrinker.map",
         "--output",
-        "/home/linus/Projects/software/note-taking-app/repo/target/jni-jbwmtril/shrunk.jar",
-        "/home/linus/Projects/software/note-taking-app/repo/target/jni-jbwmtril/input.jar"
+        "/home/linus/Projects/software/note-taking-app/repo/target/jni-z86w0o6p/shrunk.jar",
+        "/home/linus/Projects/software/note-taking-app/repo/target/jni-z86w0o6p/input.jar"
       ],
       "exit_code": 0,
       "result": "PASS"
@@ -424,7 +426,7 @@
         "-Xcheck:jni",
         "-Djava.library.path=target/debug",
         "-cp",
-        "/home/linus/Projects/software/note-taking-app/repo/target/jni-jbwmtril/shrunk.jar",
+        "/home/linus/Projects/software/note-taking-app/repo/target/jni-z86w0o6p/shrunk.jar",
         "BoundarySmoke"
       ],
       "exit_code": 0,
@@ -461,22 +463,22 @@
     "CC_aarch64_linux_android": "/tmp/stem-android-sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android30-clang",
     "AR_aarch64_linux_android": "/tmp/stem-android-sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar"
   },
-  "full_working_tree_before": " M docs/evidence/latest/android-elf.log\n M docs/evidence/latest/android-gradle.log\n M docs/evidence/latest/android-native.log\n M docs/evidence/latest/android-validation.json\n M docs/evidence/latest/jni-compile.log\n M docs/evidence/latest/jni-library.log\n M docs/evidence/latest/jni-shrink.log\n M docs/evidence/latest/jni-shrunk-smoke.log\n M docs/evidence/latest/jni-smoke.log\n M docs/evidence/latest/lint.log\n M docs/evidence/latest/release-build.log\n M docs/evidence/latest/tests.log\n M docs/evidence/latest/validation.json\n?? docs/evidence/continuation-2026-10-24/host-restore/\n?? docs/evidence/continuation-2026-10-26/runtime-detachment/final-b9a407b/",
+  "full_working_tree_before": "?? docs/evidence/continuation-2026-10-24/host-restore/",
   "jni_smoke_groups": 28,
   "jni_shrunk_smoke_groups": 28,
   "jni_shrinker": {
     "version": "Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/stem-android-user\nR8 8.6.2-dev (build abaab469b5ebd4dd2bb91ba0ed6f45277faae4ca from go/r8bot (luci-r8-custom-ci-archive-0-77gl))",
     "tool_sha256": "305622ad00535684534eb8f742cbf5e628a9abc09d8ea4d39d1babb95bf0cee5",
-    "input_sha256": "9a87080fad02e122c38d7d6f942cbfeb5cdd6ce504098b16852536014c8836e5",
+    "input_sha256": "62d1ef050693ad0cb200bf2a81dc27728c73f3f7b2b5e1de994c0c260bb74497",
     "output_sha256": "061127cde345384216dca67bc27112f46532982632eed5254b81f1623e4be34e",
     "mode": "R8 release classfile; tree shaking, optimization and minification enabled; desktop JVM execution, not device DEX"
   },
   "jni_shrink_policy": "PASS",
   "consumer_rules_policy": "PASS",
   "consumer_rules_sha256": "8b3c0e5f5358ac4e5461fa069cc12d4c3153dbabf374e9173d562749f7ddf576",
-  "release_aar_sha256": "4e67c2a556eea37fbdd825c69a331cb1363695bf9be0b294ca9951235f4ae2f7",
-  "aar_sha256": "56b6ab847ca1b03cfcb4faf55a1b0a2149ff806cf8ed4a4fa1461c63aac4a916",
-  "packaged_arm64_library_bytes": 5784240,
+  "release_aar_sha256": "c356c1c380ad6f53801531e1966bfd01a1a7f564dbd7eae322045835eea242f5",
+  "aar_sha256": "5515fd01342daae9a9208bc51b5fa87967e848238c188df584b5efd3a47ad471",
+  "packaged_arm64_library_bytes": 5823856,
   "android_tests": {
     "tests": 351,
     "failures": 0,
@@ -484,7 +486,7 @@
     "skipped": 0
   },
   "merged_manifest_policy": "PASS",
-  "native_sha256": "26c106b5c14b5f0a191acb9e8b51328fc8089ed0a90b00258246ac6b91cd8575",
+  "native_sha256": "1d8ea8ace4ae94c9d6b45d9ce25ffb5d31e227dfe3a05d00d9653ce695639faf",
   "manifest_scope": "Debug/release AAR merge contracts only: INTERNET removal marker, no backup/transfer, no cleartext, isolated non-exported PDF service, BIND_JOB_SERVICE-protected backup service and boot permission. Final APK/device enforcement NOT RUN.",
-  "finished_utc": "2026-10-26T03:24:54.245570+00:00"
+  "finished_utc": "2026-10-26T03:55:43.159735+00:00"
 }

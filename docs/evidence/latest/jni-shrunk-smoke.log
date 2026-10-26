@@ -1,4 +1,4 @@
-$ /usr/lib/jvm/java-21-openjdk-amd64/bin/java -Xcheck:jni -Djava.library.path=target/debug -cp /home/linus/Projects/software/note-taking-app/repo/target/jni-jbwmtril/shrunk.jar BoundarySmoke
+$ /usr/lib/jvm/java-21-openjdk-amd64/bin/java -Xcheck:jni -Djava.library.path=target/debug -cp /home/linus/Projects/software/note-taking-app/repo/target/jni-z86w0o6p/shrunk.jar BoundarySmoke
 exit_code=0
 
 Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/stem-android-user

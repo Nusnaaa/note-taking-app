@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.NotebookBackupJobServiceTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-26T03:49:33" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="0.641">
+  <properties/>
+  <testcase name="unmappedIndependentJobNeverFallsBackToPrimaryLibrary" classname="org.stemnotebook.backend.NotebookBackupJobServiceTest" time="0.105"/>
+  <testcase name="stopUsesTokenAcrossDistinctParameterObjectsAndRetainsBlockedWorkerUntilItRetires" classname="org.stemnotebook.backend.NotebookBackupJobServiceTest" time="0.046"/>
+  <testcase name="missingLibraryFinishesWithoutCreatingANotebookAndNeverOpensOnMain" classname="org.stemnotebook.backend.NotebookBackupJobServiceTest" time="0.054"/>
+  <testcase name="malformedExtrasNeverStartNotebookWork" classname="org.stemnotebook.backend.NotebookBackupJobServiceTest" time="0.034"/>
+  <testcase name="mappedIndependentJobSharesForegroundRuntimeAndRecordsCredentialFailureInItsLibrary" classname="org.stemnotebook.backend.NotebookBackupJobServiceTest" time="0.337"/>
+  <testcase name="distinctJobsQueueAndStoppingOneTokenCannotStopAnotherJobWithTheSameReferences" classname="org.stemnotebook.backend.NotebookBackupJobServiceTest" time="0.063"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
