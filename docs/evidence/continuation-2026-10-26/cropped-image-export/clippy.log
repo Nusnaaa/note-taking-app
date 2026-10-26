@@ -1,0 +1,5 @@
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on build directory
+    Checking stem-core v0.1.0 (/tmp/stem-image-export-work/core)
+    Checking stem-bridge v0.1.0 (/tmp/stem-image-export-work/bridge)
+    Finished `dev` profile [unoptimized] target(s) in 23.35s

@@ -1,0 +1,25 @@
+    Blocking waiting for file lock on package cache
+   Compiling stem-core v0.1.0 (/tmp/stem-image-export-work/core)
+    Finished `test` profile [unoptimized] target(s) in 1.23s
+     Running tests/export.rs (/tmp/stem-eraser-batch-target/debug/deps/export-8bf68a25113ccc48)
+
+running 5 tests
+test pagination_never_bisects_indivisible_work_or_silently_scales ... ok
+test graph_derivative_preserves_authored_order_and_refuses_concealed_points ... ok
+test diagram_svg_escapes_labels_and_canvas_scope_rejects_hidden_payload ... ok
+test converted_only_export_never_reads_or_discloses_original_ink ... ok
+test derivative_scope_and_fresh_auth_cannot_be_bypassed ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/image_crop_export.rs (/tmp/stem-eraser-batch-target/debug/deps/image_crop_export-526f88977996c035)
+
+running 5 tests
+test crop_emits_only_selected_pixels_and_strips_original_trailing_bytes_without_rewriting_asset ... ok
+test two_crops_of_one_asset_have_distinct_outputs_and_explicit_source_ink_is_still_included ... ok
+test jpeg_crop_encodes_png_but_nonidentity_exif_orientation_requires_review ... ok
+test fractional_crop_rounds_inward_and_a_crop_with_no_complete_pixel_requires_review ... ok
+test malformed_and_oversized_images_fail_without_bypassing_fresh_block_protection ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+

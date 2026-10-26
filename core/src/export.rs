@@ -1,5 +1,6 @@
 //! Deliberate derivative exports. Converted-only is the default contract; source
 //! strokes are never obtained unless the reviewed choice explicitly includes them.
+mod image_crop;
 mod source_ink;
 use crate::{
     content::Content,
@@ -372,19 +373,27 @@ impl Store {
 
                 Content::Image(i) => {
                     let (mime, bytes) = self.image_bytes(i.asset, access)?;
-
-                    if i.crop.is_some() {
-                        return Err(Error::Unsupported);
-                    }
-
-                    let name = format!(
-                        "image-{}.{}",
-                        i.asset,
-                        if mime == "image/png" { "png" } else { "jpg" }
-                    );
-
-                    assets.insert(name.clone(), bytes);
-
+                    let (name, output) = if let Some(crop) = i.crop {
+                        let (cropped, rounded) =
+                            image_crop::crop_image(&mime, &bytes, crop, &control)?;
+                        warnings.push("Cropped image exported as 8-bit RGBA PNG without original metadata; original bytes remain native-only.".into());
+                        if rounded {
+                            warnings.push(
+                                "Image crop rounded inward to complete source pixels.".into(),
+                            );
+                        }
+                        (format!("image-{}-crop-{}.png", i.asset, b.id), cropped)
+                    } else {
+                        (
+                            format!(
+                                "image-{}.{}",
+                                i.asset,
+                                if mime == "image/png" { "png" } else { "jpg" }
+                            ),
+                            bytes,
+                        )
+                    };
+                    assets.insert(name.clone(), output);
                     markdown +=
                         &format!("![{}]({name})\n", i.caption.replace(['[', ']', '\n'], " "));
                 }
