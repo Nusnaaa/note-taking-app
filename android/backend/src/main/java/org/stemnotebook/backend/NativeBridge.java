@@ -24,6 +24,9 @@ public final class NativeBridge {
     private static native long beginEngineRecognition(long host, String block, String region, String task, String engine, long budgetMillis);
     private static native void runEngineActivation(long host, long token, RecogniserFactory factory);
     private static native String runEngineRecognition(long host, long token);
+    private static native void runConverterActivation(long host, long token, ConverterFactory factory);
+    private static native long beginEngineConversion(long host,String block,String region,String engine,String target,long budgetMillis);
+    private static native String runEngineConversion(long host,long token);
     private static native void releaseEngineJob(long host, long token);
     private static native boolean checkEngineControl(long token);
     /** Valid only during its callback. Retaining it cannot extend authority. */
@@ -50,6 +53,37 @@ public final class NativeBridge {
         String recognise(String orderedInk, String task, EngineControl control) throws Exception;
         void retire() throws Exception;
     }
+    /** Same local construction/resource wiping/retirement contract as RecogniserFactory. */
+    public interface ConverterFactory {
+        Converter create(String descriptor, byte[] verifiedResource, EngineControl control) throws Exception;
+    }
+    /** Editable Content JSON to Converted JSON, including fidelity diagnostics.
+     * formats returns a JSON array of declared format names after probe.
+     * Preserve original mistakes and code whitespace; never silently repair them. */
+    public interface Converter {
+        void probe(EngineControl control) throws Exception;
+        String formats(EngineControl control) throws Exception;
+        String convert(String content, String target, EngineControl control) throws Exception;
+        void retire() throws Exception;
+    }
+    public static final class EngineConversion implements AutoCloseable {
+        private final long host,token;
+        private boolean started,closed;
+        private EngineConversion(long host,long token) {this.host=host;this.token=token;}
+        public String convert() {
+            synchronized(this) {if(started || closed)throw engineFailure();started=true;}
+            try {return runEngineConversion(host,token);} finally {close();}
+        }
+        @Override public void close() {
+            synchronized(this) {if(closed)return;closed=true;}
+            releaseEngineJob(host,token);
+        }
+    }
+    public static EngineConversion engineConversion(long host,String block,String region,String engine,String target,long budgetMillis) {
+        long token=beginEngineConversion(host,block,region,engine,target,budgetMillis);
+        try {return new EngineConversion(host,token);}
+        catch(Throwable failure) {releaseEngineJob(host,token);throw failure;}
+    }
     private static IllegalStateException engineFailure() { return new IllegalStateException("Native notebook operation failed"); }
     /** All begin/run calls belong on an optional worker, never the authoring
      * executor. Close cancels; it does not acknowledge global SDK retirement. */
@@ -63,6 +97,11 @@ public final class NativeBridge {
             start(true);
             try { if(factory==null) throw engineFailure(); runEngineActivation(host,token,factory); }
             finally { close(); }
+        }
+        public void activateConverter(ConverterFactory factory) {
+            start(true);
+            try {if(factory==null)throw engineFailure();runConverterActivation(host,token,factory);}
+            finally {close();}
         }
         /** Returns a durable pending proposal; source ink is unchanged. */
         public String recognise() {

@@ -78,6 +78,13 @@ class NotebookEngines internal constructor(private val modelRoot: File? = null, 
     data class Transfer(val version: UUID, val committedBytes: Long)
     /** Read the review through current native authority; retain no transcript here. */
     data class Proposal(val id: UUID, val block: UUID, val revision: Long)
+    enum class ConversionFormat { Markdown, Latex, MathMl, PlainText, Native }
+    data class ConversionFidelity(val complete: Boolean, val lexicalChange: Boolean, val layoutChange: Boolean,
+                                  val unsupported: List<String>, val semanticEquivalenceAsserted: Boolean)
+    /** Delivered derivative only; source revision stays explicit and is never accepted into the notebook. */
+    data class Conversion(val block: UUID, val region: UUID?, val revision: Long, val descriptorJson: String,
+                          val target: ConversionFormat, val text: String, val fidelity: ConversionFidelity)
+
 
     private val lock = Any()
     private var closed = false
@@ -378,6 +385,38 @@ class NotebookEngines internal constructor(private val modelRoot: File? = null, 
                 operation.attach(job); operation.metadataAttempted = true
                 job.activate(factory)
                 Installed(version)
+            } finally { operation.detach(job); job.close() }
+        }
+    }
+    fun activateConverter(version: UUID, maxLoadBytes: Long, budgetMillis: Long, factory: NativeBridge.ConverterFactory): Pending<Installed> {
+        budget(budgetMillis)
+        if (maxLoadBytes !in 0..Int.MAX_VALUE.toLong()) throw Failure(FailureReason.InvalidInput)
+        return submit { operation ->
+            val host = nativeHandle(); operation.check()
+            val job = NativeBridge.engineActivation(host, version.toString(), maxLoadBytes, budgetMillis)
+            try {
+                operation.attach(job); operation.metadataAttempted = true
+                job.activateConverter(factory)
+                Installed(version)
+            } finally { operation.detach(job); job.close() }
+        }
+    }
+    fun convert(block: UUID, region: UUID?, engine: String, target: ConversionFormat, budgetMillis: Long): Pending<Conversion> {
+        budget(budgetMillis)
+        if (engine.isEmpty() || engine.length > 256 || engine.toByteArray(Charsets.UTF_8).size > 256) throw Failure(FailureReason.InvalidInput)
+        return submit { operation ->
+            val host = nativeHandle(); operation.check()
+            val job = NativeBridge.engineConversion(host, block.toString(), region?.toString(), engine, target.name, budgetMillis)
+            try {
+                operation.attach(job)
+                val result = JSONObject(job.convert()); operation.check()
+                val output = result.getJSONObject("output"); val fidelity = output.getJSONObject("fidelity")
+                val unsupported = ArrayList<String>(); val rows = fidelity.getJSONArray("unsupported")
+                for (index in 0 until rows.length()) unsupported.add(rows.getString(index))
+                Conversion(UUID.fromString(result.getString("block")), if (result.isNull("region")) null else UUID.fromString(result.getString("region")),
+                    result.getLong("revision"), result.getJSONObject("descriptor").toString(), ConversionFormat.valueOf(result.getString("target")),
+                    output.getString("text"), ConversionFidelity(fidelity.getBoolean("complete"), fidelity.getBoolean("lexical_change"),
+                        fidelity.getBoolean("layout_change"), java.util.Collections.unmodifiableList(unsupported), fidelity.getBoolean("semantic_equivalence_asserted")))
             } finally { operation.detach(job); job.close() }
         }
     }

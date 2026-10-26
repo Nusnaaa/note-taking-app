@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.BackupJobRoutesTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-26T17:01:07" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="0.718">
+  <properties/>
+  <testcase name="foreignSlotsAreSkippedAndExhaustionNeverEvictsOrOverwrites" classname="org.stemnotebook.backend.BackupJobRoutesTest" time="0.071"/>
+  <testcase name="changedPolicyAfterOsObservationRetainsMappingAndReturnsUncertain" classname="org.stemnotebook.backend.BackupJobRoutesTest" time="0.05"/>
+  <testcase name="missingRetirementCreatesNoMapAndLostCommitAcknowledgementRemainsUncertain" classname="org.stemnotebook.backend.BackupJobRoutesTest" time="0.051"/>
+  <testcase name="foreignOrUncertainRetirementNeverDeletesAMapping" classname="org.stemnotebook.backend.BackupJobRoutesTest" time="0.077"/>
+  <testcase name="distinctRootsPersistDistinctSlotsAndExactRevisionSurvivesRestartAndAliases" classname="org.stemnotebook.backend.BackupJobRoutesTest" time="0.068"/>
+  <testcase name="anotherPathWithTheSameLibraryIdentityCannotEvictOrDuplicateItsRoute" classname="org.stemnotebook.backend.BackupJobRoutesTest" time="0.055"/>
+  <testcase name="absentReadCreatesNoMapAndOnlyLegacyPrimaryHasAFallback" classname="org.stemnotebook.backend.BackupJobRoutesTest" time="0.032"/>
+  <testcase name="unknownAndFutureSchemasRemainByteForBytePreserved" classname="org.stemnotebook.backend.BackupJobRoutesTest" time="0.049"/>
+  <testcase name="linkedFilesAndReplacedRegistryNamespaceAreUnavailableWithoutRepair" classname="org.stemnotebook.backend.BackupJobRoutesTest" time="0.039"/>
+  <testcase name="reviewedRetirementReusesTheSlotAndOldCallbacksCannotResolveTheNewRoot" classname="org.stemnotebook.backend.BackupJobRoutesTest" time="0.059"/>
+  <testcase name="overflowingIntegerMetadataCannotAliasAnOwnedJobOrUid" classname="org.stemnotebook.backend.BackupJobRoutesTest" time="0.054"/>
+  <testcase name="replacedRootOrAnotherLibraryCannotAdoptAnExistingRoute" classname="org.stemnotebook.backend.BackupJobRoutesTest" time="0.06"/>
+  <testcase name="independentControllersSerializeFirstInitializationAndSlotReservation" classname="org.stemnotebook.backend.BackupJobRoutesTest" time="0.053"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -87,6 +87,7 @@ public final class BoundarySmoke {
         } finally {NativeBridge.close(selectionHandle);}
         EngineImportBoundarySmoke.run();
         EngineBoundarySmoke.run();
+        ConverterBoundarySmoke.run();
         EngineRemovalBoundarySmoke.run();
         EngineDiscardBoundarySmoke.run();
         EngineReclamationBoundarySmoke.run();

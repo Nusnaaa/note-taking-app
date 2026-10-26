@@ -42,3 +42,13 @@
 -keepclassmembers class * implements org.stemnotebook.backend.NativeBridge$EngineInputFactory {
     public org.stemnotebook.backend.NativeBridge$EngineInput open(org.stemnotebook.backend.NativeBridge$EngineControl);
 }
+
+-keepclassmembers class * implements org.stemnotebook.backend.NativeBridge$ConverterFactory {
+    public org.stemnotebook.backend.NativeBridge$Converter create(java.lang.String, byte[], org.stemnotebook.backend.NativeBridge$EngineControl);
+}
+-keepclassmembers class * implements org.stemnotebook.backend.NativeBridge$Converter {
+    public void probe(org.stemnotebook.backend.NativeBridge$EngineControl);
+    public java.lang.String formats(org.stemnotebook.backend.NativeBridge$EngineControl);
+    public java.lang.String convert(java.lang.String, java.lang.String, org.stemnotebook.backend.NativeBridge$EngineControl);
+    public void retire();
+}

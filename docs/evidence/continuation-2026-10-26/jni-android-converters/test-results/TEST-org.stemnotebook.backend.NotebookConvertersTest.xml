@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.NotebookConvertersTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-26T17:09:44" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="0.233">
+  <properties/>
+  <testcase name="boundedControllerCancelsRunningAndQueuedConversionsWithoutMetadataChanges" classname="org.stemnotebook.backend.NotebookConvertersTest" time="0.098"/>
+  <testcase name="converterOwnersUseJniParentLoader" classname="org.stemnotebook.backend.NotebookConvertersTest" time="0.049"/>
+  <testcase name="typedDerivativeRetainsSourceAndFidelityWithoutMutation" classname="org.stemnotebook.backend.NotebookConvertersTest" time="0.085"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

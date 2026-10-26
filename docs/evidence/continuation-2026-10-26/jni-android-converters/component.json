@@ -1,0 +1,16 @@
+{
+  "recorded_utc": "2026-10-26T17:12:18.014200+00:00",
+  "source_snapshot": "component-jni/jni-validation.json; 377 non-evidence files, before ADR038 and A4 narrative update; implementation unchanged since those runs",
+  "jni_groups_each": 52,
+  "converter_fixture_minified": true,
+  "android_component": {
+    "tests": 28,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "android_command": "JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 ANDROID_HOME=/tmp/stem-android-sdk ANDROID_SDK_ROOT=/tmp/stem-android-sdk GRADLE_USER_HOME=/tmp/stem-gradle-cache ANDROID_USER_HOME=/tmp/stem-android-user JAVA_TOOL_OPTIONS=-Duser.home=/tmp/stem-android-user /tmp/stem-build-tools/gradle-8.9/bin/gradle --offline --no-daemon -p android :backend:testDebugUnitTest --tests org.stemnotebook.backend.NotebookConvertersTest --tests org.stemnotebook.backend.NotebookEnginesTest --tests org.stemnotebook.backend.EngineModelSourceTest --tests org.stemnotebook.backend.BackendOwnershipTest :backend:lintDebug --console=plain --max-workers=2",
+  "android_exit_code": 0,
+  "desktop_native_sha256": "f3190af35097ddc234d847973bb19315e9e47e90affe5838c6fb859565625c94",
+  "scope": "Desktop JNI/R8 and API35 simulation components; complete native/Android validators and backend acceptance remain separate"
+}

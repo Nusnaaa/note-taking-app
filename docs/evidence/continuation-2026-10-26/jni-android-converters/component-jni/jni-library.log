@@ -1,0 +1,4 @@
+$ /tmp/stem-cargo/bin/cargo build -p stem-bridge --locked --offline
+exit_code=0
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.18s

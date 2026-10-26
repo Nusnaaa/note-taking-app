@@ -1366,6 +1366,19 @@ impl Host {
         let manager = lease.manager().lock().map_err(|_| Error::WorkerFailed)?;
         source.prepare(&manager, task, override_id)
     }
+    /// Prepare conversion against this library's exact shared runtime.
+    pub fn prepare_runtime_conversion(
+        &self,
+        block: Id,
+        region: Option<Id>,
+        engine: &str,
+        target: crate::processing::Format,
+    ) -> Result<HostConversionWork> {
+        let source = self.conversion_source(block, region)?;
+        let lease = self.runtime.lease()?;
+        let manager = lease.manager().lock().map_err(|_| Error::WorkerFailed)?;
+        source.prepare(&manager, engine, target)
+    }
     /// Publish a prepared engine on the writer. Call from an optional controller
     /// worker, without holding the shared Manager mutex. A busy Manager rejects
     /// immediately and preserves the candidate for retry.

@@ -1,0 +1,5 @@
+# JNI/Android converter component verification
+
+All ten desktop JNI validator checks passed: 52 aggregate fixture groups before and after fresh R8 release optimisation, including three new converter groups. Converter fixtures were minified; concrete callbacks rely on actual consumer rules. All-target workspace Clippy passed separately. Android component tests passed: 3 converter + 17 engine + 2 model-source + 6 ownership = 28, no failures/errors/skips; lintDebug passed. The exact fresh desktop native library hashes match for the Cargo target and Gradle runtime location. No binary is committed.
+
+The component source map includes all 377 non-evidence files, including untracked new implementation/test files at invocation; ADR038 and the A4 narrative update follow the component runs, with implementation unchanged. Full clean-source validation is a separate next step. The unrelated complete 7fb0676 Android proof is archived under jni-android-reclamation/final-7fb0676/android and must not be attributed to these converters. Backend acceptance, real SDK rights/quality, hard isolation and device enforcement remain open.

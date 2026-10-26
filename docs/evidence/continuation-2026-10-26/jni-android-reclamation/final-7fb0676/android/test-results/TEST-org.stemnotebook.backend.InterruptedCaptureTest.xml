@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.InterruptedCaptureTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-26T17:02:04" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="0.08">
+  <properties/>
+  <testcase name="interruptedObservedPrefixPersistsThroughActualJniRetryAndReopenWithItsEndProvenance" classname="org.stemnotebook.backend.InterruptedCaptureTest" time="0.08"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

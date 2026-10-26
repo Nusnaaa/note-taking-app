@@ -1,5 +1,6 @@
 //! Trusted worker-only compiled provider boundary. Never supplied by notebook
 //! JSON. SDK construction, inference and disposal occur outside registry locks.
+mod conversion;
 mod discard;
 mod import;
 mod reclamation;
@@ -36,6 +37,7 @@ fn controls() -> &'static Mutex<BTreeMap<i64, JobControl>> {
 enum Work {
     Activation(HostEngineActivationPlan, u64),
     Recognition(HostRecognitionWork),
+    Conversion(stem_core::host::HostConversionWork),
     Recovery(stem_core::host::HostEngineRecoveryPlan),
     Removal(stem_core::host::HostEngineRemovalPlan),
     Discard(stem_core::host::HostEngineDiscardPlan),
@@ -220,14 +222,15 @@ fn factory(env: &mut JNIEnv<'_>, provider: JObject<'_>) -> Result<(JavaVM, Globa
         env.new_global_ref(class).map_err(|_| Error::WorkerFailed)?,
     ))
 }
-fn construct(
+fn construct_owner(
     vm: &JavaVM,
     provider: &GlobalRef,
     class: &GlobalRef,
     descriptor: &Descriptor,
     resource: Option<&[u8]>,
     control: &JobControl,
-) -> Result<Box<dyn Recogniser>> {
+    signature: &str,
+) -> Result<JavaRecogniser> {
     control.check()?;
     if resource.is_some_and(|r| r.len() > i32::MAX as usize) {
         return Err(Error::ResourceLimit);
@@ -236,7 +239,7 @@ fn construct(
     let mut env = vm
         .attach_current_thread()
         .map_err(|_| Error::WorkerFailed)?;
-    frame(&mut env, 12, |env| -> Result<Box<dyn Recogniser>> {
+    frame(&mut env, 12, |env| -> Result<JavaRecogniser> {
         let adapter_vm = env.get_java_vm().map_err(|_| Error::WorkerFailed)?;
         let descriptor = env
             .new_string(serde_json::to_string(descriptor)?)
@@ -248,7 +251,16 @@ fn construct(
                 .map_err(|_| Error::WorkerFailed)?,
             None => JByteArray::from(JObject::null()),
         };
-        let result = env.call_method(provider.as_obj(), "create", "(Ljava/lang/String;[BLorg/stemnotebook/backend/NativeBridge$EngineControl;)Lorg/stemnotebook/backend/NativeBridge$Recogniser;", &[JValue::Object(&descriptor), JValue::Object(&bytes), JValue::Object(&control_object)]);
+        let result = env.call_method(
+            provider.as_obj(),
+            "create",
+            signature,
+            &[
+                JValue::Object(&descriptor),
+                JValue::Object(&bytes),
+                JValue::Object(&control_object),
+            ],
+        );
         let result = jni_result(env, result);
         // Own a returned SDK before wiping, so a later failure still retires it.
         let adapter = result.and_then(|value| {
@@ -284,8 +296,19 @@ fn construct(
             return Err(Error::WorkerFailed);
         }
         control.check()?;
-        Ok(Box::new(adapter?))
+        adapter
     })
+}
+fn construct(
+    vm: &JavaVM,
+    provider: &GlobalRef,
+    class: &GlobalRef,
+    descriptor: &Descriptor,
+    resource: Option<&[u8]>,
+    control: &JobControl,
+) -> Result<Box<dyn Recogniser>> {
+    Ok(Box::new(construct_owner(vm, provider, class, descriptor, resource, control,
+        "(Ljava/lang/String;[BLorg/stemnotebook/backend/NativeBridge$EngineControl;)Lorg/stemnotebook/backend/NativeBridge$Recogniser;")?))
 }
 fn insert(host: i64, control: JobControl, work: Work) -> Option<i64> {
     let id = allocate_handle(&NEXT)?;
