@@ -74,78 +74,80 @@ fn fixed_stroke(s: &Stroke) -> Result<(String, Rect)> {
         },
     ))
 }
-impl Store {
-    pub(super) fn table_ink_svg(&self, block: &Block, access: &Access) -> Result<String> {
-        let Content::Table(table) = &block.content else {
-            return Err(Error::Invalid("table SVG"));
-        };
-        let layout = table.layout.as_ref().ok_or(Error::ReviewRequired)?;
-        if self.block(block.id, access)?.revision != block.revision {
-            return Err(Error::Conflict);
-        }
-        table.validate()?;
-        layout.validate(table)?;
-        let mut body = String::new();
-        let mut bounds = [
-            f64::INFINITY,
-            f64::INFINITY,
-            f64::NEG_INFINITY,
-            f64::NEG_INFINITY,
-        ];
-        append(
-            &mut body,
-            &format!(
-                "<g transform=\"{}\" fill=\"none\" stroke=\"black\" stroke-width=\"1\">",
-                matrix(block.transform)
-            ),
-        )?;
-        // Linear traversal; no repeated per-cell table validation/search.
-        let mut y = layout.origin.y;
-        for height in &layout.row_heights {
-            let mut x = layout.origin.x;
-            for width in &layout.column_widths {
-                let rect = Rect {
-                    x: x - 0.5,
-                    y: y - 0.5,
-                    width: width + 1.,
-                    height: height + 1.,
-                };
-                extend(&mut bounds, rect, block.transform)?;
-                append(
-                    &mut body,
-                    &format!("<rect x=\"{x}\" y=\"{y}\" width=\"{width}\" height=\"{height}\"/>"),
-                )?;
-                x += width;
-            }
-            y += height;
-        }
-        append(&mut body, "</g>")?;
-        for placement in self.table_ink_scene(block.id, access)? {
-            let s = &placement.stroke;
-            let (svg, rect) =
-                match source_ink::pressure_svg_budget(s, LIMIT.saturating_sub(body.len()))? {
-                    Some(value) => value,
-                    None => fixed_stroke(s)?,
-                };
-            extend(&mut bounds, rect, placement.source_to_surface)?;
+pub(super) fn table_ink_svg(
+    block: &Block,
+    source: &[Stroke],
+    control: &JobControl,
+) -> Result<String> {
+    let Content::Table(table) = &block.content else {
+        return Err(Error::Invalid("table SVG"));
+    };
+    let layout = table.layout.as_ref().ok_or(Error::ReviewRequired)?;
+    table.validate()?;
+    layout.validate(table)?;
+    let mut body = String::new();
+    let mut bounds = [
+        f64::INFINITY,
+        f64::INFINITY,
+        f64::NEG_INFINITY,
+        f64::NEG_INFINITY,
+    ];
+    append(
+        &mut body,
+        &format!(
+            "<g transform=\"{}\" fill=\"none\" stroke=\"black\" stroke-width=\"1\">",
+            matrix(block.transform)
+        ),
+    )?;
+    // Linear traversal; no repeated per-cell table validation/search.
+    let mut y = layout.origin.y;
+    for height in &layout.row_heights {
+        control.check()?;
+        let mut x = layout.origin.x;
+        for width in &layout.column_widths {
+            let rect = Rect {
+                x: x - 0.5,
+                y: y - 0.5,
+                width: width + 1.,
+                height: height + 1.,
+            };
+            extend(&mut bounds, rect, block.transform)?;
             append(
                 &mut body,
-                &format!("<g transform=\"{}\">", matrix(placement.source_to_surface)),
+                &format!("<rect x=\"{x}\" y=\"{y}\" width=\"{width}\" height=\"{height}\"/>"),
             )?;
-            append(&mut body, &svg)?;
-            append(&mut body, "</g>")?;
+            x += width;
         }
-        let rect = Rect {
-            x: bounds[0],
-            y: bounds[1],
-            width: bounds[2] - bounds[0],
-            height: bounds[3] - bounds[1],
-        };
-        rect.validate()?;
-        let svg = svg_root(body, rect);
-        if svg.len() > LIMIT {
-            return Err(Error::ResourceLimit);
-        }
-        Ok(svg)
+        y += height;
     }
+    append(&mut body, "</g>")?;
+    for stroke in source {
+        control.check()?;
+        let placement = Store::place_table_stroke(block, stroke.clone())?;
+        let s = &placement.stroke;
+        let (svg, rect) =
+            match source_ink::pressure_svg_budget(s, LIMIT.saturating_sub(body.len()))? {
+                Some(value) => value,
+                None => fixed_stroke(s)?,
+            };
+        extend(&mut bounds, rect, placement.source_to_surface)?;
+        append(
+            &mut body,
+            &format!("<g transform=\"{}\">", matrix(placement.source_to_surface)),
+        )?;
+        append(&mut body, &svg)?;
+        append(&mut body, "</g>")?;
+    }
+    let rect = Rect {
+        x: bounds[0],
+        y: bounds[1],
+        width: bounds[2] - bounds[0],
+        height: bounds[3] - bounds[1],
+    };
+    rect.validate()?;
+    let svg = svg_root(body, rect);
+    if svg.len() > LIMIT {
+        return Err(Error::ResourceLimit);
+    }
+    Ok(svg)
 }

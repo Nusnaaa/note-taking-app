@@ -1,0 +1,75 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 40.84s
+     Running tests/export.rs (/tmp/stem-pen-response-target/debug/deps/export-1662c850f76a1b4b)
+
+running 5 tests
+test converted_only_export_never_reads_or_discloses_original_ink ... ok
+test derivative_scope_and_fresh_auth_cannot_be_bypassed ... ok
+test graph_derivative_preserves_authored_order_and_refuses_concealed_points ... ok
+test pagination_never_bisects_indivisible_work_or_silently_scales ... ok
+test diagram_svg_escapes_labels_and_canvas_scope_rejects_hidden_payload ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/host_derivative.rs (/tmp/stem-pen-response-target/debug/deps/host_derivative-d01ce64cb5a61879)
+
+running 11 tests
+test derivative_and_native_snapshots_share_bounded_admission_and_drop_releases_it ... ok
+test derivative_fresh_proof_is_off_writer_and_close_reentry_is_cancelled ... ok
+test empty_exercise_derivative_keeps_its_locked_master_in_fresh_proof ... ok
+test derivative_release_rechecks_generation_host_and_retained_cancellation ... ok
+test empty_selection_under_app_lock_still_requires_fresh_app_proof ... ok
+test host_derivative_delivers_only_confirmed_output_with_explicit_original_choice ... ok
+test pdf_rendering_requires_local_font_and_review_and_refuses_original_ink_mode ... ok
+test relock_capture_and_close_refuse_derivative_source_or_review_without_output ... ok
+test selected_image_does_not_decode_unrelated_malformed_private_block_payload ... ok
+test selected_shared_image_requires_all_actual_reference_scopes_at_release ... ok
+test excessive_svg_point_expansion_fails_without_truncated_derivative_or_source_changes ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.40s
+
+     Running tests/image_crop_export.rs (/tmp/stem-pen-response-target/debug/deps/image_crop_export-a30a11e474cee022)
+
+running 5 tests
+test crop_emits_only_selected_pixels_and_strips_original_trailing_bytes_without_rewriting_asset ... ok
+test fractional_crop_rounds_inward_and_a_crop_with_no_complete_pixel_requires_review ... ok
+test jpeg_crop_encodes_png_but_nonidentity_exif_orientation_requires_review ... ok
+test two_crops_of_one_asset_have_distinct_outputs_and_explicit_source_ink_is_still_included ... ok
+test malformed_and_oversized_images_fail_without_bypassing_fresh_block_protection ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+     Running tests/pressure_response.rs (/tmp/stem-pen-response-target/debug/deps/pressure_response-d671bfbc86e415de)
+
+running 8 tests
+test absent_zero_outside_domain_and_interior_pressure_have_explicit_derived_widths ... ok
+test eraser_source_unit_underflow_is_rejected_without_changing_preferences ... ok
+test invalid_responses_and_effective_widths_fail_without_installing_them ... ok
+test legacy_layout_stream_reads_schema15_without_inventing_pressure_settings ... ok
+test original_svg_uses_recorded_response_and_reports_missing_sensor_values_without_rewriting_ink ... ok
+test pressure_and_eraser_preferences_persist_and_new_fields_cannot_claim_an_old_native_version ... ok
+test response_is_snapshotted_per_contact_and_raw_samples_are_never_rewritten ... ok
+test aggregate_and_stream_backups_keep_exact_pressure_metadata_and_reject_schema_downgrade ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 23.89s
+
+     Running tests/render.rs (/tmp/stem-pen-response-target/debug/deps/render-aa1f1b70ca39de81)
+
+running 4 tests
+test invalid_font_missing_glyph_and_impossible_page_fail_without_partial_output ... ok
+test protected_pdf_requires_fresh_auth_and_stale_plan_cannot_disclose_new_state ... ok
+test pdf_uses_the_same_visible_canvas_blocks_as_the_reviewed_derivative ... ok
+test unicode_maths_and_paginated_text_produce_real_pdf_with_embedded_fonts ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.53s
+
+    Checking stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+    Checking stem-bridge v0.1.0 (/tmp/stem-engine-catalogue-work/bridge)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 26.47s
+   Compiling jni-sys v0.3.1
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+   Compiling jni v0.21.1
+   Compiling stem-bridge v0.1.0 (/tmp/stem-engine-catalogue-work/bridge)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 40.17s
+4cdc44ba7a40c1160aab832dd7184f0f1b71520ee7ee89c1e3ca8eb3aedeb2a0  /tmp/stem-pen-response-target/debug/libstem_bridge.so
+4cdc44ba7a40c1160aab832dd7184f0f1b71520ee7ee89c1e3ca8eb3aedeb2a0  target/debug/libstem_bridge.so

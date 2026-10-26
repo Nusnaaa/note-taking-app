@@ -1,6 +1,7 @@
 //! Vector derivative of explicitly chosen pressure appearance. Observations and
 //! source fingerprints are never modified; no pressure samples are fabricated.
 use crate::{ink::Stroke, objects::Rect, Error, Result};
+#[cfg(test)]
 pub(super) fn pressure_svg(stroke: &Stroke) -> Result<Option<(String, Rect)>> {
     pressure_svg_budget(stroke, 8 * 1024 * 1024)
 }
@@ -89,6 +90,21 @@ pub(super) fn pressure_svg_budget(stroke: &Stroke, limit: usize) -> Result<Optio
     };
     bounds.validate()?;
     Ok(Some((svg, bounds)))
+}
+
+pub(super) fn point_list(
+    stroke: &Stroke,
+    control: &crate::processing::JobControl,
+) -> Result<String> {
+    let mut points = String::new();
+    for (index, p) in stroke.points.iter().enumerate() {
+        control.check()?;
+        if index > 0 {
+            push(&mut points, " ", 8 * 1024 * 1024)?;
+        }
+        push(&mut points, &format!("{},{}", p.x, p.y), 8 * 1024 * 1024)?;
+    }
+    Ok(points)
 }
 
 #[cfg(test)]

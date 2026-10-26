@@ -44,6 +44,21 @@ pub(crate) struct ExportStamp {
     generation: String,
     scopes: BTreeSet<Scope>,
 }
+impl ExportStamp {
+    pub(crate) fn new(library: String, generation: String, scopes: BTreeSet<Scope>) -> Self {
+        Self {
+            library,
+            generation,
+            scopes,
+        }
+    }
+    pub(crate) fn verify(&self, auth: &mut dyn Authenticator) -> Result<()> {
+        if !self.scopes.is_empty() && !auth.verify(Id::new(), &self.scopes) {
+            return Err(Error::Denied);
+        }
+        Ok(())
+    }
+}
 impl ExportPlan {
     pub(crate) fn stamp(&self) -> ExportStamp {
         ExportStamp {

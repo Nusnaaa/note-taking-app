@@ -49,7 +49,7 @@ impl ExportScope {
     fn state(&self) -> MutexGuard<'_, State> {
         self.state.lock().unwrap_or_else(|p| p.into_inner())
     }
-    fn reserve(self: &Arc<Self>) -> Result<Arc<Lease>> {
+    pub(super) fn reserve(self: &Arc<Self>) -> Result<Arc<Lease>> {
         let mut state = self.state();
         if state.closed {
             return Err(Error::WorkerFailed);
@@ -79,18 +79,18 @@ impl ExportScope {
     }
 }
 pub(super) struct Lease {
-    scope: Arc<ExportScope>,
-    ticket: Id,
+    pub(super) scope: Arc<ExportScope>,
+    pub(super) ticket: Id,
 }
 impl Lease {
-    fn check(&self) -> Result<()> {
+    pub(super) fn check(&self) -> Result<()> {
         let s = self.scope.state();
         if s.closed || s.ticket != Some(self.ticket) {
             return Err(Error::Cancelled);
         }
         Ok(())
     }
-    fn begin(self: &Arc<Self>) -> Result<Worker> {
+    pub(super) fn begin(self: &Arc<Self>) -> Result<Worker> {
         let mut s = self.scope.state();
         if s.closed || s.ticket != Some(self.ticket) {
             return Err(Error::Cancelled);
@@ -111,7 +111,7 @@ impl Drop for Lease {
         self.scope.changed.notify_all();
     }
 }
-struct Worker(Arc<Lease>);
+pub(super) struct Worker(Arc<Lease>);
 impl Drop for Worker {
     fn drop(&mut self) {
         self.0.scope.state().worker = None;

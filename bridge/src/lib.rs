@@ -1,6 +1,7 @@
 //! The only JNI boundary. No raw Rust pointer crosses it; opaque, non-reused handles
 //! refer to a locked registry. Panic containment and bounded requests fail closed.
 mod backup;
+mod derivative_export;
 mod engines;
 mod native_export;
 mod restore;
@@ -136,6 +137,7 @@ pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_close(
         engines::close(handle);
         backup::close(handle);
         native_export::close(handle);
+        derivative_export::close(handle);
         restore::close(handle);
         host.close().ok()?;
         Some(())

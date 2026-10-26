@@ -1,0 +1,21 @@
+    Checking stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+error: items after a test module
+   --> core/src/export/source_ink.rs:96:1
+    |
+ 96 |   mod budget_tests {
+    |   ^^^^^^^^^^^^^^^^
+...
+157 | / pub(super) fn point_list(
+158 | |     stroke: &Stroke,
+159 | |     control: &crate::processing::JobControl,
+160 | | ) -> Result<String> {
+    | |___________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#items_after_test_module
+    = note: `-D clippy::items-after-test-module` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::items_after_test_module)]`
+    = help: move the items to before the test module was defined
+
+    Checking stem-bridge v0.1.0 (/tmp/stem-engine-catalogue-work/bridge)
+error: could not compile `stem-core` (lib test) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...

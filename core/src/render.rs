@@ -239,6 +239,17 @@ impl Typesetter<'_> {
 /// Pure rendering of an already authorised selection. Does not accept arbitrary SVG.
 /// Font coverage errors fail explicitly; missing glyphs are never silently omitted.
 pub fn render_pdf(contents: &[Content], font: &[u8], page: Page) -> Result<PdfOutput> {
+    render_pdf_control(contents, font, page, None)
+}
+pub(crate) fn render_pdf_control(
+    contents: &[Content],
+    font: &[u8],
+    page: Page,
+    control: Option<&crate::processing::JobControl>,
+) -> Result<PdfOutput> {
+    let check = || control.map_or(Ok(()), |control| control.check());
+    check()?;
+
     if font.len() > 32 * 1024 * 1024 || contents.len() > 10000 {
         return Err(Error::ResourceLimit);
     }
@@ -274,6 +285,7 @@ pub fn render_pdf(contents: &[Content], font: &[u8], page: Page) -> Result<PdfOu
     let margin = page.margin_mm * points;
     let available = width - 2. * margin;
     for content in contents {
+        check()?;
         content.validate()?;
         match content {
             Content::Maths(n) => items.push(typesetter.math(n, 12.)?),
@@ -281,8 +293,10 @@ pub fn render_pdf(contents: &[Content], font: &[u8], page: Page) -> Result<PdfOu
                 // Preserve code characters/indentation; explicit visual wrapping introduces
                 // no changes to the native editable string.
                 for line in s.split('\n') {
+                    check()?;
                     let mut part = String::new();
                     for c in line.chars() {
+                        check()?;
                         let appended = if c == '\t' {
                             "    ".into()
                         } else {
@@ -307,6 +321,7 @@ pub fn render_pdf(contents: &[Content], font: &[u8], page: Page) -> Result<PdfOu
                 let columns = t.rows[0].len();
                 let cell_width = available / columns as f64;
                 for row in &t.rows {
+                    check()?;
                     let mut boxes = Vec::new();
                     for cell in row {
                         boxes.push(match &cell.value {
@@ -358,6 +373,7 @@ pub fn render_pdf(contents: &[Content], font: &[u8], page: Page) -> Result<PdfOu
     let mut body = String::new();
     let mut y = margin;
     for mut b in items {
+        check()?;
         if b.width > available {
             let scale = available / b.width;
             b.svg = format!("<g transform=\"scale({scale})\">{}</g>", b.svg);
@@ -392,6 +408,7 @@ pub fn render_pdf(contents: &[Content], font: &[u8], page: Page) -> Result<PdfOu
         .kids(page_ids.iter().copied())
         .count(page_ids.len() as i32);
     for (body, id) in pages.iter().zip(page_ids) {
+        check()?;
         let svg=format!("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{width}\" height=\"{height}\" viewBox=\"0 0 {width} {height}\"><g font-family=\"{}\" fill=\"black\">{body}</g></svg>",xml(&family));
         let tree = svg2pdf::usvg::Tree::from_str(&svg, &options)
             .map_err(|_| Error::Invalid("rendered SVG"))?;
@@ -403,6 +420,7 @@ pub fn render_pdf(contents: &[Content], font: &[u8], page: Page) -> Result<PdfOu
             },
         )
         .map_err(|_| Error::Unsupported)?;
+        check()?;
         let mut map = HashMap::new();
         let chunk = chunk.renumber(|old| *map.entry(old).or_insert_with(|| alloc.bump()));
         let svg_id = map[&svg_id];
@@ -420,12 +438,20 @@ pub fn render_pdf(contents: &[Content], font: &[u8], page: Page) -> Result<PdfOu
             .transform([width as f32, 0., 0., height as f32, 0., 0.])
             .x_object(Name(b"PageArtwork"));
         pdf.stream(content_id, &stream.finish());
+        if chunk.as_bytes().len() > (64usize * 1024 * 1024).saturating_sub(pdf.as_bytes().len()) {
+            return Err(Error::ResourceLimit);
+        }
         pdf.extend(&chunk);
     }
     warnings.sort();
     warnings.dedup();
+    let bytes = pdf.finish();
+    if bytes.len() > 64 * 1024 * 1024 {
+        return Err(Error::ResourceLimit);
+    }
+    check()?;
     Ok(PdfOutput {
-        bytes: pdf.finish(),
+        bytes,
         pages: pages.len(),
         warnings,
     })

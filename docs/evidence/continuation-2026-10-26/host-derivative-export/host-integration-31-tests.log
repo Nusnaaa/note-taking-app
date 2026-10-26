@@ -1,0 +1,63 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 39.35s
+     Running tests/export.rs (/tmp/stem-pen-response-target/debug/deps/export-1662c850f76a1b4b)
+
+running 5 tests
+test converted_only_export_never_reads_or_discloses_original_ink ... ok
+test derivative_scope_and_fresh_auth_cannot_be_bypassed ... ok
+test graph_derivative_preserves_authored_order_and_refuses_concealed_points ... ok
+test pagination_never_bisects_indivisible_work_or_silently_scales ... ok
+test diagram_svg_escapes_labels_and_canvas_scope_rejects_hidden_payload ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/host_derivative.rs (/tmp/stem-pen-response-target/debug/deps/host_derivative-d01ce64cb5a61879)
+
+running 8 tests
+test derivative_and_native_snapshots_share_bounded_admission_and_drop_releases_it ... ok
+test derivative_fresh_proof_is_off_writer_and_close_reentry_is_cancelled ... ok
+test empty_exercise_derivative_keeps_its_locked_master_in_fresh_proof ... ok
+test derivative_release_rechecks_generation_host_and_retained_cancellation ... ok
+test host_derivative_delivers_only_confirmed_output_with_explicit_original_choice ... ok
+test relock_capture_and_close_refuse_derivative_source_or_review_without_output ... ok
+test pdf_rendering_requires_local_font_and_review_and_refuses_original_ink_mode ... ok
+test selected_shared_image_requires_all_actual_reference_scopes_at_release ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.26s
+
+     Running tests/host_native_export.rs (/tmp/stem-pen-response-target/debug/deps/host_native_export-c1db5ffdb7046c81)
+
+running 9 tests
+test cancellation_after_encoding_refuses_byte_release_and_retires_snapshot ... ok
+test exercise_native_host_export_keeps_only_selected_members_and_originals ... ok
+test external_close_waits_for_native_export_worker_then_refuses_release ... ok
+test native_export_verification_runs_off_writer_and_close_reentry_does_not_deadlock ... ok
+test native_host_export_roundtrips_observed_ink_with_single_snapshot_admission ... ok
+test panicking_export_verifier_releases_admission_and_leaves_writer_usable ... ok
+test native_host_release_refuses_stale_generation_and_foreign_host ... ok
+test relock_cancel_and_close_retire_native_export_without_delivering_bytes ... ok
+test protected_native_export_requires_fresh_verification_and_plaintext_acknowledgment ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.32s
+
+     Running tests/image_crop_export.rs (/tmp/stem-pen-response-target/debug/deps/image_crop_export-a30a11e474cee022)
+
+running 5 tests
+test crop_emits_only_selected_pixels_and_strips_original_trailing_bytes_without_rewriting_asset ... ok
+test fractional_crop_rounds_inward_and_a_crop_with_no_complete_pixel_requires_review ... ok
+test jpeg_crop_encodes_png_but_nonidentity_exif_orientation_requires_review ... ok
+test two_crops_of_one_asset_have_distinct_outputs_and_explicit_source_ink_is_still_included ... ok
+test malformed_and_oversized_images_fail_without_bypassing_fresh_block_protection ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+     Running tests/render.rs (/tmp/stem-pen-response-target/debug/deps/render-aa1f1b70ca39de81)
+
+running 4 tests
+test invalid_font_missing_glyph_and_impossible_page_fail_without_partial_output ... ok
+test protected_pdf_requires_fresh_auth_and_stale_plan_cannot_disclose_new_state ... ok
+test pdf_uses_the_same_visible_canvas_blocks_as_the_reviewed_derivative ... ok
+test unicode_maths_and_paginated_text_produce_real_pdf_with_embedded_fonts ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.40s
+

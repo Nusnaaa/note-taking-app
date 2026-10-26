@@ -296,6 +296,44 @@ public final class NativeBridge {
     public interface PdfGrant { boolean verify(String challenge, String target, String locator, String revision); }
     public static native String preparePdfSelection(long handle, String target, String locator, String revision, PdfGrant proof);
     public static native String finishPdfSelection(long handle, String review, boolean confirmed, PdfGrant proof);
+    /** Worker-only authorized source capture. Render returns review metadata;
+     * bytes remain private until finish receives confirmation and fresh proof. */
+    public static native DerivativeExport reviewDerivativeExport(long host,String selection,boolean originalInk);
+    private static native String renderDerivativeExport(long host,long token,byte[] font,String page,boolean pdf,long budgetMillis);
+    private static native DerivativeExportData finishDerivativeExport(long host,long token,Verification proof,boolean confirmed);
+    private static native void releaseDerivativeExport(long host,long token);
+    public static final class DerivativeExport implements AutoCloseable {
+        private final long host,token;
+        private boolean started,rendered,finished,closed;
+        private DerivativeExport(long host,long token){this.host=host;this.token=token;}
+        private String render(byte[] font,String page,boolean pdf,long budgetMillis){
+            if(budgetMillis<1||budgetMillis>3600000||(pdf&&(font==null||font.length>32*1024*1024||page==null)))throw new IllegalStateException("Derivative export operation failed");
+            synchronized(this){if(started||closed)throw new IllegalStateException("Derivative export operation failed");started=true;}
+            byte[] snapshot=font==null?null:font.clone();
+            try {String summary=renderDerivativeExport(host,token,snapshot,page,pdf,budgetMillis);synchronized(this){if(closed)throw new IllegalStateException("Derivative export operation failed");rendered=true;}return summary;}
+            catch(Throwable error){close();throw new IllegalStateException("Derivative export operation failed");}
+            finally{if(snapshot!=null)java.util.Arrays.fill(snapshot,(byte)0);}
+        }
+        public String renderMarkdown(long budgetMillis){return render(null,null,false,budgetMillis);}
+        /** Caller supplies a local font and explicit page dimensions in mm. */
+        public String renderPdf(byte[] font,String page,long budgetMillis){return render(font,page,true,budgetMillis);}
+        public DerivativeExportData finish(Verification proof,boolean confirmed){
+            if(proof==null)throw new IllegalStateException("Derivative export operation failed");
+            synchronized(this){if(!rendered||finished||closed)throw new IllegalStateException("Derivative export operation failed");finished=true;}
+            try {DerivativeExportData data=finishDerivativeExport(host,token,proof,confirmed);synchronized(this){if(closed){if(data!=null)data.close();throw new IllegalStateException("Derivative export operation failed");}}return data;}
+            finally{close();}
+        }
+        @Override public void close(){synchronized(this){if(closed)return;closed=true;}releaseDerivativeExport(host,token);}
+    }
+    public static final class DerivativeExportData implements AutoCloseable {
+        public final String kind;
+        public final byte[] markdown,pdf;
+        public final String[] assetNames,warnings;
+        public final byte[][] assets;
+        private DerivativeExportData(String kind,byte[] markdown,String[] names,byte[][] assets,byte[] pdf,String[] warnings){this.kind=kind;this.markdown=markdown;assetNames=names;this.assets=assets;this.pdf=pdf;this.warnings=warnings;}
+        /** Clears owned binary arrays; caller-retained copies remain their responsibility. */
+        @Override public void close(){if(markdown!=null)java.util.Arrays.fill(markdown,(byte)0);if(pdf!=null)java.util.Arrays.fill(pdf,(byte)0);for(byte[] asset:assets)java.util.Arrays.fill(asset,(byte)0);}
+    }
     /** Deliberate worker-only native subset export. Selection is Entities or Exercise;
      * source ink requires explicit choice. No bytes are written to a provider here. */
     public static native NativeExport reviewNativeExport(long handle, String selection, boolean originalInk);

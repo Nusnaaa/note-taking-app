@@ -1,0 +1,15 @@
+    Checking stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+   Compiling jni-sys v0.3.1
+    Checking jni v0.21.1
+warning: the `warnings:` in this pattern is redundant
+  --> core/src/export/derivative.rs:27:13
+   |
+27 |             warnings: mut warnings,
+   |             ^^^^^^^^^^^^^^^^^^^^^^ help: use shorthand field pattern: `mut warnings`
+   |
+   = note: `#[warn(non_shorthand_field_patterns)]` on by default
+
+warning: `stem-core` (lib) generated 1 warning (run `cargo fix --lib -p stem-core` to apply 1 suggestion)
+warning: `stem-core` (lib test) generated 1 warning (1 duplicate)
+    Checking stem-bridge v0.1.0 (/tmp/stem-engine-catalogue-work/bridge)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 28.86s
