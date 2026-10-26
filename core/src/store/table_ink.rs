@@ -109,6 +109,36 @@ impl Store {
             if current.source_ids.len().saturating_add(strokes.len()) > 4096 {
                 return Err(Error::ResourceLimit);
             }
+            if let Some(layout) = &table.layout {
+                let bounds = layout.cell_bounds(table, cell)?;
+                if strokes.iter().any(|s| {
+                    s.coordinate_space != layout.coordinate_space
+                        || s.points
+                            .iter()
+                            .any(|p| !(p.x - bounds.x).is_finite() || !(p.y - bounds.y).is_finite())
+                }) {
+                    return Err(Error::Invalid("table capture coordinate space"));
+                }
+                let origins = strokes
+                    .iter()
+                    .map(|s| crate::objects::CellInkOrigin {
+                        cell,
+                        stroke: s.id,
+                        origin: crate::objects::Position {
+                            x: bounds.x,
+                            y: bounds.y,
+                        },
+                    })
+                    .collect::<Vec<_>>();
+                if let Content::Table(table) = &mut current.content {
+                    table
+                        .layout
+                        .as_mut()
+                        .ok_or(Error::Integrity)?
+                        .ink_origins
+                        .extend(origins);
+                }
+            }
             let new_ids: Vec<_> = strokes.iter().map(|stroke| stroke.id).collect();
             for stroke in &strokes {
                 let payload = serde_json::to_string(stroke)?;
@@ -147,5 +177,60 @@ impl Store {
             )?;
             Ok(current)
         })
+    }
+}
+
+/// A derived vector placement paired with the unchanged original stroke.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct CellInkPlacement {
+    pub cell: Id,
+    pub stroke: Stroke,
+    pub source_to_surface: crate::ink::Transform,
+}
+impl Store {
+    /// Visible table ink in source order, including explicit cell reflow and the
+    /// block transform. No rasterization, clipping or source rewriting.
+    pub fn table_ink_scene(&self, block: Id, access: &Access) -> Result<Vec<CellInkPlacement>> {
+        let block = Self::read_block(&self.db, block, access)?;
+        let Content::Table(table) = &block.content else {
+            return Err(Error::Invalid("table block"));
+        };
+        let layout = table.layout.as_ref().ok_or(Error::ReviewRequired)?;
+        if !block.visible {
+            return Err(Error::Unavailable);
+        }
+        let mut scene = Vec::new();
+        for stroke in Self::original_strokes(&self.db, &block)? {
+            if !block.visible_strokes.contains(&stroke.id) {
+                continue;
+            }
+            if stroke.coordinate_space != layout.coordinate_space {
+                return Err(Error::Invalid("table ink coordinate space"));
+            }
+            let shift = layout.stroke_transform(table, stroke.id)?;
+            let mut transform = block.transform;
+            transform.tx += transform.a * shift.tx + transform.c * shift.ty;
+            transform.ty += transform.b * shift.tx + transform.d * shift.ty;
+            transform.validate()?;
+            if stroke.points.iter().any(|p| {
+                !(transform.a * p.x + transform.c * p.y + transform.tx).is_finite()
+                    || !(transform.b * p.x + transform.d * p.y + transform.ty).is_finite()
+            }) {
+                return Err(Error::Invalid("table ink scene coordinates"));
+            }
+            let cell = layout
+                .ink_origins
+                .iter()
+                .find(|ink| ink.stroke == stroke.id)
+                .ok_or(Error::Integrity)?
+                .cell;
+            scene.push(CellInkPlacement {
+                cell,
+                stroke,
+                source_to_surface: transform,
+            });
+        }
+        Ok(scene)
     }
 }

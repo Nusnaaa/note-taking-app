@@ -239,7 +239,7 @@ impl Store {
             let mut schema = [0; 4];
             input.read_exact(&mut schema)?;
             let source_schema = u32::from_be_bytes(schema);
-            if &magic != BODY || !matches!(source_schema, 15..=20) {
+            if &magic != BODY || !matches!(source_schema, 15..=21) {
                 return Err(Error::Unsupported);
             }
             let mut omissions = [0; 4];
@@ -317,7 +317,9 @@ impl Store {
             control.check()?;
             tx.commit()?;
             destination.validate_backup_state_controlled(
-                if source_schema >= 20 {
+                if source_schema >= 21 {
+                    13
+                } else if source_schema >= 20 {
                     12
                 } else if source_schema >= 19 {
                     11

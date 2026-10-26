@@ -1,0 +1,5 @@
+{
+  "cargo_target": "/tmp/stem-pen-response-target/debug/libstem_bridge.so",
+  "jni_runtime": "target/debug/libstem_bridge.so",
+  "sha256": "f8bd992800237e839a3917711ede181493bbd615a8e5fba5a4549595f2961d82"
+}

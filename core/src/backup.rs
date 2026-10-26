@@ -196,7 +196,7 @@ impl Store {
 
         let mut snapshot = Snapshot {
             format: "STEM-LIBRARY-1".into(),
-            schema: 20,
+            schema: 21,
             tables: BTreeMap::new(),
             omissions: vec![],
         };
@@ -395,7 +395,7 @@ impl Store {
             snapshot.schema = 9;
         }
 
-        if snapshot.format != "STEM-LIBRARY-1" || !matches!(snapshot.schema, 9..=20) {
+        if snapshot.format != "STEM-LIBRARY-1" || !matches!(snapshot.schema, 9..=21) {
             return Err(Error::Unsupported);
         }
 
@@ -505,7 +505,9 @@ impl Store {
         tx.commit()?;
 
         destination.validate_backup_state_controlled(
-            if source_schema >= 20 {
+            if source_schema >= 21 {
+                13
+            } else if source_schema >= 20 {
                 12
             } else if source_schema >= 19 {
                 11
@@ -693,7 +695,7 @@ impl Store {
         control: Option<&crate::processing::JobControl>,
     ) -> Result<()> {
         self.validate_edit_journal(control)?;
-        if native_version < 12 {
+        if native_version < 13 {
             let mut query = self.db.prepare(
                 "SELECT before_row,after_row FROM edit_changes WHERE table_name='blocks'",
             )?;
@@ -715,7 +717,9 @@ impl Store {
                         .ok_or(Error::Integrity)?;
                     let block: Block = serde_json::from_str(payload)?;
                     if (native_version < 11 && block.has_table_ink())
-                        || block.regions.iter().any(|region| region.cell.is_some())
+                        || (native_version < 12
+                            && block.regions.iter().any(|region| region.cell.is_some()))
+                        || matches!(&block.content, crate::content::Content::Table(t) if t.layout.is_some())
                     {
                         return Err(Error::Unsupported);
                     }

@@ -255,6 +255,51 @@ impl Store {
         Ok((mime, bytes))
     }
 
+    /// Explicit adoption includes origins for every retained cell-region stroke.
+    /// Existing layout may be resized/repositioned, but observed capture origins
+    /// and source-space identity cannot be silently replaced.
+    pub fn set_table_layout(
+        &mut self,
+        block: Id,
+        revision: u64,
+        layout: crate::objects::TableLayout,
+        access: &Access,
+    ) -> Result<Block> {
+        let originals = self.source_ink(block, access)?;
+        for ink in &layout.ink_origins {
+            let stroke = originals
+                .iter()
+                .find(|s| s.id == ink.stroke)
+                .ok_or(Error::Invalid("table ink source"))?;
+            if stroke.coordinate_space != layout.coordinate_space
+                || stroke
+                    .points
+                    .iter()
+                    .any(|p| !(p.x - ink.origin.x).is_finite() || !(p.y - ink.origin.y).is_finite())
+            {
+                return Err(Error::Invalid("table ink coordinate space"));
+            }
+        }
+        self.edit_block(block, revision, access, |block| {
+            let Content::Table(table) = &mut block.content else {
+                return Err(Error::Invalid("table block"));
+            };
+            layout.validate(table)?;
+            for stroke in &originals {
+                layout.validate_source(table, stroke)?;
+            }
+            if let Some(old) = &table.layout {
+                if old.coordinate_space != layout.coordinate_space
+                    || old.ink_origins != layout.ink_origins
+                {
+                    return Err(Error::Conflict);
+                }
+            }
+            table.layout = Some(layout);
+            Ok(())
+        })
+    }
+
     /// Structural changes to typed tables. Ink placement needs an explicit cell
     /// coordinate mapping before dimension changes can safely move its contents.
     pub fn edit_table(
@@ -264,14 +309,30 @@ impl Store {
         edit: crate::objects::TableEdit,
         access: &Access,
     ) -> Result<Block> {
+        let originals = self.source_ink(block, access)?;
         self.edit_block(block, revision, access, |block| {
             let Content::Table(table) = &mut block.content else {
                 return Err(Error::Invalid("table block"));
             };
-            if !block.source_ids.is_empty() || !block.regions.is_empty() {
+            if table.layout.is_none() && (!block.source_ids.is_empty() || !block.regions.is_empty())
+            {
                 return Err(Error::ReviewRequired);
             }
             table.restructure(edit)?;
+            if let Some(layout) = &table.layout {
+                for stroke in &originals {
+                    layout.validate_source(table, stroke)?;
+                }
+            }
+            let cells: BTreeSet<_> = table.rows.iter().flatten().map(|cell| cell.id).collect();
+            let removed: BTreeSet<_> = block
+                .regions
+                .iter()
+                .filter(|r| !cells.contains(&r.target()))
+                .flat_map(|r| r.strokes.iter().copied())
+                .collect();
+            block.regions.retain(|r| cells.contains(&r.target()));
+            block.visible_strokes.retain(|id| !removed.contains(id));
             block.manually_corrected = true;
             Ok(())
         })

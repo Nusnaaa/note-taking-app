@@ -30,6 +30,7 @@ fn table() -> Table {
             },
         ]],
         header_rows: 0,
+        layout: None,
     }
 }
 #[test]
@@ -300,7 +301,7 @@ fn native_v3_roundtrip_preserves_assets_layout_groups_and_embeds_with_new_ids() 
         .unwrap()
         .bytes;
     let d = NativeDocument::decode(&bytes).unwrap();
-    assert_eq!(d.version, 12);
+    assert_eq!(d.version, 13);
     assert_eq!(d.attachments.assets.len(), 1);
     assert_eq!(d.attachments.embeds.len(), 1);
     let mut target = Store::memory().unwrap();

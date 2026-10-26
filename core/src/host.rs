@@ -239,6 +239,14 @@ pub enum Command {
         bounds: Rect,
         z: i32,
     },
+    TableInkScene {
+        block: Id,
+    },
+    SetTableLayout {
+        block: Id,
+        revision: u64,
+        layout: crate::objects::TableLayout,
+    },
     EditTable {
         block: Id,
         revision: u64,
@@ -1489,6 +1497,7 @@ impl Host {
                 | Command::Group { .. }
                 | Command::CanvasLayers { .. }
                 | Command::CanvasScene { .. }
+                | Command::TableInkScene { .. }
                 | Command::Embed { .. }
                 | Command::Views { .. }
                 | Command::View { .. }
@@ -1781,6 +1790,12 @@ fn execute(
                 bounds,
                 z,
             } => serde_json::to_value(s.set_layout(block, expected, bounds, z, a)?)?,
+            Command::TableInkScene { block } => serde_json::to_value(s.table_ink_scene(block, a)?)?,
+            Command::SetTableLayout {
+                block,
+                revision,
+                layout,
+            } => serde_json::to_value(s.set_table_layout(block, revision, layout, a)?)?,
             Command::EditTable {
                 block,
                 revision,

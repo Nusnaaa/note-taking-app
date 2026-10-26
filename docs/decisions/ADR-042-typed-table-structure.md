@@ -1,6 +1,8 @@
 # ADR 042 — explicit typed-table structural edits
 
-Status: partial Q071 implementation. Ink-aware cell layout, resizing and cell move/copy remain open.
+Status: initial typed-table implementation. ADR043 adds explicit ink-aware geometry and resizing; cell move/copy and complete Q071 acceptance remain open.
+
+The refusal described below applies to ink tables without an explicit source-coordinate layout; ADR043 defines safe adoption and reflow for laid-out tables.
 
 `TableEdit` inserts/removes one row or column at an explicit index. Existing cells keep their local IDs and authored values. Inserted cells receive fresh IDs and empty text, without numeric inference. Inserting strictly inside the header extends it; insertion at the header/body boundary creates a body row. Removing a header row reduces the header count. Removing the final row or column is invalid; deleting a table uses the existing block deletion workflow. Bounds, rectangular shape, ID uniqueness and existing table allocation limits are checked on a detached candidate before replacement.
 

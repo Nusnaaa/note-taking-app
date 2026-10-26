@@ -1,0 +1,81 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 41.80s
+     Running tests/authoring.rs (/tmp/stem-pen-response-target/debug/deps/authoring-b61d9f8f748ce7f0)
+
+running 6 tests
+test invalid_or_dangling_presets_reject_atomically_without_silent_selection_repair ... ok
+test guide_kinds_are_bounded_escaped_and_excluded_from_export_only_by_explicit_choice ... ok
+test preferences_preserve_stale_selection_and_do_not_consume_document_undo ... ok
+test presets_calibrate_and_reopen_without_moving_view_or_rewriting_observations ... ok
+test schema14_upgrade_keeps_unconfigured_view_payload_exactly_without_inventing_presets_or_guides ... ok
+test native_copy_and_schema15_backup_keep_scoped_presets_and_reject_downgraded_extensions ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 27.68s
+
+     Running tests/host_conversion.rs (/tmp/stem-pen-response-target/debug/deps/host_conversion-174bbf2df57fde4d)
+
+running 6 tests
+test derivative_preserves_lexemes_source_identity_and_runtime_revocation ... ok
+test capture_relock_and_close_revoke_prepared_and_delivered_conversion ... ok
+test protection_change_revokes_snapshot_and_refuses_new_source ... ok
+test running_callback_is_off_writer_and_observes_capture_cancellation ... ok
+test source_admission_is_shared_bounded_and_denied_blocks_stay_denied ... ok
+test typed_table_cell_conversion_uses_its_stored_value_without_requiring_ink ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+     Running tests/interrupted_capture.rs (/tmp/stem-pen-response-target/debug/deps/interrupted_capture-72ee18fce9a89e0b)
+
+running 6 tests
+test checkpoints_preserve_stable_begin_order_and_interruption_never_invents_samples ... ok
+test legacy_schema9_backup_defaults_to_completed_without_rewriting_source_or_receipt ... ok
+test native_v5_preserves_interruption_provenance_and_legacy_tags_cannot_hide_it ... ok
+test schema9_upgrade_preserves_original_payload_hash_and_capture_receipt_byte_for_byte ... ok
+test unfinished_prefix_cannot_enter_store_queue_or_portable_document_and_sealed_retry_is_exact ... ok
+test encrypted_schema10_retains_interruption_and_old_schema_cannot_claim_it ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 19.96s
+
+     Running tests/layers.rs (/tmp/stem-pen-response-target/debug/deps/layers-2689388157b94670)
+
+running 8 tests
+test defaults_and_independent_embed_overrides_preserve_source_and_report_missing_layers ... ok
+test layer_undo_redo_and_failure_are_atomic_and_revisions_never_reset_to_zero ... ok
+test legacy_canvas_migrates_to_an_implicit_base_without_rewriting_original_payloads ... ok
+test malformed_membership_aliases_and_fresh_protection_cannot_leak_or_change_layers ... ok
+test native_copy_remaps_layer_and_embed_overrides_and_derivatives_respect_default_visibility ... ok
+test scene_byte_pages_have_explicit_continuations_and_never_load_denied_payloads_into_results ... ok
+test scene_orders_layers_then_z_and_paginates_without_dropping_nested_reference_placeholders ... ok
+test encrypted_backup_preserves_layer_undo_and_rejects_downgraded_current_and_historical_extensions ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 35.36s
+
+     Running tests/objects.rs (/tmp/stem-pen-response-target/debug/deps/objects-9e63ebed9dbede95)
+
+running 8 tests
+test canvas_embeds_keep_independent_pinned_cameras_and_reject_cycles ... ok
+test grouped_transform_is_atomic_and_never_changes_original_points ... ok
+test invalid_objects_reject_duplicate_ids_ragged_cells_and_nonfinite_axes ... ok
+test images_cannot_bypass_locks_even_after_replacing_visible_content ... ok
+test protected_canvas_cannot_leak_through_embed_or_group ... ok
+test native_v3_roundtrip_preserves_assets_layout_groups_and_embeds_with_new_ids ... FAILED
+test table_cell_edit_preserves_identity_neighbours_and_source_ink ... ok
+test view_settings_and_protected_placeholders_reopen_without_secret_text ... ok
+
+failures:
+
+---- native_v3_roundtrip_preserves_assets_layout_groups_and_embeds_with_new_ids stdout ----
+
+thread 'native_v3_roundtrip_preserves_assets_layout_groups_and_embeds_with_new_ids' panicked at core/tests/objects.rs:304:5:
+assertion `left == right` failed
+  left: 13
+ right: 12
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    native_v3_roundtrip_preserves_assets_layout_groups_and_embeds_with_new_ids
+
+test result: FAILED. 7 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+error: test failed, to rerun pass `-p stem-core --test objects`

@@ -1,0 +1,33 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+error[E0599]: no method named `prepare_native_import` found for struct `Store` in the current scope
+    --> core/tests/table_cell_ink.rs:1520:22
+     |
+1520 |     let plan = store.prepare_native_import(bytes, &access).unwrap();
+     |                      ^^^^^^^^^^^^^^^^^^^^^
+     |
+help: there is a method `prepare_native_export` with a similar name, but with different arguments
+    --> /tmp/stem-engine-catalogue-work/core/src/portable.rs:423:5
+     |
+ 423 | /     pub fn prepare_native_export(
+ 424 | |         &self,
+ 425 | |         ids: &[Id],
+ 426 | |         include_original_ink: bool,
+ 427 | |         access: &Access,
+ 428 | |     ) -> Result<ExportPlan> {
+     | |___________________________^
+
+error[E0599]: no method named `commit_native_import` found for struct `Store` in the current scope
+    --> core/tests/table_cell_ink.rs:1521:26
+     |
+1521 |     let imported = store.commit_native_import(plan, &access).unwrap();
+     |                          ^^^^^^^^^^^^^^^^^^^^
+     |
+help: there is a method `commit_engine_import` with a similar name
+     |
+1521 -     let imported = store.commit_native_import(plan, &access).unwrap();
+1521 +     let imported = store.commit_engine_import(plan, &access).unwrap();
+     |
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `stem-core` (test "table_cell_ink") due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...

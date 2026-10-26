@@ -299,6 +299,9 @@ impl Store {
                 }
 
                 Content::Table(t) => {
+                    if t.layout.is_some() {
+                        warnings.push("Table cell dimensions and ink reflow are omitted from the text derivative; optional original-ink assets retain recorded source coordinates.".into());
+                    }
                     if b.regions.iter().any(|region| region.content.is_none()) {
                         warnings.push("Unconverted table-cell handwriting omitted from converted text; existing editable cell values are retained.".into());
                     }

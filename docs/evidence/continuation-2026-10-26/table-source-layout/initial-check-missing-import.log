@@ -1,0 +1,18 @@
+    Checking stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+error[E0433]: failed to resolve: use of undeclared type `Content`
+   --> core/src/backup.rs:722:53
+    |
+722 |                         || matches!(&block.content, Content::Table(t) if t.layout.is_some())
+    |                                                     ^^^^^^^ use of undeclared type `Content`
+    |
+help: consider importing one of these items
+    |
+  6 + use crate::content::Content;
+    |
+  6 + use pdf_writer::Content;
+    |
+
+For more information about this error, try `rustc --explain E0433`.
+error: could not compile `stem-core` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `stem-core` (lib test) due to 1 previous error

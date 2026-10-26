@@ -30,6 +30,7 @@ fn fixture() -> (Store, Access, Id, Block, Id, Id) {
                     },
                 ]],
                 header_rows: 0,
+                layout: None,
             }),
             &access,
         )
@@ -231,7 +232,7 @@ fn native_copy_preserves_cell_binding_with_independent_ids_and_refuses_legacy_ta
         .unwrap()
         .bytes;
     let mut document = NativeDocument::decode(&bytes).unwrap();
-    assert_eq!(document.version, 12);
+    assert_eq!(document.version, 13);
     document.version = 11;
     assert!(matches!(document.validate(), Err(Error::Unsupported)));
     let mut copy = Store::memory().unwrap();
@@ -272,14 +273,14 @@ fn classic_backup_preserves_cells_ink_and_rejects_legacy_tags_even_after_undo() 
         )
         .unwrap();
     let restored = Store::restore_backup_password(&backup.bytes, password).unwrap();
-    assert_eq!(restored.schema_version().unwrap(), 20);
+    assert_eq!(restored.schema_version().unwrap(), 21);
     assert_eq!(
         restored.source_ink(block.id, &access).unwrap(),
         store.source_ink(block.id, &access).unwrap()
     );
     let plain = crypto::decrypt(&backup.bytes, crypto::Credential::Password(password)).unwrap();
     let mut json: serde_json::Value = serde_json::from_slice(&plain).unwrap();
-    assert_eq!(json["schema"], 20);
+    assert_eq!(json["schema"], 21);
     json["schema"] = 19.into();
     let disguised = crypto::encrypt(&serde_json::to_vec(&json).unwrap(), password).unwrap();
     assert!(matches!(
@@ -518,6 +519,7 @@ fn host_capture_and_scoped_cell_proposal_preserve_neighbouring_values() {
                         },
                     ]],
                     header_rows: 0,
+                    layout: None,
                 }),
             },
         )["id"]
@@ -744,6 +746,7 @@ fn local_cell_keys_may_equal_existing_entity_and_block_identifiers() {
             value: CellValue::Text("local".into()),
         }]],
         header_rows: 0,
+        layout: None,
     });
     let block = store.append_content(note, content, &access).unwrap();
     let block = capture(&mut store, &access, &block, note, 0);
@@ -758,6 +761,7 @@ fn local_cell_keys_may_equal_existing_entity_and_block_identifiers() {
                     value: CellValue::Text("local".into()),
                 }]],
                 header_rows: 0,
+                layout: None,
             }),
             &access,
         )
@@ -772,6 +776,7 @@ fn local_cell_keys_may_equal_existing_entity_and_block_identifiers() {
                     value: CellValue::Text("local".into()),
                 }]],
                 header_rows: 0,
+                layout: None,
             }),
             &access,
         )
@@ -851,6 +856,7 @@ fn schema19_legacy_shape_preserves_pending_review_and_raw_receipt_during_migrati
                     value: CellValue::Text("legacy".into()),
                 }]],
                 header_rows: 0,
+                layout: None,
             }),
             &access,
         )
@@ -923,7 +929,7 @@ fn schema19_legacy_shape_preserves_pending_review_and_raw_receipt_during_migrati
     db.pragma_update(None, "user_version", 19).unwrap();
     drop(db);
     let mut migrated = Store::open(&path).unwrap();
-    assert_eq!(migrated.schema_version().unwrap(), 20);
+    assert_eq!(migrated.schema_version().unwrap(), 21);
     let db = rusqlite::Connection::open(&path).unwrap();
     assert_eq!(
         db.query_row(
@@ -1237,6 +1243,7 @@ fn host_table_structure_command_runs_through_the_writer() {
                         value: CellValue::Text("retained".into()),
                     }]],
                     header_rows: 0,
+                    layout: None,
                 }),
                 &access,
             )
@@ -1263,4 +1270,425 @@ fn host_table_structure_command_runs_through_the_writer() {
     assert_eq!(table.rows[0].len(), 2);
     assert_eq!(table.rows[0][0].value, CellValue::Text("retained".into()));
     assert!(!host.request(&request).unwrap().ok);
+}
+
+fn cell_layout() -> stem_core::objects::TableLayout {
+    stem_core::objects::TableLayout {
+        coordinate_space: "synthetic-local-units".into(),
+        origin: stem_core::objects::Position { x: 0., y: 0. },
+        row_heights: vec![20.],
+        column_widths: vec![40., 40.],
+        ink_origins: vec![],
+    }
+}
+
+#[test]
+fn cell_layout_reflows_ink_without_rewriting_observations_and_undo_restores_placement() {
+    use stem_core::objects::TableEdit;
+    let (mut store, access, note, block, _, second) = fixture();
+    let block = store
+        .set_table_layout(block.id, block.revision, cell_layout(), &access)
+        .unwrap();
+    let mut original = stroke(0);
+    original.points[0].x = 45.;
+    original.points[1].x = 46.;
+    let captured = store
+        .append_cell_capture(
+            Id::new(),
+            block.id,
+            block.revision,
+            second,
+            vec![original.clone()],
+            &access,
+        )
+        .unwrap();
+    let moved = store
+        .edit_table(
+            block.id,
+            captured.revision,
+            TableEdit::InsertSizedColumn {
+                index: 0,
+                width: 10.,
+            },
+            &access,
+        )
+        .unwrap();
+    let scene = store.table_ink_scene(block.id, &access).unwrap();
+    assert_eq!(scene.len(), 1);
+    assert_eq!(scene[0].stroke, original);
+    assert_eq!(scene[0].source_to_surface.tx, 10.);
+    assert_eq!(
+        store.source_ink(block.id, &access).unwrap(),
+        vec![original.clone()]
+    );
+    let snapshot = store.region_snapshot(block.id, second, &access).unwrap();
+    assert_eq!(snapshot.strokes()[0].points[0].x, 5.);
+    store.undo(note, &access).unwrap();
+    assert_eq!(
+        store.table_ink_scene(block.id, &access).unwrap()[0]
+            .source_to_surface
+            .tx,
+        0.
+    );
+    store.redo(note, &access).unwrap();
+    assert_eq!(
+        store.table_ink_scene(block.id, &access).unwrap()[0]
+            .source_to_surface
+            .tx,
+        10.
+    );
+    let current = store.block(block.id, &access).unwrap();
+    let resized = store
+        .edit_table(
+            block.id,
+            current.revision,
+            TableEdit::ResizeColumn {
+                index: 1,
+                width: 70.,
+            },
+            &access,
+        )
+        .unwrap();
+    assert!(resized.revision > moved.revision);
+    let scene = store.table_ink_scene(block.id, &access).unwrap();
+    assert_eq!(scene[0].source_to_surface.tx, 40.);
+    assert_eq!(scene[0].source_to_surface.a, 1.);
+    assert_eq!(scene[0].stroke, original);
+}
+
+#[test]
+fn captures_before_and_after_reflow_align_in_cell_local_recognition_vectors() {
+    use stem_core::objects::TableEdit;
+    let (mut store, access, _, block, _, second) = fixture();
+    let block = store
+        .set_table_layout(block.id, 0, cell_layout(), &access)
+        .unwrap();
+    let mut first = stroke(0);
+    first.points[0].x = 45.;
+    let block = store
+        .append_cell_capture(
+            Id::new(),
+            block.id,
+            block.revision,
+            second,
+            vec![first.clone()],
+            &access,
+        )
+        .unwrap();
+    let block = store
+        .edit_table(
+            block.id,
+            block.revision,
+            TableEdit::ResizeColumn {
+                index: 0,
+                width: 80.,
+            },
+            &access,
+        )
+        .unwrap();
+    let mut second_stroke = stroke(0);
+    second_stroke.points[0].x = 85.;
+    let block = store
+        .append_cell_capture(
+            Id::new(),
+            block.id,
+            block.revision,
+            second,
+            vec![second_stroke.clone()],
+            &access,
+        )
+        .unwrap();
+    let snapshot = store.region_snapshot(block.id, second, &access).unwrap();
+    assert_eq!(snapshot.strokes()[0].points[0].x, 5.);
+    assert_eq!(snapshot.strokes()[1].points[0].x, 5.);
+    assert_eq!(
+        store.source_ink(block.id, &access).unwrap(),
+        vec![first, second_stroke]
+    );
+    let mut wrong = stroke(0);
+    wrong.coordinate_space = "unmapped-device-space".into();
+    assert!(store
+        .append_cell_capture(
+            Id::new(),
+            block.id,
+            block.revision,
+            second,
+            vec![wrong],
+            &access
+        )
+        .is_err());
+    assert_eq!(store.block(block.id, &access).unwrap(), block);
+}
+
+#[test]
+fn removing_an_ink_cell_hides_its_vectors_but_retains_originals_and_undo() {
+    use stem_core::objects::TableEdit;
+    let (mut store, access, note, block, first, _) = fixture();
+    let block = store
+        .set_table_layout(block.id, 0, cell_layout(), &access)
+        .unwrap();
+    let block = capture(&mut store, &access, &block, first, 0);
+    let original = store.source_ink(block.id, &access).unwrap();
+    let deleted = store
+        .edit_table(
+            block.id,
+            block.revision,
+            TableEdit::RemoveColumn { index: 0 },
+            &access,
+        )
+        .unwrap();
+    assert!(deleted.regions.is_empty());
+    assert!(deleted.visible_strokes.is_empty());
+    assert_eq!(deleted.source_ids, block.source_ids);
+    assert!(store.table_ink_scene(block.id, &access).unwrap().is_empty());
+    assert_eq!(store.source_ink(block.id, &access).unwrap(), original);
+    store.undo(note, &access).unwrap();
+    assert_eq!(
+        store.table_ink_scene(block.id, &access).unwrap()[0].stroke,
+        original[0]
+    );
+}
+
+#[test]
+fn adopting_legacy_cell_ink_requires_complete_explicit_origins_and_matching_space() {
+    use stem_core::objects::{CellInkOrigin, Position};
+    let (mut store, access, _, block, first, _) = fixture();
+    let block = capture(&mut store, &access, &block, first, 0);
+    assert!(store
+        .set_table_layout(block.id, block.revision, cell_layout(), &access)
+        .is_err());
+    let mut layout = cell_layout();
+    layout.ink_origins.push(CellInkOrigin {
+        cell: first,
+        stroke: block.source_ids[0],
+        origin: Position { x: -10., y: 2. },
+    });
+    layout.coordinate_space = "unknown".into();
+    assert!(store
+        .set_table_layout(block.id, block.revision, layout.clone(), &access)
+        .is_err());
+    layout.coordinate_space = "synthetic-local-units".into();
+    let adopted = store
+        .set_table_layout(block.id, block.revision, layout.clone(), &access)
+        .unwrap();
+    layout.ink_origins[0].origin.x = 0.;
+    assert!(matches!(
+        store.set_table_layout(block.id, adopted.revision, layout, &access),
+        Err(Error::Conflict)
+    ));
+    assert_eq!(
+        store.table_ink_scene(block.id, &access).unwrap()[0]
+            .source_to_surface
+            .tx,
+        10.
+    );
+}
+
+#[test]
+fn native_layout_copy_remaps_origins_and_rejects_pre13_even_when_only_in_history() {
+    use stem_core::portable::{ExportProtection, NativeDocument};
+    let (mut store, access, note, block, first, _) = fixture();
+    let block = store
+        .set_table_layout(block.id, 0, cell_layout(), &access)
+        .unwrap();
+    let block = capture(&mut store, &access, &block, first, 0);
+    let plan = store.prepare_native_export(&[note], true, &access).unwrap();
+    let bytes = store
+        .finish_native_export(
+            plan,
+            ExportProtection::Plaintext {
+                acknowledge_protected: true,
+            },
+            &mut TestAuth(true),
+            true,
+        )
+        .unwrap()
+        .bytes;
+    let mut doc = NativeDocument::decode(&bytes).unwrap();
+    assert_eq!(doc.version, 13);
+    doc.version = 12;
+    assert!(matches!(doc.validate(), Err(Error::Unsupported)));
+    doc.blocks[0].current.content = Content::Table(Table {
+        rows: vec![vec![Cell {
+            id: Id::new(),
+            value: CellValue::Text(String::new()),
+        }]],
+        header_rows: 0,
+        layout: None,
+    });
+    assert!(matches!(doc.validate(), Err(Error::Unsupported)));
+    let imported = store.import_native(&bytes, &access).unwrap();
+    let copied = store.blocks(imported[0], 0, 10, &access).unwrap().remove(0);
+    let scene = store.table_ink_scene(copied.id, &access).unwrap();
+    assert_ne!(scene[0].stroke.id, block.source_ids[0]);
+    assert_ne!(scene[0].cell, first);
+    assert_eq!(scene[0].source_to_surface.tx, 0.);
+}
+
+#[test]
+fn layout_classic_backup_preserves_origins_and_refuses_schema20_history() {
+    use stem_core::{backup::BackupOptions, crypto};
+    let (mut store, access, note, block, first, _) = fixture();
+    let block = store
+        .set_table_layout(block.id, block.revision, cell_layout(), &access)
+        .unwrap();
+    let block = capture(&mut store, &access, &block, first, 0);
+    let proposal = propose(&mut store, &access, block.id, first);
+    store.accept_proposal(proposal.id, 0, &access).unwrap();
+    store.undo(note, &access).unwrap();
+    store.undo(note, &access).unwrap();
+    store.undo(note, &access).unwrap();
+    let options = BackupOptions {
+        include_original_ink: true,
+        include_authorised_source_assets: false,
+    };
+    let password = "synthetic table cell backup password";
+    let backup = store
+        .finish_backup(
+            store.prepare_backup(options, &access).unwrap(),
+            password,
+            &mut TestAuth(true),
+            true,
+        )
+        .unwrap();
+    let restored = Store::restore_backup_password(&backup.bytes, password).unwrap();
+    assert_eq!(restored.schema_version().unwrap(), 21);
+    assert_eq!(
+        restored.source_ink(block.id, &access).unwrap(),
+        store.source_ink(block.id, &access).unwrap()
+    );
+    let plain = crypto::decrypt(&backup.bytes, crypto::Credential::Password(password)).unwrap();
+    let mut json: serde_json::Value = serde_json::from_slice(&plain).unwrap();
+    assert_eq!(json["schema"], 21);
+    json["schema"] = 20.into();
+    let disguised = crypto::encrypt(&serde_json::to_vec(&json).unwrap(), password).unwrap();
+    assert!(matches!(
+        Store::restore_backup_password(&disguised.bytes, password),
+        Err(Error::Unsupported)
+    ));
+}
+
+#[test]
+fn layout_stream_backup_preserves_origins_and_refuses_schema20() {
+    use stem_core::{backup::BackupOptions, crypto};
+    let (mut store, access, _, block, first, _) = fixture();
+    let block = store
+        .set_table_layout(block.id, block.revision, cell_layout(), &access)
+        .unwrap();
+    let block = capture(&mut store, &access, &block, first, 0);
+    let options = BackupOptions {
+        include_original_ink: true,
+        include_authorised_source_assets: false,
+    };
+    let password = "synthetic table cell streaming password";
+    let control = JobControl::new(Duration::from_secs(180)).unwrap();
+    let (backup, _) = store
+        .finish_stream_backup(
+            store.prepare_stream_backup(options, &access).unwrap(),
+            password,
+            &mut TestAuth(true),
+            true,
+            Vec::new(),
+            &control,
+        )
+        .unwrap();
+    let root = tempfile::tempdir().unwrap();
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(root.path(), std::fs::Permissions::from_mode(0o700)).unwrap();
+    }
+    let restored = Store::restore_stream_backup(
+        backup.as_slice(),
+        crypto::Credential::Password(password),
+        16 * 1024 * 1024,
+        root.path(),
+        &control,
+    )
+    .unwrap();
+    assert_eq!(
+        restored.store().block(block.id, &access).unwrap().regions,
+        block.regions
+    );
+    use std::io::{Read, Write};
+    let mut reader = crypto::stream::DecryptStream::new(
+        backup.as_slice(),
+        crypto::Credential::Password(password),
+        16 * 1024 * 1024,
+    )
+    .unwrap();
+    let mut plain = Vec::new();
+    reader.read_to_end(&mut plain).unwrap();
+    reader.finish().unwrap();
+    plain[8..12].copy_from_slice(&20u32.to_be_bytes());
+    let mut writer = crypto::stream::EncryptStream::new(Vec::new(), password).unwrap();
+    writer.write_all(&plain).unwrap();
+    let disguised = writer.finish().unwrap();
+    assert!(matches!(
+        Store::restore_stream_backup(
+            disguised.0.as_slice(),
+            crypto::Credential::Password(password),
+            16 * 1024 * 1024,
+            root.path(),
+            &control
+        ),
+        Err(Error::Unsupported)
+    ));
+}
+
+#[test]
+fn layout_invalid_geometry_and_stale_cell_proposals_leave_authored_source_intact() {
+    use stem_core::objects::TableEdit;
+    let (mut store, access, _, block, first, _) = fixture();
+    let mut invalid = cell_layout();
+    invalid.column_widths[0] = 0.;
+    assert!(store
+        .set_table_layout(block.id, 0, invalid, &access)
+        .is_err());
+    let mut invalid = cell_layout();
+    invalid.row_heights.clear();
+    assert!(store
+        .set_table_layout(block.id, 0, invalid, &access)
+        .is_err());
+    assert_eq!(store.block(block.id, &access).unwrap(), block);
+    let block = store
+        .set_table_layout(block.id, 0, cell_layout(), &access)
+        .unwrap();
+    let block = capture(&mut store, &access, &block, first, 0);
+    let proposal = propose(&mut store, &access, block.id, first);
+    let changed = store
+        .edit_table(
+            block.id,
+            block.revision,
+            TableEdit::ResizeRow {
+                index: 0,
+                height: 30.,
+            },
+            &access,
+        )
+        .unwrap();
+    assert!(matches!(
+        store.accept_proposal(proposal.id, 0, &access),
+        Err(Error::Conflict)
+    ));
+    assert!(store
+        .edit_table(
+            block.id,
+            changed.revision,
+            TableEdit::InsertSizedRow {
+                index: 1,
+                height: f64::INFINITY
+            },
+            &access
+        )
+        .is_err());
+    assert_eq!(store.block(block.id, &access).unwrap(), changed);
+    let scoped = common::access([stem_core::security::Scope::Block(block.id)]);
+    store
+        .set_block_lock(block.id, changed.revision, true, &scoped)
+        .unwrap();
+    assert!(matches!(
+        store.table_ink_scene(block.id, &access),
+        Err(Error::Denied)
+    ));
 }

@@ -158,6 +158,36 @@ impl Store {
                 return Err(Error::Invalid("empty region"));
             }
             snapshot.fingerprint = digest(&serde_json::to_vec(&(&b, &snapshot.strokes, id))?);
+            // Derived cell-local vectors align captures made before and after
+            // reflow. The fingerprint above binds the unchanged observations and
+            // exact layout; persisted source samples are never rewritten.
+            if let Content::Table(table) = &b.content {
+                if let Some(layout) = &table.layout {
+                    let bounds = layout.cell_bounds(table, id)?;
+                    for stroke in &mut snapshot.strokes {
+                        let origin = layout
+                            .ink_origins
+                            .iter()
+                            .find(|ink| ink.stroke == stroke.id && ink.cell == id)
+                            .ok_or(Error::Integrity)?
+                            .origin;
+                        if stroke.coordinate_space != layout.coordinate_space {
+                            return Err(Error::Invalid("table ink coordinate space"));
+                        }
+                        for point in &mut stroke.points {
+                            point.x -= origin.x;
+                            point.y -= origin.y;
+                        }
+                        stroke.coordinate_space = format!("table-cell-local:{}:{}", b.id, id);
+                        stroke.validate_persisted()?;
+                    }
+                    snapshot.transform.tx +=
+                        snapshot.transform.a * bounds.x + snapshot.transform.c * bounds.y;
+                    snapshot.transform.ty +=
+                        snapshot.transform.b * bounds.x + snapshot.transform.d * bounds.y;
+                    snapshot.transform.validate()?;
+                }
+            }
             snapshot.region = Some(id);
         }
         Ok(snapshot)

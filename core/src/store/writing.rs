@@ -118,6 +118,28 @@ impl Block {
                 }
             }
         }
+        if let Content::Table(table) = &self.content {
+            if let Some(layout) = &table.layout {
+                let expected: BTreeSet<_> = self
+                    .regions
+                    .iter()
+                    .flat_map(|r| r.strokes.iter().map(move |s| (r.target(), *s)))
+                    .collect();
+                let actual: BTreeSet<_> = layout
+                    .ink_origins
+                    .iter()
+                    .map(|ink| (ink.cell, ink.stroke))
+                    .collect();
+                if expected != actual
+                    || self
+                        .visible_strokes
+                        .iter()
+                        .any(|id| !actual.iter().any(|(_, stroke)| stroke == id))
+                {
+                    return Err(Error::Invalid("table ink origins"));
+                }
+            }
+        }
         self.transform.validate()?;
         let all: BTreeSet<_> = self.source_ids.iter().copied().collect();
         let visible: BTreeSet<_> = self.visible_strokes.iter().copied().collect();

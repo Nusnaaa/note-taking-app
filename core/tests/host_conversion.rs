@@ -263,6 +263,7 @@ fn typed_table_cell_conversion_uses_its_stored_value_without_requiring_ink() {
                         value: CellValue::Numeric("001".into()),
                     }]],
                     header_rows: 0,
+                    layout: None,
                 }),
             },
         )["id"]

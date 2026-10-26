@@ -107,9 +107,13 @@ impl NativeDocument {
         })?)
     }
     pub fn validate(&self) -> Result<()> {
-        if !matches!(self.version, 1..=12) {
+        if !matches!(self.version, 1..=13) {
             return Err(Error::Unsupported);
         }
+        if self.version < 13 && self.blocks.iter().any(|block| {
+            std::iter::once(&block.current).chain(block.history.iter().map(|h| &h.block))
+                .any(|b| matches!(&b.content, crate::content::Content::Table(t) if t.layout.is_some()))
+        }) { return Err(Error::Unsupported); }
         if self.version < 12
             && self.blocks.iter().any(|block| {
                 std::iter::once(&block.current)
@@ -248,6 +252,16 @@ impl NativeDocument {
                 }
                 if !stroke_ids.insert(s.id) || !durable_ids.insert(s.id) {
                     return Err(Error::Invalid("native duplicate stroke"));
+                }
+            }
+            for state in std::iter::once(b).chain(n.history.iter().map(|h| &h.block)) {
+                state.validate()?;
+                if let crate::content::Content::Table(table) = &state.content {
+                    if let Some(layout) = &table.layout {
+                        for stroke in &n.strokes {
+                            layout.validate_source(table, stroke)?;
+                        }
+                    }
                 }
             }
             let mut revisions = BTreeSet::new();
@@ -591,7 +605,7 @@ impl Store {
             omissions.push("App workspace and pane activation are library-local and are not included in native copies; selected saved views remain included.".into());
         }
         let mut document = NativeDocument {
-            version: 12,
+            version: 13,
             created_ms: now_ms(),
             entities,
             blocks,
@@ -728,6 +742,12 @@ impl Store {
             if let crate::content::Content::Table(table) = &mut b.content {
                 for cell in table.rows.iter_mut().flatten() {
                     cell.id = ids[&cell.id];
+                }
+                if let Some(layout) = &mut table.layout {
+                    for ink in &mut layout.ink_origins {
+                        ink.cell = ids[&ink.cell];
+                        ink.stroke = ids[&ink.stroke];
+                    }
                 }
             }
             b.id = ids[&b.id];

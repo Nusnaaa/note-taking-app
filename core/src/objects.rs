@@ -1,6 +1,8 @@
 //! Editable technical objects. These retain authored data; they do not solve,
 //! infer a best-fit curve, repair notation, or turn ink into recognition images.
 use crate::{content::MathNode, Error, Id, Result};
+mod table_layout;
+pub use table_layout::{CellInkOrigin, TableLayout};
 
 use serde::{Deserialize, Serialize};
 
@@ -94,6 +96,8 @@ pub struct Cell {
 pub struct Table {
     pub rows: Vec<Vec<Cell>>,
     pub header_rows: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub layout: Option<TableLayout>,
 }
 
 /// Explicit structural edits; inserted cells start as empty authored text.
@@ -104,6 +108,10 @@ pub enum TableEdit {
     RemoveRow { index: usize },
     InsertColumn { index: usize },
     RemoveColumn { index: usize },
+    InsertSizedRow { index: usize, height: f64 },
+    InsertSizedColumn { index: usize, width: f64 },
+    ResizeRow { index: usize, height: f64 },
+    ResizeColumn { index: usize, width: f64 },
 }
 
 impl Table {
@@ -136,15 +144,53 @@ impl Table {
             }
         }
 
+        if let Some(layout) = &self.layout {
+            layout.validate(self)?;
+        }
         Ok(())
     }
 
     /// Validate a detached candidate before replacing the table, including bounds.
     pub fn restructure(&mut self, edit: TableEdit) -> Result<()> {
+        if let TableEdit::InsertSizedRow { index, height }
+        | TableEdit::InsertSizedColumn {
+            index,
+            width: height,
+        } = edit
+        {
+            self.validate()?;
+            let mut next = self.clone();
+            let mut layout = next
+                .layout
+                .take()
+                .ok_or(Error::Invalid("table layout required"))?;
+            match edit {
+                TableEdit::InsertSizedRow { .. } => {
+                    next.restructure(TableEdit::InsertRow { index })?;
+                    layout.row_heights.insert(index, height);
+                }
+                _ => {
+                    next.restructure(TableEdit::InsertColumn { index })?;
+                    layout.column_widths.insert(index, height);
+                }
+            }
+            next.layout = Some(layout);
+            next.validate()?;
+            *self = next;
+            return Ok(());
+        }
         self.validate()?;
         let mut next = self.clone();
         let rows = next.rows.len();
         let columns = next.rows[0].len();
+        if next.layout.is_some()
+            && matches!(
+                edit,
+                TableEdit::InsertRow { .. } | TableEdit::InsertColumn { .. }
+            )
+        {
+            return Err(Error::Invalid("explicit inserted dimension required"));
+        }
         let empty = || Cell {
             id: Id::new(),
             value: CellValue::Text(String::new()),
@@ -160,6 +206,9 @@ impl Table {
             }
             TableEdit::RemoveRow { index } if index < rows && rows > 1 => {
                 next.rows.remove(index);
+                if let Some(layout) = &mut next.layout {
+                    layout.row_heights.remove(index);
+                }
                 if index < next.header_rows as usize {
                     next.header_rows -= 1;
                 }
@@ -173,8 +222,33 @@ impl Table {
                 for row in &mut next.rows {
                     row.remove(index);
                 }
+                if let Some(layout) = &mut next.layout {
+                    layout.column_widths.remove(index);
+                }
+            }
+            TableEdit::ResizeRow { index, height } => {
+                *next
+                    .layout
+                    .as_mut()
+                    .ok_or(Error::Invalid("table layout required"))?
+                    .row_heights
+                    .get_mut(index)
+                    .ok_or(Error::Invalid("table edit bounds"))? = height;
+            }
+            TableEdit::ResizeColumn { index, width } => {
+                *next
+                    .layout
+                    .as_mut()
+                    .ok_or(Error::Invalid("table layout required"))?
+                    .column_widths
+                    .get_mut(index)
+                    .ok_or(Error::Invalid("table edit bounds"))? = width;
             }
             _ => return Err(Error::Invalid("table edit bounds")),
+        }
+        let cells: BTreeSet<_> = next.rows.iter().flatten().map(|c| c.id).collect();
+        if let Some(layout) = &mut next.layout {
+            layout.ink_origins.retain(|ink| cells.contains(&ink.cell));
         }
         next.validate()?;
         *self = next;

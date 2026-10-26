@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.BackupPolicyStoreTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-10-26T19:23:49" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="0.957">
+  <properties/>
+  <testcase name="interruptedCommitPreservesThreadFlagAndDiscoverablePossibleEffect" classname="org.stemnotebook.backend.BackupPolicyStoreTest" time="0.05"/>
+  <testcase name="foreignFutureAndUnexpectedSchemasArePreserved" classname="org.stemnotebook.backend.BackupPolicyStoreTest" time="0.052"/>
+  <testcase name="outcomesRequireOriginalDecisionAndCompleteFlagsForKnownSuccess" classname="org.stemnotebook.backend.BackupPolicyStoreTest" time="0.067"/>
+  <testcase name="lostIntentAcknowledgementNeverCreatesKeyAndRemainsDiscoverableAfterRestart" classname="org.stemnotebook.backend.BackupPolicyStoreTest" time="0.055"/>
+  <testcase name="missingConsentCannotCreateIntentOrKey" classname="org.stemnotebook.backend.BackupPolicyStoreTest" time="0.039"/>
+  <testcase name="actualEncryptedCredentialSurvivesStoreAndControllerRestartWithoutPlaintextRows" classname="org.stemnotebook.backend.BackupPolicyStoreTest" time="0.082"/>
+  <testcase name="linkedFilesUnknownNamespaceAndAnchoredReplacementAreRejected" classname="org.stemnotebook.backend.BackupPolicyStoreTest" time="0.038"/>
+  <testcase name="providerConsentDecisionAndUncertainGrantSurviveRestartWithoutInventingSuccess" classname="org.stemnotebook.backend.BackupPolicyStoreTest" time="0.059"/>
+  <testcase name="rollbackBeforeEncryptedCommitLeavesAnIntentAndNeverReady" classname="org.stemnotebook.backend.BackupPolicyStoreTest" time="0.065"/>
+  <testcase name="boundedPagesDiscoverIntentAndPermissionDecisionsWithoutMixingLibraries" classname="org.stemnotebook.backend.BackupPolicyStoreTest" time="0.121"/>
+  <testcase name="lostEncryptedCommitAcknowledgementKeepsDecryptableReadyRecordAndKey" classname="org.stemnotebook.backend.BackupPolicyStoreTest" time="0.05"/>
+  <testcase name="recoveryKeysHaveBackupIdentityAndCannotCrossPurposeOrLibrary" classname="org.stemnotebook.backend.BackupPolicyStoreTest" time="0.055"/>
+  <testcase name="retirementWaitsForActualConsumerAndRestartRetriesFailedKeyDeletion" classname="org.stemnotebook.backend.BackupPolicyStoreTest" time="0.092"/>
+  <testcase name="deletionAcknowledgementLossCannotReviveCredentialAndRetryIsIdempotent" classname="org.stemnotebook.backend.BackupPolicyStoreTest" time="0.066"/>
+  <testcase name="malformedOversizedAndTamperedEnvelopesNeverReachConsumer" classname="org.stemnotebook.backend.BackupPolicyStoreTest" time="0.063"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -76,6 +76,9 @@ fn block_content(
     control: Option<&JobControl>,
 ) -> Result<()> {
     b.validate()?;
+    if version < 13 && matches!(&b.content, Content::Table(t) if t.layout.is_some()) {
+        return Err(Error::Unsupported);
+    }
     if version < 12 && b.regions.iter().any(|region| region.cell.is_some()) {
         return Err(Error::Unsupported);
     }
@@ -101,6 +104,20 @@ fn block_content(
         )?;
         if owner != b.id.to_string() {
             return Err(Error::Invalid("restore region owner"));
+        }
+    }
+    if let Content::Table(table) = &b.content {
+        if let Some(layout) = &table.layout {
+            for ink in &layout.ink_origins {
+                check(control)?;
+                let payload: String = db.query_row(
+                    "SELECT payload FROM strokes WHERE id=?1 AND block=?2",
+                    params![ink.stroke.to_string(), b.id.to_string()],
+                    |row| row.get(0),
+                )?;
+                let stroke: crate::ink::Stroke = serde_json::from_str(&payload)?;
+                layout.validate_source(table, &stroke)?;
+            }
         }
     }
     if let Content::Image(image) = &b.content {
@@ -130,7 +147,7 @@ impl Store {
         control: Option<&JobControl>,
     ) -> Result<()> {
         check(control)?;
-        if !matches!(version, 1..=12) {
+        if !matches!(version, 1..=13) {
             return Err(Error::Unsupported);
         }
         self.validate_backup_prelude(version, control)?;
@@ -1071,7 +1088,7 @@ mod tests {
     #[test]
     fn schema_feature_gates_match_aggregate_oracle() {
         let s = fixture();
-        for version in 1..=12 {
+        for version in 1..=13 {
             assert_eq!(
                 s.validate_backup_state(version).is_ok(),
                 s.validate_backup_state_aggregate(version).is_ok(),
