@@ -1,0 +1,16 @@
+$ /usr/lib/jvm/java-21-openjdk-amd64/bin/java -cp /tmp/stem-android-sdk/build-tools/35.0.0/lib/d8.jar com.android.tools.r8.R8 --classfile --release --lib /usr/lib/jvm/java-21-openjdk-amd64 --pg-conf android/backend/consumer-rules.pro --pg-conf bridge/tests/java/shrinker-entry.pro --pg-map-output /tmp/stem-engine-catalogue-jni-work/docs/evidence/latest/jni-shrinker.map --output /tmp/stem-engine-catalogue-jni-work/target/jni-j2g6xjja/shrunk.jar /tmp/stem-engine-catalogue-jni-work/target/jni-j2g6xjja/input.jar
+exit_code=0
+
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/stem-android-user
+Info in android/backend/consumer-rules.pro at line 24, column 1:
+Proguard configuration rule does not match anything: `-keepclassmembers class * implements org.stemnotebook.backend.NativeBridge$BackupAuthorization {
+  public boolean verify(java.lang.String,int,java.lang.String,java.lang.String,boolean);
+}`
+Info in android/backend/consumer-rules.pro at line 42, column 1:
+Proguard configuration rule does not match anything: `-keepclassmembers class * implements org.stemnotebook.backend.NativeBridge$EngineInputFactory {
+  public org.stemnotebook.backend.NativeBridge$EngineInput open(org.stemnotebook.backend.NativeBridge$EngineControl);
+}`
+Info in android/backend/consumer-rules.pro at line 46, column 1:
+Proguard configuration rule does not match anything: `-keepclassmembers class * implements org.stemnotebook.backend.NativeBridge$ConverterFactory {
+  public org.stemnotebook.backend.NativeBridge$Converter create(java.lang.String,byte[],org.stemnotebook.backend.NativeBridge$EngineControl);
+}`
