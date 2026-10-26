@@ -1,0 +1,43 @@
+{
+  "verified_source_commit": "c386d15",
+  "workspace_tests": "workspace-tests.json",
+  "checks": [
+    {
+      "name": "format",
+      "command": "cargo fmt --all -- --check",
+      "exit_code": 0,
+      "result": "PASS",
+      "log": "format.log"
+    },
+    {
+      "name": "lint",
+      "command": "cargo clippy --workspace --all-targets --locked --offline -- -D warnings",
+      "exit_code": 0,
+      "result": "PASS",
+      "log": "lint.log"
+    },
+    {
+      "name": "release-build",
+      "command": "cargo build --workspace --release --locked --offline",
+      "exit_code": 0,
+      "result": "PASS",
+      "log": "release-build.log"
+    },
+    {
+      "name": "traceability",
+      "command": "python3 tools/traceability.py --check",
+      "exit_code": 0,
+      "result": "PASS",
+      "log": "traceability.log"
+    },
+    {
+      "name": "android-arm64-build",
+      "command": "cargo build -p stem-bridge --target aarch64-linux-android --release --locked --offline",
+      "exit_code": 0,
+      "result": "PASS",
+      "log": "android-arm64-build.log"
+    }
+  ],
+  "provenance": "Recorded component commands; native code remained unchanged through terminal results. Source hashes are retained in workspace-tests.json. ARM64 compilation/linking is not device execution. Full Android validation is separate.",
+  "backend_accepted": false
+}

@@ -1,0 +1,6 @@
+$ cargo clippy --workspace --all-targets --locked --offline -- -D warnings
+exit_code=0
+
+    Checking stem-core v0.1.0 (/tmp/stem-engine-catalogue-jni-work/core)
+    Checking stem-bridge v0.1.0 (/tmp/stem-engine-catalogue-jni-work/bridge)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 21.20s

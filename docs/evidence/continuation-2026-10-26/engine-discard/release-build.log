@@ -1,0 +1,6 @@
+$ cargo build --workspace --release --locked --offline
+exit_code=0
+
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-jni-work/core)
+   Compiling stem-bridge v0.1.0 (/tmp/stem-engine-catalogue-jni-work/bridge)
+    Finished `release` profile [optimized] target(s) in 4m 10s
