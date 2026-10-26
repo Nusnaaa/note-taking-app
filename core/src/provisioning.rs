@@ -5,6 +5,7 @@ mod ownership;
 mod resource_lock;
 pub(crate) use ownership::TransferOwnership;
 pub(crate) use resource_lock::{ResourceExclusive, ResourcePin};
+pub(crate) mod reclamation;
 pub(crate) mod recovery;
 use crate::{
     digest,

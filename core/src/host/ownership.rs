@@ -19,7 +19,7 @@ pub(super) fn open_existing(path: &Path) -> Result<Store> {
     let version: i64 = db
         .pragma_query_value(None, "user_version", |r| r.get(0))
         .map_err(storage_error)?;
-    if !(1..=17).contains(&version) {
+    if !(1..=18).contains(&version) {
         return Err(Error::Unsupported);
     }
     let tables: i64 = db.query_row(
@@ -158,7 +158,7 @@ mod tests {
             .unwrap();
         drop(db);
         let store = open_existing(&path).unwrap();
-        assert_eq!(store.schema_version().unwrap(), 17);
+        assert_eq!(store.schema_version().unwrap(), 18);
         store
             .db
             .execute(

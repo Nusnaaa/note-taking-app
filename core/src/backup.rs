@@ -39,7 +39,7 @@ use std::{
     path::Path,
 };
 
-// Column order is the on-disk contract of schemas 9/10/11/12/13/14/15/16/17. Unknown tables/widths fail closed.
+// Column order is the on-disk contract of schemas 9/10/11/12/13/14/15/16/17/18. Unknown tables/widths fail closed.
 const TABLES: &[(&str, usize)] = &[
     ("settings", 2),
     ("entities", 3),
@@ -73,6 +73,7 @@ const TABLES: &[(&str, usize)] = &[
     ("workspace_state", 4),
     ("canvas_layers", 2),
     ("engine_resource_actions", 3),
+    ("engine_reclamations", 3),
 ];
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -195,7 +196,7 @@ impl Store {
 
         let mut snapshot = Snapshot {
             format: "STEM-LIBRARY-1".into(),
-            schema: 17,
+            schema: 18,
             tables: BTreeMap::new(),
             omissions: vec![],
         };
@@ -254,10 +255,17 @@ impl Store {
                     asset_count += 1;
                 }
 
-                if name == "engine_resource_actions" {
-                    let action: crate::store::EngineResourceAction =
-                        serde_json::from_str(cells[2].text()?)?;
-                    if action.state == crate::store::ResourceActionState::Pending {
+                if name == "engine_resource_actions" || name == "engine_reclamations" {
+                    let state = if name == "engine_resource_actions" {
+                        serde_json::from_str::<crate::store::EngineResourceAction>(
+                            cells[2].text()?,
+                        )?
+                        .state
+                    } else {
+                        serde_json::from_str::<crate::store::EngineReclamation>(cells[2].text()?)?
+                            .state
+                    };
+                    if state == crate::store::ResourceActionState::Pending {
                         snapshot.omissions.push("Optional model resource excluded; reinstall and verify locally after restore.".into());
                     }
                 }
@@ -387,10 +395,16 @@ impl Store {
             snapshot.schema = 9;
         }
 
-        if snapshot.format != "STEM-LIBRARY-1" || !matches!(snapshot.schema, 9..=17) {
+        if snapshot.format != "STEM-LIBRARY-1" || !matches!(snapshot.schema, 9..=18) {
             return Err(Error::Unsupported);
         }
 
+        if source_schema < 18 {
+            if snapshot.tables.contains_key("engine_reclamations") {
+                return Err(Error::Integrity);
+            }
+            snapshot.tables.insert("engine_reclamations".into(), vec![]);
+        }
         if source_schema < 17 {
             if snapshot.tables.contains_key("engine_resource_actions") {
                 return Err(Error::Invalid("legacy resource-action extension"));
@@ -895,6 +909,42 @@ impl Store {
             }
         }
 
+        let mut reclamation_query =
+            db.prepare("SELECT id,version,payload FROM engine_reclamations")?;
+        for row in reclamation_query.query_map([], |r| {
+            Ok((
+                r.get::<_, String>(0)?,
+                r.get::<_, String>(1)?,
+                r.get::<_, String>(2)?,
+            ))
+        })? {
+            if let Some(control) = control {
+                control.check()?;
+            }
+            let (id, version, payload) = row?;
+            let action: crate::store::EngineReclamation = serde_json::from_str(&payload)?;
+            action.validate()?;
+            if action.id.to_string() != id || action.version.to_string() != version {
+                return Err(Error::Integrity);
+            }
+            let raw: String = db
+                .query_row(
+                    "SELECT payload FROM engine_versions WHERE id=?1",
+                    [&version],
+                    |r| r.get(0),
+                )
+                .optional()?
+                .ok_or(Error::Integrity)?;
+            let target: crate::store::EngineVersion = serde_json::from_str(&raw)?;
+            action.matches_version(&target)?;
+            if db.query_row(
+                "SELECT EXISTS(SELECT 1 FROM engine_active WHERE version=?1)",
+                [version],
+                |r| r.get::<_, bool>(0),
+            )? {
+                return Err(Error::Integrity);
+            }
+        }
         let mut action_query =
             db.prepare("SELECT id,version,payload FROM engine_resource_actions")?;
         for row in action_query.query_map([], |r| {

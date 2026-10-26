@@ -371,6 +371,10 @@ fn encrypted_backup_retains_stale_bookmarks_and_schema10_defaults_without_rewrit
         .as_object_mut()
         .unwrap()
         .remove("engine_resource_actions");
+    old["tables"]
+        .as_object_mut()
+        .unwrap()
+        .remove("engine_reclamations");
     old["schema"] = 10.into();
     old["tables"]
         .as_object_mut()
@@ -394,7 +398,7 @@ fn encrypted_backup_retains_stale_bookmarks_and_schema10_defaults_without_rewrit
     }
     let legacy = crypto::encrypt(&serde_json::to_vec(&old).unwrap(), password).unwrap();
     let restored = Store::restore_backup_password(&legacy.bytes, password).unwrap();
-    assert_eq!(restored.schema_version().unwrap(), 17);
+    assert_eq!(restored.schema_version().unwrap(), 18);
     assert!(restored.view(v.id, &a).unwrap().bookmark.is_none());
 }
 #[test]
@@ -566,12 +570,18 @@ fn schema10_upgrade_keeps_legacy_view_payload_byte_for_byte_and_absent_bookmark_
             .unwrap(),
         0
     );
-    db.execute_batch("DROP TABLE engine_resource_actions;")
+    assert_eq!(
+        db.query_row("SELECT count(*) FROM engine_reclamations", [], |r| r
+            .get::<_, i64>(0))
+            .unwrap(),
+        0
+    );
+    db.execute_batch("DROP TABLE engine_reclamations; DROP TABLE engine_resource_actions;")
         .unwrap();
     db.pragma_update(None, "user_version", 10).unwrap();
     drop(db);
     let s = Store::open(&path).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 17);
+    assert_eq!(s.schema_version().unwrap(), 18);
     assert_eq!(s.view(legacy.id, &a).unwrap(), legacy);
     drop(s);
     let db = rusqlite::Connection::open(&path).unwrap();

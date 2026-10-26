@@ -158,7 +158,7 @@ impl Store {
                 }
             }
         }
-        if tx.prepare("SELECT 1 FROM engine_resource_actions WHERE json_extract(payload,'$.state')='Pending' LIMIT 1")?.exists([])? {
+        if tx.prepare("SELECT 1 FROM engine_resource_actions WHERE json_extract(payload,'$.state')='Pending' UNION ALL SELECT 1 FROM engine_reclamations WHERE json_extract(payload,'$.state')='Pending' LIMIT 1")?.exists([])? {
             omissions.insert(MODEL_OMISSION.to_string());
         }
         tx.commit()?;
@@ -239,7 +239,7 @@ impl Store {
             let mut schema = [0; 4];
             input.read_exact(&mut schema)?;
             let source_schema = u32::from_be_bytes(schema);
-            if &magic != BODY || !matches!(source_schema, 15..=17) {
+            if &magic != BODY || !matches!(source_schema, 15..=18) {
                 return Err(Error::Unsupported);
             }
             let mut omissions = [0; 4];
@@ -256,7 +256,8 @@ impl Store {
             }
             let mut count = 0u64;
             for (index, &(table, width)) in TABLES.iter().enumerate().filter(|(_, (table, _))| {
-                source_schema >= 17 || *table != "engine_resource_actions"
+                (source_schema >= 17 || *table != "engine_resource_actions")
+                    && (source_schema >= 18 || *table != "engine_reclamations")
             }) {
                 control.check()?;
                 let mut marker = [0; 2];

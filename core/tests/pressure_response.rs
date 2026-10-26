@@ -291,6 +291,10 @@ fn aggregate_and_stream_backups_keep_exact_pressure_metadata_and_reject_schema_d
         .as_object_mut()
         .unwrap()
         .remove("engine_resource_actions");
+    document["tables"]
+        .as_object_mut()
+        .unwrap()
+        .remove("engine_reclamations");
     document["schema"] = 15.into();
     let downgraded = crypto::encrypt(&serde_json::to_vec(&document).unwrap(), password).unwrap();
     assert!(Store::restore_backup_password(&downgraded.bytes, password).is_err());
@@ -371,8 +375,8 @@ fn legacy_layout_stream_reads_schema15_without_inventing_pressure_settings() {
             &control,
         )
         .unwrap();
-    // Synthetic schema15 fixture has no pressure/eraser fields. Schema17 adds
-    // the final action table; remove its empty segment before changing the tag.
+    // Synthetic schema15 fixture has no pressure/eraser fields. Schemas17/18
+    // append action tables; remove both empty segments before changing the tag.
     let mut reader =
         DecryptStream::new(bytes.as_slice(), Credential::Password(password), 10000000).unwrap();
     let mut plain = Vec::new();
@@ -381,6 +385,9 @@ fn legacy_layout_stream_reads_schema15_without_inventing_pressure_settings() {
     assert_eq!(&plain[..8], b"STEMLIB2");
     let end = plain.len() - 16; // Footer magic plus the eight-byte row count.
     assert_eq!(&plain[end..end + 8], b"STEMEND2");
+    assert_eq!(&plain[end - 3..end], &[0, 32, 0]);
+    plain.drain(end - 3..end);
+    let end = plain.len() - 16;
     assert_eq!(&plain[end - 3..end], &[0, 31, 0]); // Empty schema17 action table.
     plain.drain(end - 3..end);
     plain[8..12].copy_from_slice(&15u32.to_be_bytes());
@@ -406,7 +413,7 @@ fn legacy_layout_stream_reads_schema15_without_inventing_pressure_settings() {
         restored.store().source_ink(block.id, &a).unwrap(),
         vec![original]
     );
-    assert_eq!(restored.store().schema_version().unwrap(), 17);
+    assert_eq!(restored.store().schema_version().unwrap(), 18);
 }
 
 #[test]

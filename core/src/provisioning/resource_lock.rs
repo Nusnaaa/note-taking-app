@@ -9,13 +9,7 @@ pub(crate) struct ResourcePin {
 pub(crate) struct ResourceExclusive {
     _file: File,
 }
-fn open(path: &Path) -> Result<File> {
-    match std::fs::symlink_metadata(path) {
-        Ok(meta) if meta.file_type().is_file() => {}
-        Ok(_) => return Err(Error::Integrity),
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
-        Err(e) => return Err(e.into()),
-    }
+fn coordinate(path: &Path) -> Result<PathBuf> {
     let parent = path
         .parent()
         .filter(|p| !p.as_os_str().is_empty())
@@ -28,7 +22,18 @@ fn open(path: &Path) -> Result<File> {
         return Err(Error::Invalid("resource coordination file"));
     }
     let key = digest(name.as_encoded_bytes());
-    let coordinate = parent.join(format!(".stem-resource-{key}.lock"));
+    Ok(parent.join(format!(".stem-resource-{key}.lock")))
+}
+fn open(path: &Path, allow_symlink: bool) -> Result<File> {
+    match std::fs::symlink_metadata(path) {
+        Ok(meta)
+            if meta.file_type().is_file() || allow_symlink && meta.file_type().is_symlink() => {}
+        Ok(_) => return Err(Error::Integrity),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+        Err(e) => return Err(e.into()),
+    }
+    let coordinate = coordinate(path)?;
+    let parent = coordinate.parent().ok_or(Error::Integrity)?;
     let file = match OpenOptions::new()
         .read(true)
         .write(true)
@@ -37,7 +42,7 @@ fn open(path: &Path) -> Result<File> {
     {
         Ok(file) => {
             file.sync_all()?;
-            File::open(&parent)?.sync_all()?;
+            File::open(parent)?.sync_all()?;
             file
         }
         Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
@@ -71,7 +76,7 @@ impl ResourcePin {
         if !std::fs::symlink_metadata(path)?.file_type().is_file() {
             return Err(Error::Integrity);
         }
-        let file = open(path)?;
+        let file = open(path, false)?;
         locked(file.try_lock_shared())?;
         if file.metadata()?.len() != 0 {
             return Err(Error::ReviewRequired);
@@ -97,8 +102,29 @@ impl ResourcePin {
     }
 }
 impl ResourceExclusive {
+    pub(crate) fn retirement_review_required(path: &Path) -> Result<bool> {
+        match std::fs::symlink_metadata(coordinate(path)?) {
+            Ok(meta) if meta.file_type().is_file() => Ok(meta.len() != 0),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(false),
+            Ok(_) => Err(Error::ReviewRequired),
+            Err(e) => Err(e.into()),
+        }
+    }
+    pub(crate) fn reclamation(
+        path: &Path,
+        reviewed_failure: bool,
+        reviewed_symlink: bool,
+    ) -> Result<Self> {
+        let file = open(path, reviewed_symlink)?;
+        locked(file.try_lock())?;
+        if file.metadata()?.len() != 0 && !reviewed_failure {
+            return Err(Error::ReviewRequired);
+        }
+        Ok(Self { _file: file })
+    }
+
     pub(crate) fn acquire(path: &Path) -> Result<Self> {
-        let file = open(path)?;
+        let file = open(path, false)?;
         locked(file.try_lock())?;
         if file.metadata()?.len() != 0 {
             return Err(Error::ReviewRequired);

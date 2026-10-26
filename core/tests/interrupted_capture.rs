@@ -158,12 +158,18 @@ fn schema9_upgrade_preserves_original_payload_hash_and_capture_receipt_byte_for_
             .unwrap(),
         0
     );
-    db.execute_batch("DROP TABLE engine_resource_actions;")
+    assert_eq!(
+        db.query_row("SELECT count(*) FROM engine_reclamations", [], |r| r
+            .get::<_, i64>(0))
+            .unwrap(),
+        0
+    );
+    db.execute_batch("DROP TABLE engine_reclamations; DROP TABLE engine_resource_actions;")
         .unwrap();
     db.pragma_update(None, "user_version", 9).unwrap();
     drop(db);
     let mut s = Store::open(&path).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 17);
+    assert_eq!(s.schema_version().unwrap(), 18);
     assert_eq!(
         s.append_capture(
             ticket,
@@ -244,15 +250,19 @@ fn encrypted_schema10_retains_interruption_and_old_schema_cannot_claim_it() {
         .finish_backup(plan, password, &mut TestAuth(true), true)
         .unwrap();
     let restored = Store::restore_backup_password(&backup.bytes, password).unwrap();
-    assert_eq!(restored.schema_version().unwrap(), 17);
+    assert_eq!(restored.schema_version().unwrap(), 18);
     assert_eq!(restored.source_ink(b.id, &a).unwrap(), vec![original]);
     let plain = crypto::decrypt(&backup.bytes, Credential::Password(password)).unwrap();
     let mut downgraded: serde_json::Value = serde_json::from_slice(&plain).unwrap();
-    assert_eq!(downgraded["schema"], 17);
+    assert_eq!(downgraded["schema"], 18);
     downgraded["tables"]
         .as_object_mut()
         .unwrap()
         .remove("engine_resource_actions");
+    downgraded["tables"]
+        .as_object_mut()
+        .unwrap()
+        .remove("engine_reclamations");
     downgraded["schema"] = 9.into();
     downgraded["tables"]
         .as_object_mut()
@@ -307,6 +317,10 @@ fn legacy_schema9_backup_defaults_to_completed_without_rewriting_source_or_recei
         .as_object_mut()
         .unwrap()
         .remove("engine_resource_actions");
+    old["tables"]
+        .as_object_mut()
+        .unwrap()
+        .remove("engine_reclamations");
     old["schema"] = 9.into();
     old["tables"]
         .as_object_mut()

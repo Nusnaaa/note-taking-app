@@ -1,0 +1,25 @@
+    Checking stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+error[E0422]: cannot find struct, variant or union type `BackupOptions` in this scope
+   --> core/tests/engine_reclamation.rs:498:19
+    |
+498 |     let options = BackupOptions {
+    |                   ^^^^^^^^^^^^^ not found in this scope
+    |
+help: consider importing this struct
+    |
+  2 + use stem_core::backup::BackupOptions;
+    |
+
+error[E0422]: cannot find struct, variant or union type `BackupOptions` in this scope
+   --> core/tests/engine_reclamation.rs:576:19
+    |
+576 |     let options = BackupOptions {
+    |                   ^^^^^^^^^^^^^ not found in this scope
+    |
+help: consider importing this struct
+    |
+  2 + use stem_core::backup::BackupOptions;
+    |
+
+For more information about this error, try `rustc --explain E0422`.
+error: could not compile `stem-core` (test "engine_reclamation") due to 2 previous errors

@@ -395,11 +395,17 @@ fn schema16_migrates_without_changing_notebooks_and_both_backups_preserve_action
         .unwrap();
     drop(s);
     let db = rusqlite::Connection::open(&path).unwrap();
-    db.execute_batch("DROP TABLE engine_resource_actions; PRAGMA user_version=16;")
+    assert_eq!(
+        db.query_row("SELECT count(*) FROM engine_reclamations", [], |r| r
+            .get::<_, i64>(0))
+            .unwrap(),
+        0
+    );
+    db.execute_batch("DROP TABLE engine_reclamations; DROP TABLE engine_resource_actions; PRAGMA user_version=16;")
         .unwrap();
     drop(db);
     let mut s = Store::open(&path).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 17);
+    assert_eq!(s.schema_version().unwrap(), 18);
     assert_eq!(
         s.entity(note.id, &a).unwrap().title,
         "retained schema16 note"

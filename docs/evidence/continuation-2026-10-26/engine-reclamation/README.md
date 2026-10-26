@@ -1,0 +1,9 @@
+# Core reviewed Removed-version reclamation
+
+ADR 034 implements a private worker review, explicit consent/facts, SDK and transfer exclusivity, preparation-bound permits, durable Pending before known-name deletion, separate Completed recording and appended explicit retry decisions. The schema18 table and both whole-library backup formats preserve path-free historical data. Host/JNI/Android adoption remains open.
+
+Final focused run passed 85 tests across reclamation (11 new cases), unpublished discard, backup, pressure/eraser configuration, recovery, authoring, layers, positions, stroke style, workspace, interrupted capture and exercise migrations. Denied-warning all-target Clippy, formatting and traceability passed. Source hashes include the five new implementation/migration/test/ADR files. Full workspace/native/Android proof follows separately.
+
+Cases check durable approval before deletion, independent note/raw ink, actual SDK guard refusal despite all consent flags, legacy consent remaining unknown, explicit old-retirement review without marker reset, current app and foreign-library rejection, directory replacement/changed facts, symlink-only unlink without following targets, lost completion/review append, rollback, cancellation, permit binding, real schema17 layout migration, legacy-tag extension refusal and encrypted classic/stream history round trips. Historical locators remain private and Removed; completion does not measure freed device blocks or claim global SDK shutdown.
+
+Retained development failures: the initial new fixture used the wrong failure-injection method name; the extended backup fixture omitted BackupOptions import; a factored parent reference triggered Clippy needless-borrow. The separate 36-test pass predates the added five reclamation cases and wider migration run. None is represented as final-source full verification. All broader backend gaps remain OPEN.

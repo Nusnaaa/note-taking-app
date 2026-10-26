@@ -377,6 +377,10 @@ fn encrypted_workspace_restore_revokes_pdf_readiness_and_rejects_malformed_or_do
         .as_object_mut()
         .unwrap()
         .remove("engine_resource_actions");
+    legacy["tables"]
+        .as_object_mut()
+        .unwrap()
+        .remove("engine_reclamations");
     legacy["schema"] = 11.into();
     legacy["tables"]
         .as_object_mut()
@@ -394,7 +398,7 @@ fn encrypted_workspace_restore_revokes_pdf_readiness_and_rejects_malformed_or_do
         .remove("workspace_state");
     let bytes = crypto::encrypt(&serde_json::to_vec(&legacy).unwrap(), password).unwrap();
     let restored = Store::restore_backup_password(&bytes.bytes, password).unwrap();
-    assert_eq!(restored.schema_version().unwrap(), 17);
+    assert_eq!(restored.schema_version().unwrap(), 18);
     assert_eq!(restored.restore_workspace(&a).unwrap().revision, 0);
     assert!(restored.restore_workspace(&a).unwrap().panes.is_empty());
     assert_eq!(restored.view(v.id, &a).unwrap(), v);
@@ -458,12 +462,18 @@ fn schema11_upgrade_creates_an_empty_workspace_without_rewriting_saved_view_payl
             .unwrap(),
         0
     );
-    db.execute_batch("DROP TABLE engine_resource_actions;")
+    assert_eq!(
+        db.query_row("SELECT count(*) FROM engine_reclamations", [], |r| r
+            .get::<_, i64>(0))
+            .unwrap(),
+        0
+    );
+    db.execute_batch("DROP TABLE engine_reclamations; DROP TABLE engine_resource_actions;")
         .unwrap();
     db.pragma_update(None, "user_version", 11).unwrap();
     drop(db);
     let s = Store::open(&path).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 17);
+    assert_eq!(s.schema_version().unwrap(), 18);
     assert!(s.restore_workspace(&a).unwrap().panes.is_empty());
     assert_eq!(s.view(v.id, &a).unwrap(), v);
     drop(s);

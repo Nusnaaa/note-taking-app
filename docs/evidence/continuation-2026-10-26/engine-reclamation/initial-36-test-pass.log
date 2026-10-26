@@ -1,0 +1,68 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 40.19s
+     Running tests/backup.rs (/tmp/stem-pen-response-target/debug/deps/backup-84f7ac3d814cf80c)
+
+running 9 tests
+test backup_plan_cannot_cross_library_or_survive_a_write ... ok
+test backup_requires_deliberate_ink_scope_and_fresh_protected_authentication ... ok
+test external_asset_backup_is_explicit_authorised_and_revocation_safe ... ok
+test malformed_authenticated_backup_is_rejected_before_exposing_restored_store ... ok
+test restore_publication_never_overwrites_live_database_and_reopens ... ok
+test rich_library_restores_objects_views_anchors_proposals_profiles_and_capture_receipts ... ok
+test purge_retires_detailed_undo_payloads_and_backup_rejects_forged_journal_rows ... ok
+test whole_library_backup_retains_trash_history_membership_undo_and_source_metadata ... ok
+test schema8_logical_backup_upgrades_without_inventing_old_undo_actions ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 43.88s
+
+     Running tests/engine_discard.rs (/tmp/stem-pen-response-target/debug/deps/engine_discard-8de16e058c2a97fd)
+
+running 9 tests
+test authorisation_permit_cannot_be_rebound_to_a_different_preparation_of_the_same_record ... ok
+test cancellation_after_authorisation_preserves_files_and_retry_survives_reopen ... ok
+test cancelled_and_foreign_authorisation_never_delete_and_retry_can_finish_after_lost_completion ... ok
+test discard_records_original_consent_before_delete_and_preserves_notebook_content ... ok
+test publication_and_sql_failure_prevent_deletion_and_keep_history_atomic ... ok
+test discard_rejects_legacy_foreign_and_pending_version_cannot_publish_again ... ok
+test resource_actions_require_fresh_app_access_and_page_without_paths ... ok
+test symlink_payload_refuses_the_entire_discard_before_any_file_is_deleted ... ok
+test schema16_migrates_without_changing_notebooks_and_both_backups_preserve_action_history ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 30.27s
+
+     Running tests/engine_reclamation.rs (/tmp/stem-pen-response-target/debug/deps/engine_reclamation-7c9d9efae0b3ce38)
+
+running 6 tests
+test legacy_binding_is_reviewed_without_inventing_original_consent ... ok
+test explicit_symlink_review_unlinks_only_the_known_link_and_preserves_its_target ... ok
+test lost_completion_is_explicitly_retried_with_an_additional_durable_review ... ok
+test review_directory_replacement_and_file_changes_require_fresh_review ... ok
+test reviewed_consent_is_durable_before_known_files_are_removed_and_ink_is_independent ... ok
+test sql_failure_and_cancellation_do_not_delete_files_and_preparation_keys_cannot_be_rebound ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests/pressure_response.rs (/tmp/stem-pen-response-target/debug/deps/pressure_response-d671bfbc86e415de)
+
+running 8 tests
+test absent_zero_outside_domain_and_interior_pressure_have_explicit_derived_widths ... ok
+test eraser_source_unit_underflow_is_rejected_without_changing_preferences ... ok
+test invalid_responses_and_effective_widths_fail_without_installing_them ... ok
+test legacy_layout_stream_reads_schema15_without_inventing_pressure_settings ... ok
+test original_svg_uses_recorded_response_and_reports_missing_sensor_values_without_rewriting_ink ... ok
+test pressure_and_eraser_preferences_persist_and_new_fields_cannot_claim_an_old_native_version ... ok
+test response_is_snapshotted_per_contact_and_raw_samples_are_never_rewritten ... ok
+test aggregate_and_stream_backups_keep_exact_pressure_metadata_and_reject_schema_downgrade ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 26.95s
+
+     Running tests/recovery.rs (/tmp/stem-pen-response-target/debug/deps/recovery-18560bd0a5112177)
+
+running 4 tests
+test failed_migration_rolls_back_and_newer_schema_is_not_downgraded ... ok
+test process_exit_before_and_after_commit_preserves_correct_durable_boundary ... ok
+test two_connections_cannot_silently_overwrite_same_revision ... ok
+test v1_to_current_migration_preserves_entities_and_is_repeatable ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+

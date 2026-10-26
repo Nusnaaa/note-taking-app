@@ -346,6 +346,10 @@ fn encrypted_backup_preserves_layer_undo_and_rejects_downgraded_current_and_hist
         .as_object_mut()
         .unwrap()
         .remove("engine_resource_actions");
+    old["tables"]
+        .as_object_mut()
+        .unwrap()
+        .remove("engine_reclamations");
     old["schema"] = 13.into();
     old["tables"]
         .as_object_mut()
@@ -368,6 +372,10 @@ fn encrypted_backup_preserves_layer_undo_and_rejects_downgraded_current_and_hist
         .as_object_mut()
         .unwrap()
         .remove("engine_resource_actions");
+    old["tables"]
+        .as_object_mut()
+        .unwrap()
+        .remove("engine_reclamations");
     old["schema"] = 13.into();
     old["tables"]
         .as_object_mut()
@@ -400,12 +408,18 @@ fn legacy_canvas_migrates_to_an_implicit_base_without_rewriting_original_payload
             .unwrap(),
         0
     );
-    db.execute_batch("DROP TABLE engine_resource_actions;")
+    assert_eq!(
+        db.query_row("SELECT count(*) FROM engine_reclamations", [], |r| r
+            .get::<_, i64>(0))
+            .unwrap(),
+        0
+    );
+    db.execute_batch("DROP TABLE engine_reclamations; DROP TABLE engine_resource_actions;")
         .unwrap();
     db.pragma_update(None, "user_version", 13).unwrap();
     drop(db);
     let s = Store::open(&path).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 17);
+    assert_eq!(s.schema_version().unwrap(), 18);
     assert_eq!(s.canvas_layers(c.id, &a).unwrap().revision, 0);
     assert_eq!(
         ids(s.canvas_scene(c.id, None, 0, 10, &a).unwrap()),

@@ -5,7 +5,14 @@ mod activation;
 mod catalogue;
 mod discard;
 mod import;
+mod reclamation;
 mod recovery;
+pub use reclamation::{
+    ConsentProvenance, EngineReclamation, EngineReclamationPermit, EngineReclamationPlan,
+    EngineReclamationReview, EngineReclamationSummary, EngineReclamations,
+    PreparedEngineReclamation, ReclaimedEngineResource, ReclamationConsent, ReclamationDecision,
+    ReclamationFacts, ResourceEntry, ResourceEntryKind,
+};
 mod removal;
 pub use activation::{EngineActivationPlan, PreparedEngineActivation};
 pub use catalogue::{EngineCatalogue, EngineCatalogueRow};

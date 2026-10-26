@@ -1,8 +1,8 @@
 # Whole-library backup v1
 
-Current writer: schema 17. The schema-8 description below is historical; later
+Current writer: schema 18. The schema-8 description below is historical; later
 sections describe supported migrations, streaming and semantic-validation changes.
-See the schema-17 resource-action extension below for the latest feature boundary.
+See the schema-18 reclamation extension below for the latest feature boundary.
 
 This is a logical snapshot of the implemented schema, independent of native subset
 v3. It covers current stored state, not unimplemented application features. The only
@@ -138,3 +138,12 @@ The writer now appends `engine_resource_actions(id, version, payload)` as table 
 JSON restore accepts known schemas through 17. For older schemas the new table must be absent and is created empty; carrying it under an older tag is rejected. Streaming writes schema 17 and accepts 15/16/17. The new empty-table segment is three bytes (index plus row terminator); older streams omit it. The existing footer still contains its eight-byte magic and eight-byte row count. Native notebook subset v10 is unchanged.
 
 Pending action history survives backup/reopen without automatically resuming deletion. Restore creates a new library identity, so old action provenance is historical and cannot grant deletion authority. Model-resource omissions are reported when pending model content may be absent from the snapshot. See [ADR 030](../decisions/ADR-030-unpublished-import-discard.md).
+
+
+## Schema 18 reviewed reclamation history
+
+The writer appends `engine_reclamations(id, version, payload)` at table index 32. Strict version-1 payloads retain original request identity, Removed-version descriptor/declared size and bounded reviewed-consent decisions with observed file facts. SQL keys must match the payload; a matching Removed version must exist without an active pointer. No path, model bytes or live capability is stored in these records. Existing private version locators remain omitted from both backup formats.
+
+Current JSON writes schema 18 and reads known schemas 9..18; source schemas below 18 must omit this table and receive it empty. Streaming writes 18 and reads 15..18. Old streams omit index 32 (and sources below 17 also omit index 31). The existing footer remains magic plus row count; synthetic old-layout fixtures remove the appropriate empty segments before changing their tag. Notebook subset v10 remains unchanged.
+
+Pending records explicitly describe uncertain outcomes and do not schedule cleanup. Restored history retains original library provenance and has no deletion authority in the new library. Legacy/unknown import consent remains unknown; explicit current review is recorded without inventing an earlier timestamp. Reviewed symlinks are removed as links only. Completed means known names at the reviewed location were removed and the directory was synced, not measured freed device blocks. See [ADR 034](../decisions/ADR-034-reviewed-installed-resource-reclamation.md).

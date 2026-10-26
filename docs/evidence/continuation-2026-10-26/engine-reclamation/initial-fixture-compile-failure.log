@@ -1,0 +1,10 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+error[E0599]: no method named `fail_next_write` found for struct `stem_core::store::Store` in the current scope
+   --> core/tests/engine_reclamation.rs:206:7
+    |
+206 |     s.fail_next_write(FailurePoint::BeforeCommit);
+    |       ^^^^^^^^^^^^^^^ method not found in `stem_core::store::Store`
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `stem-core` (test "engine_reclamation") due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
