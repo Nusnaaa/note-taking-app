@@ -1365,6 +1365,59 @@ fn host_table_structure_command_runs_through_the_writer() {
     call(Command::Undo {
         entity: destination,
     });
+    let canvas = Id::parse(
+        call(Command::Create {
+            kind: Kind::Canvas,
+            parent: None,
+            title: "nested host route".into(),
+        })["id"]
+            .as_str()
+            .unwrap(),
+    )
+    .unwrap();
+    let current: Block = serde_json::from_value(
+        call(Command::Blocks {
+            entity: note,
+            offset: 0,
+            limit: 10,
+        })
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|b| b["id"].as_str() == Some(&captured.id.to_string()))
+        .unwrap()
+        .clone(),
+    )
+    .unwrap();
+    let copied: Block = serde_json::from_value(call(Command::CopyTable {
+        block: current.id,
+        revision: current.revision,
+        target: stem_core::store::WritingTarget::Entity(canvas),
+    }))
+    .unwrap();
+    let scene: stem_core::store::CanvasScene = serde_json::from_value(call(Command::CanvasScene {
+        canvas,
+        embed: None,
+        offset: 0,
+        limit: 0,
+    }))
+    .unwrap();
+    let page: stem_core::store::NestedCanvasTableInkPage =
+        serde_json::from_value(call(Command::NestedCanvasTableInkScenePage {
+            scope: stem_core::store::NestedCanvasTableInkScope {
+                canvas,
+                entity_revision: scene.entity_revision,
+                layer_revision: scene.layer_revision,
+                path: vec![],
+            },
+            block: copied.id,
+            revision: copied.revision,
+            cursor: None,
+            max_points: 1,
+        }))
+        .unwrap();
+    assert!(page.clips.is_empty());
+    assert_eq!(page.ink.fragments[0].points.len(), 1);
 }
 
 fn cell_layout() -> stem_core::objects::TableLayout {
@@ -3923,4 +3976,256 @@ fn denied_embed_payload_is_not_decoded_by_direct_or_canvas_scene_reads() {
         store.canvas_table_ink_scene_page(scope, block.id, block.revision, None, 1, &access),
         Err(Error::Denied)
     ));
+}
+
+fn nested_table_scope(
+    store: &Store,
+    canvas: Id,
+    path: &[Id],
+    access: &Access,
+) -> stem_core::store::NestedCanvasTableInkScope {
+    use stem_core::store::{CanvasEmbedPathStep, CanvasEmbedRevision, NestedCanvasTableInkScope};
+    let root = store.canvas_scene(canvas, None, 0, 0, access).unwrap();
+    NestedCanvasTableInkScope {
+        canvas,
+        entity_revision: root.entity_revision,
+        layer_revision: root.layer_revision,
+        path: path
+            .iter()
+            .map(|id| {
+                let e = store.embed(*id, access).unwrap();
+                let host = store.entity(e.host, access).unwrap();
+                CanvasEmbedPathStep {
+                    embedding: CanvasEmbedRevision {
+                        id: *id,
+                        revision: e.revision,
+                    },
+                    host_revision: host.revision,
+                    host_layer_revision: if host.kind == Kind::Canvas {
+                        Some(
+                            store
+                                .canvas_scene(host.id, None, 0, 0, access)
+                                .unwrap()
+                                .layer_revision,
+                        )
+                    } else {
+                        None
+                    },
+                }
+            })
+            .collect(),
+    }
+}
+fn nested_table_fixture() -> (Store, Access, Id, Block, Vec<Id>, Id) {
+    use stem_core::{objects::Rect, store::Camera};
+    let (mut store, access, root, block, _) = canvas_table_fixture();
+    let middle = store
+        .create(Kind::Canvas, None, "middle canvas", &access)
+        .unwrap();
+    let outer = store
+        .create(Kind::Canvas, None, "outer canvas", &access)
+        .unwrap();
+    let host = store
+        .create(Kind::Note, None, "outer host", &access)
+        .unwrap();
+    let one = store
+        .create_embed(
+            middle.id,
+            root,
+            Rect {
+                x: 10.,
+                y: 20.,
+                width: 100.,
+                height: 80.,
+            },
+            &access,
+        )
+        .unwrap();
+    let two = store
+        .create_embed(
+            outer.id,
+            middle.id,
+            Rect {
+                x: -20.,
+                y: 30.,
+                width: 60.,
+                height: 40.,
+            },
+            &access,
+        )
+        .unwrap();
+    let two = store
+        .edit_embed(
+            two.id,
+            two.revision,
+            Camera {
+                centre_x: 60.,
+                centre_y: 60.,
+                zoom: 2.,
+                rotation_rad: std::f64::consts::FRAC_PI_2,
+            },
+            two.frame,
+            false,
+            &access,
+        )
+        .unwrap();
+    let three = store
+        .create_embed(
+            host.id,
+            outer.id,
+            Rect {
+                x: 100.,
+                y: 200.,
+                width: 80.,
+                height: 40.,
+            },
+            &access,
+        )
+        .unwrap();
+    let three = store
+        .edit_embed(
+            three.id,
+            three.revision,
+            Camera {
+                centre_x: 10.,
+                centre_y: 50.,
+                zoom: 1.,
+                rotation_rad: 0.,
+            },
+            three.frame,
+            false,
+            &access,
+        )
+        .unwrap();
+    (
+        store,
+        access,
+        root,
+        block,
+        vec![one.id, two.id, three.id],
+        middle.id,
+    )
+}
+#[test]
+fn nested_canvas_pages_compose_three_cameras_and_preserve_rotated_clip_rectangles() {
+    let (store, access, root, block, path, _) = nested_table_fixture();
+    let scope = nested_table_scope(&store, root, &path, &access);
+    let originals = store.source_ink(block.id, &access).unwrap();
+    let page = store
+        .nested_canvas_table_ink_scene_page(scope, block.id, block.revision, None, 1, &access)
+        .unwrap();
+    assert_eq!(page.clips.len(), 3);
+    assert!(page.ink.next.is_some());
+    let fragment = &page.ink.fragments[0];
+    assert_eq!(fragment.points, originals[0].points[..1]);
+    let t = fragment.source_to_surface;
+    assert!((t.tx - 140.).abs() < 1e-9);
+    assert!((t.ty - 220.).abs() < 1e-9);
+    assert!(t.a.abs() < 1e-9);
+    assert!((t.b - 2.).abs() < 1e-9);
+    assert!((t.c + 2.).abs() < 1e-9);
+    assert_eq!(
+        page.clips[0].bounds,
+        store.embed(path[0], &access).unwrap().frame
+    );
+    assert!((page.clips[0].to_surface.b - 2.).abs() < 1e-9);
+    assert!((page.clips[0].to_surface.c + 2.).abs() < 1e-9);
+    assert!((page.clips[1].to_surface.tx - 130.).abs() < 1e-9);
+    assert_eq!(
+        page.clips[2].to_surface,
+        stem_core::ink::Transform::default()
+    );
+    assert!(serde_json::to_vec(&page).unwrap().len() < 8 * 1024 * 1024);
+    assert_eq!(store.source_ink(block.id, &access).unwrap(), originals);
+}
+#[test]
+fn nested_canvas_visibility_uses_each_outer_override_and_rechecks_host_epochs() {
+    use stem_core::store::{CanvasLayers, LayerRef};
+    let (mut store, access, root, block, path, middle) = nested_table_fixture();
+    let old = nested_table_scope(&store, root, &path, &access);
+    store
+        .set_canvas_layers(
+            CanvasLayers {
+                canvas: middle,
+                revision: 0,
+                base_visible: false,
+                layers: vec![],
+            },
+            0,
+            &access,
+        )
+        .unwrap();
+    assert!(matches!(
+        store.nested_canvas_table_ink_scene_page(old, block.id, block.revision, None, 1, &access),
+        Err(Error::Conflict)
+    ));
+    let hidden = nested_table_scope(&store, root, &path, &access);
+    assert!(matches!(
+        store.nested_canvas_table_ink_scene_page(
+            hidden,
+            block.id,
+            block.revision,
+            None,
+            1,
+            &access
+        ),
+        Err(Error::Unavailable)
+    ));
+    let two = store.embed(path[1], &access).unwrap();
+    store
+        .set_embed_layers(two.id, two.revision, Some(vec![LayerRef::Base]), &access)
+        .unwrap();
+    let visible = nested_table_scope(&store, root, &path, &access);
+    assert!(store
+        .nested_canvas_table_ink_scene_page(visible, block.id, block.revision, None, 1, &access)
+        .is_ok());
+    let terminal_hidden = nested_table_scope(&store, root, &path[..1], &access);
+    assert!(matches!(
+        store.nested_canvas_table_ink_scene_page(
+            terminal_hidden,
+            block.id,
+            block.revision,
+            None,
+            1,
+            &access
+        ),
+        Err(Error::Unavailable)
+    ));
+}
+#[test]
+fn nested_canvas_path_refuses_disconnected_links_and_fresh_outer_lock() {
+    use stem_core::security::Scope;
+    let (mut store, access, root, block, path, _) = nested_table_fixture();
+    let mut reverse = path.clone();
+    reverse.reverse();
+    let wrong = nested_table_scope(&store, root, &reverse, &access);
+    assert!(matches!(
+        store.nested_canvas_table_ink_scene_page(wrong, block.id, block.revision, None, 1, &access),
+        Err(Error::Invalid("disconnected scene path"))
+    ));
+    let scope = nested_table_scope(&store, root, &path, &access);
+    let outer = store.embed(path[2], &access).unwrap();
+    let key = common::access([Scope::Entity(outer.host)]);
+    let host = store.entity(outer.host, &access).unwrap();
+    let host = store.set_lock(host.id, host.revision, true, &key).unwrap();
+    assert!(matches!(
+        store.nested_canvas_table_ink_scene_page(
+            scope.clone(),
+            block.id,
+            block.revision,
+            None,
+            1,
+            &access
+        ),
+        Err(Error::Denied)
+    ));
+    assert!(matches!(
+        store.nested_canvas_table_ink_scene_page(scope, block.id, block.revision, None, 1, &key),
+        Err(Error::Conflict)
+    ));
+    let current = nested_table_scope(&store, root, &path, &key);
+    assert_eq!(current.path.last().unwrap().host_revision, host.revision);
+    assert!(store
+        .nested_canvas_table_ink_scene_page(current, block.id, block.revision, None, 1, &key)
+        .is_ok());
 }

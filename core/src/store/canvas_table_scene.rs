@@ -24,7 +24,7 @@ pub struct CanvasTableInkPage {
     pub clip: Option<Rect>,
     pub ink: TableInkScenePage,
 }
-fn compose(outer: Transform, inner: Transform) -> Result<Transform> {
+pub(super) fn compose(outer: Transform, inner: Transform) -> Result<Transform> {
     let value = Transform {
         a: outer.a * inner.a + outer.c * inner.b,
         b: outer.b * inner.a + outer.d * inner.b,

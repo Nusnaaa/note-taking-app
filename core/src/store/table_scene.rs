@@ -94,6 +94,17 @@ impl Store {
         max_points: u32,
         access: &Access,
     ) -> Result<TableInkScenePage> {
+        self.table_ink_scene_page_budget(block, revision, cursor, (max_points, PAGE_BYTES), access)
+    }
+    pub(crate) fn table_ink_scene_page_budget(
+        &self,
+        block: Id,
+        revision: u64,
+        cursor: Option<TableInkCursor>,
+        budget: (u32, usize),
+        access: &Access,
+    ) -> Result<TableInkScenePage> {
+        let (max_points, byte_budget) = budget;
         let b = Self::read_block(&self.db, block, access)?;
         if b.revision != revision {
             return Err(Error::Conflict);
@@ -107,6 +118,9 @@ impl Store {
         }
         if !b.visible {
             return Err(Error::Unavailable);
+        }
+        if byte_budget <= 1024 || byte_budget > PAGE_BYTES {
+            return Err(Error::ResourceLimit);
         }
         if max_points == 0 || max_points > 4096 {
             return Err(Error::Invalid("table scene point budget"));
@@ -143,7 +157,7 @@ impl Store {
                 .checked_sub(1)
                 .and_then(|at| stroke.points.get(at))
                 .cloned();
-            let fragment = CellInkFragment {
+            let mut fragment = CellInkFragment {
                 cell: placement.cell,
                 source_id: stroke.id,
                 capture_session: stroke.capture_session,
@@ -159,16 +173,21 @@ impl Store {
                 points: stroke.points.into_iter().skip(offset).take(take).collect(),
                 source_to_surface: placement.source_to_surface,
             };
-            let encoded = serde_json::to_vec(&fragment)?.len() + 2;
-            if encoded > PAGE_BYTES - bytes {
-                if fragments.is_empty() {
-                    return Err(Error::ResourceLimit);
-                }
+            let mut encoded = serde_json::to_vec(&fragment)?.len() + 2;
+            if encoded > byte_budget - bytes && !fragments.is_empty() {
                 break;
             }
+            while encoded > byte_budget - bytes && fragment.points.len() > 1 {
+                fragment.points.truncate(fragment.points.len().div_ceil(2));
+                encoded = serde_json::to_vec(&fragment)?.len() + 2;
+            }
+            if encoded > byte_budget - bytes {
+                return Err(Error::ResourceLimit);
+            }
+            let taken = fragment.points.len();
             bytes += encoded;
-            remaining -= take;
-            offset += take;
+            remaining -= taken;
+            offset += taken;
             fragments.push(fragment);
             if offset == count {
                 index += 1;
@@ -197,5 +216,102 @@ impl Store {
             fragments,
             next,
         })
+    }
+}
+
+#[cfg(test)]
+mod budget_tests {
+    use super::*;
+    #[test]
+    fn reserved_envelope_budget_shrinks_fragments_without_skipping_observations() {
+        use crate::{
+            ink::Tool,
+            objects::{Cell, CellValue, Position, Table, TableLayout},
+        };
+        let mut store = Store::memory().unwrap();
+        let access = Access::public();
+        let cell = Id::new();
+        let note = store.create(Kind::Note, None, "budget", &access).unwrap();
+        let block = store
+            .append_content(
+                note.id,
+                Content::Table(Table {
+                    rows: vec![vec![Cell {
+                        id: cell,
+                        value: CellValue::Text(String::new()),
+                    }]],
+                    header_rows: 0,
+                    layout: Some(TableLayout {
+                        coordinate_space: "local".into(),
+                        origin: Position { x: 0., y: 0. },
+                        row_heights: vec![20.],
+                        column_widths: vec![40.],
+                        ink_origins: vec![],
+                    }),
+                }),
+                &access,
+            )
+            .unwrap();
+        let points: Vec<_> = (0..100)
+            .map(|i| Point {
+                x: i as f64,
+                y: 0.,
+                time_us: i,
+                pressure: None,
+                tilt_rad: None,
+                orientation_rad: None,
+                buttons: None,
+            })
+            .collect();
+        let stroke = Stroke {
+            id: Id::new(),
+            capture_session: Id::new(),
+            sequence: 0,
+            pointer_id: 1,
+            coordinate_space: "local".into(),
+            tool: Tool::Pen,
+            style: None,
+            end: StrokeEnd::Completed,
+            points: points.clone(),
+        };
+        let block = store
+            .append_cell_capture(
+                Id::new(),
+                block.id,
+                block.revision,
+                cell,
+                vec![stroke],
+                &access,
+            )
+            .unwrap();
+        let mut cursor = None;
+        let mut reconstructed = Vec::new();
+        let mut pages = 0;
+        loop {
+            let page = store
+                .table_ink_scene_page_budget(block.id, block.revision, cursor, (100, 2048), &access)
+                .unwrap();
+            assert!(serde_json::to_vec(&page).unwrap().len() <= 2048);
+            assert!(!page.fragments.is_empty());
+            for fragment in page.fragments {
+                assert_eq!(fragment.point_offset as usize, reconstructed.len());
+                assert_eq!(fragment.preceding, reconstructed.last().cloned());
+                reconstructed.extend(fragment.points);
+            }
+            pages += 1;
+            match page.next {
+                Some(next) => {
+                    assert_ne!(Some(next), cursor);
+                    cursor = Some(next);
+                }
+                None => break,
+            }
+        }
+        assert!(pages > 1);
+        assert_eq!(reconstructed, points);
+        assert_eq!(
+            store.source_ink(block.id, &access).unwrap()[0].points,
+            points
+        );
     }
 }

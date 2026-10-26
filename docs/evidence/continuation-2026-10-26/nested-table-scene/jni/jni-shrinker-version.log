@@ -1,0 +1,4 @@
+$ /usr/bin/java -cp /tmp/stem-android-sdk/build-tools/35.0.0/lib/d8.jar com.android.tools.r8.R8 --version
+exit_code=0
+
+R8 8.6.2-dev (build abaab469b5ebd4dd2bb91ba0ed6f45277faae4ca from go/r8bot (luci-r8-custom-ci-archive-0-77gl))

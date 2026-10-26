@@ -3,6 +3,10 @@
 //! not guarantees about uncommitted events or faulty storage hardware.
 mod authoring;
 mod canvas_table_scene;
+mod nested_table_scene;
+pub use nested_table_scene::{
+    CanvasEmbedPathStep, CanvasInkClip, NestedCanvasTableInkPage, NestedCanvasTableInkScope,
+};
 mod capture_recovery;
 mod editing;
 mod editing_links;
