@@ -1,5 +1,6 @@
 //! Deliberate derivative exports. Converted-only is the default contract; source
 //! strokes are never obtained unless the reviewed choice explicitly includes them.
+mod source_ink;
 use crate::{
     content::Content,
     converters::TextConverter,
@@ -421,6 +422,29 @@ impl Store {
                         warnings.push("Legacy ink appearance was not recorded; original-ink SVG uses a black, unit-width fallback.".into());
                         ([0, 0, 0, 255], 1.)
                     };
+                    if let Some((derived, bounds)) = source_ink::pressure_svg(&s)? {
+                        if s.points.iter().any(|p| p.pressure.is_none()) {
+                            warnings.push("Pressure was unavailable for some source samples; their recorded base width is used.".into());
+                        }
+                        if s.points
+                            .iter()
+                            .any(|p| p.tilt_rad.is_some() || p.orientation_rad.is_some())
+                        {
+                            warnings.push(
+                                "Tilt/orientation-dependent nib appearance is not reconstructed."
+                                    .into(),
+                            );
+                        }
+                        if s.tool == crate::ink::Tool::Eraser {
+                            warnings.push("Eraser observations are shown as source paths, not replayed as destructive edits.".into());
+                        }
+                        min_x = min_x.min(bounds.x);
+                        min_y = min_y.min(bounds.y);
+                        max_x = max_x.max(bounds.x + bounds.width);
+                        max_y = max_y.max(bounds.y + bounds.height);
+                        body += &derived;
+                        continue;
+                    }
                     if s.points.iter().any(|p| {
                         p.pressure.is_some() || p.tilt_rad.is_some() || p.orientation_rad.is_some()
                     }) {

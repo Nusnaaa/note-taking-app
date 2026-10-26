@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.JournaledCaptureIntegrationTest" tests="18" skipped="0" failures="0" errors="0" timestamp="2026-10-25T23:55:02" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="2.879">
+  <properties/>
+  <testcase name="gracefulCloseSealsLatestPrefixWithoutInventingPenUp" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.148"/>
+  <testcase name="failedClosingCheckpointDoesNotPreventOtherSessionsFromSealing" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.122"/>
+  <testcase name="processRecoveryRequiresReviewAndFreshPermissionAndPreservesExactObservedBits" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.166"/>
+  <testcase name="explicitRetargetChecksLayerRevisionFreshAuthorityAndOriginalTicketBeforePublishing" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.258"/>
+  <testcase name="ambiguousNativeCommitCannotBeRetargetedOrDuplicated" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.159"/>
+  <testcase name="actualJniRetainsPerContactPressureResponseAcrossConfigurationChangeAndRetry" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.156"/>
+  <testcase name="protectedRecoveryNeedsFreshPermissionAndDoesNotBlockIndependentWriting" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.188"/>
+  <testcase name="platformCancellationDoesNotResurrectFromOldFramesOrReopen" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.111"/>
+  <testcase name="explicitDiscardRetiresCallerHeldFramesEvenAfterSessionInterruption" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.288"/>
+  <testcase name="fixedLayerCaptureAndMissingDestinationRecoveryNeverFallbackOrRewriteObservations" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.173"/>
+  <testcase name="checkpointIsNotDocumentCommitAndCompletionRetiresJournalWithExactTicketRetry" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.118"/>
+  <testcase name="unacknowledgedDiscardAfterUnlinkCannotResurrectAndKeepsOtherFramesRetryable" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.131"/>
+  <testcase name="explicitDiscardRemovesOnlyReviewedUncommittedRecoveryEvidence" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.101"/>
+  <testcase name="actualJniRetainsPerContactStyleAcrossConfigurationChangeAndExactRetry" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.123"/>
+  <testcase name="cancellingObservationFuturesCannotDropAdmittedCheckpointOrLegacyInk" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.122"/>
+  <testcase name="conflictingUnclassifiedLegacyEnvelopeCannotBeBypassedByRetarget" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.139"/>
+  <testcase name="reopenedInterruptedDraftRetargetsToChosenCustomLayerWithExactSourceIdentity" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.17"/>
+  <testcase name="retiredTargetsRequireFreshScopedReviewAndPermitDiscardWithoutReplay" classname="org.stemnotebook.backend.JournaledCaptureIntegrationTest" time="0.202"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

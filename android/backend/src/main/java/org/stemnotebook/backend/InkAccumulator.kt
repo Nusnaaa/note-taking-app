@@ -2,10 +2,28 @@ package org.stemnotebook.backend
 
 import java.util.UUID
 
+/** Explicit appearance response only; raw pressure observations remain intact. */
+data class PressureResponse(val inputMin: Double, val inputMax: Double, val minimumFactor: Double, val maximumFactor: Double, val exponent: Double) {
+    init {
+        val range = inputMax - inputMin
+        require(listOf(inputMin, inputMax, minimumFactor, maximumFactor, exponent).all { it.isFinite() } && range.isFinite() && range > 0 &&
+            minimumFactor >= 0 && maximumFactor > 0 && minimumFactor <= maximumFactor && maximumFactor <= 1024 && exponent > 0 && exponent <= 1024)
+    }
+    fun factor(pressure: Double?): Double {
+        if (pressure == null) return 1.0
+        require(pressure.isFinite())
+        val unit = if (pressure <= inputMin) 0.0 else if (pressure >= inputMax) 1.0 else (pressure - inputMin) / (inputMax - inputMin)
+        return minimumFactor + (maximumFactor - minimumFactor) * Math.pow(unit, exponent)
+    }
+}
 /** Chosen appearance in the named source-coordinate units; never inferred from
  * pressure or current view settings. Immutable channels prevent caller rebinding. */
-data class StrokeStyle(val red: Int, val green: Int, val blue: Int, val alpha: Int, val width: Double) {
-    init { require(listOf(red, green, blue, alpha).all { it in 0..255 } && width.isFinite() && width > 0 && width <= 1_000_000) }
+data class StrokeStyle(val red: Int, val green: Int, val blue: Int, val alpha: Int, val width: Double, val pressureResponse: PressureResponse? = null) {
+    init {
+        require(listOf(red, green, blue, alpha).all { it in 0..255 } && width.isFinite() && width > 0 && width <= 1_000_000)
+        pressureResponse?.let { require((width * it.maximumFactor).isFinite() && width * it.maximumFactor <= 1_000_000) }
+    }
+    fun widthFor(pressure: Double?): Double { require(pressure == null || pressure.isFinite()); return width * (pressureResponse?.factor(pressure) ?: 1.0) }
 }
 enum class StrokeInterruption { Lifecycle, Recovery }
 sealed class StrokeEnd {

@@ -1,0 +1,13 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-pen-response-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 33.08s
+     Running tests/pressure_response.rs (/tmp/stem-pen-response-target/debug/deps/pressure_response-0ff225e5ac3110ab)
+
+running 5 tests
+test absent_zero_outside_domain_and_interior_pressure_have_explicit_derived_widths ... ok
+test invalid_responses_and_effective_widths_fail_without_installing_them ... ok
+test response_is_snapshotted_per_contact_and_raw_samples_are_never_rewritten ... ok
+test original_svg_uses_recorded_response_and_reports_missing_sensor_values_without_rewriting_ink ... ok
+test pressure_and_eraser_preferences_persist_and_new_fields_cannot_claim_an_old_native_version ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+

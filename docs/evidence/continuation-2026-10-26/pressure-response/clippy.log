@@ -1,0 +1,10 @@
+    Checking stem-core v0.1.0 (/tmp/stem-pen-response-work/core)
+    Checking jni-sys v0.4.1
+    Checking bytes v1.12.1
+    Checking combine v4.6.9
+    Checking thiserror v1.0.69
+    Checking jni-sys v0.3.1
+    Checking cesu8 v1.1.0
+    Checking jni v0.21.1
+    Checking stem-bridge v0.1.0 (/tmp/stem-pen-response-work/bridge)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 28.75s

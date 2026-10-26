@@ -519,7 +519,7 @@ fn current_native_preserves_exercise_identity_relationships_locks_modes_and_head
     s.set_mode(n.id, WritingMode::InkOnly, &a).unwrap();
     let file = export(&s, n.id, &auth);
     let doc = NativeDocument::decode(&file).unwrap();
-    assert_eq!(doc.version, 9);
+    assert_eq!(doc.version, 10);
     assert_eq!(doc.memberships.len(), 2);
     let new = s.import_native(&file, &a).unwrap()[0];
     assert!(s.exercises(new, true, &a).unwrap().is_empty());

@@ -40,14 +40,18 @@ fn view(s: &mut Store) -> ViewSettings {
 fn config() -> AuthoringSettings {
     let first = Id::new();
     AuthoringSettings {
+        pressure_response: None,
+        eraser: None,
         presets: vec![
             PenPreset {
+                pressure_response: None,
                 id: first,
                 name: "fine blue".into(),
                 width_mm: 0.6,
                 colour_rgba: [17, 128, 255, 64],
             },
             PenPreset {
+                pressure_response: None,
                 id: Id::new(),
                 name: "wide".into(),
                 width_mm: 1.2,
@@ -268,7 +272,7 @@ fn native_copy_and_schema15_backup_keep_scoped_presets_and_reject_downgraded_ext
         .unwrap()
         .bytes;
     let doc = NativeDocument::decode(&bytes).unwrap();
-    assert_eq!(doc.version, 9);
+    assert_eq!(doc.version, 10);
     let mut old = doc.clone();
     old.version = 8;
     assert!(old.validate().is_err());
@@ -287,7 +291,7 @@ fn native_copy_and_schema15_backup_keep_scoped_presets_and_reject_downgraded_ext
     )
     .unwrap();
     let mut snapshot: serde_json::Value = serde_json::from_slice(&opened).unwrap();
-    assert_eq!(snapshot["schema"], 15);
+    assert_eq!(snapshot["schema"], 16);
     snapshot["schema"] = 14.into();
     let wrong = crypto::encrypt(
         &serde_json::to_vec(&snapshot).unwrap(),
@@ -341,7 +345,7 @@ fn schema14_upgrade_keeps_unconfigured_view_payload_exactly_without_inventing_pr
     db.pragma_update(None, "user_version", 14).unwrap();
     drop(db);
     let s = Store::open(&path).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 15);
+    assert_eq!(s.schema_version().unwrap(), 16);
     assert_eq!(s.view(v.id, &a).unwrap(), v);
     drop(s);
     let db = rusqlite::Connection::open(&path).unwrap();

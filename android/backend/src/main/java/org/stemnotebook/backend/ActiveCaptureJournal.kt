@@ -175,7 +175,8 @@ internal class ActiveCaptureJournal(
         private val LEGACY_MAGIC = "STEMAC01".toByteArray(Charsets.US_ASCII)
         private val STYLE_MAGIC = "STEMAC02".toByteArray(Charsets.US_ASCII)
         private val LAYER_MAGIC = "STEMAC03".toByteArray(Charsets.US_ASCII)
-        private val MAGIC = "STEMAC04".toByteArray(Charsets.US_ASCII)
+        private val FINGER_MAGIC = "STEMAC04".toByteArray(Charsets.US_ASCII)
+        private val MAGIC = "STEMAC05".toByteArray(Charsets.US_ASCII)
         private fun validate(entry: Entry) {
             require(entry.ordinal >= 0 && entry.revision >= 0 && entry.stroke.sequence >= 0 && entry.stroke.pointer >= 0)
             UUID.fromString(entry.stroke.id); UUID.fromString(entry.stroke.session)
@@ -198,7 +199,11 @@ internal class ActiveCaptureJournal(
                 out.writeByte(when (s.end) { StrokeEnd.InProgress -> 0; StrokeEnd.Completed -> 1; is StrokeEnd.Interrupted -> when (s.end.reason) { StrokeInterruption.Lifecycle -> 2; StrokeInterruption.Recovery -> 3 } })
                 out.writeBoolean(entry.cancelled); out.writeBoolean(entry.review)
                 out.writeBoolean(s.style != null)
-                s.style?.let { out.writeByte(it.red); out.writeByte(it.green); out.writeByte(it.blue); out.writeByte(it.alpha); out.writeLong(it.width.toRawBits()) }
+                s.style?.let {
+                    out.writeByte(it.red); out.writeByte(it.green); out.writeByte(it.blue); out.writeByte(it.alpha); out.writeLong(it.width.toRawBits())
+                    out.writeBoolean(it.pressureResponse != null)
+                    it.pressureResponse?.let { r -> listOf(r.inputMin, r.inputMax, r.minimumFactor, r.maximumFactor, r.exponent).forEach { value -> out.writeLong(value.toRawBits()) } }
+                }
                 when (val layer = entry.layer) {
                     null -> out.writeByte(0)
                     CaptureLayer.Base -> out.writeByte(1)
@@ -219,12 +224,16 @@ internal class ActiveCaptureJournal(
             val input = DataInputStream(ByteArrayInputStream(payload))
             fun uuid() = UUID(input.readLong(), input.readLong())
             fun flag(): Boolean { val value = input.readUnsignedByte(); require(value in 0..1); return value == 1 }
-            val magic = ByteArray(8).also { input.readFully(it) }; require(magic.contentEquals(MAGIC) || magic.contentEquals(LAYER_MAGIC) || magic.contentEquals(STYLE_MAGIC) || magic.contentEquals(LEGACY_MAGIC))
-            val ordinal = input.readLong(); val library = uuid(); val entity = uuid(); val revision = input.readLong(); val id = uuid(); val session = uuid(); val sequence = input.readLong(); val pointer = input.readInt(); val tool = input.readUnsignedByte(); require(tool in 0..(if (magic.contentEquals(MAGIC)) 2 else 1)); val eraser = tool == 1
+            val magic = ByteArray(8).also { input.readFully(it) }; require(magic.contentEquals(MAGIC) || magic.contentEquals(FINGER_MAGIC) || magic.contentEquals(LAYER_MAGIC) || magic.contentEquals(STYLE_MAGIC) || magic.contentEquals(LEGACY_MAGIC))
+            val ordinal = input.readLong(); val library = uuid(); val entity = uuid(); val revision = input.readLong(); val id = uuid(); val session = uuid(); val sequence = input.readLong(); val pointer = input.readInt(); val tool = input.readUnsignedByte(); require(tool in 0..(if (magic.contentEquals(MAGIC) || magic.contentEquals(FINGER_MAGIC)) 2 else 1)); val eraser = tool == 1
             val end = when (input.readUnsignedByte()) { 0 -> StrokeEnd.InProgress; 1 -> StrokeEnd.Completed; 2 -> StrokeEnd.Interrupted(StrokeInterruption.Lifecycle); 3 -> StrokeEnd.Interrupted(StrokeInterruption.Recovery); else -> throw IOException("Capture checkpoint state invalid") }
             val cancelled = flag(); val review = flag()
-            val style = if (!magic.contentEquals(LEGACY_MAGIC) && flag()) StrokeStyle(input.readUnsignedByte(), input.readUnsignedByte(), input.readUnsignedByte(), input.readUnsignedByte(), Double.fromBits(input.readLong())) else null
-            val layer = if (magic.contentEquals(MAGIC) || magic.contentEquals(LAYER_MAGIC)) when (input.readUnsignedByte()) {
+            val style = if (!magic.contentEquals(LEGACY_MAGIC) && flag()) {
+                val red = input.readUnsignedByte(); val green = input.readUnsignedByte(); val blue = input.readUnsignedByte(); val alpha = input.readUnsignedByte(); val width = Double.fromBits(input.readLong())
+                val response = if (magic.contentEquals(MAGIC) && flag()) PressureResponse(Double.fromBits(input.readLong()), Double.fromBits(input.readLong()), Double.fromBits(input.readLong()), Double.fromBits(input.readLong()), Double.fromBits(input.readLong())) else null
+                StrokeStyle(red, green, blue, alpha, width, response)
+            } else null
+            val layer = if (magic.contentEquals(MAGIC) || magic.contentEquals(FINGER_MAGIC) || magic.contentEquals(LAYER_MAGIC)) when (input.readUnsignedByte()) {
                 0 -> null; 1 -> CaptureLayer.Base; 2 -> CaptureLayer.Custom(uuid()); else -> throw IOException("Capture destination invalid")
             } else null
             val length = input.readInt(); require(length in 1..256)

@@ -235,7 +235,8 @@ impl Store {
             input.read_exact(&mut magic)?;
             let mut schema = [0; 4];
             input.read_exact(&mut schema)?;
-            if &magic != BODY || u32::from_be_bytes(schema) != 15 {
+            let source_schema = u32::from_be_bytes(schema);
+            if &magic != BODY || !matches!(source_schema, 15 | 16) {
                 return Err(Error::Unsupported);
             }
             let mut omissions = [0; 4];
@@ -309,7 +310,10 @@ impl Store {
             input.finish()?; // authenticated finality and exact encrypted EOF BEFORE commit
             control.check()?;
             tx.commit()?;
-            destination.validate_backup_state_controlled(9, Some(control))?;
+            destination.validate_backup_state_controlled(
+                if source_schema == 16 { 10 } else { 9 },
+                Some(control),
+            )?;
             control.check()?;
             destination.retire_restored_runtime_state(Some(control))?;
             checkpoint_stage(&destination.db)?;

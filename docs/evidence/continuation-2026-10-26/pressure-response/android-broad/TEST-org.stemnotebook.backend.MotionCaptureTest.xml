@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.MotionCaptureTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-25T23:55:05" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="6.302">
+  <properties/>
+  <testcase name="fingerOptInSnapshotsContactAndStylusPreemptsOnlyTentativeFingerInk" classname="org.stemnotebook.backend.MotionCaptureTest" time="6.144"/>
+  <testcase name="observedAndroidEventsProduceOneOrderedSourceStroke" classname="org.stemnotebook.backend.MotionCaptureTest" time="0.073"/>
+  <testcase name="lifecycleInterruptionSealsOnlyObservedPrefixAndCannotBeConfusedWithPlatformCancel" classname="org.stemnotebook.backend.MotionCaptureTest" time="0.04"/>
+  <testcase name="cancellationAndFingerContactNeverCommitPenInk" classname="org.stemnotebook.backend.MotionCaptureTest" time="0.045"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,5 +1,7 @@
 //! Recorded observations are immutable. Transforms/predictions belong to views.
+mod pressure;
 use crate::{Error, Id, Result};
+pub use pressure::PressureResponse;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -48,13 +50,32 @@ impl StrokeEnd {
 pub struct StrokeStyle {
     pub colour_rgba: [u8; 4],
     pub width: f64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pressure_response: Option<PressureResponse>,
 }
 impl StrokeStyle {
     pub fn validate(self) -> Result<()> {
         if !self.width.is_finite() || self.width <= 0. || self.width > 1_000_000. {
             return Err(Error::Invalid("stroke style"));
         }
+        if let Some(response) = self.pressure_response {
+            response.validate()?;
+            let maximum = self.width * response.maximum_factor;
+            if !maximum.is_finite() || maximum > 1_000_000. {
+                return Err(Error::Invalid("pressure width"));
+            }
+        }
         Ok(())
+    }
+    pub fn width_for(self, pressure: Option<f64>) -> Result<f64> {
+        self.validate()?;
+        if pressure.is_some_and(|p| !p.is_finite()) {
+            return Err(Error::Invalid("observed pressure"));
+        }
+        Ok(self.width
+            * self
+                .pressure_response
+                .map_or(Ok(1.), |p| p.factor(pressure))?)
     }
 }
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

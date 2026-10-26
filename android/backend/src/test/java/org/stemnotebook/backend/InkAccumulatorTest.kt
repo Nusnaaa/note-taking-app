@@ -12,6 +12,17 @@ class InkAccumulatorTest {
         assertFalse(CaptureRequest.encode(java.util.UUID.randomUUID(), java.util.UUID.randomUUID(), "space", listOf(completed.copy(style = null))).contains("\"style\""))
         assertThrows(IllegalArgumentException::class.java) { first.copy(width = Double.NaN) }; assertThrows(IllegalArgumentException::class.java) { first.copy(red = 256) }
     }
+    @Test fun pressureAppearanceSnapshotsNeverChangeRawPointsOrActiveContactSettings() {
+        val response = PressureResponse(0.0, 2.0, 0.25, 1.25, 2.0); val selected = StrokeStyle(32, 64, 128, 255, 8.0, response)
+        val a = InkAccumulator(); val first = point(0); val second = point(10).copy(pressure = 0.0)
+        a.setStyle(selected); a.begin(1, false, first); a.setStyle(selected.copy(pressureResponse = null)); a.append(1, listOf(second))
+        val saved = a.complete(1); assertEquals(listOf(first, second), saved.points); assertEquals(selected, saved.style)
+        assertEquals(8.0, selected.widthFor(null), 0.0); assertEquals(2.0, selected.widthFor(0.0), 0.0); assertEquals(4.0, selected.widthFor(1.0), 0.0)
+        assertThrows(IllegalArgumentException::class.java) { response.copy(inputMax = 0.0) }
+        assertThrows(IllegalArgumentException::class.java) { selected.copy(width = 1000000.0) }
+        val encoded = CaptureRequest.encode(java.util.UUID.randomUUID(), java.util.UUID.randomUUID(), "fixed-space", listOf(saved))
+        assertTrue(encoded.contains("\"pressure_response\"")); assertTrue(encoded.contains("\"pressure\":null")); assertTrue(encoded.contains("\"pressure\":0.0"))
+    }
     @Test fun preservesOrderZeroAndUnavailableChannels() {
         val a = InkAccumulator(); a.begin(2, false, point(10)); a.append(2, listOf(point(11), point(12)))
         val stroke = a.complete(2)

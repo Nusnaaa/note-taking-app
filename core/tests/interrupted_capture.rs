@@ -154,7 +154,7 @@ fn schema9_upgrade_preserves_original_payload_hash_and_capture_receipt_byte_for_
     db.pragma_update(None, "user_version", 9).unwrap();
     drop(db);
     let mut s = Store::open(&path).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 15);
+    assert_eq!(s.schema_version().unwrap(), 16);
     assert_eq!(
         s.append_capture(
             ticket,
@@ -188,7 +188,7 @@ fn native_v5_preserves_interruption_provenance_and_legacy_tags_cannot_hide_it() 
     s.append_ink(n.id, vec![original.clone()], &a).unwrap();
     let bytes = export(&s, n.id);
     let doc = NativeDocument::decode(&bytes).unwrap();
-    assert_eq!(doc.version, 9);
+    assert_eq!(doc.version, 10);
     let mut imported = Store::memory().unwrap();
     let new = imported.import_native(&bytes, &a).unwrap();
     let b = imported.blocks(new[0], 0, 10, &a).unwrap().pop().unwrap();
@@ -235,11 +235,11 @@ fn encrypted_schema10_retains_interruption_and_old_schema_cannot_claim_it() {
         .finish_backup(plan, password, &mut TestAuth(true), true)
         .unwrap();
     let restored = Store::restore_backup_password(&backup.bytes, password).unwrap();
-    assert_eq!(restored.schema_version().unwrap(), 15);
+    assert_eq!(restored.schema_version().unwrap(), 16);
     assert_eq!(restored.source_ink(b.id, &a).unwrap(), vec![original]);
     let plain = crypto::decrypt(&backup.bytes, Credential::Password(password)).unwrap();
     let mut downgraded: serde_json::Value = serde_json::from_slice(&plain).unwrap();
-    assert_eq!(downgraded["schema"], 15);
+    assert_eq!(downgraded["schema"], 16);
     downgraded["schema"] = 9.into();
     downgraded["tables"]
         .as_object_mut()

@@ -124,7 +124,7 @@ impl Store {
         control: Option<&JobControl>,
     ) -> Result<()> {
         check(control)?;
-        if !matches!(version, 1..=9) {
+        if !matches!(version, 1..=10) {
             return Err(Error::Unsupported);
         }
         self.validate_backup_prelude(version, control)?;
@@ -209,6 +209,13 @@ impl Store {
                     return Err(Error::Integrity);
                 }
                 stroke.validate_persisted()?;
+                if version < 10
+                    && stroke
+                        .style
+                        .is_some_and(|style| style.pressure_response.is_some())
+                {
+                    return Err(Error::Unsupported);
+                }
                 if (version < 7 && stroke.style.is_some())
                     || (version < 5 && !stroke.end.is_completed())
                 {
@@ -515,6 +522,9 @@ impl Store {
             |r| {
                 let view: ViewSettings = serde_json::from_str(&r.get::<_, String>(2)?)?;
                 view.validate()?;
+                if version < 10 && view.authoring.as_ref().is_some_and(|a| a.requires_v10()) {
+                    return Err(Error::Unsupported);
+                }
                 if version < 9 && view.authoring.is_some() || version < 6 && view.bookmark.is_some()
                 {
                     return Err(Error::Unsupported);
@@ -1055,7 +1065,7 @@ mod tests {
     #[test]
     fn schema_feature_gates_match_aggregate_oracle() {
         let s = fixture();
-        for version in 1..=9 {
+        for version in 1..=10 {
             assert_eq!(
                 s.validate_backup_state(version).is_ok(),
                 s.validate_backup_state_aggregate(version).is_ok(),

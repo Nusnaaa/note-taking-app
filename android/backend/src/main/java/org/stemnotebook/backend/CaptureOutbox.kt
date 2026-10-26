@@ -129,7 +129,10 @@ object CaptureRequest {
                 StrokeEnd.InProgress -> throw IllegalArgumentException("An active prefix is not a completed capture")
                 is StrokeEnd.Interrupted -> ",\"end\":{\"Interrupted\":\"${end.reason.name}\"}"
             }
-            val style = stroke.style?.let { ",\"style\":{\"colour_rgba\":[${it.red},${it.green},${it.blue},${it.alpha}],\"width\":${number(it.width)}}" } ?: ""
+            val style = stroke.style?.let { style ->
+                val response = style.pressureResponse?.let { r -> ",\"pressure_response\":{\"input_min\":${number(r.inputMin)},\"input_max\":${number(r.inputMax)},\"minimum_factor\":${number(r.minimumFactor)},\"maximum_factor\":${number(r.maximumFactor)},\"exponent\":${number(r.exponent)}}" } ?: ""
+                ",\"style\":{\"colour_rgba\":[${style.red},${style.green},${style.blue},${style.alpha}],\"width\":${number(style.width)}$response}"
+            } ?: ""
             UUID.fromString(stroke.id); UUID.fromString(stroke.session)
             require(stroke.sequence >= 0 && stroke.pointer >= 0 && stroke.points.size in 1..100_000)
             var previous = 0L

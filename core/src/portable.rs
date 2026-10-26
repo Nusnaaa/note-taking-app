@@ -107,7 +107,7 @@ impl NativeDocument {
         })?)
     }
     pub fn validate(&self) -> Result<()> {
-        if !matches!(self.version, 1..=9) {
+        if !matches!(self.version, 1..=10) {
             return Err(Error::Unsupported);
         }
         if self.version < 4
@@ -120,6 +120,15 @@ impl NativeDocument {
         }
         if self.version < 3 && self.attachments != crate::attachments::Attachments::default() {
             return Err(Error::Invalid("native v3 extensions"));
+        }
+        if self.version < 10
+            && self
+                .attachments
+                .views
+                .iter()
+                .any(|v| v.authoring.as_ref().is_some_and(|a| a.requires_v10()))
+        {
+            return Err(Error::Unsupported);
         }
         if self.version < 9 && self.attachments.views.iter().any(|v| v.authoring.is_some()) {
             return Err(Error::Unsupported);
@@ -205,6 +214,12 @@ impl NativeDocument {
             }
             for s in &n.strokes {
                 s.validate_persisted()?;
+                if self.version < 10
+                    && s.style
+                        .is_some_and(|style| style.pressure_response.is_some())
+                {
+                    return Err(Error::Unsupported);
+                }
                 if self.version < 7 && s.style.is_some() {
                     return Err(Error::Unsupported);
                 }
@@ -556,7 +571,7 @@ impl Store {
             omissions.push("App workspace and pane activation are library-local and are not included in native copies; selected saved views remain included.".into());
         }
         let mut document = NativeDocument {
-            version: 9,
+            version: 10,
             created_ms: now_ms(),
             entities,
             blocks,

@@ -1,0 +1,13 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-pen-response-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 21.37s
+     Running unittests src/lib.rs (/tmp/stem-pen-response-target/debug/deps/stem_core-557a11efcb97bbb6)
+
+running 5 tests
+test host::ownership::tests::strict_existing_open_never_initializes_missing_empty_or_unrelated_files ... ok
+test host::ownership::tests::sqlite_managed_ownership_survives_commits_and_failed_duplicate_connections ... ok
+test host::ownership::tests::strict_existing_open_migrates_a_real_v1_library_but_rejects_bad_identity ... ok
+test host::ownership::tests::strict_existing_duplicate_open_keeps_owner_locks_and_committed_edits ... ok
+test host::ownership::tests::bounded_backup_pulls_leave_exclusive_owner_free_to_commit_authoring ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 26 filtered out; finished in 0.13s
+

@@ -99,6 +99,7 @@ const V5: &str = include_str!("../migrations/005.sql");
 const V6: &str = include_str!("../migrations/006.sql");
 const V7: &str = include_str!("../migrations/007.sql");
 const V15: &str = include_str!("../migrations/015.sql");
+const V16: &str = include_str!("../migrations/016.sql");
 const V14: &str = include_str!("../migrations/014.sql");
 const V13: &str = include_str!("../migrations/013.sql");
 const V12: &str = include_str!("../migrations/012.sql");
@@ -121,7 +122,7 @@ impl Store {
                 PRAGMA trusted_schema=OFF;",
         )?;
         let version: i64 = db.pragma_query_value(None, "user_version", |r| r.get(0))?;
-        if !(0..=15).contains(&version) {
+        if !(0..=16).contains(&version) {
             return Err(Error::Unsupported);
         }
         let tx = db.transaction_with_behavior(TransactionBehavior::Immediate)?;
@@ -169,6 +170,9 @@ impl Store {
         }
         if version < 15 {
             tx.execute_batch(V15)?;
+        }
+        if version < 16 {
+            tx.execute_batch(V16)?;
         }
         tx.commit()?;
         Ok(Self {
@@ -388,7 +392,8 @@ pub use layers::{
 };
 
 pub use authoring::{
-    AuthoringSettings, GuideBackground, GuideKind, PenPreset, ViewGuideSnapshot, ViewPenSnapshot,
+    AuthoringSettings, EraserMode, EraserSettings, GuideBackground, GuideKind, PenPreset,
+    ViewEraserSnapshot, ViewGuideSnapshot, ViewPenSnapshot,
 };
 
 #[cfg(test)]

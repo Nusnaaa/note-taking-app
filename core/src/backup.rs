@@ -39,7 +39,7 @@ use std::{
     path::Path,
 };
 
-// Column order is the on-disk contract of schemas 9/10/11/12/13/14/15. Unknown tables/widths fail closed.
+// Column order is the on-disk contract of schemas 9/10/11/12/13/14/15/16. Unknown tables/widths fail closed.
 const TABLES: &[(&str, usize)] = &[
     ("settings", 2),
     ("entities", 3),
@@ -194,7 +194,7 @@ impl Store {
 
         let mut snapshot = Snapshot {
             format: "STEM-LIBRARY-1".into(),
-            schema: 15,
+            schema: 16,
             tables: BTreeMap::new(),
             omissions: vec![],
         };
@@ -379,7 +379,7 @@ impl Store {
             snapshot.schema = 9;
         }
 
-        if snapshot.format != "STEM-LIBRARY-1" || !matches!(snapshot.schema, 9..=15) {
+        if snapshot.format != "STEM-LIBRARY-1" || !matches!(snapshot.schema, 9..=16) {
             return Err(Error::Unsupported);
         }
 
@@ -475,7 +475,9 @@ impl Store {
         tx.commit()?;
 
         destination.validate_backup_state_controlled(
-            if source_schema >= 15 {
+            if source_schema >= 16 {
+                10
+            } else if source_schema >= 15 {
                 9
             } else if source_schema >= 14 {
                 8

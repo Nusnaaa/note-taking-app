@@ -1,4 +1,8 @@
-# Whole-library backup v1, schema 8
+# Whole-library backup v1
+
+Current writer: schema 16. The schema-8 description below is historical; later
+sections describe supported migrations, streaming and semantic-validation changes.
+See [pressure response](pressure-response-v1.md) for the latest feature boundary.
 
 This is a logical snapshot of the implemented schema, independent of native subset
 v3. It covers current stored state, not unimplemented application features. The only
@@ -44,7 +48,7 @@ access controls; this does not claim at-rest encryption. Failure after publicati
 but before directory sync can leave the new target present with an error reported;
 the original library is never overwritten. A host must handle that uncertain outcome.
 
-Current limits: 64 MiB encrypted plaintext budget, one million total rows, schema 8
+Historical schema-8 limits: 64 MiB encrypted plaintext budget, one million total rows, schema 8
 only and in-memory restore. SQLite integrity and semantic validation do not constitute
 a full malformed-input security audit. Cross-version migrations, chunked/large-library
 backups, Android publication/filesystem behaviour and broader crash/fuzz coverage
@@ -63,7 +67,7 @@ Schemas other than 8 and 9 are rejected. This supersedes the earlier schema-8-on
 
 ## Schema 15 authoring extension
 
-Current snapshots mark schema 15. Optional per-view presets and guide backgrounds
+Schema-15 snapshots mark the authoring extension. Optional per-view presets and guide backgrounds
 are carried in the existing view_settings JSON payload; row widths/tables and crypto
 envelope do not change. Migration 015 changes only the schema marker and leaves old
 payload bytes untouched. Restore supports schemas 8–14 with authoring absent, and
@@ -117,3 +121,11 @@ model records still allocate, SQLite owns pager/work-index storage, and a hard
 scratch/WAL/journal/publication-space budget remains unfinished. Above-subset-scale
 host fixtures and the test-only old aggregate oracle provide component evidence,
 not device capacity, latency or complete backend acceptance.
+
+## Pressure appearance extension
+
+The current writer's schema-16 tag carries optional explicit pressure response and
+eraser preference JSON without changing this format's table/column order. Streaming
+readers accept known schema 15 and 16, while semantic feature checks reject new
+pressure fields labelled as schema 15. Existing row payloads/receipts are not
+rewritten by the tag migration. See [pressure-response-v1.md](pressure-response-v1.md).

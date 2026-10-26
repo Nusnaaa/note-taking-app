@@ -1,6 +1,9 @@
 //! View preferences and guide derivatives are separate from immutable observations.
 use super::*;
-use crate::{ink::StrokeStyle, objects::Rect};
+use crate::{
+    ink::{PressureResponse, StrokeStyle},
+    objects::Rect,
+};
 use std::collections::BTreeSet;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -11,6 +14,33 @@ pub struct PenPreset {
     pub name: String,
     pub width_mm: f64,
     pub colour_rgba: [u8; 4],
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pressure_response: Option<PressureResponse>,
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum EraserMode {
+    WholeStroke,
+    Selection,
+}
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct EraserSettings {
+    pub mode: EraserMode,
+    pub width_mm: f64,
+}
+impl EraserSettings {
+    pub fn validate(self) -> Result<()> {
+        if !self.width_mm.is_finite() || self.width_mm <= 0. || self.width_mm > 100. {
+            return Err(Error::Invalid("eraser settings"));
+        }
+        Ok(())
+    }
+}
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ViewEraserSnapshot {
+    pub mode: EraserMode,
+    pub width: f64,
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum GuideKind {
@@ -36,14 +66,27 @@ pub struct AuthoringSettings {
     pub presets: Vec<PenPreset>,
     pub selected_preset: Option<Id>,
     pub background: Option<GuideBackground>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pressure_response: Option<PressureResponse>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub eraser: Option<EraserSettings>,
 }
 impl AuthoringSettings {
     pub fn validate(&self) -> Result<()> {
         if self.presets.len() > 32 {
             return Err(Error::ResourceLimit);
         }
+        if let Some(response) = self.pressure_response {
+            response.validate()?;
+        }
+        if let Some(eraser) = self.eraser {
+            eraser.validate()?;
+        }
         let mut ids = BTreeSet::new();
         for preset in &self.presets {
+            if let Some(response) = preset.pressure_response {
+                response.validate()?;
+            }
             if !ids.insert(preset.id)
                 || preset.name.trim().is_empty()
                 || preset.name.len() > 256
@@ -71,6 +114,11 @@ impl AuthoringSettings {
         }
         Ok(())
     }
+    pub(crate) fn requires_v10(&self) -> bool {
+        self.pressure_response.is_some()
+            || self.eraser.is_some()
+            || self.presets.iter().any(|p| p.pressure_response.is_some())
+    }
     pub(crate) fn selected(&self) -> Option<&PenPreset> {
         self.selected_preset
             .and_then(|id| self.presets.iter().find(|p| p.id == id))
@@ -87,6 +135,8 @@ pub struct ViewPenSnapshot {
     pub units_per_mm: f64,
     pub style: StrokeStyle,
     pub finger_ink: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub eraser: Option<ViewEraserSnapshot>,
 }
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -145,16 +195,19 @@ impl Store {
         &mut self,
         id: Id,
         expected: u64,
-        authoring: Option<AuthoringSettings>,
+        mut authoring: Option<AuthoringSettings>,
         access: &Access,
     ) -> Result<ViewSettings> {
         if let Some(a) = &authoring {
             a.validate()?;
         }
         self.update_authoring(id, expected, access, |v| {
-            if let Some(preset) = authoring.as_ref().and_then(AuthoringSettings::selected) {
-                v.pen_width_mm = preset.width_mm;
-                v.colour_rgba = preset.colour_rgba;
+            if let Some(a) = authoring.as_mut() {
+                if let Some(preset) = a.selected() {
+                    v.pen_width_mm = preset.width_mm;
+                    v.colour_rgba = preset.colour_rgba;
+                    a.pressure_response = preset.pressure_response;
+                }
             }
             v.authoring = authoring.map(Box::new);
             Ok(())
@@ -176,6 +229,7 @@ impl Store {
                 .ok_or(Error::Unavailable)?;
             v.pen_width_mm = chosen.width_mm;
             v.colour_rgba = chosen.colour_rgba;
+            a.pressure_response = chosen.pressure_response;
             a.selected_preset = Some(preset);
             Ok(())
         })
@@ -192,8 +246,20 @@ impl Store {
         let style = StrokeStyle {
             colour_rgba: v.colour_rgba,
             width: v.pen_width_mm * units_per_mm,
+            pressure_response: v.authoring.as_ref().and_then(|a| a.pressure_response),
         };
         style.validate()?;
+        let eraser = v
+            .authoring
+            .as_ref()
+            .and_then(|a| a.eraser)
+            .map(|e| ViewEraserSnapshot {
+                mode: e.mode,
+                width: e.width_mm * units_per_mm,
+            });
+        if eraser.is_some_and(|e| !e.width.is_finite() || e.width <= 0. || e.width > 1_000_000.) {
+            return Err(Error::Invalid("source eraser width"));
+        }
         Ok(ViewPenSnapshot {
             view: id,
             view_revision: v.revision,
@@ -203,6 +269,7 @@ impl Store {
             units_per_mm,
             style,
             finger_ink: v.finger_ink,
+            eraser,
         })
     }
     pub fn view_guides(

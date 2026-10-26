@@ -22,8 +22,20 @@ class ActiveCaptureJournalTest {
         val journal = ActiveCaptureJournal(root, legacyLibrary); val before = journal.read(ticket); assertNull(before.stroke.style)
         assertEquals((-0.0).toRawBits(), before.stroke.points.single().x.toRawBits()); assertEquals(0.0, before.stroke.points.single().pressure!!, 0.0)
         journal.recoverActive(); assertNull(journal.read(ticket).stroke.style); assertEquals(before.stroke.points, journal.read(ticket).stroke.points)
-        assertEquals("STEMAC04", String(file.readBytes().copyOfRange(0, 8), Charsets.US_ASCII))
+        assertEquals("STEMAC05", String(file.readBytes().copyOfRange(0, 8), Charsets.US_ASCII))
         assertEquals(0, journal.drain { error("Recovered prefix requires review") })
+    }
+    @Test fun versionFiveRetainsChosenResponseAndExactAbsentZeroObservationsAcrossRecovery() {
+        val root = temporary.newFolder(); val response = PressureResponse(0.0, 2.0, 0.25, 1.25, 2.0)
+        val chosen = StrokeStyle(32, 64, 128, 128, 8.0, response)
+        val original = stroke().copy(style = chosen, points = listOf(point(10).copy(pressure = null), point(20).copy(pressure = 0.0)))
+        val ticket = UUID.fromString(original.id)
+        ActiveCaptureJournal(root, library).checkpoint(entity, "fixed-space", 0, original, layer = CaptureLayer.Base)
+        val reopened = ActiveCaptureJournal(root, library); reopened.recoverActive(); val actual = reopened.read(ticket)
+        assertEquals(chosen, actual.stroke.style); assertEquals(original.points, actual.stroke.points)
+        assertEquals(8.0, actual.stroke.style!!.widthFor(null), 0.0); assertEquals(2.0, actual.stroke.style!!.widthFor(0.0), 0.0)
+        reopened.approve(ticket, reopened.checksum(ticket))
+        assertEquals(1, reopened.drain { entry -> assertEquals(original.points, entry.stroke.points); assertEquals(chosen, entry.stroke.style); true })
     }
     @Test fun versionTwoGoldenRecordPreservesStyleWithoutInventingADestination() {
         val root = temporary.newFolder(); val legacyLibrary = UUID(0, 1); val ticket = UUID(0, 3)

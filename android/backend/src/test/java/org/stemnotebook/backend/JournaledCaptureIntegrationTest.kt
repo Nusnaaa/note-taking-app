@@ -214,6 +214,25 @@ class JournaledCaptureIntegrationTest {
             assertEquals(0, blocks(backend, canvas).length()); assertEquals(2, backend.pendingCaptures().get(5, TimeUnit.SECONDS).toInt())
         } finally { backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
     }
+    @Test(timeout = 30_000) fun actualJniRetainsPerContactPressureResponseAcrossConfigurationChangeAndRetry() {
+        val backend = NotebookBackend(platform(temporary.newFolder()))
+        try {
+            val entity = note(backend); val response = PressureResponse(0.0, 2.0, 0.25, 1.25, 2.0)
+            val chosen = StrokeStyle(32, 64, 128, 255, 8.0, response); val session = backend.openCaptureSession(entity, "fixed-space", chosen)
+            submit(session, MotionEvent.ACTION_DOWN, 10).receipt.get(5, TimeUnit.SECONDS)
+            session.setStyle(chosen.copy(pressureResponse = null))
+            val first = submit(session, MotionEvent.ACTION_UP, 20); assertTrue(first.receipt.get(5, TimeUnit.SECONDS).committed)
+            assertTrue(session.retry(first).receipt.get(5, TimeUnit.SECONDS).committed)
+            submit(session, MotionEvent.ACTION_DOWN, 30).receipt.get(5, TimeUnit.SECONDS)
+            assertTrue(submit(session, MotionEvent.ACTION_UP, 40).receipt.get(5, TimeUnit.SECONDS).committed)
+            val rows = blocks(backend, entity); assertEquals(2, rows.length())
+            val sources = (0 until rows.length()).map { index -> call(backend, JSONObject().put("op", "SourceInk").put("block", rows.getJSONObject(index).getString("id"))).getJSONArray("data").getJSONObject(0) }
+            assertEquals(1, sources.count { it.getJSONObject("style").has("pressure_response") })
+            val persisted = sources.single { it.getJSONObject("style").has("pressure_response") }.getJSONObject("style").getJSONObject("pressure_response")
+            assertEquals(2.0, persisted.getDouble("input_max"), 0.0); assertEquals(2.0, persisted.getDouble("exponent"), 0.0)
+            assertEquals(chosen, first.stroke.style); assertEquals(2, first.stroke.points.size)
+        } finally { backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
+    }
     @Test(timeout = 20_000) fun actualJniRetainsPerContactStyleAcrossConfigurationChangeAndExactRetry() {
         val backend = NotebookBackend(platform(temporary.newFolder()))
         try {

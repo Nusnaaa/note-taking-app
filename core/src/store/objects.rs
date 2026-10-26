@@ -111,7 +111,9 @@ impl ViewSettings {
         if let Some(a) = &self.authoring {
             a.validate()?;
             if a.selected().is_some_and(|p| {
-                p.width_mm != self.pen_width_mm || p.colour_rgba != self.colour_rgba
+                p.width_mm != self.pen_width_mm
+                    || p.colour_rgba != self.colour_rgba
+                    || p.pressure_response != a.pressure_response
             }) {
                 return Err(Error::Invalid("selected preset appearance"));
             }
