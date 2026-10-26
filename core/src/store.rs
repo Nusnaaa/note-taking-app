@@ -366,7 +366,7 @@ impl Store {
 }
 
 pub use capture_recovery::CaptureTargetState;
-pub use engines::{EngineVersion, Installation};
+pub use engines::{EngineActivationPlan, EngineVersion, Installation, PreparedEngineActivation};
 pub use exercises::{
     Exercise, ExtractionCandidate, ExtractionPlan, MembershipChange, MembershipOperation,
     MembershipPlan, WritingTarget,

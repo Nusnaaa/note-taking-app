@@ -55,6 +55,12 @@ impl Manager {
     /// Atomically publish an already probed candidate without callbacks. Failed
     /// validation keeps the candidate holder intact for off-lock disposal.
     pub fn install_ready(&mut self, ready: &mut ReadyRuntime) -> Result<Option<DetachedRuntime>> {
+        Ok(self.ready_publication(ready)?.commit())
+    }
+    pub(crate) fn ready_publication<'a>(
+        &'a mut self,
+        ready: &'a mut ReadyRuntime,
+    ) -> Result<ReadyPublication<'a>> {
         let candidate = ready.entry.as_ref().ok_or(Error::Conflict)?;
         if self
             .entries
@@ -63,17 +69,39 @@ impl Manager {
         {
             return Err(Error::Conflict);
         }
-        let candidate = ready.entry.take().ok_or(Error::Conflict)?;
+        Ok(ReadyPublication {
+            manager: self,
+            ready,
+        })
+    }
+}
+/// Holds exclusive borrows through a callback-free durable metadata commit.
+/// Dropping a failed publication releases references without disposing providers.
+pub(crate) struct ReadyPublication<'a> {
+    manager: &'a mut Manager,
+    ready: &'a mut ReadyRuntime,
+}
+impl ReadyPublication<'_> {
+    pub(crate) fn commit(self) -> Option<DetachedRuntime> {
+        // Construction validated this entry and exclusive borrows prevent removal.
+        let candidate = self
+            .ready
+            .entry
+            .take()
+            .expect("validated ready publication");
         let id = candidate.descriptor.id.clone();
-        self.defaults
+        self.manager
+            .defaults
             .retain(|task, value| value != &id || candidate.descriptor.tasks.contains(task));
-        let previous = self.entries.insert(
-            id,
-            Entry::new(candidate.descriptor, candidate.adapter, Readiness::Ready),
-        );
-        Ok(previous.map(|entry| {
-            entry.retire();
-            DetachedRuntime { entry }
-        }))
+        self.manager
+            .entries
+            .insert(
+                id,
+                Entry::new(candidate.descriptor, candidate.adapter, Readiness::Ready),
+            )
+            .map(|entry| {
+                entry.retire();
+                DetachedRuntime { entry }
+            })
     }
 }

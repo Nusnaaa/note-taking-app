@@ -1,6 +1,8 @@
 //! Durable, consented local installation. Model resources are never notebook data
 //! or executable plugins. Activation stages a probe before changing a live adapter.
 use super::*;
+mod activation;
+pub use activation::{EngineActivationPlan, PreparedEngineActivation};
 
 use crate::{
     digest, now_ms,

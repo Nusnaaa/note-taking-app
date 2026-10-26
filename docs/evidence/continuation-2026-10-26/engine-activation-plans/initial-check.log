@@ -1,0 +1,13 @@
+    Checking stem-core v0.1.0 (/tmp/stem-engine-activation-plan-work/core)
+warning: unused imports: `EngineActivationPlan` and `PreparedEngineActivation`
+ --> core/src/store/engines.rs:5:22
+  |
+5 | pub use activation::{EngineActivationPlan, PreparedEngineActivation};
+  |                      ^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: `stem-core` (lib) generated 1 warning (run `cargo fix --lib -p stem-core` to apply 1 suggestion)
+    Checking stem-bridge v0.1.0 (/tmp/stem-engine-activation-plan-work/bridge)
+warning: `stem-core` (lib test) generated 1 warning (1 duplicate)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 16.11s
