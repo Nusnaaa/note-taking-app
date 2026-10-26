@@ -17,10 +17,14 @@ impl Manager {
     /// returning its resource owner without executing provider destruction.
     /// This is not an acknowledgement that every old worker/resource retired.
     pub fn detach(&mut self, id: &str) -> Result<DetachedRuntime> {
-        let entry = self.entries.remove(id).ok_or(Error::EngineUnavailable)?;
-        entry.retire();
+        self.detach_optional(id).ok_or(Error::EngineUnavailable)
+    }
+    pub(crate) fn detach_optional(&mut self, id: &str) -> Option<DetachedRuntime> {
         self.defaults.retain(|_, value| value != id);
-        Ok(DetachedRuntime { entry })
+        self.entries.remove(id).map(|entry| {
+            entry.retire();
+            DetachedRuntime { entry }
+        })
     }
 }
 

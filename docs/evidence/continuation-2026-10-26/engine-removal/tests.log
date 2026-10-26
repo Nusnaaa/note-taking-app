@@ -1,0 +1,73 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-jni-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.57s
+     Running tests/engines.rs (/tmp/stem-pen-response-target/debug/deps/engines-a0ca3aba976ce501)
+
+running 14 tests
+test resource_installation_requires_consent_digest_and_bounded_streaming ... ok
+test catalogue_pages_all_versions_without_exposing_resource_paths ... ok
+test converter_cannot_persist_a_recognition_default ... ok
+test inactive_and_repeated_removal_preserve_the_active_default_and_do_not_write_twice ... ok
+test converters_have_durable_staged_lifecycle_and_failed_probe_preserves_previous ... ok
+test replacement_preserves_unsupported_preference_without_runtime_fallback ... ok
+test staged_probe_or_commit_failure_keeps_previous_verified_engine ... ok
+test owned_removal_rolls_back_then_detaches_without_disposing_pinned_sdk ... ok
+test another_connection_changing_state_during_probe_prevents_stale_activation ... ok
+test catalogue_and_active_lookup_reject_mismatched_engine_binding ... ok
+test batch_acceptance_is_selected_and_atomic_on_stale_members ... ok
+test installed_provenance_and_profiles_reopen_without_fabricated_runtime_readiness ... ok
+test owned_removal_rejects_cancelled_foreign_stale_and_runtime_mismatched_plans ... ok
+test removing_engine_preserves_notebooks_strokes_and_accepted_work ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.32s
+
+     Running tests/host_activation.rs (/tmp/stem-pen-response-target/debug/deps/host_activation-7804e867d2cd82fa)
+
+running 10 tests
+test host_detachment_cleanup_can_reenter_shared_manager_after_controller_unlocks ... ok
+test optional_capacity_and_pen_priority_never_run_a_cancelled_idle_probe_or_mark_authoring_failed ... ok
+test detachment_requires_current_host_epoch_and_does_not_remove_ready_engine_after_pen_cancellation ... ok
+test provider_error_payload_retires_off_writer_after_completion_failure ... ok
+test running_probe_is_cancelled_by_pen_priority_while_authoring_and_raw_source_remain_available ... ok
+test close_waits_for_running_probe_then_actual_adapter_destruction_before_reopening_library ... ok
+test host_owned_detached_runtime_keeps_owner_until_off_writer_cleanup_finishes ... ok
+test host_and_app_authority_bind_completion_and_locked_app_cannot_reserve_activation ... ok
+test idle_adapter_cleanup_is_off_writer_and_full_close_retains_library_ownership_until_it_finishes ... ok
+test descriptor_frame_rejection_preserves_existing_ready_engine_and_authoring ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.78s
+
+     Running tests/host_engine_activation_plan.rs (/tmp/stem-pen-response-target/debug/deps/host_engine_activation_plan-33d0a7b273c89d82)
+
+running 18 tests
+test dropping_unrun_recognition_after_manager_detach_queues_sdk_retirement_off_caller ... ok
+test pen_cancellation_prevents_host_publication_after_preparation ... ok
+test idle_prepared_disposal_is_off_writer_and_holds_owner_until_cleanup ... ok
+test host_factory_runs_off_writer_and_remains_owned_until_cancelled_construction_returns ... ok
+test relock_cancels_old_metadata_plan_and_locked_app_cannot_reserve_new_plan ... ok
+test queued_publication_does_not_lock_registry_while_writer_authenticates ... ok
+test probe_is_off_writer_and_pen_cancellation_never_revives_a_prepared_candidate ... ok
+test busy_manager_rejects_without_writer_wait_and_preserves_candidate_for_retry ... ok
+test close_waits_for_probe_and_actual_cleanup_before_library_can_reopen ... ok
+test host_publication_installs_runtime_and_durable_metadata_and_rejects_replay ... ok
+test metadata_reservation_is_bounded_and_never_probes_or_marks_installed ... ok
+test host_close_retires_private_manager_off_writer_before_releasing_library ... ok
+test host_private_runtime_recognises_into_a_review_without_rewriting_source ... ok
+test catalogue_distinguishes_installation_from_reload_and_restores_default ... ok
+test removal_commits_before_off_writer_cleanup_and_close_waits_for_actual_retirement ... ok
+test replaced_runtime_cleanup_is_off_writer_and_keeps_library_ownership ... ok
+test publication_rejects_foreign_scope_and_stale_generation_without_installing ... ok
+test removal_rejects_foreign_capture_cancel_and_stale_generation_without_disabling_sdk ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.53s
+
+     Running tests/runtime_detachment.rs (/tmp/stem-pen-response-target/debug/deps/runtime_detachment-d3d3e02d45b1b3a2)
+
+running 5 tests
+test converter_work_pins_detached_runtime_and_synchronous_remove_still_disposes_idle_adapters ... ok
+test detached_cleanup_can_reenter_the_manager_after_lock_release ... ok
+test reused_identifier_does_not_accept_old_activation_or_restore_removed_default ... ok
+test detach_disables_selection_without_destroying_adapter_and_old_inference_cannot_run ... ok
+test dropping_detached_holder_is_not_a_false_acknowledgement_of_running_worker_resource_retirement ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+

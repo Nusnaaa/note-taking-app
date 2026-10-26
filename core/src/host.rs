@@ -39,8 +39,8 @@ use recognition::RecognitionScope;
 pub use recognition::{
     HostActivationSource, HostActivationWork, HostCompletedActivation, HostDetachedRuntime,
     HostDetachmentSource, HostEngineActivationPlan, HostEngineImportPlan, HostEngineImportTransfer,
-    HostEngineRecoveryPlan, HostPreparedEngineActivation, HostPreparedEngineImport,
-    HostRecognitionWork, RecognitionSource, RecognitionStatus,
+    HostEngineRecoveryPlan, HostEngineRemovalPlan, HostPreparedEngineActivation,
+    HostPreparedEngineImport, HostRecognitionWork, RecognitionSource, RecognitionStatus,
 };
 mod pdf;
 use crate::sources::PdfSelectionTarget;
@@ -470,6 +470,11 @@ enum Message {
     ActivationSource(mpsc::Sender<Result<HostActivationSource>>),
     EngineActivationPlan(Id, mpsc::Sender<Result<HostEngineActivationPlan>>),
     EngineRecoveryPlan(mpsc::Sender<Result<HostEngineRecoveryPlan>>),
+    EngineRemovalPlan(Id, mpsc::Sender<Result<HostEngineRemovalPlan>>),
+    RemoveEngine(
+        recognition::removal::RemovalPublication,
+        mpsc::Sender<Result<()>>,
+    ),
     EngineImportPlan(
         Box<crate::processing::Descriptor>,
         u64,
@@ -680,6 +685,30 @@ impl Host {
                                         0,
                                         consented,
                                         &access,
+                                    )
+                                }))
+                                .unwrap_or(Err(Error::WorkerFailed));
+                            let _ =
+                                input.complete(envelope.authoring, envelope.bytes, result.is_err());
+                            let _ = reply.send(result);
+                        }
+                        Message::EngineRemovalPlan(id, reply) => {
+                            let result =
+                                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                                    recognition_scope.engine_removal_plan(&store, &access, id)
+                                }))
+                                .unwrap_or(Err(Error::WorkerFailed));
+                            let _ =
+                                input.complete(envelope.authoring, envelope.bytes, result.is_err());
+                            let _ = reply.send(result);
+                        }
+                        Message::RemoveEngine(publication, reply) => {
+                            let result =
+                                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                                    recognition_scope.remove_engine(
+                                        &mut store,
+                                        &access,
+                                        publication,
                                     )
                                 }))
                                 .unwrap_or(Err(Error::WorkerFailed));
@@ -1003,6 +1032,30 @@ impl Host {
             128,
         )?;
         rx.recv().map_err(|_| Error::WorkerFailed)?
+    }
+    pub fn engine_removal_plan(&self, version: Id) -> Result<HostEngineRemovalPlan> {
+        let (tx, rx) = mpsc::channel();
+        self.mailbox
+            .admit(Message::EngineRemovalPlan(version, tx), false, 128)?;
+        rx.recv().map_err(|_| Error::WorkerFailed)?
+    }
+    /// Logical removal only. Resource files remain retained for explicit cleanup;
+    /// this reply does not acknowledge retirement of every previously pinned SDK.
+    pub fn remove_prepared_engine(
+        &self,
+        plan: &HostEngineRemovalPlan,
+        control: &crate::processing::JobControl,
+    ) -> Result<()> {
+        let lease = self.runtime.lease()?;
+        let (tx, rx) = mpsc::channel();
+        self.mailbox.admit(
+            Message::RemoveEngine(plan.publication(lease.manager(), control), tx),
+            true,
+            128,
+        )?;
+        let result = rx.recv().map_err(|_| Error::WorkerFailed)?;
+        drop(lease);
+        result
     }
     /// Reserve read-only private-depot discovery; scanning is optional-worker work.
     pub fn engine_recovery_plan(&self) -> Result<HostEngineRecoveryPlan> {

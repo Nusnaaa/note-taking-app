@@ -209,38 +209,53 @@ fn resource_installation_requires_consent_digest_and_bounded_streaming() {
 }
 #[test]
 fn removing_engine_preserves_notebooks_strokes_and_accepted_work() {
-    let a = Access::public();
-    let dir = tempfile::tempdir().unwrap();
-    let mut s = Store::memory().unwrap();
-    let n = s.create(Kind::Note, None, "note", &a).unwrap();
-    let b = s.append_ink(n.id, vec![stroke(0)], &a).unwrap();
-    let v = s
-        .stage_engine(descriptor("1"), None, dir.path(), 100, true, &a)
-        .unwrap();
-    let mut m = Manager::new();
-    s.activate_engine(v.id, &mut m, Box::new(Fake(true)), 100, &a)
-        .unwrap();
-    s.select_engine(Task::Prose, "synthetic", &mut m, &a)
-        .unwrap();
-    let output = m
-        .recognise(
-            s.ink_snapshot(b.id, &a).unwrap(),
-            Task::Prose,
-            None,
-            &JobControl::new(Duration::from_secs(1)).unwrap(),
-        )
-        .unwrap();
-    let p = s.propose(output, &a).unwrap();
-    s.accept_proposal(p.id, 0, &a).unwrap();
-    let raw = s.source_ink(b.id, &a).unwrap();
-    s.remove_engine(v.id, &mut m, &a).unwrap();
-    assert_eq!(m.readiness("synthetic"), Readiness::Missing);
-    assert!(s.engine_defaults(&a).unwrap().is_empty());
-    assert_eq!(
-        s.block(b.id, &a).unwrap().content,
-        Content::Text("synthetic".into())
-    );
-    assert_eq!(s.source_ink(b.id, &a).unwrap(), raw);
+    for owned in [false, true] {
+        let a = Access::public();
+        let dir = tempfile::tempdir().unwrap();
+        let mut s = Store::memory().unwrap();
+        let n = s.create(Kind::Note, None, "note", &a).unwrap();
+        let b = s.append_ink(n.id, vec![stroke(0)], &a).unwrap();
+        let v = s
+            .stage_engine(descriptor("1"), None, dir.path(), 100, true, &a)
+            .unwrap();
+        let mut m = Manager::new();
+        s.activate_engine(v.id, &mut m, Box::new(Fake(true)), 100, &a)
+            .unwrap();
+        s.select_engine(Task::Prose, "synthetic", &mut m, &a)
+            .unwrap();
+        let output = m
+            .recognise(
+                s.ink_snapshot(b.id, &a).unwrap(),
+                Task::Prose,
+                None,
+                &JobControl::new(Duration::from_secs(1)).unwrap(),
+            )
+            .unwrap();
+        let p = s.propose(output, &a).unwrap();
+        s.accept_proposal(p.id, 0, &a).unwrap();
+        let raw = s.source_ink(b.id, &a).unwrap();
+        if owned {
+            let plan = s.engine_removal_plan(v.id, &a).unwrap();
+            let retired = s
+                .commit_engine_removal(
+                    &plan,
+                    &mut m,
+                    &JobControl::new(Duration::from_secs(30)).unwrap(),
+                    &a,
+                )
+                .unwrap();
+            drop(retired);
+        } else {
+            s.remove_engine(v.id, &mut m, &a).unwrap();
+        }
+        assert_eq!(m.readiness("synthetic"), Readiness::Missing);
+        assert!(s.engine_defaults(&a).unwrap().is_empty());
+        assert_eq!(
+            s.block(b.id, &a).unwrap().content,
+            Content::Text("synthetic".into())
+        );
+        assert_eq!(s.source_ink(b.id, &a).unwrap(), raw);
+    }
 }
 #[test]
 fn batch_acceptance_is_selected_and_atomic_on_stale_members() {
@@ -482,4 +497,188 @@ fn catalogue_and_active_lookup_reject_mismatched_engine_binding() {
         s.active_engine("synthetic", &a),
         Err(Error::Integrity)
     ));
+}
+
+#[test]
+fn owned_removal_rolls_back_then_detaches_without_disposing_pinned_sdk() {
+    use std::sync::{
+        atomic::{AtomicUsize, Ordering},
+        Arc,
+    };
+    struct Owned(Arc<AtomicUsize>);
+    impl Drop for Owned {
+        fn drop(&mut self) {
+            self.0.fetch_add(1, Ordering::SeqCst);
+        }
+    }
+    impl Recogniser for Owned {
+        fn probe(&self) -> Result<()> {
+            Ok(())
+        }
+        fn recognise(&self, _: &InkSnapshot, _: Task, _: &JobControl) -> Result<RecognitionOutput> {
+            Err(Error::EngineUnavailable)
+        }
+    }
+    let dir = tempfile::tempdir().unwrap();
+    let a = Access::public();
+    let mut s = Store::memory().unwrap();
+    let mut m = Manager::new();
+    let mut descriptor = descriptor("1");
+    descriptor.resource_sha256 = Some(format!("{:x}", Sha256::digest(b"model")));
+    let version = s
+        .stage_engine(
+            descriptor,
+            Some(&mut Cursor::new(b"model")),
+            dir.path(),
+            5,
+            true,
+            &a,
+        )
+        .unwrap();
+    let resource = version.local_resource.clone().unwrap();
+    let dropped = Arc::new(AtomicUsize::new(0));
+    s.activate_engine(
+        version.id,
+        &mut m,
+        Box::new(Owned(Arc::clone(&dropped))),
+        5,
+        &a,
+    )
+    .unwrap();
+    s.select_engine(Task::Prose, "synthetic", &mut m, &a)
+        .unwrap();
+    let note = s.create(Kind::Note, None, "removal fixture", &a).unwrap();
+    let block = s.append_ink(note.id, vec![stroke(0)], &a).unwrap();
+    let before = s.source_ink(block.id, &a).unwrap();
+    let work = m
+        .prepare_recognition(s.ink_snapshot(block.id, &a).unwrap(), Task::Prose, None)
+        .unwrap();
+    let plan = s.engine_removal_plan(version.id, &a).unwrap();
+    let control = JobControl::new(Duration::from_secs(30)).unwrap();
+    s.inject_failure(FailurePoint::BeforeCommit);
+    assert!(s
+        .commit_engine_removal(&plan, &mut m, &control, &a)
+        .is_err());
+    assert_eq!(m.readiness("synthetic"), Readiness::Ready);
+    assert_eq!(dropped.load(Ordering::SeqCst), 0);
+    assert_eq!(
+        s.active_engine("synthetic", &a).unwrap().unwrap().id,
+        version.id
+    );
+    assert_eq!(
+        s.engine_defaults(&a).unwrap(),
+        vec![(Task::Prose, "synthetic".into())]
+    );
+    let owner = s
+        .commit_engine_removal(&plan, &mut m, &control, &a)
+        .unwrap()
+        .unwrap();
+    assert_eq!(m.readiness("synthetic"), Readiness::Missing);
+    assert_eq!(m.default_for(Task::Prose), None);
+    assert!(s.engine_defaults(&a).unwrap().is_empty());
+    assert!(s.active_engine("synthetic", &a).unwrap().is_none());
+    assert_eq!(
+        s.engine_version(version.id, &a).unwrap().state,
+        Installation::Removed
+    );
+    drop(owner);
+    assert_eq!(dropped.load(Ordering::SeqCst), 0);
+    assert!(matches!(work.run(&control), Err(Error::Cancelled)));
+    assert_eq!(dropped.load(Ordering::SeqCst), 1);
+    assert_eq!(s.source_ink(block.id, &a).unwrap(), before);
+    assert_eq!(std::fs::read(resource).unwrap(), b"model");
+}
+#[test]
+fn owned_removal_rejects_cancelled_foreign_stale_and_runtime_mismatched_plans() {
+    let dir = tempfile::tempdir().unwrap();
+    let a = Access::public();
+    let mut s = Store::memory().unwrap();
+    let mut m = Manager::new();
+    let v = s
+        .stage_engine(descriptor("1"), None, dir.path(), 0, true, &a)
+        .unwrap();
+    s.activate_engine(v.id, &mut m, Box::new(Fake(true)), 0, &a)
+        .unwrap();
+    let plan = s.engine_removal_plan(v.id, &a).unwrap();
+    let cancelled = JobControl::new(Duration::from_secs(30)).unwrap();
+    cancelled.cancel();
+    assert!(matches!(
+        s.commit_engine_removal(&plan, &mut m, &cancelled, &a),
+        Err(Error::Cancelled)
+    ));
+    let control = JobControl::new(Duration::from_secs(30)).unwrap();
+    assert!(matches!(
+        Store::memory()
+            .unwrap()
+            .commit_engine_removal(&plan, &mut m, &control, &a),
+        Err(Error::Conflict)
+    ));
+    let mut other = Manager::new();
+    other
+        .register_recogniser(descriptor("2"), Box::new(Fake(true)))
+        .unwrap();
+    other.activate_local("synthetic", None, true).unwrap();
+    assert!(matches!(
+        s.commit_engine_removal(&plan, &mut other, &control, &a),
+        Err(Error::Conflict)
+    ));
+    assert_eq!(
+        s.engine_version(v.id, &a).unwrap().state,
+        Installation::Installed
+    );
+    s.create(Kind::Note, None, "generation changed", &a)
+        .unwrap();
+    assert!(matches!(
+        s.commit_engine_removal(&plan, &mut m, &control, &a),
+        Err(Error::Conflict)
+    ));
+    assert_eq!(m.readiness("synthetic"), Readiness::Ready);
+    let app = Access::authenticate(
+        &mut common::TestAuth(true),
+        [stem_core::security::Scope::App].into_iter().collect(),
+    )
+    .unwrap();
+    s.set_app_lock(true, &app).unwrap();
+    let protected = s.engine_removal_plan(v.id, &app).unwrap();
+    assert!(matches!(
+        s.commit_engine_removal(&protected, &mut m, &control, &a),
+        Err(Error::Denied)
+    ));
+    assert_eq!(m.readiness("synthetic"), Readiness::Ready);
+}
+#[test]
+fn inactive_and_repeated_removal_preserve_the_active_default_and_do_not_write_twice() {
+    let dir = tempfile::tempdir().unwrap();
+    let a = Access::public();
+    let mut s = Store::memory().unwrap();
+    let mut m = Manager::new();
+    let first = s
+        .stage_engine(descriptor("1"), None, dir.path(), 0, true, &a)
+        .unwrap();
+    s.activate_engine(first.id, &mut m, Box::new(Fake(true)), 0, &a)
+        .unwrap();
+    s.select_engine(Task::Prose, "synthetic", &mut m, &a)
+        .unwrap();
+    let next = s
+        .stage_engine(descriptor("2"), None, dir.path(), 0, true, &a)
+        .unwrap();
+    let control = JobControl::new(Duration::from_secs(30)).unwrap();
+    let plan = s.engine_removal_plan(next.id, &a).unwrap();
+    assert!(s
+        .commit_engine_removal(&plan, &mut m, &control, &a)
+        .unwrap()
+        .is_none());
+    assert_eq!(m.default_for(Task::Prose), Some("synthetic"));
+    assert_eq!(m.descriptor("synthetic").unwrap().version, "1");
+    let active_plan = s.engine_removal_plan(first.id, &a).unwrap();
+    let repeated = s.engine_removal_plan(next.id, &a).unwrap();
+    assert!(s
+        .commit_engine_removal(&repeated, &mut m, &control, &a)
+        .unwrap()
+        .is_none());
+    // A repeated acknowledgement must not advance generation and stale this plan.
+    assert!(s
+        .commit_engine_removal(&active_plan, &mut m, &control, &a)
+        .unwrap()
+        .is_some());
 }

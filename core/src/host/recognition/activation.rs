@@ -84,6 +84,7 @@ impl RecognitionScope {
         let bytes = match &input {
             LifecycleInput::StoredPlan(plan) => charge(plan.version())?,
             LifecycleInput::ImportPlan(plan) => charge(plan.descriptor())?,
+            LifecycleInput::RemovalPlan(plan) => charge(plan.version())?,
             _ => 128,
         };
         {
@@ -114,6 +115,9 @@ impl RecognitionScope {
             LifecycleInput::StoredPlan(plan) => Phase::StoredPlan(Some(plan)),
             LifecycleInput::ImportPlan(plan) => Phase::ImportPlan(Some(plan)),
             LifecycleInput::RecoveryPlan(plan) => Phase::RecoveryPlan(Some(plan)),
+            LifecycleInput::RemovalPlan(plan) => {
+                Phase::RemovalPrepared(Arc::new(super::removal::RemovalCandidate::new(*plan)))
+            }
         };
         let slot = Arc::new(Slot {
             authority: WorkAuthority {
@@ -298,6 +302,7 @@ pub(super) enum LifecycleInput {
     StoredPlan(Box<crate::store::EngineActivationPlan>),
     ImportPlan(Box<crate::store::EngineImportPlan>),
     RecoveryPlan(Box<crate::store::EngineRecoveryPlan>),
+    RemovalPlan(Box<crate::store::EngineRemovalPlan>),
 }
 pub struct HostDetachmentSource {
     slot: Arc<Slot>,

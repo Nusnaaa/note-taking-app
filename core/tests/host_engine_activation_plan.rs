@@ -741,3 +741,103 @@ fn catalogue_distinguishes_installation_from_reload_and_restores_default() {
     assert!(reopened.engine_catalogue(None, 8).unwrap().defaults[0].runtime_ready);
     reopened.close().unwrap();
 }
+
+#[test]
+fn removal_commits_before_off_writer_cleanup_and_close_waits_for_actual_retirement() {
+    let (root, h, id) = fixture(8);
+    let (cleanup, entered, release) = gate();
+    struct Release(mpsc::Sender<()>);
+    impl Drop for Release {
+        fn drop(&mut self) {
+            let _ = self.0.send(());
+        }
+    }
+    let release = Release(release);
+    let (adapter, _) = model(None, Some(cleanup));
+    let prepared = h
+        .engine_activation_plan(id)
+        .unwrap()
+        .prepare_recogniser(adapter, 100, &control())
+        .unwrap();
+    h.install_prepared_engine(&prepared).unwrap();
+    drop(prepared);
+    h.select_engine(Task::Prose, "synthetic").unwrap();
+    let removal = h.engine_removal_plan(id).unwrap();
+    h.remove_prepared_engine(&removal, &control()).unwrap();
+    assert!(matches!(
+        h.remove_prepared_engine(&removal, &control()),
+        Err(Error::Conflict)
+    ));
+    drop(removal);
+    let cleanup_thread = entered.recv_timeout(Duration::from_secs(10)).unwrap();
+    assert_ne!(cleanup_thread, thread::current().id());
+    let page = h.engine_catalogue(None, 8).unwrap();
+    assert_eq!(page.versions[0].version.state, Installation::Removed);
+    assert!(!page.versions[0].runtime_ready);
+    assert!(page.defaults.is_empty());
+    call(
+        &h,
+        Command::Create {
+            kind: Kind::Note,
+            parent: None,
+            title: "authoring while retired SDK blocks".into(),
+        },
+    );
+    let closing = Arc::clone(&h);
+    let (tx, rx) = mpsc::channel();
+    let closer = thread::spawn(move || tx.send(closing.close()).unwrap());
+    wait_for(|| h.recognition_status().closed);
+    assert!(rx.try_recv().is_err());
+    assert!(matches!(
+        Host::open(root.path().join("library.db"), 8),
+        Err(Error::Unavailable)
+    ));
+    release.0.send(()).unwrap();
+    rx.recv_timeout(Duration::from_secs(10)).unwrap().unwrap();
+    closer.join().unwrap();
+    let reopened = Host::open(root.path().join("library.db"), 8).unwrap();
+    assert_eq!(
+        reopened.engine_catalogue(None, 8).unwrap().versions[0]
+            .version
+            .state,
+        Installation::Removed
+    );
+    reopened.close().unwrap();
+}
+#[test]
+fn removal_rejects_foreign_capture_cancel_and_stale_generation_without_disabling_sdk() {
+    let (_root, h, id) = fixture(8);
+    let (adapter, _) = model(None, None);
+    let prepared = h
+        .engine_activation_plan(id)
+        .unwrap()
+        .prepare_recogniser(adapter, 100, &control())
+        .unwrap();
+    h.install_prepared_engine(&prepared).unwrap();
+    drop(prepared);
+    let (_other_root, other, _) = fixture(8);
+    let removal = h.engine_removal_plan(id).unwrap();
+    assert!(other.remove_prepared_engine(&removal, &control()).is_err());
+    let pen = Id::new();
+    h.set_capture_priority(pen, true).unwrap();
+    h.set_capture_priority(pen, false).unwrap();
+    assert!(h.remove_prepared_engine(&removal, &control()).is_err());
+    drop(removal);
+    let stale = h.engine_removal_plan(id).unwrap();
+    call(
+        &h,
+        Command::Create {
+            kind: Kind::Note,
+            parent: None,
+            title: "stale removal fence".into(),
+        },
+    );
+    assert!(matches!(
+        h.remove_prepared_engine(&stale, &control()),
+        Err(Error::Conflict)
+    ));
+    drop(stale);
+    assert!(h.engine_catalogue(None, 8).unwrap().versions[0].runtime_ready);
+    other.close().unwrap();
+    h.close().unwrap();
+}

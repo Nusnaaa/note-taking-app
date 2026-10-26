@@ -17,7 +17,9 @@ use std::{
 };
 mod activation;
 mod recovery;
+pub(super) mod removal;
 pub use recovery::HostEngineRecoveryPlan;
+pub use removal::HostEngineRemovalPlan;
 pub(super) mod resource_import;
 pub(super) use resource_import::ImportPublication;
 pub use resource_import::{
@@ -107,6 +109,11 @@ enum Phase {
     StoredPublished {
         _candidate: Arc<stored_activation::StoredCandidate>,
     },
+    RemovalPrepared(Arc<removal::RemovalCandidate>),
+    RemovalPublishing(Arc<removal::RemovalCandidate>),
+    RemovalPublished {
+        _candidate: Arc<removal::RemovalCandidate>,
+    },
     DetachmentInput,
     RuntimeDetached {
         _runtime: Box<crate::processing::DetachedRuntime>,
@@ -143,7 +150,10 @@ impl Slot {
             let mut phase = self.phase.lock().unwrap_or_else(|p| p.into_inner());
             if matches!(
                 *phase,
-                Phase::Running | Phase::StoredPublishing(_) | Phase::Finished
+                Phase::Running
+                    | Phase::StoredPublishing(_)
+                    | Phase::RemovalPublishing(_)
+                    | Phase::Finished
             ) {
                 return;
             }
