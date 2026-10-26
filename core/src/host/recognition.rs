@@ -18,6 +18,11 @@ use std::{
 mod activation;
 pub(super) mod discard;
 pub use discard::{HostDiscardedEngineImport, HostEngineDiscardPlan, HostPreparedEngineDiscard};
+pub(super) mod reclamation;
+pub use reclamation::{
+    HostEngineReclamationPlan, HostPreparedEngineReclamation, HostReclaimedEngineResource,
+    HostReviewedEngineReclamation,
+};
 mod recovery;
 pub(super) mod removal;
 pub use recovery::HostEngineRecoveryPlan;
@@ -104,6 +109,9 @@ enum Phase {
     StoredPlan(Option<Box<crate::store::EngineActivationPlan>>),
     ImportPlan(Option<Box<crate::store::EngineImportPlan>>),
     DiscardPlan(Option<Box<crate::store::EngineDiscardPlan>>),
+    ReclamationPlan(Option<Box<crate::store::EngineReclamationPlan>>),
+    ReclamationCandidate(Arc<reclamation::ReclamationCandidate>),
+    ReclamationPublishing(Arc<reclamation::ReclamationCandidate>),
     DiscardCandidate(Arc<discard::DiscardCandidate>),
     DiscardPublishing(Arc<discard::DiscardCandidate>),
     RecoveryPlan(Option<Box<crate::store::EngineRecoveryPlan>>),
@@ -160,6 +168,7 @@ impl Slot {
                     | Phase::StoredPublishing(_)
                     | Phase::ImportPublishing(_)
                     | Phase::DiscardPublishing(_)
+                    | Phase::ReclamationPublishing(_)
                     | Phase::RemovalPublishing(_)
                     | Phase::Finished
             ) {

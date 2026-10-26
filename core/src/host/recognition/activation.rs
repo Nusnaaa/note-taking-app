@@ -83,6 +83,7 @@ impl RecognitionScope {
         Store::require_app(&store.db, access)?;
         let bytes = match &input {
             LifecycleInput::DiscardPlan(_) => super::discard::RESERVED_BYTES,
+            LifecycleInput::ReclamationPlan(_) => super::reclamation::RESERVED_BYTES,
             LifecycleInput::StoredPlan(plan) => charge(plan.version())?,
             LifecycleInput::ImportPlan(plan) => charge(plan.descriptor())?,
             LifecycleInput::RemovalPlan(plan) => charge(plan.version())?,
@@ -116,6 +117,7 @@ impl RecognitionScope {
             LifecycleInput::StoredPlan(plan) => Phase::StoredPlan(Some(plan)),
             LifecycleInput::ImportPlan(plan) => Phase::ImportPlan(Some(plan)),
             LifecycleInput::DiscardPlan(plan) => Phase::DiscardPlan(Some(plan)),
+            LifecycleInput::ReclamationPlan(plan) => Phase::ReclamationPlan(Some(plan)),
             LifecycleInput::RecoveryPlan(plan) => Phase::RecoveryPlan(Some(plan)),
             LifecycleInput::RemovalPlan(plan) => {
                 Phase::RemovalPrepared(Arc::new(super::removal::RemovalCandidate::new(*plan)))
@@ -304,6 +306,7 @@ pub(super) enum LifecycleInput {
     StoredPlan(Box<crate::store::EngineActivationPlan>),
     ImportPlan(Box<crate::store::EngineImportPlan>),
     DiscardPlan(Box<crate::store::EngineDiscardPlan>),
+    ReclamationPlan(Box<crate::store::EngineReclamationPlan>),
     RecoveryPlan(Box<crate::store::EngineRecoveryPlan>),
     RemovalPlan(Box<crate::store::EngineRemovalPlan>),
 }

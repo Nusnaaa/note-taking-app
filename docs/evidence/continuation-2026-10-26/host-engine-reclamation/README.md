@@ -1,0 +1,7 @@
+# Host reviewed reclamation lifecycle
+
+ADR 035 keeps native review directory descriptors and prepared/result resource guards in private lifecycle cells. Worker stages use linked capture/relock/expiry/caller control; metadata-only writer publication borrows a phase-pinned cell and retains known SQL results through late cancellation. Stable action IDs and app-only bounded history support explicit uncertain-outcome recovery. No ordinary notebook JSON deletion route or production H.I. is added.
+
+Final component commands passed: Host reclamation 8, Core reclamation 11, existing Host discard 6 and Host import 7 integration tests, plus two private writer-borrow/capture cases: 34 total, zero failures. All-target denied-warning Clippy, formatting and traceability passed. Source hashes include the new Host implementation/test/ADR. Full source-tagged native/Android proof is separate.
+
+Cases cover authoring and nonexclusive review, durable Pending before deletion, capture invalidation without revival at pen-up, relock/caller cancellation, explicit retry with appended decisions, lost completion and close/reopen with surviving result handles, close with a surviving review, consent/capacity/foreign-host refusal, independent SDK-owner exclusion and fresh app protection. Private cases test both Pending authorisation and Completed recording barriers. JNI/Android review-session ownership and all broader backend gaps remain OPEN.

@@ -1,0 +1,13 @@
+$ cargo test -p stem-core --lib host::recognition::reclamation::tests --locked --offline
+exit_code=0
+
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 42.80s
+     Running unittests src/lib.rs (/tmp/stem-pen-response-target/debug/deps/stem_core-8a459d8a65baac19)
+
+running 2 tests
+test host::recognition::reclamation::tests::capture_cannot_retire_an_authorising_reclamation_cell ... ok
+test host::recognition::reclamation::tests::capture_cannot_retire_a_completing_reclamation_cell ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 41 filtered out; finished in 0.09s
+

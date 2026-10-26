@@ -1,0 +1,61 @@
+$ cargo test -p stem-core --test host_engine_reclamation --test engine_reclamation --test host_engine_discard --test host_engine_import --locked --offline
+exit_code=0
+
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 56.53s
+     Running tests/engine_reclamation.rs (/tmp/stem-pen-response-target/debug/deps/engine_reclamation-7c9d9efae0b3ce38)
+
+running 11 tests
+test foreign_ledger_and_fresh_app_access_cannot_be_overridden_by_review_flags ... ok
+test explicit_symlink_review_unlinks_only_the_known_link_and_preserves_its_target ... ok
+test installed_or_staged_versions_refuse_reclamation_and_review_flags_never_bypass_a_live_sdk_pin ... ok
+test legacy_binding_is_reviewed_without_inventing_original_consent ... ok
+test lost_completion_is_explicitly_retried_with_an_additional_durable_review ... ok
+test persisted_uncertain_retirement_requires_explicit_review_and_is_never_silently_reset ... ok
+test review_directory_replacement_and_file_changes_require_fresh_review ... ok
+test reviewed_consent_is_durable_before_known_files_are_removed_and_ink_is_independent ... ok
+test real_schema17_layout_migrates_and_legacy_backup_tag_cannot_smuggle_reclamations ... ok
+test sql_failure_and_cancellation_do_not_delete_files_and_preparation_keys_cannot_be_rebound ... ok
+test schema18_classic_and_stream_backups_preserve_decisions_without_paths_or_deletion_authority ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 48.91s
+
+     Running tests/host_engine_discard.rs (/tmp/stem-pen-response-target/debug/deps/host_engine_discard-1c512e0a33dccd5e)
+
+running 6 tests
+test action_history_and_new_plans_require_current_app_authority ... ok
+test admission_and_foreign_host_publication_are_bounded_and_file_neutral ... ok
+test capture_after_consent_cancels_file_work_and_explicit_retry_keeps_original_action ... ok
+test deleted_files_with_lost_completion_recover_after_close_without_rollback_claim ... ok
+test durable_pending_precedes_deletion_and_completed_receipt_is_idempotent ... ok
+test relock_and_parent_cancellation_never_grant_file_deletion ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.30s
+
+     Running tests/host_engine_import.rs (/tmp/stem-pen-response-target/debug/deps/host_engine_import-a03a7dc31d2d3ae9)
+
+running 7 tests
+test cancelled_prepared_import_retires_ownership_without_staging_metadata ... ok
+test authoring_runs_during_blocked_reader_and_pen_cancel_preserves_explicit_resume ... ok
+test close_waits_for_reader_return_and_actual_reader_destructor_before_reopen ... ok
+test foreign_host_and_stale_generation_cannot_publish_and_fresh_resume_keeps_transfer_id ... ok
+test host_prepared_publication_owns_transfer_until_actual_retirement ... ok
+test provider_error_payload_retires_inside_running_scope_and_cannot_escape_with_library_owner ... ok
+test metadata_reservation_is_bounded_and_completed_import_does_not_load_a_runtime ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.26s
+
+     Running tests/host_engine_reclamation.rs (/tmp/stem-pen-response-target/debug/deps/host_engine_reclamation-2d02cb65ae321491)
+
+running 8 tests
+test close_retires_review_directory_ownership_even_when_caller_retains_the_handle ... ok
+test capture_invalidates_a_waiting_review_and_never_revives_it_at_pen_up ... ok
+test fresh_app_authority_gates_history_and_review_creation ... ok
+test logical_removal_does_not_acknowledge_an_independently_retained_sdk_owner ... ok
+test consent_parent_cancellation_foreign_host_and_capacity_fail_without_deletion ... ok
+test relock_after_pending_cancels_deletion_and_explicit_retry_appends_new_consent ... ok
+test lost_completion_recovers_after_close_while_old_result_handle_survives ... ok
+test review_defers_exclusivity_and_writer_consent_precedes_deletion_with_idempotent_completion ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.47s
+

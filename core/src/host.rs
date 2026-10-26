@@ -39,9 +39,11 @@ use recognition::RecognitionScope;
 pub use recognition::{
     HostActivationSource, HostActivationWork, HostCompletedActivation, HostDetachedRuntime,
     HostDetachmentSource, HostDiscardedEngineImport, HostEngineActivationPlan,
-    HostEngineDiscardPlan, HostEngineImportPlan, HostEngineImportTransfer, HostEngineRecoveryPlan,
-    HostEngineRemovalPlan, HostPreparedEngineActivation, HostPreparedEngineDiscard,
-    HostPreparedEngineImport, HostRecognitionWork, RecognitionSource, RecognitionStatus,
+    HostEngineDiscardPlan, HostEngineImportPlan, HostEngineImportTransfer,
+    HostEngineReclamationPlan, HostEngineRecoveryPlan, HostEngineRemovalPlan,
+    HostPreparedEngineActivation, HostPreparedEngineDiscard, HostPreparedEngineImport,
+    HostPreparedEngineReclamation, HostReclaimedEngineResource, HostRecognitionWork,
+    HostReviewedEngineReclamation, RecognitionSource, RecognitionStatus,
 };
 mod pdf;
 use crate::sources::PdfSelectionTarget;
@@ -471,6 +473,22 @@ enum Message {
     ActivationSource(mpsc::Sender<Result<HostActivationSource>>),
     EngineActivationPlan(Id, mpsc::Sender<Result<HostEngineActivationPlan>>),
     EngineRecoveryPlan(mpsc::Sender<Result<HostEngineRecoveryPlan>>),
+    EngineReclamationPlan(
+        Id,
+        Option<Id>,
+        mpsc::Sender<Result<HostEngineReclamationPlan>>,
+    ),
+    PublishEngineReclamation(
+        recognition::reclamation::ReclamationPublication,
+        bool,
+        mpsc::Sender<Result<crate::store::EngineReclamation>>,
+    ),
+    EngineReclamation(Id, mpsc::Sender<Result<crate::store::EngineReclamation>>),
+    EngineReclamations(
+        Option<Id>,
+        usize,
+        mpsc::Sender<Result<crate::store::EngineReclamations>>,
+    ),
     EngineDiscardPlan(
         Id,
         bool,
@@ -706,6 +724,44 @@ impl Host {
                                     )
                                 }))
                                 .unwrap_or(Err(Error::WorkerFailed));
+                            let _ =
+                                input.complete(envelope.authoring, envelope.bytes, result.is_err());
+                            let _ = reply.send(result);
+                        }
+                        Message::EngineReclamationPlan(id, resume, reply) => {
+                            let result =
+                                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                                    recognition_scope
+                                        .engine_reclamation_plan(&store, &access, id, resume)
+                                }))
+                                .unwrap_or(Err(Error::WorkerFailed));
+                            let _ =
+                                input.complete(envelope.authoring, envelope.bytes, result.is_err());
+                            let _ = reply.send(result);
+                        }
+                        Message::PublishEngineReclamation(publication, complete, reply) => {
+                            let result =
+                                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                                    recognition_scope.publish_reclamation(
+                                        &mut store,
+                                        &access,
+                                        publication,
+                                        complete,
+                                    )
+                                }))
+                                .unwrap_or(Err(Error::WorkerFailed));
+                            let _ =
+                                input.complete(envelope.authoring, envelope.bytes, result.is_err());
+                            let _ = reply.send(result);
+                        }
+                        Message::EngineReclamation(id, reply) => {
+                            let result = store.engine_reclamation(id, &access);
+                            let _ =
+                                input.complete(envelope.authoring, envelope.bytes, result.is_err());
+                            let _ = reply.send(result);
+                        }
+                        Message::EngineReclamations(after, limit, reply) => {
+                            let result = store.engine_reclamations(after, limit, &access);
                             let _ =
                                 input.complete(envelope.authoring, envelope.bytes, result.is_err());
                             let _ = reply.send(result);
@@ -1087,6 +1143,64 @@ impl Host {
             true,
             128,
         )?;
+        rx.recv().map_err(|_| Error::WorkerFailed)?
+    }
+    pub fn engine_reclamation_plan(
+        &self,
+        version: Id,
+        resume_action: Option<Id>,
+    ) -> Result<HostEngineReclamationPlan> {
+        let (tx, rx) = mpsc::channel();
+        self.mailbox.admit(
+            Message::EngineReclamationPlan(version, resume_action, tx),
+            false,
+            128,
+        )?;
+        rx.recv().map_err(|_| Error::WorkerFailed)?
+    }
+    pub fn authorise_engine_reclamation(
+        &self,
+        prepared: &HostPreparedEngineReclamation,
+        control: &crate::processing::JobControl,
+    ) -> Result<crate::store::EngineReclamation> {
+        let (tx, rx) = mpsc::channel();
+        self.mailbox.admit(
+            Message::PublishEngineReclamation(prepared.publication(control), false, tx),
+            true,
+            128,
+        )?;
+        rx.recv().map_err(|_| Error::WorkerFailed)?
+    }
+    pub fn complete_engine_reclamation(
+        &self,
+        reclaimed: &HostReclaimedEngineResource,
+        control: &crate::processing::JobControl,
+    ) -> Result<crate::store::EngineReclamation> {
+        let (tx, rx) = mpsc::channel();
+        self.mailbox.admit(
+            Message::PublishEngineReclamation(reclaimed.publication(control), true, tx),
+            true,
+            128,
+        )?;
+        rx.recv().map_err(|_| Error::WorkerFailed)?
+    }
+    pub fn engine_reclamation(&self, id: Id) -> Result<crate::store::EngineReclamation> {
+        let (tx, rx) = mpsc::channel();
+        self.mailbox
+            .admit(Message::EngineReclamation(id, tx), false, 128)?;
+        rx.recv().map_err(|_| Error::WorkerFailed)?
+    }
+    pub fn engine_reclamations(
+        &self,
+        after: Option<Id>,
+        limit: usize,
+    ) -> Result<crate::store::EngineReclamations> {
+        if !(1..=128).contains(&limit) {
+            return Err(Error::ResourceLimit);
+        }
+        let (tx, rx) = mpsc::channel();
+        self.mailbox
+            .admit(Message::EngineReclamations(after, limit, tx), false, 128)?;
         rx.recv().map_err(|_| Error::WorkerFailed)?
     }
     pub fn engine_discard_plan(

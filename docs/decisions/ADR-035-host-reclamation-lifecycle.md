@@ -1,0 +1,13 @@
+# ADR 035 — Host-owned reviewed resource reclamation
+
+Status: native Host lifecycle implementation; component/full verification recorded separately. JNI/Android review-owner adoption and broader backend acceptance remain open.
+
+The app-authorised writer reserves a Removed-version plan and stable action ID. Worker review creates a Host-reviewed owner with immutable path-free summary; its Core directory descriptor remains inside a private lifecycle cell. Review holds no transfer/SDK exclusivity, allowing authoring and ongoing resource owners to continue until explicit consent. Consuming preparation links current scope/caller control, acquires the actual Core guards and transitions to a prepared cell. No ordinary notebook JSON route is introduced.
+
+The lifecycle shares optional admission, capture/relock/close epochs, app-access expiry and library ownership with recognition/import/discard. Each plan reserves 1 MiB against the existing aggregate metadata budget for coexisting bounded record/review/permit snapshots. This is an engineering memory bound, not a performance SLO. Dropped or cancelled idle owners retire actual directory/resource descriptors on the optional retirement lane. Running worker steps keep admission/library ownership through real return and disposal. A surviving inert review/result handle cannot reopen or revive a closed scope.
+
+Writer Pending authorisation and Completed recording receive only weak publication references/control and borrow a private candidate. A dedicated ReclamationPublishing phase excludes idle cancellation while writer temporaries hold references. Those temporaries are dropped before retirement is enabled, keeping file-owner destruction off the writer. Known SQL success is retained if cancellation races the reply. Worker deletion consumes the prepared owner/permit under linked authority; errors do not promise physical or metadata rollback. Explicit retry appends a newly reviewed consent decision to durable Pending history.
+
+Fresh app-only record/page methods expose bounded historical data without paths or live capabilities. Logical Removed or an empty current Manager is never accepted as proof of resource retirement: Core exclusivity still refuses an independently retained SDK. The reviewed owner is a native single-use capability, not serializable review JSON. JNI/Android must retain that owner across human confirmation and explicitly track it through controller/backend close; a completed ordinary asynchronous review operation alone is insufficient ownership.
+
+Synthetic Host fixtures cover component lifecycle behavior only. Full source-tagged validators, actual device/ART/SDK rights/quality, hard isolation and other acceptance assertions remain separate. Production H.I. remains gated.
