@@ -1,0 +1,4 @@
+Host-owned stored activation preparation
+=======================================
+
+Commands: cargo test -p stem-core --test host_engine_activation_plan --test engine_activation_plan --test host_activation --test host_recognition --locked --offline (38 passed); cargo clippy --workspace --all-targets --locked --offline -- -D warnings (passed). Isolated target, debug disabled, offline cached toolchain. Logs preserve commands/results. The five new synthetic lifecycle cases cover admission, authoring during a blocked probe, capture/relock cancellation, and library ownership through real probe/destructor retirement. These establish no real model readiness or device performance. Earlier fixture/compiler iterations are development only. Durable controller publication is still pending and all eight backend gaps remain open.

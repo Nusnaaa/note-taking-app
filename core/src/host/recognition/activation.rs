@@ -33,9 +33,9 @@ impl Drop for HostCompletedActivation {
         self.slot.cancel_idle();
     }
 }
-struct Running {
-    slot: Arc<Slot>,
-    armed: bool,
+pub(super) struct Running {
+    pub(super) slot: Arc<Slot>,
+    pub(super) armed: bool,
 }
 impl Drop for Running {
     fn drop(&mut self) {
@@ -53,7 +53,7 @@ impl Drop for Running {
         }
     }
 }
-fn finish_running(slot: &Arc<Slot>, phase: Phase, running: &mut Running) -> Result<()> {
+pub(super) fn finish_running(slot: &Arc<Slot>, phase: Phase, running: &mut Running) -> Result<()> {
     let current = {
         let mut state = slot.lease.scope.state();
         let mut stored = slot.phase.lock().unwrap_or_else(|p| p.into_inner());
@@ -74,13 +74,17 @@ fn finish_running(slot: &Arc<Slot>, phase: Phase, running: &mut Running) -> Resu
     Ok(())
 }
 impl RecognitionScope {
-    fn lifecycle_slot(
+    pub(super) fn lifecycle_slot(
         self: &Arc<Self>,
         store: &Store,
         access: &Access,
         input: LifecycleInput,
     ) -> Result<Arc<Slot>> {
         Store::require_app(&store.db, access)?;
+        let bytes = match &input {
+            LifecycleInput::StoredPlan(plan) => charge(plan.version())?,
+            _ => 128,
+        };
         {
             let state = self.state();
             if state.closed {
@@ -97,7 +101,8 @@ impl RecognitionScope {
         }
         if !state.capture.is_empty()
             || state.entries.len() >= self.capacity
-            || 128 > MAX_SOURCE_BYTES.saturating_sub(state.entries.values().map(|e| e.bytes).sum())
+            || bytes
+                > MAX_SOURCE_BYTES.saturating_sub(state.entries.values().map(|e| e.bytes).sum())
         {
             return Err(Error::ResourceLimit);
         }
@@ -105,6 +110,7 @@ impl RecognitionScope {
         let phase = match input {
             LifecycleInput::Activation => Phase::ActivationInput,
             LifecycleInput::Detachment => Phase::DetachmentInput,
+            LifecycleInput::StoredPlan(plan) => Phase::StoredPlan(Some(plan)),
         };
         let slot = Arc::new(Slot {
             authority: WorkAuthority {
@@ -123,7 +129,7 @@ impl RecognitionScope {
             ticket,
             Entry {
                 slot: Arc::downgrade(&slot),
-                bytes: 128,
+                bytes,
                 running: None,
                 retiring: None,
                 retire_pending: false,
@@ -283,9 +289,10 @@ impl HostCompletedActivation {
     }
 }
 
-enum LifecycleInput {
+pub(super) enum LifecycleInput {
     Activation,
     Detachment,
+    StoredPlan(Box<crate::store::EngineActivationPlan>),
 }
 pub struct HostDetachmentSource {
     slot: Arc<Slot>,

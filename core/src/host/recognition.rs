@@ -16,10 +16,12 @@ use std::{
     thread::{self, ThreadId},
 };
 mod activation;
+pub(super) mod stored_activation;
 pub use activation::{
     HostActivationSource, HostActivationWork, HostCompletedActivation, HostDetachedRuntime,
     HostDetachmentSource,
 };
+pub use stored_activation::{HostEngineActivationPlan, HostPreparedEngineActivation};
 const MAX_FRAME: usize = 8 * 1024 * 1024;
 const MAX_SOURCE_BYTES: usize = 32 * 1024 * 1024;
 pub(super) fn charge(value: &impl Serialize) -> Result<usize> {
@@ -87,6 +89,10 @@ enum Phase {
     Source(Option<InkSnapshot>),
     Prepared(Option<Box<RecognitionWork>>),
     ActivationInput,
+    StoredPlan(Option<Box<crate::store::EngineActivationPlan>>),
+    StoredPrepared {
+        _prepared: Box<crate::store::PreparedEngineActivation>,
+    },
     DetachmentInput,
     RuntimeDetached {
         _runtime: Box<crate::processing::DetachedRuntime>,

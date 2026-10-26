@@ -35,7 +35,8 @@ mod recognition;
 use recognition::RecognitionScope;
 pub use recognition::{
     HostActivationSource, HostActivationWork, HostCompletedActivation, HostDetachedRuntime,
-    HostDetachmentSource, HostRecognitionWork, RecognitionSource, RecognitionStatus,
+    HostDetachmentSource, HostEngineActivationPlan, HostPreparedEngineActivation,
+    HostRecognitionWork, RecognitionSource, RecognitionStatus,
 };
 mod pdf;
 use crate::sources::PdfSelectionTarget;
@@ -451,6 +452,7 @@ enum Message {
     Backup(Box<backup::Request>),
     RecognitionSource(Id, Option<Id>, mpsc::Sender<Result<RecognitionSource>>),
     ActivationSource(mpsc::Sender<Result<HostActivationSource>>),
+    EngineActivationPlan(Id, mpsc::Sender<Result<HostEngineActivationPlan>>),
     DetachmentSource(mpsc::Sender<Result<HostDetachmentSource>>),
     PublishRecognition(
         Box<CompletedRecognition>,
@@ -583,6 +585,16 @@ impl Host {
                             let result =
                                 std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                                     recognition_scope.detachment_source(&store, &access)
+                                }))
+                                .unwrap_or(Err(Error::WorkerFailed));
+                            let _ =
+                                input.complete(envelope.authoring, envelope.bytes, result.is_err());
+                            let _ = reply.send(result);
+                        }
+                        Message::EngineActivationPlan(id, reply) => {
+                            let result =
+                                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                                    recognition_scope.engine_activation_plan(&store, &access, id)
                                 }))
                                 .unwrap_or(Err(Error::WorkerFailed));
                             let _ =
@@ -796,6 +808,13 @@ impl Host {
         let (tx, rx) = mpsc::channel();
         self.mailbox
             .admit(Message::DetachmentSource(tx), false, 128)?;
+        rx.recv().map_err(|_| Error::WorkerFailed)?
+    }
+    /// Capture stored version metadata and reserve optional preparation work.
+    pub fn engine_activation_plan(&self, version: Id) -> Result<HostEngineActivationPlan> {
+        let (tx, rx) = mpsc::channel();
+        self.mailbox
+            .admit(Message::EngineActivationPlan(version, tx), false, 128)?;
         rx.recv().map_err(|_| Error::WorkerFailed)?
     }
     /// Reserve optional lifecycle work without sending callbacks to the writer.
