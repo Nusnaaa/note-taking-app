@@ -113,6 +113,7 @@ impl RecognitionScope {
             LifecycleInput::Detachment => Phase::DetachmentInput,
             LifecycleInput::StoredPlan(plan) => Phase::StoredPlan(Some(plan)),
             LifecycleInput::ImportPlan(plan) => Phase::ImportPlan(Some(plan)),
+            LifecycleInput::RecoveryPlan(plan) => Phase::RecoveryPlan(Some(plan)),
         };
         let slot = Arc::new(Slot {
             authority: WorkAuthority {
@@ -296,6 +297,7 @@ pub(super) enum LifecycleInput {
     Detachment,
     StoredPlan(Box<crate::store::EngineActivationPlan>),
     ImportPlan(Box<crate::store::EngineImportPlan>),
+    RecoveryPlan(Box<crate::store::EngineRecoveryPlan>),
 }
 pub struct HostDetachmentSource {
     slot: Arc<Slot>,

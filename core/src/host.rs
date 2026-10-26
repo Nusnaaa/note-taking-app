@@ -39,8 +39,8 @@ use recognition::RecognitionScope;
 pub use recognition::{
     HostActivationSource, HostActivationWork, HostCompletedActivation, HostDetachedRuntime,
     HostDetachmentSource, HostEngineActivationPlan, HostEngineImportPlan, HostEngineImportTransfer,
-    HostPreparedEngineActivation, HostPreparedEngineImport, HostRecognitionWork, RecognitionSource,
-    RecognitionStatus,
+    HostEngineRecoveryPlan, HostPreparedEngineActivation, HostPreparedEngineImport,
+    HostRecognitionWork, RecognitionSource, RecognitionStatus,
 };
 mod pdf;
 use crate::sources::PdfSelectionTarget;
@@ -469,6 +469,7 @@ enum Message {
     RecognitionSource(Id, Option<Id>, mpsc::Sender<Result<RecognitionSource>>),
     ActivationSource(mpsc::Sender<Result<HostActivationSource>>),
     EngineActivationPlan(Id, mpsc::Sender<Result<HostEngineActivationPlan>>),
+    EngineRecoveryPlan(mpsc::Sender<Result<HostEngineRecoveryPlan>>),
     EngineImportPlan(
         Box<crate::processing::Descriptor>,
         u64,
@@ -680,6 +681,16 @@ impl Host {
                                         consented,
                                         &access,
                                     )
+                                }))
+                                .unwrap_or(Err(Error::WorkerFailed));
+                            let _ =
+                                input.complete(envelope.authoring, envelope.bytes, result.is_err());
+                            let _ = reply.send(result);
+                        }
+                        Message::EngineRecoveryPlan(reply) => {
+                            let result =
+                                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                                    recognition_scope.engine_recovery_plan(&store, &access)
                                 }))
                                 .unwrap_or(Err(Error::WorkerFailed));
                             let _ =
@@ -991,6 +1002,13 @@ impl Host {
             true,
             128,
         )?;
+        rx.recv().map_err(|_| Error::WorkerFailed)?
+    }
+    /// Reserve read-only private-depot discovery; scanning is optional-worker work.
+    pub fn engine_recovery_plan(&self) -> Result<HostEngineRecoveryPlan> {
+        let (tx, rx) = mpsc::channel();
+        self.mailbox
+            .admit(Message::EngineRecoveryPlan(tx), false, 128)?;
         rx.recv().map_err(|_| Error::WorkerFailed)?
     }
     /// Capture stored version metadata and reserve optional preparation work.

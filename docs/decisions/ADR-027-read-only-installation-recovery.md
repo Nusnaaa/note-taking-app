@@ -1,0 +1,11 @@
+# ADR 027 — read-only installation recovery
+
+Status: native Store/Host recovery discovery; JNI/Android recovery adoption, explicit discard and uninstall integration remain open.
+
+A current app-authorised recovery plan captures library identity and access expiry without opening the model depot on the writer. Its worker scans canonical UUID `.install.json` names, retaining the smallest limit+1 eligible IDs in bounded memory rather than sorting the directory. Pages allow 1–128 entries and at most 4 MiB of serialized entry metadata; internal candidate metadata is bounded by 129 records of at most 64 KiB each. Directory scanning remains proportional to directory size and checks cancellation per entry and around bounded file reads. These are engineering bounds, not timing or device-memory guarantees.
+
+Discovery never calls Transfer.resume: resume intentionally truncates an unacknowledged part tail. Recovery opens no file for writing, creates no directory, stages no engine and loads no SDK. It omits records bound to another library. Legacy unbound ledgers return only ID and ReviewRequired; malformed, oversized, nonregular or structurally inconsistent records return only ID and Invalid. Neither kind is deleted automatically. A missing depot is empty; other I/O failures return an error without a partial page. Symlink depot roots and ledger files are rejected rather than followed.
+
+Bound records expose descriptor provenance, recorded consent timestamp, declared total and durable committed offset without managed filesystem paths. Interrupted means a structurally usable ledger/part pair, not verified model bytes. RecordedComplete means the ledger records completion and the resource has the declared size; current hashes and runtime readiness are not inferred. Explicit resume/finish rechecks resource integrity, and separate fenced staging/activation is still required.
+
+The Host reserves this work in the existing bounded optional lifecycle. The caller's running scope holds library ownership through actual directory/file access, links job control to capture/current access/deadline authority, and rechecks that authority before returning metadata. No scope/phase mutex stays held across filesystem work. This does not provide hostile-process isolation or close the remaining model-lifecycle acceptance gap.

@@ -1,0 +1,7 @@
+# Read-only native installation recovery
+
+`cargo test -p stem-core --test engine_recovery --test host_engine_import --test engine_import_plan --locked --offline`: 21 passed, zero failed/ignored. `cargo test -p stem-core --lib provisioning::recovery::tests --locked --offline`: 1 passed, zero failed/ignored (33 filtered). `cargo clippy --workspace --all-targets --locked --offline -- -D warnings`, `cargo fmt --all -- --check`, `python3 tools/traceability.py --check` and `git diff --check`: passed. Cached offline Rust toolchain, CARGO_INCREMENTAL=0, CARGO_BUILD_JOBS=2, /tmp/stem-pen-response-target default debug.
+
+Eight new integration cases and one scan-control unit case cover tail preservation and absent SQL staging, foreign-library omission, legacy/corrupt redaction, keyset pagination, metadata byte-budget continuation, missing depot/no creation, cancellation, symlink/oversized-file rejection, current app access, bounded Host reservations, capture/relock invalidation, and the distinction between recorded completion and actual resource hash verification. File bytes are synthetic. No resource is uploaded, no SDK is loaded, and no directory scan calls mutating resume.
+
+Full-source validation is separate. These tests do not prove device performance, real model rights/quality, hard process isolation or complete backend acceptance. JNI/Android recovery, explicit discard/uninstall and all eight backend gaps remain open.

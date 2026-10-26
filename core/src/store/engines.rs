@@ -4,9 +4,11 @@ use super::*;
 mod activation;
 mod catalogue;
 mod import;
+mod recovery;
 pub use activation::{EngineActivationPlan, PreparedEngineActivation};
 pub use catalogue::{EngineCatalogue, EngineCatalogueRow};
 pub use import::{EngineImportPlan, EngineImportTransfer, PreparedEngineImport};
+pub use recovery::EngineRecoveryPlan;
 
 use crate::{
     digest, now_ms,

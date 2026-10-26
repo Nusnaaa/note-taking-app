@@ -16,6 +16,8 @@ use std::{
     thread::{self, ThreadId},
 };
 mod activation;
+mod recovery;
+pub use recovery::HostEngineRecoveryPlan;
 pub(super) mod resource_import;
 pub(super) use resource_import::ImportPublication;
 pub use resource_import::{
@@ -97,6 +99,7 @@ enum Phase {
     ActivationInput,
     StoredPlan(Option<Box<crate::store::EngineActivationPlan>>),
     ImportPlan(Option<Box<crate::store::EngineImportPlan>>),
+    RecoveryPlan(Option<Box<crate::store::EngineRecoveryPlan>>),
     ImportTransfer(Option<Box<crate::store::EngineImportTransfer>>),
     ImportPrepared(Option<Box<crate::store::PreparedEngineImport>>),
     StoredPrepared(Arc<stored_activation::StoredCandidate>),

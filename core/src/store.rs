@@ -368,8 +368,8 @@ impl Store {
 pub use capture_recovery::CaptureTargetState;
 pub use engines::{
     EngineActivationPlan, EngineCatalogue, EngineCatalogueRow, EngineImportPlan,
-    EngineImportTransfer, EngineVersion, Installation, PreparedEngineActivation,
-    PreparedEngineImport,
+    EngineImportTransfer, EngineRecoveryPlan, EngineVersion, Installation,
+    PreparedEngineActivation, PreparedEngineImport,
 };
 pub use exercises::{
     Exercise, ExtractionCandidate, ExtractionPlan, MembershipChange, MembershipOperation,

@@ -1,10 +1,12 @@
 //! Consent-based, resumable local model-resource transfer. No URL fetching or code
 //! loading. The host feeds explicitly selected bytes and retains the install ID.
+pub(crate) mod recovery;
 use crate::{
     digest,
     processing::{Descriptor, Manager},
     Error, Id, Result,
 };
+pub use recovery::{RecoveryEntry, RecoveryPage, RecoveryState};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::{

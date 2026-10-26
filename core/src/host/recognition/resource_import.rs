@@ -44,7 +44,10 @@ impl Drop for HostPreparedEngineImport {
         self.slot.cancel_idle();
     }
 }
-fn take_running<T>(slot: &Arc<Slot>, take: impl FnOnce(&mut Phase) -> Option<T>) -> Result<T> {
+pub(super) fn take_running<T>(
+    slot: &Arc<Slot>,
+    take: impl FnOnce(&mut Phase) -> Option<T>,
+) -> Result<T> {
     let mut state = slot.lease.scope.state();
     slot.authority.check()?;
     if state.closed {
@@ -62,7 +65,7 @@ fn take_running<T>(slot: &Arc<Slot>, take: impl FnOnce(&mut Phase) -> Option<T>)
 }
 // In particular, do not let a provider-owned io::Error payload escape the running
 // entry and release library ownership before its actual destructor returns.
-fn worker<T>(run: impl FnOnce() -> Result<T>) -> Result<T> {
+pub(super) fn worker<T>(run: impl FnOnce() -> Result<T>) -> Result<T> {
     std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| match run() {
         Err(Error::Io(error)) => {
             let safe = io::Error::from(error.kind());
