@@ -33,6 +33,34 @@ class JournaledCaptureIntegrationTest {
         return MotionEvent.obtain(10, time, action, 1, arrayOf(property), arrayOf(coordinate), 0, 0, 1f, 1f, 0, 0, InputDevice.SOURCE_STYLUS, 0)
     }
     private fun submit(session: JournaledCaptureSession, action: Int, time: Long): JournaledCaptureSession.Submission = event(action, time).let { try { session.accept(it).single() } finally { it.recycle() } }
+    @Test(timeout = 30_000) fun compoundSourceSpaceErasureRestoresSeveralCapturedBlocksWithOneNativeUndo() {
+        val context = platform(temporary.newFolder()); var backend = NotebookBackend(context)
+        try {
+            val entity = note(backend); val session = backend.openCaptureSession(entity, "fixed-space")
+            for (offset in listOf(0L, 20L)) {
+                submit(session, MotionEvent.ACTION_DOWN, 10 + offset).receipt.get(5, TimeUnit.SECONDS)
+                assertTrue(submit(session, MotionEvent.ACTION_UP, 20 + offset).receipt.get(5, TimeUnit.SECONDS).committed)
+            }
+            val original = blocks(backend, entity); assertEquals(2, original.length())
+            val targets = org.json.JSONArray(); val sources = mutableMapOf<String, String>()
+            for (index in 0 until original.length()) {
+                val block = original.getJSONObject(index); val id = block.getString("id")
+                sources[id] = call(backend, JSONObject().put("op", "SourceInk").put("block", id)).getJSONArray("data").toString()
+                targets.put(JSONObject().put("block", id).put("revision", block.getLong("revision")).put("gesture", JSONObject().put("coordinate_space", "fixed-space").put("radius", 0.25).put("path", org.json.JSONArray().put(org.json.JSONArray().put(0.125).put(3.5)))))
+            }
+            val erased = call(backend, JSONObject().put("op", "EraseGestures").put("targets", targets)).getJSONArray("data")
+            assertEquals(2, erased.length()); for (index in 0 until erased.length()) assertEquals(0, erased.getJSONObject(index).getJSONArray("visible_strokes").length())
+            call(backend, JSONObject().put("op", "Undo").put("entity", entity.toString()))
+            val restored = blocks(backend, entity); for (index in 0 until restored.length()) assertEquals(1, restored.getJSONObject(index).getJSONArray("visible_strokes").length())
+            call(backend, JSONObject().put("op", "Redo").put("entity", entity.toString()))
+            backend.closeFullyAsync().get(5, TimeUnit.SECONDS); backend = NotebookBackend(context)
+            val reopened = blocks(backend, entity); for (index in 0 until reopened.length()) {
+                val block = reopened.getJSONObject(index); val id = block.getString("id")
+                assertEquals(0, block.getJSONArray("visible_strokes").length())
+                assertEquals(sources[id], call(backend, JSONObject().put("op", "SourceInk").put("block", id)).getJSONArray("data").toString())
+            }
+        } finally { backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
+    }
     @Test(timeout = 30_000) fun sourceSpaceEraserUsesNativeCasUndoAndPreservesCapturedObservationsAcrossReopen() {
         val context = platform(temporary.newFolder()); var backend = NotebookBackend(context)
         try {

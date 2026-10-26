@@ -543,8 +543,6 @@ impl Store {
         })
     }
     /// One explicitly targeted whole-stroke gesture is one reversible operation.
-    /// Path coordinates already use the recorded source space; layout transforms
-    /// and device coordinates are deliberately not applied implicitly.
     pub fn erase_gesture(
         &mut self,
         id: Id,
@@ -552,34 +550,87 @@ impl Store {
         gesture: &crate::ink::EraserGesture,
         access: &Access,
     ) -> Result<Block> {
-        let b = Self::read_block(&self.db, id, access)?;
-        if b.revision != revision {
-            return Err(Error::Conflict);
-        }
-        if !b.visible || b.display != Display::Original {
-            return Err(Error::Unavailable);
-        }
+        // Bound caller-owned input before copying it into the compound wrapper.
         gesture.validate()?;
-        if b.visible_strokes.len() > 4096 {
+        self.erase_gestures(
+            &[crate::ink::EraserGestureTarget {
+                block: id,
+                revision,
+                gesture: gesture.clone(),
+            }],
+            access,
+        )?
+        .pop()
+        .ok_or(Error::Integrity)
+    }
+    /// All targets belong to one master surface. Every scope/revision is checked
+    /// before mutation; one failed target rolls back the complete operation.
+    pub fn erase_gestures(
+        &mut self,
+        targets: &[crate::ink::EraserGestureTarget],
+        access: &Access,
+    ) -> Result<Vec<Block>> {
+        if targets.is_empty() {
+            return Err(Error::Invalid("eraser targets"));
+        }
+        if targets.len() > 256 {
             return Err(Error::ResourceLimit);
         }
-        let mut source = b.clone();
-        source
-            .source_ids
-            .retain(|id| b.visible_strokes.contains(id));
+        let mut seen = BTreeSet::new();
         let mut remaining = 1_000_000usize;
-        let mut hits = Vec::new();
-        for source in &b.visible_strokes {
-            let stroke = Self::original_stroke(&self.db, b.id, *source)?;
-            if gesture.hits(&stroke, &mut remaining)? {
-                hits.push(stroke.id);
+        let mut reviewed = Vec::new();
+        let mut owner = None;
+        for target in targets {
+            if !seen.insert(target.block) {
+                return Err(Error::Invalid("duplicate eraser target"));
             }
+            let b = Self::read_block(&self.db, target.block, access)?;
+            if b.revision != target.revision {
+                return Err(Error::Conflict);
+            }
+            if !b.visible || b.display != Display::Original {
+                return Err(Error::Unavailable);
+            }
+            if owner.is_some_and(|entity| entity != b.entity) {
+                return Err(Error::Invalid("eraser master surface"));
+            }
+            owner = Some(b.entity);
+            target.gesture.validate()?;
+            if b.visible_strokes.len() > 4096 {
+                return Err(Error::ResourceLimit);
+            }
+            let mut hits = BTreeSet::new();
+            for source in &b.visible_strokes {
+                let stroke = Self::original_stroke(&self.db, b.id, *source)?;
+                if target.gesture.hits(&stroke, &mut remaining)? {
+                    hits.insert(stroke.id);
+                }
+            }
+            reviewed.push((b, hits));
         }
-        // Missing a stroke does not consume Undo or revise an unchanged block.
-        if hits.is_empty() {
-            return Ok(b);
+        // Avoid even a library generation change when every target was missed.
+        if reviewed.iter().all(|(_, hits)| hits.is_empty()) {
+            return Ok(reviewed.into_iter().map(|(b, _)| b).collect());
         }
-        self.erase_strokes(id, revision, &hits, access)
+        self.write_for(owner.ok_or(Error::Integrity)?, |db| {
+            // Recheck *all* targets, including misses, against fresh authority.
+            for (expected, _) in &reviewed {
+                let current = Self::read_block(db, expected.id, access)?;
+                if current != *expected {
+                    return Err(Error::Conflict);
+                }
+            }
+            let mut results = Vec::with_capacity(reviewed.len());
+            for (mut block, hits) in reviewed {
+                if !hits.is_empty() {
+                    block.visible_strokes.retain(|id| !hits.contains(id));
+                    block.revision = block.revision.checked_add(1).ok_or(Error::ResourceLimit)?;
+                    Self::persist_block(db, &block)?;
+                }
+                results.push(block);
+            }
+            Ok(results)
+        })
     }
     pub fn set_visible(
         &mut self,

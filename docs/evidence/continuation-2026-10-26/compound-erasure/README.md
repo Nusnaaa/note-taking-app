@@ -1,0 +1,11 @@
+# Compound source-space erasure — component evidence
+
+Based on 9e3d8cf; source fingerprints include the new, then-uncommitted inputs. All eight backend gaps remain open.
+
+`bounded-tests.log`: `cargo test -p stem-core --test eraser_batch --test eraser_gesture --test writing --test host --locked --offline`, exit 0, 38 passed (4 compound, 6 singular gesture, 17 host, 11 writing). This final run includes direct read-only SQLite generation checking for all-miss requests and bounded validation before the singular wrapper copies its path. Earlier `tests.log` and `final-tests.log` passed before those respective refinements. No earlier run is substituted for the final one.
+
+`clippy.log`: `cargo clippy --workspace --all-targets --locked --offline -- -D warnings`, exit 0. `final-jni-build.log`: `cargo build -p stem-bridge --locked --offline`, exit 0. Build environment: CARGO_TARGET_DIR=/tmp/stem-eraser-batch-target, CARGO_INCREMENTAL=0, CARGO_BUILD_JOBS=2, CARGO_PROFILE_DEV_DEBUG=0, CARGO_PROFILE_TEST_DEBUG=0. Disabling debug information affects this isolated test build, not release configuration or runtime KDF/security parameters. Dependencies remained offline.
+
+The compound cases verify one Undo/Redo across blocks and shared exercise views; all-target stale/protected/cross-master/duplicate checks and late storage rollback; all-miss generation/history/revision preservation and mixed-hit unchanged blocks; and the shared operation-wide pair budget. Source/device/view mapping, nib outlines, partial strokes, cross-master gestures and device acceptance remain open. The separate retained E02 timeout investigation remains unestablished; selected component passes are not full native acceptance.
+
+`android-tests.log`, retained JUnit XML and lint report: 20 JournaledCaptureIntegration tests passed with zero failures/errors/skips; lint passed. Invocation: Gradle 8.9 `-p android :backend:testDebugUnitTest --tests org.stemnotebook.backend.JournaledCaptureIntegrationTest :backend:lintDebug --offline --no-daemon --console=plain`, JDK 21 and API-35 Robolectric with the final rebuilt desktop JNI library. The new batch case verifies two real captured blocks, one Undo/Redo, exact source preservation and reopening. This is not device/ART evidence.

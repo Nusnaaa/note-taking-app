@@ -2,7 +2,7 @@
 mod erasure;
 mod pressure;
 use crate::{Error, Id, Result};
-pub use erasure::EraserGesture;
+pub use erasure::{EraserGesture, EraserGestureTarget};
 pub use pressure::PressureResponse;
 use serde::{Deserialize, Serialize};
 

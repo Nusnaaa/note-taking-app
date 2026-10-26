@@ -201,6 +201,9 @@ pub enum Command {
         revision: u64,
         gesture: crate::ink::EraserGesture,
     },
+    EraseGestures {
+        targets: Vec<crate::ink::EraserGestureTarget>,
+    },
     RestoreRevision {
         block: Id,
         revision: u64,
@@ -1091,6 +1094,9 @@ fn execute(
                 revision,
                 gesture,
             } => serde_json::to_value(s.erase_gesture(block, revision, &gesture, a)?)?,
+            Command::EraseGestures { targets } => {
+                serde_json::to_value(s.erase_gestures(&targets, a)?)?
+            }
             Command::RestoreRevision {
                 block,
                 revision,

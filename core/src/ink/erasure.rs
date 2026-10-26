@@ -12,6 +12,14 @@ pub struct EraserGesture {
     /// Distance to the observed centreline, in the named source-space units.
     pub radius: f64,
 }
+/// Each target supplies its own already mapped source-space gesture.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct EraserGestureTarget {
+    pub block: crate::Id,
+    pub revision: u64,
+    pub gesture: EraserGesture,
+}
 impl EraserGesture {
     pub fn validate(&self) -> Result<()> {
         if self.coordinate_space.is_empty()

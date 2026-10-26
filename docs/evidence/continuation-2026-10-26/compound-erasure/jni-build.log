@@ -1,0 +1,22 @@
+   Compiling bitflags v2.13.2
+   Compiling syn v2.0.119
+   Compiling rustybuzz v0.20.1
+   Compiling usvg v0.45.1
+   Compiling jni-sys-macros v0.4.1
+   Compiling png v0.18.1
+   Compiling jni-sys v0.3.1
+   Compiling thiserror v1.0.69
+   Compiling pdf-writer v0.12.1
+   Compiling resvg v0.45.1
+   Compiling image v0.25.10
+   Compiling jni-sys v0.4.1
+   Compiling thiserror-impl v1.0.69
+   Compiling bytes v1.12.1
+   Compiling svg2pdf v0.13.0
+   Compiling combine v4.6.9
+   Compiling rusqlite v0.32.1
+   Compiling cesu8 v1.1.0
+   Compiling stem-core v0.1.0 (/tmp/stem-eraser-batch-work/core)
+   Compiling jni v0.21.1
+   Compiling stem-bridge v0.1.0 (/tmp/stem-eraser-batch-work/bridge)
+    Finished `dev` profile [unoptimized] target(s) in 42.86s

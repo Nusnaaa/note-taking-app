@@ -1,0 +1,64 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-eraser-batch-work/core)
+    Finished `test` profile [unoptimized] target(s) in 2.62s
+     Running tests/eraser_batch.rs (/tmp/stem-eraser-batch-target/debug/deps/eraser_batch-0ca084804ba27cbf)
+
+running 4 tests
+test late_stale_denied_cross_master_duplicate_and_failure_never_publish_a_prefix ... ok
+test several_blocks_erase_and_restore_as_one_operation_including_shared_exercise_views ... ok
+test pair_budget_is_shared_across_the_compound_operation_not_reset_per_block ... ok
+test all_misses_preserve_generation_history_and_each_revision_while_mixed_hits_leave_misses_unchanged ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+     Running tests/eraser_gesture.rs (/tmp/stem-eraser-batch-target/debug/deps/eraser_gesture-afb85549c1762828)
+
+running 6 tests
+test degenerate_extreme_distance_rejects_instead_of_silently_reporting_a_miss ... ok
+test radius_boundary_collinear_disjoint_and_miss_do_not_create_false_hits_or_undo ... ok
+test source_space_and_revision_protection_overflow_and_commit_failure_preserve_visibility ... ok
+test resource_limit_or_later_mixed_space_never_publishes_an_earlier_hit_and_eraser_traces_are_not_targets ... ok
+test host_command_is_authoring_and_cas_bound ... ok
+test crossing_segments_and_single_points_erase_one_operation_and_preserve_source_after_reopen ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s
+
+     Running tests/host.rs (/tmp/stem-eraser-batch-target/debug/deps/host-7c4960669da9b00e)
+
+running 17 tests
+test reentrant_close_from_verifier_fails_without_self_join_or_retained_access ... ok
+test byte_budgets_are_independent_and_rejection_does_not_acknowledge_a_save ... ok
+test failed_host_initialisation_releases_ownership_before_returning ... ok
+test threaded_host_commits_reopens_and_rejects_unknown_version_and_fields ... ok
+test offline_recovery_help_is_readonly_and_available_while_app_locked ... ok
+test active_call_and_shutdown_drain_hold_ownership_until_original_ink_is_committed ... ok
+test recovery_identity_is_stable_but_never_grants_content_or_receipt_access ... ok
+test host_restores_revision_bound_selection_without_silently_rebinding_after_edit ... ok
+test host_ownership_is_cross_process_and_abrupt_exit_recovers_original_ink ... ok
+test asynchronous_writer_retry_tickets_and_lock_scopes_are_enforced ... ok
+test query_saturation_reserves_edit_admission_and_preserves_edit_undo_order ... ok
+test host_workspace_discovers_last_view_after_reopen_without_serializing_locked_targets ... ok
+test host_exercise_edits_share_identity_with_master_and_layout_undo_survives_restart ... ok
+test verifier_panic_fails_closed_without_killing_the_writer_or_retaining_access ... ok
+test library_host_ownership_rejects_duplicate_aliases_without_truncating_and_allows_other_libraries ... ok
+test concurrent_host_calls_return_distinct_committed_content ... ok
+test dropped_receipts_still_drain_on_close_and_observers_see_final_closed_state ... ok
+
+test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.85s
+
+     Running tests/writing.rs (/tmp/stem-eraser-batch-target/debug/deps/writing-2a5e2d7e914f0e1c)
+
+running 11 tests
+test math_subtree_edit_preserves_incomplete_fence_and_neighbours ... ok
+test bad_samples_duplicate_ids_and_unordered_strokes_are_rejected ... ok
+test restore_never_removes_newer_content_lock ... ok
+test interrupted_capture_rolls_back_block_strokes_and_document_revision ... ok
+test exact_code_and_incorrect_math_survive_edits_and_restore_as_new_revision ... ok
+test stale_edits_and_view_toggles_never_mutate_source ... ok
+test mode_defaults_and_inheritance_do_not_convert_existing_ink ... ok
+test active_use_retirement_keeps_checkpoint_and_originals ... ok
+test unauthorised_history_retirement_skips_locked_content ... ok
+test search_matches_literal_accepted_content_never_raw_or_locked_data ... ok
+test source_ink_is_lossless_after_reopen_transform_erase_and_history_retirement ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.23s
+
