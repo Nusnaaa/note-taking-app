@@ -1,0 +1,3 @@
+# Core schema18 reclamation Android verification
+
+All nine Android checks completed successfully against clean non-evidence source c2d2c64:366 API-35 simulated tests, zero failures/errors/skips;46 desktop JNI groups before/after fresh R8 optimisation;ARM64 compilation/linking, debug/release assembly, lint and AAR/manifest/consumer policies. The 365-file source map matches the Core component record. Native full verification remains separate until terminal. Later Host f6cb034 and JNI/Android review-owner work are absent from this snapshot. No device/ART, real SDK/model or broad backend acceptance claim follows.

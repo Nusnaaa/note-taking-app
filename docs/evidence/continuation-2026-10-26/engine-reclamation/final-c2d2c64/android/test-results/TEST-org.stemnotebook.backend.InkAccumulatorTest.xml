@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.InkAccumulatorTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-26T16:19:21" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="0.01">
+  <properties/>
+  <testcase name="chosenStyleBelongsToBeginAndLegacyEncodingDoesNotInventIt" classname="org.stemnotebook.backend.InkAccumulatorTest" time="0.002"/>
+  <testcase name="preservesOrderZeroAndUnavailableChannels" classname="org.stemnotebook.backend.InkAccumulatorTest" time="0.001"/>
+  <testcase name="malformedAndOversizedBatchesDoNotPartiallyAppend" classname="org.stemnotebook.backend.InkAccumulatorTest" time="0.0"/>
+  <testcase name="activeCheckpointsHaveStableBeginIdentityAndNoFabricatedCompletion" classname="org.stemnotebook.backend.InkAccumulatorTest" time="0.002"/>
+  <testcase name="cancellationDiscardsOnlyTentativePointer" classname="org.stemnotebook.backend.InkAccumulatorTest" time="0.0"/>
+  <testcase name="pressureAppearanceSnapshotsNeverChangeRawPointsOrActiveContactSettings" classname="org.stemnotebook.backend.InkAccumulatorTest" time="0.003"/>
+  <testcase name="completedStrokesHaveStableSessionAndDistinctMonotonicIdentities" classname="org.stemnotebook.backend.InkAccumulatorTest" time="0.001"/>
+  <testcase name="documentCaptureEncoderRejectsActivePrefixesAndPreservesExplicitInterruption" classname="org.stemnotebook.backend.InkAccumulatorTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
