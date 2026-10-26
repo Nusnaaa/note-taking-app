@@ -1,0 +1,12 @@
+   Compiling bitflags v2.13.2
+   Compiling rustybuzz v0.20.1
+   Compiling png v0.18.1
+   Compiling image v0.25.10
+   Compiling usvg v0.45.1
+   Compiling resvg v0.45.1
+   Compiling pdf-writer v0.12.1
+   Compiling rusqlite v0.32.1
+   Compiling svg2pdf v0.13.0
+   Compiling stem-core v0.1.0 (/tmp/stem-android-engines-work/core)
+   Compiling stem-bridge v0.1.0 (/tmp/stem-android-engines-work/bridge)
+    Finished `dev` profile [unoptimized] target(s) in 35.78s

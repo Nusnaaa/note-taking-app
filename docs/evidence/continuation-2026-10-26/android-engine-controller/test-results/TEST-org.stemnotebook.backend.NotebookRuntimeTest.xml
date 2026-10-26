@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.NotebookRuntimeTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-26T04:39:15" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="0.48">
+  <properties/>
+  <testcase name="directExclusiveOwnerIsNeverAdoptedOrDisplaced" classname="org.stemnotebook.backend.NotebookRuntimeTest" time="0.109"/>
+  <testcase name="mainThreadCannotStartBlockingRuntimeObservation" classname="org.stemnotebook.backend.NotebookRuntimeTest" time="0.054"/>
+  <testcase name="canonicalAliasesReuseSameBackendWithoutOpeningDuplicateDescriptors" classname="org.stemnotebook.backend.NotebookRuntimeTest" time="0.106"/>
+  <testcase name="foregroundAndBackgroundLeasesShareActualNativeBackendUntilLastRelease" classname="org.stemnotebook.backend.NotebookRuntimeTest" time="0.13"/>
+  <testcase name="existingOnlyOpeningDoesNotCreateAnEmptyNotebook" classname="org.stemnotebook.backend.NotebookRuntimeTest" time="0.08"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
