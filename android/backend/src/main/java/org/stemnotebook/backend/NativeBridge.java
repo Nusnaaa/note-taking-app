@@ -85,6 +85,43 @@ public final class NativeBridge {
         try { return new EngineJob(host,token,false); }
         catch(Throwable failure) { releaseEngineJob(host,token); throw failure; }
     }
+    private static native long beginEngineReclamation(long host,String version,String resumeAction,long budgetMillis);
+    private static native String engineReclamationActionId(long host,long token);
+    private static native String reviewEngineReclamation(long host,long token,String privateRoot);
+    private static native String runEngineReclamation(long host,long token,boolean confirmed,boolean binding,boolean retirement,boolean symlinks);
+    public static native String engineReclamations(long host,String after,int limit);
+    public static native String engineReclamation(long host,String action);
+    /** One native owner spans review and explicit confirmation. Close always cancels;
+     * errors after confirmation never promise metadata or physical rollback. */
+    public static final class EngineReclamation implements AutoCloseable {
+        private final long host,token;
+        public final String actionId;
+        private int stage;
+        private boolean closed;
+        private EngineReclamation(long host,long token,String actionId) {this.host=host;this.token=token;this.actionId=actionId;}
+        public String review(String privateRoot) {
+            synchronized(this) {if(closed || stage!=0)throw engineFailure();stage=1;}
+            try {
+                String summary=reviewEngineReclamation(host,token,privateRoot);
+                synchronized(this) {if(closed)throw engineFailure();stage=2;}
+                return summary;
+            } catch(Throwable error) {close();throw error;}
+        }
+        public String reclaim(boolean confirmed,boolean binding,boolean retirement,boolean symlinks) {
+            synchronized(this) {if(closed || stage!=2)throw engineFailure();stage=3;}
+            try {return runEngineReclamation(host,token,confirmed,binding,retirement,symlinks);}
+            finally {close();}
+        }
+        @Override public void close() {
+            synchronized(this) {if(closed)return;closed=true;}
+            releaseEngineJob(host,token);
+        }
+    }
+    public static EngineReclamation engineReclamation(long host,String version,String resumeAction,long budgetMillis) {
+        long token=beginEngineReclamation(host,version,resumeAction,budgetMillis);
+        try {return new EngineReclamation(host,token,engineReclamationActionId(host,token));}
+        catch(Throwable error) {releaseEngineJob(host,token);throw error;}
+    }
     private static native long beginEngineDiscard(long host,String version,boolean confirmed,String resumeAction,long budgetMillis);
     private static native String engineDiscardActionId(long host,long token);
     private static native String runEngineDiscard(long host,long token,String privateRoot);

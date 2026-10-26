@@ -188,6 +188,7 @@ class NotebookEnginesTest {
         assertSame(NativeBridge::class.java.classLoader,NativeBridge.EngineRecovery::class.java.classLoader)
         assertSame(NativeBridge::class.java.classLoader,NativeBridge.EngineRemoval::class.java.classLoader)
         assertSame(NativeBridge::class.java.classLoader,NativeBridge.EngineDiscard::class.java.classLoader)
+        assertSame(NativeBridge::class.java.classLoader,NativeBridge.EngineReclamation::class.java.classLoader)
     }
     @Test fun removalPreservesAcceptedContentAndKnownReceiptAcrossReopen() {
         val path=temporary.newFolder().resolve("library.db").absolutePath
@@ -390,6 +391,119 @@ class NotebookEnginesTest {
             assertEquals(NotebookEngines.ResourceActionState.Completed,fresh.state)
             assertEquals("outside source",outside.readText())
         } finally { engines.close();NativeBridge.close(host);observer { engines.awaitClosed() } }
+    }
+
+    private fun awaitOptionalIdle(host: Long) = observer {
+        val until = System.nanoTime()+TimeUnit.SECONDS.toNanos(10)
+        while (JSONObject(NativeBridge.recognitionStatus(host)).getInt("reserved") != 0) {
+            assertTrue("actual native owners did not retire",System.nanoTime()<until);Thread.yield()
+        }
+    }
+    private fun removedReclamationFixture(engines: NotebookEngines): UUID {
+        val bytes = "model".toByteArray()
+        val sha = java.security.MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it.toInt() and 255) }
+        val manifest = JSONObject(descriptor()).put("resource_sha256",sha).toString()
+        val staged = observer { engines.importResource(manifest,5,true,null,30000) { _,_ ->
+            object: NativeBridge.EngineInput {
+                var reads = 0
+                override fun read(buffer: ByteArray,control: NativeBridge.EngineControl): Int { control.check();if(reads++>0)return -1;bytes.copyInto(buffer);return bytes.size }
+                override fun retire() {}
+            }
+        }.await() }
+        observer { engines.remove(staged.version,30000).await() }
+        return staged.version
+    }
+    @Test fun reclamationReviewRetainsOwnerAcrossConsentAndReturnsImmutableTypedHistory() {
+        val host = NativeBridge.open(temporary.newFolder().resolve("library.db").absolutePath)
+        val models = temporary.newFolder("reclamation-models");val engines = NotebookEngines(models) { host }
+        try {
+            val version = removedReclamationFixture(engines)
+            assertTrue(File(models,"$version.install.json").delete()) // Explicit legacy/unknown-binding fixture.
+            val pending = engines.reviewReclamation(version)
+            val review = observer { pending.await() }
+            assertEquals(pending.resourceActionId,review.actionId)
+            assertTrue(review.summary.facts.bindingReviewRequired)
+            assertNull(review.summary.facts.originalImportConsentMillis)
+            assertTrue(File(models,"$version.resource").exists())
+            assertEquals(NotebookEngines.FailureReason.InvalidInput,failure {review.reclaim(NotebookEngines.ReclamationConsent(true))}.reason)
+            val reclaim = review.reclaim(NotebookEngines.ReclamationConsent(true,reviewedUnknownBinding=true))
+            val result = observer {reclaim.await()}
+            assertEquals(review.actionId,result.id);assertEquals(result.id,reclaim.resourceActionId)
+            assertEquals(NotebookEngines.ResourceActionState.Completed,result.state)
+            assertFalse(File(models,"$version.resource").exists());assertNull(result.reviews.single().facts.originalImportConsentMillis)
+            assertEquals(result,observer {engines.reclamation(result.id).await()})
+            val page = observer {engines.reclamations(limit=1).await()};assertEquals(listOf(result),page.actions)
+            assertThrows(UnsupportedOperationException::class.java){(page.actions as MutableList).clear()}
+            assertThrows(UnsupportedOperationException::class.java){(result.reviews as MutableList).clear()}
+            failure {review.reclaim(NotebookEngines.ReclamationConsent(true,true))}
+        } finally {engines.close();NativeBridge.close(host);observer {engines.awaitClosed()}}
+    }
+    @Test fun controllerCloseRevokesAnUnconsumedNativeReviewEvenWithSurvivingPendingAndReviewHandles() {
+        val path = temporary.newFolder().resolve("library.db").absolutePath
+        var host = NativeBridge.open(path);val models = temporary.newFolder("review-close");val engines = NotebookEngines(models) {host}
+        val version = removedReclamationFixture(engines)
+        val pending = engines.reviewReclamation(version);val review = observer {pending.await()}
+        engines.close();observer {engines.awaitClosed()}
+        awaitOptionalIdle(host) // Verify close itself retired the review, before another call can clean it up.
+        failure {review.reclaim(NotebookEngines.ReclamationConsent(true))}
+        assertTrue(File(models,"$version.resource").exists())
+        NativeBridge.close(host);host=NativeBridge.open(path)
+        val next = NotebookEngines(models) {host}
+        try {
+            assertEquals(review.actionId,observer {pending.await()}.actionId)
+            assertTrue(observer {next.reclamations().await()}.actions.isEmpty())
+            val fresh = observer {next.reviewReclamation(version).await()}
+            val done = observer {fresh.reclaim(NotebookEngines.ReclamationConsent(true)).await()}
+            assertEquals(NotebookEngines.ResourceActionState.Completed,done.state)
+        } finally {review.close();next.close();NativeBridge.close(host);observer {next.awaitClosed()}}
+    }
+    @Test fun captureRevokesAReviewAndUncertainFailureRetainsItsActionWithoutInventingPendingMetadata() {
+        val host = NativeBridge.open(temporary.newFolder().resolve("library.db").absolutePath)
+        val models = temporary.newFolder("review-capture");val engines = NotebookEngines(models) {host}
+        try {
+            val version = removedReclamationFixture(engines)
+            val review = observer {engines.reviewReclamation(version).await()}
+            val pen = UUID.randomUUID().toString();NativeBridge.setCapturePriority(host,pen,true);NativeBridge.setCapturePriority(host,pen,false)
+            val pending = review.reclaim(NotebookEngines.ReclamationConsent(true))
+            val error = observer {failure {pending.await()}}
+            assertTrue(error.metadataMayHaveChanged);assertEquals(review.actionId,error.resourceActionId)
+            assertEquals(review.actionId,pending.resourceActionId)
+            assertTrue(File(models,"$version.resource").exists())
+            assertTrue(observer {engines.reclamations().await()}.actions.isEmpty())
+            val fresh = observer {engines.reviewReclamation(version).await()};fresh.close();awaitOptionalIdle(host)
+            failure {fresh.reclaim(NotebookEngines.ReclamationConsent(true))}
+        } finally {engines.close();NativeBridge.close(host);observer {engines.awaitClosed()}}
+    }
+
+    @Test fun queuedConfirmationCancellationRetiresTheConsumedReviewBeforeItsWorkerCanRun() {
+        val host = NativeBridge.open(temporary.newFolder().resolve("library.db").absolutePath)
+        val models = temporary.newFolder("queued-review");val engines = NotebookEngines(models) {host}
+        val entered = CountDownLatch(1);val release = CountDownLatch(1)
+        try {
+            val version = removedReclamationFixture(engines)
+            val review = observer {engines.reviewReclamation(version).await()}
+            val blocker = observer {engines.stageResourceFree(descriptor("blocked"),true).await()}
+            val model = object: Model() {
+                override fun probe(control: NativeBridge.EngineControl) {entered.countDown();assertTrue(release.await(10,TimeUnit.SECONDS));control.check()}
+            }
+            val activation = engines.activate(blocker.version,0,30000,factory(model))
+            assertTrue(entered.await(10,TimeUnit.SECONDS))
+            val queued = review.reclaim(NotebookEngines.ReclamationConsent(true))
+            assertEquals(review.actionId,queued.resourceActionId);assertTrue(queued.cancel())
+            observer {
+                val until = System.nanoTime()+TimeUnit.SECONDS.toNanos(10)
+                while(JSONObject(NativeBridge.recognitionStatus(host)).getInt("reserved") != 1) {
+                    assertTrue("queued review owner survived cancellation",System.nanoTime()<until);Thread.yield()
+                }
+            }
+            assertTrue(File(models,"$version.resource").exists())
+            activation.cancel();release.countDown()
+            observer {failure {activation.await()}}
+            val error = observer {failure {queued.await()}}
+            assertEquals(NotebookEngines.FailureReason.Cancelled,error.reason)
+            assertEquals(review.actionId,error.resourceActionId);assertFalse(error.metadataMayHaveChanged)
+            assertTrue(observer {engines.reclamations().await()}.actions.isEmpty())
+        } finally {release.countDown();engines.close();NativeBridge.close(host);observer {engines.awaitClosed()}}
     }
 
 }

@@ -36,6 +36,38 @@ class NotebookEngines internal constructor(private val modelRoot: File? = null, 
         val state: ResourceActionState, val descriptorJson: String, val totalBytes: Long,
         val committedBytes: Long, val importConsentMillis: Long, val requestedMillis: Long)
     data class ResourceActions(val actions: List<ResourceAction>, val next: UUID?)
+    enum class ResourceEntryKind { Missing, File, Symlink }
+    enum class ConsentProvenance { BoundLedger, RecordedDecision, Unknown }
+    data class ResourceEntry(val kind: ResourceEntryKind, val bytes: Long?)
+    data class ReclamationFacts(val resource: ResourceEntry, val part: ResourceEntry, val ledger: ResourceEntry,
+        val consentProvenance: ConsentProvenance, val originalImportConsentMillis: Long?,
+        val bindingReviewRequired: Boolean, val retirementReviewRequired: Boolean)
+    data class ReclamationConsent(val confirmed: Boolean, val reviewedUnknownBinding: Boolean = false,
+        val reviewedFailedRetirement: Boolean = false, val reviewedSymlinks: Boolean = false)
+    data class ReclamationSummary(val action: UUID, val version: UUID, val descriptorJson: String,
+        val totalBytes: Long, val facts: ReclamationFacts)
+    data class ReclamationDecision(val reviewedMillis: Long, val facts: ReclamationFacts, val consent: ReclamationConsent)
+    data class Reclamation(val id: UUID, val version: UUID, val originalLibrary: UUID, val descriptorJson: String,
+        val totalBytes: Long, val requestedMillis: Long, val state: ResourceActionState, val reviews: List<ReclamationDecision>)
+    data class Reclamations(val actions: List<Reclamation>, val next: UUID?)
+    /** Owns the native review across human confirmation. Closing revokes this
+     * capability; summary metadata alone never grants deletion authority. */
+    class ReclamationReview internal constructor(internal val owner: NotebookEngines,
+        internal val job: NativeBridge.EngineReclamation, val summary: ReclamationSummary) : Closeable {
+        private val lock = Any()
+        private var closed = false
+        private var claimed = false
+        val actionId: UUID get() = summary.action
+        internal fun claim() { synchronized(lock) {
+            if (closed || claimed) throw Failure(FailureReason.InvalidInput, false, actionId)
+            claimed = true
+        } }
+        fun reclaim(consent: ReclamationConsent): Pending<Reclamation> = owner.reclaim(this, consent)
+        override fun close() {
+            val release = synchronized(lock) { if (closed) false else { closed = true; true } }
+            if (release) { owner.releaseReview(this); job.close() }
+        }
+    }
     data class Selected(val task: Task, val engine: String)
     data class Default(val task: Task, val engine: String, val runtimeReady: Boolean)
     data class Catalogue(val versions: List<Version>, val next: UUID?, val defaults: List<Default>)
@@ -50,6 +82,7 @@ class NotebookEngines internal constructor(private val modelRoot: File? = null, 
     private val lock = Any()
     private var closed = false
     private val operations = mutableSetOf<Operation<*>>()
+    private val reclamationReviews = mutableSetOf<ReclamationReview>()
     @Volatile private var workerThread: Thread? = null
     private val worker = ThreadPoolExecutor(1, 1, 0, TimeUnit.MILLISECONDS, ArrayBlockingQueue(1),
         { action -> Thread(action, "stem-engines").apply { isDaemon = true; workerThread = this } }, ThreadPoolExecutor.AbortPolicy())
@@ -97,6 +130,7 @@ class NotebookEngines internal constructor(private val modelRoot: File? = null, 
         fun complete(value: T?, error: Throwable?) {
             val failure = synchronized(lock) {
                 finished = true
+                job = null // a returned review has a separate tracked controller owner
                 if (error == null) null else if (error is Failure) Failure(error.reason, error.metadataMayHaveChanged || metadataAttempted, error.resourceActionId ?: resourceActionId) else Failure(
                     if (cancelled || error is CancellationException) FailureReason.Cancelled else FailureReason.Unavailable,
                     metadataAttempted, resourceActionId)
@@ -107,9 +141,12 @@ class NotebookEngines internal constructor(private val modelRoot: File? = null, 
     private fun observerOnly() {
         if (Thread.currentThread() === workerThread || Looper.myLooper() === Looper.getMainLooper()) throw Failure(FailureReason.Unavailable)
     }
-    private fun <T : Any> submit(action: (Operation<T>) -> T): Pending<T> {
+    private fun <T : Any> submit(initialOwner: AutoCloseable? = null, initialAction: UUID? = null,
+                                 action: (Operation<T>) -> T): Pending<T> {
         val operation = Operation<T>()
-        synchronized(lock) {
+        operation.resourceActionId = initialAction
+        if (initialOwner != null) operation.attach(initialOwner)
+        try { synchronized(lock) {
             if (closed) throw Failure(FailureReason.Closed)
             if (operations.size >= 2) throw Failure(FailureReason.Busy)
             operations.add(operation)
@@ -131,7 +168,81 @@ class NotebookEngines internal constructor(private val modelRoot: File? = null, 
                 throw Failure(if (rejected) FailureReason.Busy else FailureReason.Unavailable, !rejected)
             }
         }
+        } catch (error: Throwable) { operation.cancel(); throw error }
         return Pending(operation.result, operation::cancel, ::observerOnly, { operation.resourceActionId })
+    }
+    private fun entry(row: JSONObject) = ResourceEntry(ResourceEntryKind.valueOf(row.getString("kind")),
+        if (row.isNull("bytes")) null else row.getLong("bytes"))
+    private fun facts(row: JSONObject) = ReclamationFacts(entry(row.getJSONObject("resource")),entry(row.getJSONObject("part")),entry(row.getJSONObject("ledger")),
+        ConsentProvenance.valueOf(row.getString("consent_provenance")),if (row.isNull("original_import_consent_ms")) null else row.getLong("original_import_consent_ms"),
+        row.getBoolean("binding_review_required"),row.getBoolean("retirement_review_required"))
+    private fun consent(row: JSONObject) = ReclamationConsent(row.getBoolean("confirmed"),row.getBoolean("reviewed_unknown_binding"),
+        row.getBoolean("reviewed_failed_retirement"),row.getBoolean("reviewed_symlinks"))
+    private fun reclamation(row: JSONObject): Reclamation {
+        require(row.getInt("format") == 1)
+        val reviews = ArrayList<ReclamationDecision>(); val rows = row.getJSONArray("reviews")
+        for (index in 0 until rows.length()) { val review = rows.getJSONObject(index)
+            reviews.add(ReclamationDecision(review.getLong("reviewed_ms"),facts(review.getJSONObject("facts")),consent(review.getJSONObject("consent")))) }
+        return Reclamation(UUID.fromString(row.getString("id")),UUID.fromString(row.getString("version")),UUID.fromString(row.getString("library")),
+            row.getJSONObject("descriptor").toString(),row.getLong("total"),row.getLong("requested_ms"),ResourceActionState.valueOf(row.getString("state")),Collections.unmodifiableList(reviews))
+    }
+    private fun releaseReview(review: ReclamationReview) { synchronized(lock) { reclamationReviews.remove(review) } }
+    fun reviewReclamation(version: UUID, resumeAction: UUID? = null, budgetMillis: Long = 30000): Pending<ReclamationReview> {
+        budget(budgetMillis)
+        val root = modelRoot ?: throw Failure(FailureReason.Unavailable)
+        return submit { operation ->
+            val host = nativeHandle(); operation.check()
+            val job = NativeBridge.engineReclamation(host,version.toString(),resumeAction?.toString(),budgetMillis)
+            var session: ReclamationReview? = null
+            try {
+                operation.resourceActionId = UUID.fromString(job.actionId); operation.attach(job)
+                val row = JSONObject(job.review(root.absolutePath))
+                val summary = ReclamationSummary(UUID.fromString(row.getString("action")),UUID.fromString(row.getString("version")),
+                    row.getJSONObject("descriptor").toString(),row.getLong("total"),facts(row.getJSONObject("facts")))
+                require(summary.action == operation.resourceActionId && summary.version == version)
+                val review = ReclamationReview(this,job,summary); session = review
+                synchronized(lock) {
+                    if (closed) throw Failure(FailureReason.Closed, false, summary.action)
+                    if (reclamationReviews.size >= 8) throw Failure(FailureReason.Busy, false, summary.action)
+                    reclamationReviews.add(review)
+                }
+                // Keep cancellation ownership through the handoff. complete()
+                // releases the operation reference only after marking it finished.
+                operation.attach(review); operation.check(); review
+            } catch (error: Throwable) { session?.close() ?: job.close(); throw error }
+        }
+    }
+    private fun reclaim(review: ReclamationReview, consent: ReclamationConsent): Pending<Reclamation> {
+        val facts = review.summary.facts
+        if (review.owner !== this || !consent.confirmed || facts.bindingReviewRequired && !consent.reviewedUnknownBinding ||
+            facts.retirementReviewRequired && !consent.reviewedFailedRetirement ||
+            listOf(facts.resource,facts.part,facts.ledger).any { it.kind == ResourceEntryKind.Symlink } && !consent.reviewedSymlinks)
+            throw Failure(FailureReason.InvalidInput, false, review.actionId)
+        review.claim()
+        try {
+            return submit(review,review.actionId) { operation ->
+                try {
+                    operation.check(); operation.metadataAttempted = true
+                    reclamation(JSONObject(review.job.reclaim(consent.confirmed,consent.reviewedUnknownBinding,consent.reviewedFailedRetirement,consent.reviewedSymlinks)))
+                } finally { operation.detach(review); review.close() }
+            }
+        } catch (error: Throwable) {
+            review.close()
+            if (error is Failure) throw Failure(error.reason,error.metadataMayHaveChanged,error.resourceActionId ?: review.actionId)
+            throw error
+        }
+    }
+    fun reclamation(id: UUID): Pending<Reclamation> = submit { operation ->
+        val host = nativeHandle(); operation.check(); reclamation(JSONObject(NativeBridge.engineReclamation(host,id.toString())))
+    }
+    fun reclamations(after: UUID? = null, limit: Int = 32): Pending<Reclamations> {
+        if (limit !in 1..128) throw Failure(FailureReason.InvalidInput)
+        return submit { operation ->
+            val host = nativeHandle(); operation.check(); val page = JSONObject(NativeBridge.engineReclamations(host,after?.toString(),limit))
+            val rows = page.getJSONArray("actions"); val records = ArrayList<Reclamation>()
+            for (index in 0 until rows.length()) records.add(reclamation(rows.getJSONObject(index)))
+            Reclamations(Collections.unmodifiableList(records),if(page.isNull("next")) null else UUID.fromString(page.getString("next")))
+        }
     }
     private fun resourceAction(row: JSONObject): ResourceAction {
         require(row.getInt("format") == 1 && row.getString("kind") == "DiscardImport")
@@ -311,8 +422,9 @@ class NotebookEngines internal constructor(private val modelRoot: File? = null, 
         importResource(descriptor,total,confirmed,resume,budgetMillis,started) { transfer, control -> source.open(transfer.committedBytes,control) }
     private fun budget(value: Long) { if (value !in 1..3600000) throw Failure(FailureReason.InvalidInput) }
     override fun close() {
-        val pending = synchronized(lock) { if (closed) return; closed = true; operations.toList() }
-        pending.forEach { it.cancel() }
+        val owned = synchronized(lock) { if (closed) return; closed = true; Pair(operations.toList(),reclamationReviews.toList()) }
+        owned.first.forEach { it.cancel() }
+        owned.second.forEach { it.close() }
         worker.shutdown() // queued cancelled requests still retire through their runner
     }
     /** Backend close calls this after native close, retaining its ownership witness. */

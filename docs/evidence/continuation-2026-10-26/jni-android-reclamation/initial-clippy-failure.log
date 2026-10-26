@@ -1,0 +1,29 @@
+    Checking stem-bridge v0.1.0 (/tmp/stem-engine-catalogue-work/bridge)
+error: large size difference between variants
+  --> bridge/src/engines.rs:36:1
+   |
+36 | / enum Work {
+37 | |     Activation(HostEngineActivationPlan, u64),
+38 | |     Recognition(HostRecognitionWork),
+39 | |     Recovery(stem_core::host::HostEngineRecoveryPlan),
+...  |
+43 | |     ReclamationReviewed(stem_core::host::HostReviewedEngineReclamation),
+   | |     ------------------------------------------------------------------- the largest variant contains at least 328 bytes
+44 | |     ImportPlan(stem_core::host::HostEngineImportPlan),
+45 | |     ImportTransfer(stem_core::host::HostEngineImportTransfer),
+   | |     --------------------------------------------------------- the second-largest variant contains at least 40 bytes
+46 | | }
+   | |_^ the entire enum is at least 328 bytes
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#large_enum_variant
+   = note: `-D clippy::large-enum-variant` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::large_enum_variant)]`
+help: consider boxing the large fields or introducing indirection in some other way to reduce the total size of the enum
+   |
+43 -     ReclamationReviewed(stem_core::host::HostReviewedEngineReclamation),
+43 +     ReclamationReviewed(Box<stem_core::host::HostReviewedEngineReclamation>),
+   |
+
+error: could not compile `stem-bridge` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `stem-bridge` (lib test) due to 1 previous error

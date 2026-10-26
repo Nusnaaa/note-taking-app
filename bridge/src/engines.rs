@@ -2,6 +2,7 @@
 //! JSON. SDK construction, inference and disposal occur outside registry locks.
 mod discard;
 mod import;
+mod reclamation;
 mod recovery;
 mod removal;
 use super::{allocate_handle, bounded_string, fail, hosts};
@@ -38,6 +39,8 @@ enum Work {
     Recovery(stem_core::host::HostEngineRecoveryPlan),
     Removal(stem_core::host::HostEngineRemovalPlan),
     Discard(stem_core::host::HostEngineDiscardPlan),
+    ReclamationPlan(stem_core::host::HostEngineReclamationPlan),
+    ReclamationReviewed(Box<stem_core::host::HostReviewedEngineReclamation>),
     ImportPlan(stem_core::host::HostEngineImportPlan),
     ImportTransfer(stem_core::host::HostEngineImportTransfer),
 }
