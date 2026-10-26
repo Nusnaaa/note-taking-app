@@ -84,3 +84,57 @@ fn protected_pdf_requires_fresh_auth_and_stale_plan_cannot_disclose_new_state() 
         Err(Error::Conflict)
     ));
 }
+
+#[test]
+fn pdf_uses_the_same_visible_canvas_blocks_as_the_reviewed_derivative() {
+    use stem_core::store::{CanvasLayer, CanvasLayers};
+    for hidden_base in [false, true] {
+        let mut s = Store::memory().unwrap();
+        let a = Access::public();
+        let canvas = s.create(Kind::Canvas, None, "PDF layers", &a).unwrap();
+        let shown = s
+            .append_content(canvas.id, Content::Text("visible ASCII".into()), &a)
+            .unwrap();
+        // An unsupported glyph makes accidental rendering observable without
+        // relying on compressed PDF text or font subset implementation details.
+        let hidden = s
+            .append_content(canvas.id, Content::Text("hidden \u{10ffff}".into()), &a)
+            .unwrap();
+        s.set_canvas_layers(
+            CanvasLayers {
+                canvas: canvas.id,
+                revision: 0,
+                base_visible: !hidden_base,
+                layers: vec![CanvasLayer {
+                    id: Id::new(),
+                    name: "custom".into(),
+                    visible: hidden_base,
+                    blocks: vec![if hidden_base { shown.id } else { hidden.id }],
+                }],
+            },
+            0,
+            &a,
+        )
+        .unwrap();
+        let plan = s
+            .prepare_derivative(Selection::Document(canvas.id), false, &a)
+            .unwrap();
+        let bundle = s
+            .finish_derivative(plan, &mut TestAuth(true), true)
+            .unwrap();
+        assert!(bundle.markdown.contains("visible ASCII"));
+        assert!(!bundle.markdown.contains("hidden"));
+        let plan = s
+            .prepare_derivative(Selection::Document(canvas.id), false, &a)
+            .unwrap();
+        let pdf = s
+            .finish_pdf_export(plan, &font(), Page::default(), &mut TestAuth(true), true)
+            .unwrap();
+        assert!(pdf.bytes.starts_with(b"%PDF-"));
+        // Hiding presentation retains the exact authored source value.
+        assert_eq!(
+            s.block(hidden.id, &a).unwrap().content,
+            Content::Text("hidden \u{10ffff}".into())
+        );
+    }
+}

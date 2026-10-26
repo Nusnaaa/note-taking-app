@@ -270,6 +270,7 @@ impl Store {
                 layer_states.insert(entity, (state.base_visible, state.index()));
             }
         }
+        let mut render_contents = Vec::new();
         for b in &blocks {
             scopes.extend(self.protection_scopes(b.entity, Some(b.id))?);
 
@@ -285,6 +286,11 @@ impl Store {
                 continue;
             }
 
+            // PDF and text/assets must use the same reviewed visibility set.
+            render_contents.push(b.content.clone());
+            if !b.has_table_ink() {
+                render_contents.extend(b.regions.iter().filter_map(|r| r.content.clone()));
+            }
             for region in b.regions.iter().filter(|_| !b.has_table_ink()) {
                 if let Some(content) = &region.content {
                     let converted = TextConverter.convert(content, Format::Markdown, &control)?;
@@ -517,16 +523,6 @@ impl Store {
             return Err(Error::Conflict);
         }
 
-        let mut render_contents = Vec::new();
-        for block in &blocks {
-            if !block.visible {
-                continue;
-            }
-            render_contents.push(block.content.clone());
-            if !block.has_table_ink() {
-                render_contents.extend(block.regions.iter().filter_map(|r| r.content.clone()));
-            }
-        }
         let bundle = ExportBundle {
             markdown,
             assets,

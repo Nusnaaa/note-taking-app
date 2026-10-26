@@ -1,0 +1,9 @@
+# PDF canvas-layer visibility regression
+
+Base b627e54. Source review found that PDF render contents were collected in a second loop which checked block visibility but omitted canvas layer visibility. Markdown/assets already skipped hidden layers. The new regression used a hidden unsupported glyph to observe accidental PDF rendering without depending on compressed PDF text extraction. Before the fix, `cargo test -p stem-core --test render pdf_uses_the_same_visible_canvas_blocks_as_the_reviewed_derivative` terminated with exit 101 (0 passed, 1 failed, 3 filtered); PDF completion returned Unsupported. Exact output is retained.
+
+PDF render contents are now gathered after the same block/layer checks used by Markdown and assets. No raw source changes, schema changes, font substitution or hidden-content repair occurs. The regression covers hidden base and custom layers while retaining exact stored content. After the fix, `cargo test -p stem-core --test render --test export --test layers` terminated with exit 0: 17 passed (4 render, 5 export, 8 layers), 0 failed/ignored. Subsequent changes to this test were formatting and comment wording only.
+
+Rust commands used PATH=/tmp/stem-cargo/bin:$PATH, CARGO_HOME=/tmp/stem-cargo, RUSTUP_HOME=/tmp/stem-rustup, CARGO_TARGET_DIR=/tmp/stem-pen-response-target, CARGO_INCREMENTAL=0, CARGO_BUILD_JOBS=2, RUST_TEST_THREADS=2. The installed DejaVu Sans test font was supplied locally, with no content/network download. Full native/Android jobs on b627e54 exclude this later correction. No new JNI, device, model SDK or complete backend acceptance is claimed. All eight backend gaps remain open.
+
+Final formatting, traceability regeneration/check and `cargo clippy --workspace --all-targets --locked --offline -- -D warnings` passed. Combined check driver session 88397 terminated with exit 0. See final-checks.log.

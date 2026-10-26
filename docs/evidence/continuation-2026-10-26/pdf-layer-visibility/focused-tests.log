@@ -1,0 +1,37 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 47.61s
+     Running tests/export.rs (/tmp/stem-pen-response-target/debug/deps/export-1662c850f76a1b4b)
+
+running 5 tests
+test converted_only_export_never_reads_or_discloses_original_ink ... ok
+test derivative_scope_and_fresh_auth_cannot_be_bypassed ... ok
+test graph_derivative_preserves_authored_order_and_refuses_concealed_points ... ok
+test pagination_never_bisects_indivisible_work_or_silently_scales ... ok
+test diagram_svg_escapes_labels_and_canvas_scope_rejects_hidden_payload ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests/layers.rs (/tmp/stem-pen-response-target/debug/deps/layers-2689388157b94670)
+
+running 8 tests
+test defaults_and_independent_embed_overrides_preserve_source_and_report_missing_layers ... ok
+test layer_undo_redo_and_failure_are_atomic_and_revisions_never_reset_to_zero ... ok
+test legacy_canvas_migrates_to_an_implicit_base_without_rewriting_original_payloads ... ok
+test malformed_membership_aliases_and_fresh_protection_cannot_leak_or_change_layers ... ok
+test native_copy_remaps_layer_and_embed_overrides_and_derivatives_respect_default_visibility ... ok
+test scene_byte_pages_have_explicit_continuations_and_never_load_denied_payloads_into_results ... ok
+test scene_orders_layers_then_z_and_paginates_without_dropping_nested_reference_placeholders ... ok
+test encrypted_backup_preserves_layer_undo_and_rejects_downgraded_current_and_historical_extensions ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 46.26s
+
+     Running tests/render.rs (/tmp/stem-pen-response-target/debug/deps/render-aa1f1b70ca39de81)
+
+running 4 tests
+test invalid_font_missing_glyph_and_impossible_page_fail_without_partial_output ... ok
+test protected_pdf_requires_fresh_auth_and_stale_plan_cannot_disclose_new_state ... ok
+test pdf_uses_the_same_visible_canvas_blocks_as_the_reviewed_derivative ... ok
+test unicode_maths_and_paginated_text_produce_real_pdf_with_embedded_fonts ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.69s
+
