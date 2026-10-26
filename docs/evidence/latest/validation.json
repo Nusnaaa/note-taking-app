@@ -1,8 +1,8 @@
 {
-  "started_utc": "2026-10-25T22:46:22.950381+00:00",
-  "source_commit": "3b9b0a0d1348c6b7835207dcb4a1850fabdaf22f",
+  "started_utc": "2026-10-26T01:05:24.599649+00:00",
+  "source_commit": "d4b96153ec1c7b7cc246be1035ffc7aedcb98ace",
   "working_tree_before": "",
-  "full_working_tree_before": "?? docs/evidence/continuation-2026-10-24/host-restore/",
+  "full_working_tree_before": "",
   "build_environment": {
     "CARGO_INCREMENTAL": "0",
     "CARGO_BUILD_JOBS": "2"
@@ -12,38 +12,38 @@
   "source_sha256": {
     ".gitignore": "47df1768ba52b16ac4fd14a3042d10ecc149fe248e1ddeb2b100a177d279f9f9",
     "AGENTS.md": "096d49ab5f84e027e21d194a534683b066bc92a5248cc1d82ae1731f2b9572d3",
-    "Cargo.lock": "276a84a76ba29160001fc55726eb07c049cb5bbdf1b198a8b73bc8f13e7ead7a",
+    "Cargo.lock": "0727cdce2c2340d49855807f68dc8df09130b4f764bfdcffda223e6e6eaea267",
     "Cargo.toml": "201677b8ae08f5c9da36f6ebc332a39457766527f1ceeb70d5d49abefe68caf1",
     "README.md": "d758f5bf2f47e2a460befc41515612d44d0d2c33545e9df8efc52390e32f2601",
     "android/backend/build.gradle.kts": "e972092a84e5e6e7a1a10fd6b421fa666dc1f18667279fd52c97cf68b2ba9c57",
     "android/backend/consumer-rules.pro": "0b41f2eadcf6ed39f21ceea859e5dfba502cd1cbeaa909fdf6345d658b1cff8e",
     "android/backend/gradle.lockfile": "cbec11f0c961a5a5bfe6aab69d9bf761a8b8e27bc19034fd5b8eb6589005941e",
     "android/backend/src/main/AndroidManifest.xml": "7c338d3ad2ad5d8d0c5a17e3b4ddd0c95a15bc2e94f41d2e5bd17ecb9e2d4cfc",
-    "android/backend/src/main/java/org/stemnotebook/backend/ActiveCaptureJournal.kt": "ccbceb70b0c19eb3a2b604eeb095c7b9c2eab868cf582b063599b29b53ca5fa0",
+    "android/backend/src/main/java/org/stemnotebook/backend/ActiveCaptureJournal.kt": "a39d18eac767025b64fedc0219ac3ec45d841c143026eaf327e467256ab55bd0",
     "android/backend/src/main/java/org/stemnotebook/backend/BackendWriter.kt": "b575c502c87a40b28463f81741299619242df323a08deb71acd37b50a3d78250",
     "android/backend/src/main/java/org/stemnotebook/backend/BackupCatalogue.kt": "011cd30a4a52d34a8bd0a931e680a3df4ca58870412b7c3d1dfd4870b2659ea1",
     "android/backend/src/main/java/org/stemnotebook/backend/BackupCredentialVault.kt": "3d08214c54dae357aeef71e7c5462f91b6e31273392a1017a7fdf3ccadde38f2",
     "android/backend/src/main/java/org/stemnotebook/backend/BackupDocuments.kt": "b084d5dbef5d1c9226c59120671d44ef503924c33d59806b295cb50000b9b4a9",
-    "android/backend/src/main/java/org/stemnotebook/backend/BackupJobRoutes.kt": "6f01f07a2df6fbb801da926895f9a74d1e69a5107aadb978f1b7e7a56b5eb5de",
-    "android/backend/src/main/java/org/stemnotebook/backend/BackupJobScheduler.kt": "7dc73f368d3ffe6244104a88f44b54eac839d2638447de3971a4079fe784252f",
+    "android/backend/src/main/java/org/stemnotebook/backend/BackupJobRoutes.kt": "9a54b7600ce3635b9d6047f686db05e24f5f03b201ff153ae7d7e7c6e5f1237d",
+    "android/backend/src/main/java/org/stemnotebook/backend/BackupJobScheduler.kt": "c4ebb483715d3e7805dffa6a5b8b431eab7b45c52f9a4c1d4763e5d1cf4824c1",
     "android/backend/src/main/java/org/stemnotebook/backend/BackupPersistentAccess.kt": "801c7026b3d22a48cd5379523b3a68561cb82f6eafe3c4d385030e2c47517c15",
     "android/backend/src/main/java/org/stemnotebook/backend/BackupPolicyDatabase.kt": "89da92b3412403dffa17428f478e9c04c4e3573980cda43872741af0e0078ff5",
     "android/backend/src/main/java/org/stemnotebook/backend/BackupPolicyStore.kt": "622dec5e97549e815404a922c80e3775b6a7f87894469921ca04ec1f747dc783",
     "android/backend/src/main/java/org/stemnotebook/backend/BackupSchedulePolicy.kt": "65da5bf58fd61d0a4b4e49082ec88883e32250aaf7c331702c30098a2df5b584",
     "android/backend/src/main/java/org/stemnotebook/backend/BackupSecretProtector.kt": "ce48a5f1940d0fd3e7814f06b3ccfaa03419aae2c354d267f6a1eb002ca53153",
     "android/backend/src/main/java/org/stemnotebook/backend/CaptureLayer.kt": "b95f7a3eaee59a6b15536718cb936db685024b6daa09ea05aafe7e82b0a712d0",
-    "android/backend/src/main/java/org/stemnotebook/backend/CaptureOutbox.kt": "58562a58cd2fa83797d36f300c3be4f0e1fff5c86a69df8f136a797fe825ba9b",
+    "android/backend/src/main/java/org/stemnotebook/backend/CaptureOutbox.kt": "7d1c618a47fd38ff3b7c14b6544c39cd726b361fcab0cef7cd7892e7943e8720",
     "android/backend/src/main/java/org/stemnotebook/backend/DeletionCaptureReview.kt": "74d48dd5a0cd179e9eb1c7b5e97284e65701c611a5b0dde8d82da945f264bb17",
-    "android/backend/src/main/java/org/stemnotebook/backend/InkAccumulator.kt": "f1961a5e673eb64b6a888ba3c92c290eb7761274d2316c4a19662b26c65e6a72",
+    "android/backend/src/main/java/org/stemnotebook/backend/InkAccumulator.kt": "9f01d06a645dd898ddba461cf9911dd26fb913c0a14879de8a5811db77f937c3",
     "android/backend/src/main/java/org/stemnotebook/backend/JournaledCaptureSession.kt": "91f770e5b44f2dd9eeb81ea974bc363265c476a4d7adfdacf8ff2d8b9b1b8d6b",
     "android/backend/src/main/java/org/stemnotebook/backend/LibraryOwnership.kt": "664e17e6fd36cd95e00ed10acf2f15d24c1efaed86cc7594f36ad038c59f8647",
     "android/backend/src/main/java/org/stemnotebook/backend/NativeBridge.java": "c468449326af6304a90af006f023050261144eee3eab453932255e5f7dffc9f5",
-    "android/backend/src/main/java/org/stemnotebook/backend/NotebookBackend.kt": "6fef27c4c850da229d9b761baf63f79a3aed25c0f0d01d9b0f0ee7b50d92d718",
+    "android/backend/src/main/java/org/stemnotebook/backend/NotebookBackend.kt": "85786e0d0c5a03901a420beba1c7b1358ca6c53cfeb68155ab6c8c8f89ce86c6",
     "android/backend/src/main/java/org/stemnotebook/backend/NotebookBackupJobService.kt": "c2195a25b9eefc8887ba440c3a558213479d77516c062ca6a68a1ba4a490c9bd",
     "android/backend/src/main/java/org/stemnotebook/backend/NotebookBackups.kt": "b2653a55f4157defe32ca6b89d97e53a609f4116368440caa1a86863985b8cbd",
     "android/backend/src/main/java/org/stemnotebook/backend/NotebookRestores.kt": "df838fd4962138d9f534f53c80ece8b669f5462680b09ef6ae3924718d8fae21",
     "android/backend/src/main/java/org/stemnotebook/backend/NotebookRuntime.kt": "ec07c7008ccedb3d9a5ce2fe4804010f624743d40c3ecf5ddc7d13ae8edbe485",
-    "android/backend/src/main/java/org/stemnotebook/backend/NotebookSchedules.kt": "52b1cbf6f92c48f97b35e6d9158a7f48b32099da61857370ad1e3ece612dc4c7",
+    "android/backend/src/main/java/org/stemnotebook/backend/NotebookSchedules.kt": "73c3b879bc77d4b28249a5b7be888446d3c24886695381841accb3c9d3526a42",
     "android/backend/src/main/java/org/stemnotebook/backend/ObservedInk.kt": "e805ee74103677a5304d858b2078374ba9ab1f1ee6ca695228d1d8729edca45d",
     "android/backend/src/main/java/org/stemnotebook/backend/PdfConnection.kt": "c7b5c61bc5d209f70a2867c8942d606556daf29a04a28e48872d1bd68af5504f",
     "android/backend/src/main/java/org/stemnotebook/backend/PdfParserClient.kt": "ae4fd736f00d29be432ffc4bb60d5443ba9bf9ca5a06ac3f83e2fe9c9b1c8214",
@@ -58,14 +58,14 @@
     "android/backend/src/main/java/org/stemnotebook/backend/SharedNotebookPool.kt": "29495f4f5c8c968f3d01e78db1d14e22e10ad4f575f75a33e35b950638999722",
     "android/backend/src/main/res/xml/backup_rules.xml": "9dc73ebd39e95acff8a4c69fe70c054e82a1148459cfc684a8252678c83ffa91",
     "android/backend/src/main/res/xml/data_extraction_rules.xml": "ac3e390093eeb9ee64b598412c4b5baf2033972647f4d8354d19fb0e85ffea98",
-    "android/backend/src/test/java/org/stemnotebook/backend/ActiveCaptureJournalTest.kt": "bd40f5354165468bc26b34577c0110dcdae0120721cc41101c2b443aabb5a328",
+    "android/backend/src/test/java/org/stemnotebook/backend/ActiveCaptureJournalTest.kt": "8d173d7f80d3be6f2aaa6cb93bb6c7d82bed32902689f93633ab2b2b80b9b4c9",
     "android/backend/src/test/java/org/stemnotebook/backend/BackendAdmissionIntegrationTest.kt": "0ebf93bd34961efaa2fe8e0dbc3d261b9c444eefd047f123a784048fe5770a7f",
     "android/backend/src/test/java/org/stemnotebook/backend/BackendOwnershipTest.kt": "ea9243a72af948a4887ea97deb464813b41cbda23b2d277834a846e4544d9bc2",
     "android/backend/src/test/java/org/stemnotebook/backend/BackendWriterTest.kt": "14f6c8c5bd1c6ca8a7c565b9d1ff63304de6529f178438e4692ae5137511604c",
     "android/backend/src/test/java/org/stemnotebook/backend/BackupCatalogueIntegrationTest.kt": "8a4911d96f905adaa25881846537fba6a3f1af756f6f8601474f717fd90b8b85",
     "android/backend/src/test/java/org/stemnotebook/backend/BackupCatalogueTest.kt": "58acddcefac31fd4bca08a7c3ce15f8e64cc871ca3b37d540ae3f49c7dbed9c7",
-    "android/backend/src/test/java/org/stemnotebook/backend/BackupJobRoutesTest.kt": "efe5b47c7510bb3af6fc8c8af02d2e0a1aba04f65d69cbb521b266b3ca9e0bed",
-    "android/backend/src/test/java/org/stemnotebook/backend/BackupJobSchedulerTest.kt": "d73df17a0f7def8bb03ad9eaa80a1aca52b4b685b520879cb98f4eaf63642ffd",
+    "android/backend/src/test/java/org/stemnotebook/backend/BackupJobRoutesTest.kt": "e5444ebc17de120298c63b5afd60724c5f7cf6ce65e998d0ba47bb3cf310e57d",
+    "android/backend/src/test/java/org/stemnotebook/backend/BackupJobSchedulerTest.kt": "34b523bfa5f10b726aa7b1896d053ad75bd993c03c10184336b86db411d7fc77",
     "android/backend/src/test/java/org/stemnotebook/backend/BackupPersistentAccessTest.kt": "f91956502ef9dc6b78045966f166ed0ee1f45c124110b0fff87471c869c92b9e",
     "android/backend/src/test/java/org/stemnotebook/backend/BackupPolicyMigrationTest.kt": "bf315543bf49d6b1c73dd9c915d740977eef2c9bee36cb0d0bc66b949ca3a150",
     "android/backend/src/test/java/org/stemnotebook/backend/BackupPolicyStoreTest.kt": "a0a4221b160fbeda084b5651987f2c0e482463fc72855792636c406a99fc59f8",
@@ -75,17 +75,17 @@
     "android/backend/src/test/java/org/stemnotebook/backend/CaptureOutboxTest.kt": "ee9bd2ac5c457bcb5cad70b544aae1eb25c03107be28ca1e74542a8120aad725",
     "android/backend/src/test/java/org/stemnotebook/backend/DeletionCaptureIntegrationTest.kt": "22b35d9293acf992aa16366c64b67faf7f7e7077ed8ba92a075a99836f57f0e6",
     "android/backend/src/test/java/org/stemnotebook/backend/FixturePdfConnection.kt": "18109d1f2020732cf9aa7c4fb7393fbbcd05609a8ab7991d0b3b2b3d670cf62c",
-    "android/backend/src/test/java/org/stemnotebook/backend/InkAccumulatorTest.kt": "96e7cd818d463329b33f37484de47900462f215cf8d7c314d9cb268d3414b83a",
+    "android/backend/src/test/java/org/stemnotebook/backend/InkAccumulatorTest.kt": "0b2afebe66ee9f9383c8f7e9dc6d4a35c327aef55ed4f0268764b4fc0bb0c580",
     "android/backend/src/test/java/org/stemnotebook/backend/InterruptedCaptureTest.kt": "53c2e17d1c724ba553d39040f67a08a454323be2b8d0ea7c2e8d2422b291ef5b",
     "android/backend/src/test/java/org/stemnotebook/backend/JniBackendRunner.kt": "81fbe1eea838c203f21441987cdeb5fa067c022dca69d8ff494ed44cc2ddd700",
-    "android/backend/src/test/java/org/stemnotebook/backend/JournaledCaptureIntegrationTest.kt": "b4957deab38500d3fe0ca41bb37338afe5d1be19bda4851c494eef4269fe42c8",
+    "android/backend/src/test/java/org/stemnotebook/backend/JournaledCaptureIntegrationTest.kt": "bc1a45f91b29e8784fb767b08ee75858cc933bd1947875a57120898bf3b610a5",
     "android/backend/src/test/java/org/stemnotebook/backend/MotionCaptureTest.kt": "256a7105fe9c0654caf919e9e7e3a7b230bdbaa19f66f3292f0469ca32653b39",
     "android/backend/src/test/java/org/stemnotebook/backend/NativeBackupBoundaryTest.kt": "3d38f785e57253b8d2ee29123d0153040dbd4bdacbbfca97a19fac9807d20d08",
     "android/backend/src/test/java/org/stemnotebook/backend/NotebookBackupJobServiceTest.kt": "f51dd0729641e94b1e8b298ef0e8e605792a8eac983428e9c247344a53963665",
     "android/backend/src/test/java/org/stemnotebook/backend/NotebookBackupsTest.kt": "873e13b2e41cf89a619e42c054928e383137e2fa1560d19a5621aad06712265c",
     "android/backend/src/test/java/org/stemnotebook/backend/NotebookRestoresTest.kt": "b0a04dd4ec2ba03f49a535a7ddddea72e6bcf3196bf98fc4dedb8c564865fa4b",
     "android/backend/src/test/java/org/stemnotebook/backend/NotebookRuntimeTest.kt": "d5c1fa3b6e6d4f2790180343a158d182f20ca0a73b9d317a7b0418a1b16f1657",
-    "android/backend/src/test/java/org/stemnotebook/backend/NotebookSchedulesTest.kt": "e05c3805596828f449b566b7f7a4e4633bfdac8e40415c16b8782c73d74f91b3",
+    "android/backend/src/test/java/org/stemnotebook/backend/NotebookSchedulesTest.kt": "623d976e5b7eaac67927d6c83223d392b3d68cc6a30834717175eef3ba97c3db",
     "android/backend/src/test/java/org/stemnotebook/backend/PdfConnectionTest.kt": "deeb311c819cb566bcc449fbd5c4b2e3810b789e1dd8af77f3eb0c694d81df77",
     "android/backend/src/test/java/org/stemnotebook/backend/PdfParserClientTest.kt": "9c8dbd693cd1b3fd42f575329ac2b9af3dea47d7ecc8063e6623568dcc8c124f",
     "android/backend/src/test/java/org/stemnotebook/backend/PdfPixelsTest.kt": "270dc6eaa0524da80518f400c5fa8055f2b4936fb45cc9509e7eb421b9b997d7",
@@ -110,7 +110,7 @@
     "bridge/tests/java/OpenBoundarySmoke.java": "a381cc37286dfafd39d54b5adafc068aad90f6fa10f5825af8bceee0bfd26e28",
     "bridge/tests/java/RestoreBoundarySmoke.java": "b2d839ffd104edcac191f5231def8047e26438ff877d6a9207d57f8b6ff74e8d",
     "bridge/tests/java/shrinker-entry.pro": "6499951820f04a798ac49ad973cb994bcd357e04ae874ae98dbeae709347fcf2",
-    "core/Cargo.toml": "7275eadb36f35c89ad7849d5dde0ec1e7671d247645cce6f92e4b479dc323ebb",
+    "core/Cargo.toml": "52898ebc98663e7d56d7ea5fdcad82ffc9dc323b78f20ddc2fe6cf3a828baaef",
     "core/migrations/001.sql": "99dad6121fe73b423becb107a9b446855adc6fc652f5927a2da2bdb4167de77c",
     "core/migrations/002.sql": "65a83aaece959e6dca07080c3b1d4c24bafd6e4c962dd9ec8ab3874aea137c7d",
     "core/migrations/003.sql": "b259eca5252494a283015070ba2b759b8e98bf0ca2068b5932d6d65b59846682",
@@ -126,12 +126,13 @@
     "core/migrations/013.sql": "eb1883aee00a81f0bc8e15a449ad33170d8167b3bbc2dafec12ce2c63d15757b",
     "core/migrations/014.sql": "8526cb69c4da2add90f60161f3da93d3a8541aebaf5ebf9914625c1175832be7",
     "core/migrations/015.sql": "a8bf3d06e302e89106460cf3b0fc40c849eb8ca4fabe484101efdd730bbf0482",
+    "core/migrations/016.sql": "4e855ede5da92039a713273e0bfd63819dc7a9fc82f926aab5f2daeac4fbd5ea",
     "core/src/attachments.rs": "f44d8206e8fb225d4047e11f73da9d0623e53ac1fdd74a87a8c0055ed291ae46",
-    "core/src/backup.rs": "0be910a873a0f3982a7e15193da07768a234f4d44d627aac91c05e1fce3b9c63",
+    "core/src/backup.rs": "a45c15ba87162902dfb4c586f8f2675c2e951bb9d43ff160a2ee39a032b03db5",
     "core/src/backup/authority.rs": "ac86391d4d51d5065cc06e3d47b30432f4941d0186fa30e967c1c1bf5fe84312",
-    "core/src/backup/streaming.rs": "1b5c8bac750cd4e4508dfef465282a694680b5f9b205fc9283ffeb2a5cb60ce4",
-    "core/src/backup/streaming/pull.rs": "caa64614152fcf702789e2b0fafc67f0ec9e23835bdbdaa972e84ba5f61c4d3d",
-    "core/src/backup/validation.rs": "a27e03b7f81839732c07e105d7069532a0f68825aae14715a17016167c0291a8",
+    "core/src/backup/streaming.rs": "a17a875b3cb03896df2f96aceaae2754a948781136bb18db8ad0100590401764",
+    "core/src/backup/streaming/pull.rs": "128fc74378289dfa650454937c3b6f883a2a2c95755d84e6e67a0a83265735b4",
+    "core/src/backup/validation.rs": "00fe77d4dd38234f0a8c3c3675db6f7743877b366a06afc756925be437f053d7",
     "core/src/bin/notebook_cli.rs": "26271e2457fe8d3fc1b72a61eb1463bf8e775e5d4929fea5d90235b6d299ff03",
     "core/src/bin/recovery_probe.rs": "f3e86f9fb8114498e56003199357ceb03bcc0e11a1b9257ac1e6325fe2ba23e9",
     "core/src/bin/render_probe.rs": "e82dac37876ef085a1066f169375d6195a0edf1f46f5c28f1b8124e7ed651326",
@@ -140,42 +141,48 @@
     "core/src/converters.rs": "45577c77224a9a960a33242b8d9c29b779cf18ff94f09a13f2b3efac4ad7ac09",
     "core/src/crypto.rs": "4fdf2b56d85886e40699590fb11bc245c86390aff8d737543bade185471421fb",
     "core/src/crypto/stream.rs": "8917bdfccac8c6d64fdd6fd490270c6fe2367bff1a1cd96248027ae08741a855",
-    "core/src/export.rs": "2364239249b1f3acf2854a72abdf2b5a0f6cc75c33a995daec2969136e7eeeda",
+    "core/src/export.rs": "a03d8043cd33b0d38024fc638551a3b51d2f5795353da16714742c37327929e0",
+    "core/src/export/image_crop.rs": "dbd1e86eb5988dd24c0602b4f36185e19b9f02f59602c33fafbc566b639ae625",
+    "core/src/export/source_ink.rs": "e63c1a751651d95b110eda38abedd84c386d54bffce40a8c96c95f4b518064d6",
     "core/src/help.rs": "a829ef9b06668ff734dd5c1b72de00afd76c865f6fd6118dadc84a1d001b2988",
-    "core/src/host.rs": "2f9e483ecd34e138d248a5d2ddaba973e1f86229dc16527dc1562d98af86ad1c",
+    "core/src/host.rs": "2f0983bac8ca66571779b5a2d1cf1a2ece353778f223ea6c707d825fca84d23a",
     "core/src/host/backup.rs": "d53b5ccf33babb86b26f986353e663794d7fa6753cf8155dbdfde69dabb73dce",
     "core/src/host/deletion.rs": "57db1f4ef7f3843a839f8a7906fde7b192b6bc6d682e5ea17f85728567f3c2e7",
     "core/src/host/mailbox.rs": "e94e7c33ed3e1c56172ba52f23169a54fa80f55f10f5365caa63b3418626186f",
-    "core/src/host/ownership.rs": "2feadfed5255334d7f04834038bd2e7704cb9401f0adff6e499e2d559dbb438a",
+    "core/src/host/ownership.rs": "4754a1671bfb7410bd741696d5004732fa354f71a2bbb5a5badef40e4098af7f",
     "core/src/host/pdf.rs": "a2234618fcfa05e273402a57eecacb515e517eba27d17211e0dfe5d8b9fdc8da",
     "core/src/host/recognition.rs": "e04711a2fdeb5f5c3e02e84a9b8c9542dd4ce6fd1aebd6a25f1f7ffd1efd5400",
     "core/src/host/restore.rs": "022abbb1934d6443331c6978875b262dff8be43a122cbfdf16271781bcc89530",
-    "core/src/ink.rs": "044b07bdcaa83f929e765dc9d4b086aa3dae19e0a5dfb965da12bfd4d0b6ede9",
+    "core/src/ink.rs": "b7188c46a2a72387132b853f8bd33a37b4329b9963547076657278b3aedb2070",
+    "core/src/ink/erasure.rs": "61c70a4a04f03231de3e3c0915448afd8cde489feb7377bc68ba6f8a7ae4eb0b",
+    "core/src/ink/pressure.rs": "7c47cf97309b898bf865a8b94127739c22810f06565498333683f2ae9b8660ab",
     "core/src/lib.rs": "dd8a3fb56d844e4c1967586e686499b0779319bfa22ea2e888c3bb1eda4b4396",
     "core/src/objects.rs": "071a855f967d86b13f2549667538bf8e90d49003f503d95feed766a52d60440b",
-    "core/src/portable.rs": "59d85f6a8c7f2312396c6bc92e08d199c08e4a7dbf08b60d417679ebc53463a1",
-    "core/src/processing.rs": "cd07243d019c6c7a15e444e451931d8248fb1b69e6328549e9645cda7492835a",
+    "core/src/portable.rs": "100cb8272712e8c78f7c769dd1abbf317ed96d734c66803e69fcd32237cf368e",
+    "core/src/processing.rs": "980f8677fef425f4febcd7d8364ba93376d183bfc565261534d65432e3c55334",
+    "core/src/processing/activation.rs": "d10432657a42cf0db035c4535e2bbec07c803a7116c52dc40eeb5b055e945935",
     "core/src/provisioning.rs": "d372e0dc3e3bdd2ecf620843e61a723d77cfdf80d0ea927bba7d442c91eb2e25",
     "core/src/render.rs": "49efca3a4d906df3c25036e1ab664e089f584b4aca8ff54f0de73a4f2e167cf0",
     "core/src/security.rs": "266a1fa53c490ae501b833fc065a72e73a95e4d8adc5b399e01162c596836ac7",
     "core/src/sources.rs": "54574b289cdb178e0cae3cb6b730a55bbe6689434675b3e79f2f53bef3a48a0d",
-    "core/src/store.rs": "454f6dfd92e2635718b10223ef138643056561c69ff496cbb8481dd5033c3c22",
-    "core/src/store/authoring.rs": "a01d6c25a0578cc67edad1719df8f85be32e27d5e2476e690643d651ee1cb312",
+    "core/src/store.rs": "d3e95bcaf587ec146083688c5aa6a9889020c17b88304f664397d7ff4433559d",
+    "core/src/store/authoring.rs": "cfcaf66e00b5c057e13cd424075330b5fd523f04691f1e59f74a8c0ca29b2437",
     "core/src/store/capture_recovery.rs": "e84e9cee04253725b00abc1d28bc9e5909f3818d8c1926cce8f6940cdd263dee",
     "core/src/store/editing.rs": "4616bcc760b178ce9deb15785f0f2d01a1ac60e61d27bb4fd406aa50751602c5",
     "core/src/store/engines.rs": "4cf6d0470c5450a0c95e24287b80e5d04e8376a134738011bbfe6021d85b3673",
     "core/src/store/exercises.rs": "e0ae69684ed6b5aa18aaed2342a9d037c2d216c94eaad7410f28851bc21c8e3d",
     "core/src/store/layers.rs": "2f7fcfe46905e594eb773d9a223667164696da70af3f3a3b466398e7749eeba6",
     "core/src/store/navigation.rs": "314577d93e5602151ecb6270bac5f2874f316d86d254ce1d90ea5e760dbe30f3",
-    "core/src/store/objects.rs": "8bde27787601fd6ca6a6bcf00a002a6d5997ac8b0bbecd87aefd2163006c0812",
+    "core/src/store/objects.rs": "4cf87c68a5c2012e0828a1769d6cfc860a1076d746dc165315e72f4f6330218f",
     "core/src/store/organisation.rs": "b20a41968c97e2b2a607ba4c1d022a5b4a5cc24a1dc0b295fdd4d6baee7ded60",
     "core/src/store/positions.rs": "037883d298aa212c3c8edefa26de76d3ca054673cb332b8b76473f034b38cd02",
     "core/src/store/proposals.rs": "cd4da47034a92d0ea4a2525bbe71d683619cd4b255c8f9590bfce619abc9508f",
     "core/src/store/regions.rs": "ef657c642542176573dfe72977e4bcaca575dbbdca9235f4444d7d7a06b63d16",
     "core/src/store/workspace.rs": "9a69cffa6c09565c8fa96855f17eec723167954aa66b26acde45040dfd624a26",
-    "core/src/store/writing.rs": "70211c7fd1696b30c97bb2ec54ce86ce979bd102de6bd7f617e961f555789ad9",
-    "core/tests/authoring.rs": "ca360149874c259677323da39dce694a86ffb364e7f9e73ba82a79d3a6ab8f61",
-    "core/tests/backup.rs": "6aca0349f7d7486d81fdee1c17487fe422dc1f4e85480406388bdcb04f29b9f2",
+    "core/src/store/writing.rs": "5ac7d686b86f4cc07c949cefa5ef3582557daff419291fe9af7e6d78c89ef9eb",
+    "core/tests/activation_work.rs": "538a85a46be6f051546d91397fc56d30b2c6305907822bed9b1aa89bb8518124",
+    "core/tests/authoring.rs": "006448ca3b089e48c3b59734bf4aff51a80f4469dd4cc823abd5d45b8a7d92d5",
+    "core/tests/backup.rs": "d89e9255067aefcdeb161a1c5d421cb75d6fa723c735e5abbdd87c87f20b546a",
     "core/tests/backup_delegation.rs": "7dc4dad24d92d15a8db61a8619cd97377edadeccbd02b56648a4139434771adc",
     "core/tests/backup_pull.rs": "74b1ab9f29ad797935f0b3d8cade2bfbc7c56a9979bac636f534aaf2312a356b",
     "core/tests/backup_stream.rs": "77a6ae90e191fe20efe21e5dbc7625a30dadb507df153e0b7a76c3b4843304b5",
@@ -188,8 +195,10 @@
     "core/tests/deletion.rs": "2b0d0ea4205b9f91677f08a16c18fe11ee300bbb7310b12dc03864642c36cb31",
     "core/tests/editing.rs": "60c13a9f8fb6fa7fdcdbd14617b56ca0ece6e6e737ba9d5f09d598180388f747",
     "core/tests/engines.rs": "dd1a07bd2a03829621cb311ddeec02087629e033c101435d66179a47df4808ed",
-    "core/tests/exercise_migrations.rs": "1bf58f6a25e27c26b6a324fda4abf194ab172100d0f7eff3ee5722def64190a7",
-    "core/tests/exercises.rs": "22ecf1523d9bbc75c322a4b6e07d2e866d06cb0b36116b811411bcf77d55b3ad",
+    "core/tests/eraser_batch.rs": "b41db5d153c72852c8faebdf7a70052821c4d7a9f5865b2efd3ef71618e41703",
+    "core/tests/eraser_gesture.rs": "12baa2f3088b87ed552ee594d20eebd5a02fabc0f893cad67d253d22eea5b4ae",
+    "core/tests/exercise_migrations.rs": "1e2ec4a9cc2408d0e8890101c0ed036e8661af6a87980216741c4c7946982175",
+    "core/tests/exercises.rs": "60c72a93dc16e8d42e1fb9327d4de3e7082babdeca2559442007e0b21d7e3e03",
     "core/tests/export.rs": "d1acfbe1f9993519afc273b72ebdb96694222836864773b6746a873c349fa4ae",
     "core/tests/host.rs": "8f8b09914098b325b1e39d1cd2f29721007a30e22821b93a4a22f69dc7698b9c",
     "core/tests/host_backup.rs": "7bce2e54b91a7c87674b858e19dbf04e5b2866ccaafede774af83cb4cf92f59d",
@@ -197,23 +206,25 @@
     "core/tests/host_pdf.rs": "04a2868e327f8210b68a581fbe2032bd09d1fbe5cd0b17a08a687e501df6f038",
     "core/tests/host_recognition.rs": "8f2f7e13faf1ef35de1ba8367c5e87d5e5a4a424b04a53e6a5de963794f3998b",
     "core/tests/host_restore.rs": "26044b3f7740bef06b05d4184d0896648eba8a00196d609bc727f53200098005",
-    "core/tests/interrupted_capture.rs": "7c13614dd4267ba54008b1b3973bbff2099f8f58b8c8e34439fa07d2f55f620f",
+    "core/tests/image_crop_export.rs": "a0482538b278a38d9db60ec6a53cbdf871cdcabea767897e4d19f5922aaf56cc",
+    "core/tests/interrupted_capture.rs": "2ea72bfb12f61df2391b779e65e8771935b14a4b504c8f75b51664e76acdad41",
     "core/tests/layer_capture.rs": "38a3fcfa8a394f5a217c5bb28f073bdba0150bf5264355e7b7ae4821dfc301c1",
-    "core/tests/layers.rs": "dc0b871edc0e929a1e1789b6d0a24b1c911ad65773aec52181647992e9370d4e",
-    "core/tests/objects.rs": "eb7249976a87785b9a4a9d495d9297b1e0769fa3f176451268ce8740cad34008",
+    "core/tests/layers.rs": "8aa3451b23ad4b21c2ec24df80d5b1c3937c1447b74eaec1a2148c3213045a86",
+    "core/tests/objects.rs": "5a6f4dedeb4ec972b0a04c6f1dd50c788b23f53d750e4d33eaed5c0d54429f5c",
     "core/tests/organisation.rs": "daa071549362da0af485182073da639094b8653ac2b3b15919e818b8aa2ab5d4",
     "core/tests/pdf_revisions.rs": "a50c148003a6a8ff896331a70e4879eb58dae39f02bbb7a5fe0b433bf5813455",
     "core/tests/portable.rs": "204225c15c8cdb1c6171002b14c1fd526ef02e4c0abc3996fb71e48990996ffe",
-    "core/tests/positions.rs": "991d62fbb00652e7913660ba19af277b7814f12606af557265df5ac53e4e2b93",
+    "core/tests/positions.rs": "439aeb30c16211ebc553a41230b0b82d5966c6fccc137e0090ca1b2ce7805331",
+    "core/tests/pressure_response.rs": "98b139f9e9b64d00e22d15b0741b1ee8a639e8cfcf15b2371290163433463645",
     "core/tests/processing_work.rs": "206071e2a1a9b6246ecc52d04b112df584918b0ab2745c8b6d6bdec80980c9a1",
     "core/tests/provisioning.rs": "93a934dd4e6301fc12d5ea5e15f1282f2d17fc5911b0b9cc72aa34d1946fb0cd",
     "core/tests/recognition.rs": "ddb25848865fa33e673849ba04183c277cb433c1709ed821905bef56cc2e5df3",
-    "core/tests/recovery.rs": "2b61ad4f8dc3d335c2251845263725b9d59504449d2dd87e0837ce6d1153f2c2",
+    "core/tests/recovery.rs": "3e797ea4f1a58505b6085316f5523db7892b435e8cbf4b28b4b26bfa03bfaf9a",
     "core/tests/regions.rs": "a49f05d5b3e1d425abcd0fccb15dea283951d6a391306dc702582de4109091b3",
     "core/tests/render.rs": "7b92eb55f450e24fd24940b3e876b90828632171546fab2271b16708919a4bb7",
     "core/tests/sources.rs": "442dd7fa2ad1b671666c87a3ba291ccfac7fce6719c265be7170dd2f81904b6a",
-    "core/tests/stroke_style.rs": "5c25e9a187fcd88b69d455fa4975f594c95659b5c11cdde91956d4fa013fe3f7",
-    "core/tests/workspace.rs": "8f9f562164a1213a1177dd3e7d7b212419e1b2d218f4a67e5941d81c24437369",
+    "core/tests/stroke_style.rs": "511ca2a516b33b72e276bdd4b45ea5e908352c65f38827bb9c46d35e8a9bfca4",
+    "core/tests/workspace.rs": "84f849709d2bfc7d542eaeeaece0be01a0a3be56f6bc1cf9d9abbf9da74a62b9",
     "core/tests/writing.rs": "c9d11c88e293853cd4bcecb42ea8d9777a803aa1fdba348264ed045657785b0c",
     "docs/decisions/ADR-001-core-foundation.md": "90df43a72b8deacb2d9cf168cd268ad9e73331e8c9a131ecef493d2b45f16f9c",
     "docs/decisions/ADR-002-portability-and-privacy-boundaries.md": "b44f45c688f0d83443b88c272911b22e99e65b254af1e58aa8b01505d50d5e6d",
@@ -225,21 +236,31 @@
     "docs/decisions/ADR-008-scheduled-backup-authority-foundations.md": "af8499dac530b85df9c617b1429bc674ec71dbfd55d388bff52413fd181430d8",
     "docs/decisions/ADR-009-shared-notebook-runtime.md": "156d013ff10e0b43d2f911ff46b3943d371bb492f5defb00e3f32673c9002231",
     "docs/decisions/ADR-010-opt-in-scheduled-backup-workflow.md": "103da83bb45d048d556096408dca8340a9a322dfbe74c18dc485c2d30348a4a3",
-    "docs/decisions/ADR-011-private-independent-backup-job-routes.md": "a94f4b685151d0e7f39ba014e6f2d181fd7eaed495f9423b44d89cc3f1435078",
+    "docs/decisions/ADR-011-private-independent-backup-job-routes.md": "2320d3694191795a134265c4d6eac7363c339641fdf691c4200b46af0d7d7649",
+    "docs/decisions/ADR-012-explicit-pressure-appearance.md": "858a339f7500994b6f1bc24a407b909d1b4231644e73e7b261c08604f4e50e69",
+    "docs/decisions/ADR-013-source-space-whole-stroke-erasure.md": "fea355369780076bd125ba015188d8c7baaf965a500835108f675d34d0572a90",
+    "docs/decisions/ADR-014-compound-source-space-erasure.md": "868aaff762bdc84eb85454fdb41097d6f157b99e3c93c4d02025d670063a3cb5",
+    "docs/decisions/ADR-015-cropped-image-derivatives.md": "a45817d46934f18b7dbc64d6dac5a9d529269aac0515d279bdf1270613fd8b4c",
+    "docs/decisions/ADR-016-owned-engine-activation.md": "d3d200d3d5f11063dcbde9a982d71fe9546888f8183415100b64a175245b7d97",
     "docs/decisions/owner-authorisation-2026-10-22.md": "4fedeef87589b9028ce27cc4ee64878fae9fdd42cbbe9a8d8c093ca3091c0788",
     "docs/formats/BACKUP_POLICY_STORE.md": "86e0fd1acad565e730be2f8c8a8870020ab822f1e5603858c31f4010fe53b975",
     "docs/formats/BACKUP_PUBLICATION_HISTORY.md": "421c2dd947cc2b2128304fdeebfa801ee873c7b76f27582a5bbf05881536bd0a",
     "docs/formats/BACKUP_SCHEDULE_POLICY.md": "45b83b2fb099de071f7450c52da8c621b2d386e0449132e3220ba4222b4f20fb",
     "docs/formats/RESTORE_STAGES.md": "423a2f8fce054ff0724616260bf25b988f700213917085c80ce7adecefdf2b7e",
-    "docs/formats/SCHEDULED_BACKUPS.md": "da041ee5c727e8818f695b2071a08b8a78ad487e3dec22d654f45d79d92f5410",
+    "docs/formats/SCHEDULED_BACKUPS.md": "ca4cf3886520e6e6a6086712a7430b01f737f377ebdf4c182d34b6477373c97c",
     "docs/formats/SCHEDULED_BACKUP_FOUNDATIONS.md": "7721f1757739a464ae6261ee8b27461f94d2abb254e6644328539e5b51113db9",
     "docs/formats/SHARED_NOTEBOOK_RUNTIME.md": "4ad8abf6fb22bf15842f4990d1ee3bdb18c7365df84ee7837c35c880c2df7e83",
-    "docs/formats/full-library-backup-v1.md": "97cca01cad85e753e74d60cf8fd472ddd9943d9bcc1a9a9ddfeea8d64fe2c586",
+    "docs/formats/cropped-image-derivative-v1.md": "3889a0c8959fdfa93c485896ab196176a2a8d7df9d2084a282565bf76d6ce2da",
+    "docs/formats/eraser-gesture-v1.md": "43101d6bf89332844223e9e6bc4fd09560a1d4e0b77a0cb51a4a562ccf437038",
+    "docs/formats/full-library-backup-v1.md": "bc30ab921c7cb3afaed7df442ea3ffbe80644966452066d066d3be6fa30d9f74",
     "docs/formats/native-subset-v1.md": "a2fa7e32fce52d5cdfe22c6f0722b0ac5c979e9c725dbc1d7be0efd70af94e92",
+    "docs/formats/native-subset-v10.md": "9d6a7fb25dfd760d986fe2547500dbd775f312eea40e1f7272eb489211e1bc74",
     "docs/formats/native-subset-v2.md": "465abc5203e3d0a34c890003ff5fe1c188675142919f6b153a586b60d59bfb9d",
     "docs/formats/native-subset-v3.md": "91bf099b8486549b044a00416dc627450b41261436d675127e6af96e28fa6cbc",
     "docs/formats/native-subset-v4.md": "79e1097267d0e735bc11c8f2eb67befc0bb01fa9381a8742dbe6f23dc832b509",
     "docs/formats/native-subset-v9.md": "c6a695b93aa5707bfbc157d31043409da58bf393c9532f0d3cfa9cc06a1d5635",
+    "docs/formats/owned-activation-v1.md": "4663e8c8c146ef6c6465dae7ea2570a2bad7de0f352c95af4a37f121b7105883",
+    "docs/formats/pressure-response-v1.md": "933bf6a9ec8815b837eddc442817ebfda557b11f076aafcef713473bc44a6e64",
     "docs/imported/01_START/WORK_START_PROMPT.md": "8586b5ec6bd1aaa9cd09d74b0b64632c92b64d01e8a2cf2fea16b4c7faf4ea89",
     "docs/imported/02_GOVERNANCE/CURRENT_AUTHORITY_AND_PRECEDENCE.md": "54882f8dd5b69fafb5d3e3ab8279f3e650c08311d984c477da423b716726163e",
     "docs/imported/02_GOVERNANCE/RELEASE_SCOPE_AND_ARCHITECTURE.md": "1f2ff1b29629dc0c823fe7baa518303036802041eae0189b11fc647113fd9721",
@@ -271,15 +292,15 @@
     "docs/verification/DEFERRED_MANUAL.md": "c694b9fe185c216204dfd72aa6c55d1f8d21e06c431bb50b126bce1a6b514e1c",
     "docs/verification/HOST_INTEGRATION.md": "d9ce8070ccc73e4f55ce3d5c736abe330ead837819ef8d068253b83db52ac70b",
     "docs/verification/TEST_PLAN.md": "9072e4e45bb15ff1a859d7cab76d45dd9289fbd19ec6556a636afebec2460c82",
-    "docs/verification/backend-gaps.json": "dbf63c912821b62f817aea0a1d2cf34ae07a542212a5a6fda0074c60234d699d",
-    "docs/verification/candidates-current.csv": "532e962e84109b45a54d53648435ccfdd9eb5d68a7eda7b432f88bf3cfaf46b3",
-    "docs/verification/inherited-current.csv": "4744d4498985fef3bca5f1b0a2e4d16d47d56c7823e1d693628102f508bbadc0",
-    "docs/verification/requirements-current.csv": "437a3dea7f55dd6c830e1895c4689a512cb5c45e87c5e8cb8706a3ce6a0790b2",
+    "docs/verification/backend-gaps.json": "4274ba9729a7db2f2ff8ed2d754e1fbc7761ba8225276f71d020c01526c9bca1",
+    "docs/verification/candidates-current.csv": "e87dc50c5b232bda663d8808cda3944c3e79b42581633433513889fd0219d961",
+    "docs/verification/inherited-current.csv": "b0f646203cda216fde8ed46e17c4f21e9453b28f566c5778b6b79a6cd092fc66",
+    "docs/verification/requirements-current.csv": "9924e6e35447db955f2a9437b87c14cde026d9dc18e7d5f49b4323c8265f6738",
     "docs/verification/traceability-manifest.json": "15d09e00b540a512b8e0b6afd98b06824e93d743d80317963ebe18d91d3adb22",
     "rust-toolchain.toml": "c33d1f0b1b8fda448bea32d7dc867aa64947c87169fd9de7122ffccad1dd80f9",
     "tools/backend_gate.py": "6c924452f65676d8534651723073555ae5657430c9580e73e87d712e9ad7671b",
     "tools/dependency_inventory.py": "51dc9dcd28cab69c8af36b976d65aa67557d6afe8827be162a431d1854232315",
-    "tools/traceability.py": "43519021d5e16d86305dffb40e4ab630b0cc92e8ca5a630ea77108ad3f79e223",
+    "tools/traceability.py": "c39ef851dd595e22bd8dd0c958002b46dd510e246e36dbce7eb9bfe44ff86fd2",
     "tools/validate.py": "2a25d3f4c6d487754f7b73bc0f415809cdf9e8416fe9f651f0302522a373711a",
     "tools/validate_android.py": "db39e2663790d7d807e1a6a50a60480bd69ae09a19930c76819fef29daea0a21",
     "tools/validate_jni.py": "f94111ea41b4a1d778cf9c9967a2a74251f93515e372b670c50a16c50aa7d45e"
@@ -296,7 +317,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 1.118,
+      "seconds": 1.055,
       "log": "format.log"
     },
     {
@@ -314,7 +335,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 3.715,
+      "seconds": 0.364,
       "log": "lint.log"
     },
     {
@@ -328,7 +349,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 1136.924,
+      "seconds": 1134.733,
       "log": "tests.log"
     },
     {
@@ -343,7 +364,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 0.269,
+      "seconds": 507.325,
       "log": "release-build.log"
     },
     {
@@ -355,7 +376,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 0.471,
+      "seconds": 0.476,
       "log": "traceability.log"
     }
   ],
@@ -369,7 +390,7 @@
       "result": "ok"
     },
     {
-      "name": "backup::validation::tests::embed_work_queries_use_covering_primary_key_without_temporary_sorting",
+      "name": "backup::publication_tests::post_link_failure_is_uncertain_and_never_removes_the_new_recovered_copy",
       "result": "ok"
     },
     {
@@ -381,43 +402,7 @@
       "result": "ok"
     },
     {
-      "name": "host::deletion::tests::expired_and_capacity_bounded_reviews_never_delete_content",
-      "result": "ok"
-    },
-    {
       "name": "backup::validation::tests::checkpoint_checks_busy_readers_and_keeps_sqlite_in_charge_of_stage_io",
-      "result": "ok"
-    },
-    {
-      "name": "host::ownership::tests::sqlite_managed_ownership_survives_commits_and_failed_duplicate_connections",
-      "result": "ok"
-    },
-    {
-      "name": "host::recognition::tests::closed_scope_never_issues_a_live_epoch_after_invalidation",
-      "result": "ok"
-    },
-    {
-      "name": "host::recognition::tests::expired_processing_authority_cannot_be_refreshed_by_a_later_job_budget",
-      "result": "ok"
-    },
-    {
-      "name": "host::ownership::tests::strict_existing_open_never_initializes_missing_empty_or_unrelated_files",
-      "result": "ok"
-    },
-    {
-      "name": "host::ownership::tests::strict_existing_duplicate_open_keeps_owner_locks_and_committed_edits",
-      "result": "ok"
-    },
-    {
-      "name": "processing::authority_control_tests::linking_authority_keeps_parent_cancellation_deadline_and_exact_expiry",
-      "result": "ok"
-    },
-    {
-      "name": "backup::publication_tests::post_link_failure_is_uncertain_and_never_removes_the_new_recovered_copy",
-      "result": "ok"
-    },
-    {
-      "name": "host::ownership::tests::bounded_backup_pulls_leave_exclusive_owner_free_to_commit_authoring",
       "result": "ok"
     },
     {
@@ -425,27 +410,15 @@
       "result": "ok"
     },
     {
-      "name": "backup::validation::tests::source_grant_retirement_is_incremental_and_cancellation_rolls_back",
+      "name": "backup::validation::tests::containment_depth_cycles_and_retired_entities_keep_the_same_rules",
       "result": "ok"
     },
     {
-      "name": "backup::validation::tests::unreferenced_raw_ink_is_rejected_instead_of_silently_omitted",
+      "name": "backup::validation::tests::embed_work_queries_use_covering_primary_key_without_temporary_sorting",
       "result": "ok"
     },
     {
-      "name": "host::recognition::tests::optional_retirement_worker_failure_does_not_disable_authoritative_writing",
-      "result": "ok"
-    },
-    {
-      "name": "host::ownership::tests::strict_existing_open_migrates_a_real_v1_library_but_rejects_bad_identity",
-      "result": "ok"
-    },
-    {
-      "name": "sources::selection_tests::retained_pdf_commit_failure_does_not_publish_asset_or_change_acquisition",
-      "result": "ok"
-    },
-    {
-      "name": "sources::selection_tests::selected_revision_transaction_rolls_back_and_preserves_independent_evidence",
+      "name": "backup::validation::tests::deep_embed_graph_uses_sqlite_stack_and_detects_back_edges",
       "result": "ok"
     },
     {
@@ -453,19 +426,7 @@
       "result": "ok"
     },
     {
-      "name": "backup::validation::tests::containment_depth_cycles_and_retired_entities_keep_the_same_rules",
-      "result": "ok"
-    },
-    {
-      "name": "security::tests::cached_backup_scope_validation_does_not_extend_an_unchanged_grants_expiry",
-      "result": "ok"
-    },
-    {
-      "name": "store::storage_tests::sqlite_full_reports_failure_and_preserves_committed_work",
-      "result": "ok"
-    },
-    {
-      "name": "host::recognition::tests::oversized_processing_frames_fail_without_allocating_an_encoded_copy",
+      "name": "backup::validation::tests::source_grant_retirement_is_incremental_and_cancellation_rolls_back",
       "result": "ok"
     },
     {
@@ -473,7 +434,7 @@
       "result": "ok"
     },
     {
-      "name": "backup::validation::tests::deep_embed_graph_uses_sqlite_stack_and_detects_back_edges",
+      "name": "backup::validation::tests::unreferenced_raw_ink_is_rejected_instead_of_silently_omitted",
       "result": "ok"
     },
     {
@@ -485,7 +446,95 @@
       "result": "ok"
     },
     {
+      "name": "host::deletion::tests::expired_and_capacity_bounded_reviews_never_delete_content",
+      "result": "ok"
+    },
+    {
+      "name": "host::ownership::tests::bounded_backup_pulls_leave_exclusive_owner_free_to_commit_authoring",
+      "result": "ok"
+    },
+    {
+      "name": "host::ownership::tests::sqlite_managed_ownership_survives_commits_and_failed_duplicate_connections",
+      "result": "ok"
+    },
+    {
+      "name": "host::ownership::tests::strict_existing_duplicate_open_keeps_owner_locks_and_committed_edits",
+      "result": "ok"
+    },
+    {
+      "name": "host::ownership::tests::strict_existing_open_migrates_a_real_v1_library_but_rejects_bad_identity",
+      "result": "ok"
+    },
+    {
+      "name": "host::ownership::tests::strict_existing_open_never_initializes_missing_empty_or_unrelated_files",
+      "result": "ok"
+    },
+    {
+      "name": "host::recognition::tests::closed_scope_never_issues_a_live_epoch_after_invalidation",
+      "result": "ok"
+    },
+    {
+      "name": "host::recognition::tests::expired_processing_authority_cannot_be_refreshed_by_a_later_job_budget",
+      "result": "ok"
+    },
+    {
+      "name": "host::recognition::tests::optional_retirement_worker_failure_does_not_disable_authoritative_writing",
+      "result": "ok"
+    },
+    {
+      "name": "host::recognition::tests::oversized_processing_frames_fail_without_allocating_an_encoded_copy",
+      "result": "ok"
+    },
+    {
+      "name": "processing::authority_control_tests::linking_authority_keeps_parent_cancellation_deadline_and_exact_expiry",
+      "result": "ok"
+    },
+    {
+      "name": "security::tests::cached_backup_scope_validation_does_not_extend_an_unchanged_grants_expiry",
+      "result": "ok"
+    },
+    {
+      "name": "sources::selection_tests::retained_pdf_commit_failure_does_not_publish_asset_or_change_acquisition",
+      "result": "ok"
+    },
+    {
+      "name": "sources::selection_tests::selected_revision_transaction_rolls_back_and_preserves_independent_evidence",
+      "result": "ok"
+    },
+    {
+      "name": "store::storage_tests::sqlite_full_reports_failure_and_preserves_committed_work",
+      "result": "ok"
+    },
+    {
       "name": "backup::validation::tests::whole_library_stream_restore_exceeds_subset_entity_block_and_exercise_caps",
+      "result": "ok"
+    },
+    {
+      "name": "cancellation_before_probe_or_after_probe_prevents_readiness_and_probe_failures_are_contained",
+      "result": "ok"
+    },
+    {
+      "name": "blocked_probe_releases_manager_borrow_and_removal_keeps_adapter_until_completion_retirement",
+      "result": "ok"
+    },
+    {
+      "name": "consent_failure_preserves_ready_but_failed_integrity_reverification_retires_old_readiness",
+      "result": "ok"
+    },
+    {
+      "name": "provider_error_payloads_remain_owned_until_completion_retirement_even_after_cancellation",
+      "result": "ok"
+    },
+    {
+      "name": "converter_probe_and_abandoned_work_never_invent_ready_state",
+      "result": "ok"
+    },
+    {
+      "name": "superseded_and_foreign_completions_cannot_enable_an_engine_or_overwrite_new_state",
+      "result": "ok"
+    },
+    {
+      "name": "synchronous_compatibility_keeps_original_provider_error_for_the_caller",
       "result": "ok"
     },
     {
@@ -517,15 +566,11 @@
       "result": "ok"
     },
     {
-      "name": "rich_library_restores_objects_views_anchors_proposals_profiles_and_capture_receipts",
-      "result": "ok"
-    },
-    {
       "name": "backup_requires_deliberate_ink_scope_and_fresh_protected_authentication",
       "result": "ok"
     },
     {
-      "name": "whole_library_backup_retains_trash_history_membership_undo_and_source_metadata",
+      "name": "external_asset_backup_is_explicit_authorised_and_revocation_safe",
       "result": "ok"
     },
     {
@@ -537,11 +582,7 @@
       "result": "ok"
     },
     {
-      "name": "external_asset_backup_is_explicit_authorised_and_revocation_safe",
-      "result": "ok"
-    },
-    {
-      "name": "schema8_logical_backup_upgrades_without_inventing_old_undo_actions",
+      "name": "rich_library_restores_objects_views_anchors_proposals_profiles_and_capture_receipts",
       "result": "ok"
     },
     {
@@ -549,19 +590,11 @@
       "result": "ok"
     },
     {
-      "name": "new_protected_scope_requires_new_approval_and_does_not_unlock_ordinary_reads",
+      "name": "whole_library_backup_retains_trash_history_membership_undo_and_source_metadata",
       "result": "ok"
     },
     {
-      "name": "wrong_library_digest_and_backup_options_cannot_reuse_approval",
-      "result": "ok"
-    },
-    {
-      "name": "fresh_interactive_verification_runs_off_writer_and_rechecks_generation",
-      "result": "ok"
-    },
-    {
-      "name": "delegated_verification_is_off_writer_and_capture_invalidates_pending_review",
+      "name": "schema8_logical_backup_upgrades_without_inventing_old_undo_actions",
       "result": "ok"
     },
     {
@@ -573,15 +606,23 @@
       "result": "ok"
     },
     {
+      "name": "delegated_verification_is_off_writer_and_capture_invalidates_pending_review",
+      "result": "ok"
+    },
+    {
+      "name": "fresh_interactive_verification_runs_off_writer_and_rechecks_generation",
+      "result": "ok"
+    },
+    {
+      "name": "new_protected_scope_requires_new_approval_and_does_not_unlock_ordinary_reads",
+      "result": "ok"
+    },
+    {
+      "name": "wrong_library_digest_and_backup_options_cannot_reuse_approval",
+      "result": "ok"
+    },
+    {
       "name": "delegated_encryption_preserves_app_and_note_locks_and_independent_restore",
-      "result": "ok"
-    },
-    {
-      "name": "current_scope_and_generation_are_checked_on_every_pull_and_failed_cursors_never_revive",
-      "result": "ok"
-    },
-    {
-      "name": "replacing_or_relocking_a_cached_access_capability_never_reuses_its_old_scope_decision",
       "result": "ok"
     },
     {
@@ -589,7 +630,7 @@
       "result": "ok"
     },
     {
-      "name": "long_runs_of_live_caches_yield_and_never_export_cache_bytes_when_retained_assets_are_selected",
+      "name": "current_scope_and_generation_are_checked_on_every_pull_and_failed_cursors_never_revive",
       "result": "ok"
     },
     {
@@ -597,11 +638,11 @@
       "result": "ok"
     },
     {
-      "name": "stream_review_requires_ink_consent_fresh_scope_and_current_source_generation_before_any_output",
+      "name": "replacing_or_relocking_a_cached_access_capability_never_reuses_its_old_scope_decision",
       "result": "ok"
     },
     {
-      "name": "restore_rejects_shared_or_symlinked_directories_before_creating_private_content",
+      "name": "long_runs_of_live_caches_yield_and_never_export_cache_bytes_when_retained_assets_are_selected",
       "result": "ok"
     },
     {
@@ -609,7 +650,7 @@
       "result": "ok"
     },
     {
-      "name": "incremental_library_restore_preserves_ink_undo_and_source_relationships_then_publishes_without_overwrite",
+      "name": "authorised_retained_pdf_bytes_are_explicit_while_revoked_relationships_stay_revoked",
       "result": "ok"
     },
     {
@@ -617,7 +658,15 @@
       "result": "ok"
     },
     {
-      "name": "authorised_retained_pdf_bytes_are_explicit_while_revoked_relationships_stay_revoked",
+      "name": "incremental_library_restore_preserves_ink_undo_and_source_relationships_then_publishes_without_overwrite",
+      "result": "ok"
+    },
+    {
+      "name": "restore_rejects_shared_or_symlinked_directories_before_creating_private_content",
+      "result": "ok"
+    },
+    {
+      "name": "stream_review_requires_ink_consent_fresh_scope_and_current_source_generation_before_any_output",
       "result": "ok"
     },
     {
@@ -633,6 +682,18 @@
       "result": "ok"
     },
     {
+      "name": "capture_receipt_probe_checks_current_scope_target_and_original_stroke",
+      "result": "ok"
+    },
+    {
+      "name": "emergency_reserve_is_written_released_and_never_overwrites_existing_file",
+      "result": "ok"
+    },
+    {
+      "name": "capture_receipt_survives_restart_and_rejects_changed_retry",
+      "result": "ok"
+    },
+    {
       "name": "observed_samples_are_exact_and_invalid_events_leave_capture_recoverable",
       "result": "ok"
     },
@@ -645,19 +706,7 @@
       "result": "ok"
     },
     {
-      "name": "emergency_reserve_is_written_released_and_never_overwrites_existing_file",
-      "result": "ok"
-    },
-    {
-      "name": "capture_receipt_probe_checks_current_scope_target_and_original_stroke",
-      "result": "ok"
-    },
-    {
       "name": "full_queue_retains_old_work_and_failed_persistence_can_retry",
-      "result": "ok"
-    },
-    {
-      "name": "capture_receipt_survives_restart_and_rejects_changed_retry",
       "result": "ok"
     },
     {
@@ -665,11 +714,7 @@
       "result": "ok"
     },
     {
-      "name": "receipt_uses_current_exercise_protection_even_when_original_target_was_master",
-      "result": "ok"
-    },
-    {
-      "name": "protected_receipt_denies_matching_changed_payload_and_changed_target_before_comparison",
+      "name": "ordinary_block_reads_reject_a_payload_spliced_into_a_different_public_owner",
       "result": "ok"
     },
     {
@@ -677,7 +722,11 @@
       "result": "ok"
     },
     {
-      "name": "ordinary_block_reads_reject_a_payload_spliced_into_a_different_public_owner",
+      "name": "protected_receipt_denies_matching_changed_payload_and_changed_target_before_comparison",
+      "result": "ok"
+    },
+    {
+      "name": "receipt_uses_current_exercise_protection_even_when_original_target_was_master",
       "result": "ok"
     },
     {
@@ -685,19 +734,11 @@
       "result": "ok"
     },
     {
-      "name": "subtree_purge_preflight_and_commit_failure_do_not_partially_erase_protected_ink",
-      "result": "ok"
-    },
-    {
       "name": "recovery_authority_preserves_inherited_and_app_locks_across_purge_and_reopen",
       "result": "ok"
     },
     {
-      "name": "offline_help_covers_recovery_and_unsearchable_ink_without_remote_dependency",
-      "result": "ok"
-    },
-    {
-      "name": "converter_preserves_deliberately_wrong_math_without_solving",
+      "name": "subtree_purge_preflight_and_commit_failure_do_not_partially_erase_protected_ink",
       "result": "ok"
     },
     {
@@ -705,7 +746,15 @@
       "result": "ok"
     },
     {
+      "name": "converter_preserves_deliberately_wrong_math_without_solving",
+      "result": "ok"
+    },
+    {
       "name": "unsupported_maths_is_reported_and_xml_is_escaped",
+      "result": "ok"
+    },
+    {
+      "name": "offline_help_covers_recovery_and_unsearchable_ink_without_remote_dependency",
       "result": "ok"
     },
     {
@@ -717,11 +766,11 @@
       "result": "ok"
     },
     {
-      "name": "sink_failure_poisoning_prevents_retry_or_final_recovery_receipt",
+      "name": "reordered_duplicated_truncated_spliced_or_appended_frames_never_finish_successfully",
       "result": "ok"
     },
     {
-      "name": "reordered_duplicated_truncated_spliced_or_appended_frames_never_finish_successfully",
+      "name": "sink_failure_poisoning_prevents_retry_or_final_recovery_receipt",
       "result": "ok"
     },
     {
@@ -733,15 +782,7 @@
       "result": "ok"
     },
     {
-      "name": "trash_pages_count_only_authorised_entries_and_restore_requires_current_revision",
-      "result": "ok"
-    },
-    {
       "name": "capture_target_manifest_omits_purged_descendants_and_revalidation_checks_fresh_proof",
-      "result": "ok"
-    },
-    {
-      "name": "permanent_review_is_kind_generation_confirmation_and_transaction_bound",
       "result": "ok"
     },
     {
@@ -749,15 +790,11 @@
       "result": "ok"
     },
     {
-      "name": "undo_requires_current_locks_and_cannot_remove_protection",
+      "name": "permanent_review_is_kind_generation_confirmation_and_transaction_bound",
       "result": "ok"
     },
     {
-      "name": "undo_creation_preserves_original_observations_and_redo_restores_visibility",
-      "result": "ok"
-    },
-    {
-      "name": "pruning_without_protected_block_access_keeps_its_undo_history",
+      "name": "trash_pages_count_only_authorised_entries_and_restore_requires_current_revision",
       "result": "ok"
     },
     {
@@ -769,6 +806,18 @@
       "result": "ok"
     },
     {
+      "name": "pruning_without_protected_block_access_keeps_its_undo_history",
+      "result": "ok"
+    },
+    {
+      "name": "undo_creation_preserves_original_observations_and_redo_restores_visibility",
+      "result": "ok"
+    },
+    {
+      "name": "undo_requires_current_locks_and_cannot_remove_protection",
+      "result": "ok"
+    },
+    {
       "name": "undo_redo_survives_reopen_and_never_rewinds_revisions",
       "result": "ok"
     },
@@ -777,15 +826,7 @@
       "result": "ok"
     },
     {
-      "name": "converters_have_durable_staged_lifecycle_and_failed_probe_preserves_previous",
-      "result": "ok"
-    },
-    {
-      "name": "staged_probe_or_commit_failure_keeps_previous_verified_engine",
-      "result": "ok"
-    },
-    {
-      "name": "removing_engine_preserves_notebooks_strokes_and_accepted_work",
+      "name": "another_connection_changing_state_during_probe_prevents_stale_activation",
       "result": "ok"
     },
     {
@@ -793,15 +834,63 @@
       "result": "ok"
     },
     {
-      "name": "resource_installation_requires_consent_digest_and_bounded_streaming",
+      "name": "converters_have_durable_staged_lifecycle_and_failed_probe_preserves_previous",
       "result": "ok"
     },
     {
-      "name": "another_connection_changing_state_during_probe_prevents_stale_activation",
+      "name": "removing_engine_preserves_notebooks_strokes_and_accepted_work",
       "result": "ok"
     },
     {
       "name": "installed_provenance_and_profiles_reopen_without_fabricated_runtime_readiness",
+      "result": "ok"
+    },
+    {
+      "name": "resource_installation_requires_consent_digest_and_bounded_streaming",
+      "result": "ok"
+    },
+    {
+      "name": "staged_probe_or_commit_failure_keeps_previous_verified_engine",
+      "result": "ok"
+    },
+    {
+      "name": "late_stale_denied_cross_master_duplicate_and_failure_never_publish_a_prefix",
+      "result": "ok"
+    },
+    {
+      "name": "all_misses_preserve_generation_history_and_each_revision_while_mixed_hits_leave_misses_unchanged",
+      "result": "ok"
+    },
+    {
+      "name": "several_blocks_erase_and_restore_as_one_operation_including_shared_exercise_views",
+      "result": "ok"
+    },
+    {
+      "name": "pair_budget_is_shared_across_the_compound_operation_not_reset_per_block",
+      "result": "ok"
+    },
+    {
+      "name": "degenerate_extreme_distance_rejects_instead_of_silently_reporting_a_miss",
+      "result": "ok"
+    },
+    {
+      "name": "crossing_segments_and_single_points_erase_one_operation_and_preserve_source_after_reopen",
+      "result": "ok"
+    },
+    {
+      "name": "host_command_is_authoring_and_cas_bound",
+      "result": "ok"
+    },
+    {
+      "name": "radius_boundary_collinear_disjoint_and_miss_do_not_create_false_hits_or_undo",
+      "result": "ok"
+    },
+    {
+      "name": "resource_limit_or_later_mixed_space_never_publishes_an_earlier_hit_and_eraser_traces_are_not_targets",
+      "result": "ok"
+    },
+    {
+      "name": "source_space_and_revision_protection_overflow_and_commit_failure_preserve_visibility",
       "result": "ok"
     },
     {
@@ -813,15 +902,15 @@
       "result": "ok"
     },
     {
-      "name": "flat_and_search_views_follow_visibility_and_permissions_without_copying_content",
+      "name": "duplicate_titles_keep_distinct_identity_and_metadata_failures_share_status",
       "result": "ok"
     },
     {
-      "name": "removing_view_preserves_master_ink_membership_and_protection",
+      "name": "exercise_locks_cover_master_search_history_inference_links_export_and_deletion",
       "result": "ok"
     },
     {
-      "name": "protected_reassignment_carries_lock_even_when_unassigned",
+      "name": "current_native_preserves_exercise_identity_relationships_locks_modes_and_heading_rules",
       "result": "ok"
     },
     {
@@ -829,11 +918,19 @@
       "result": "ok"
     },
     {
-      "name": "duplicate_titles_keep_distinct_identity_and_metadata_failures_share_status",
+      "name": "failed_extraction_and_reassignment_roll_back_every_membership",
       "result": "ok"
     },
     {
-      "name": "reassignment_rejects_stale_review_cross_master_and_aba_history",
+      "name": "existing_membership_survives_heading_confirmation_removal_rename_and_reopen",
+      "result": "ok"
+    },
+    {
+      "name": "flat_and_search_views_follow_visibility_and_permissions_without_copying_content",
+      "result": "ok"
+    },
+    {
+      "name": "independent_copy_preserves_ink_but_has_separate_ids_edits_modes_and_status",
       "result": "ok"
     },
     {
@@ -849,11 +946,7 @@
       "result": "ok"
     },
     {
-      "name": "failed_extraction_and_reassignment_roll_back_every_membership",
-      "result": "ok"
-    },
-    {
-      "name": "independent_copy_preserves_ink_but_has_separate_ids_edits_modes_and_status",
+      "name": "protected_reassignment_carries_lock_even_when_unassigned",
       "result": "ok"
     },
     {
@@ -861,23 +954,11 @@
       "result": "ok"
     },
     {
-      "name": "exercise_locks_cover_master_search_history_inference_links_export_and_deletion",
+      "name": "reassignment_rejects_stale_review_cross_master_and_aba_history",
       "result": "ok"
     },
     {
-      "name": "selected_exercise_export_excludes_unrelated_master_content_and_roundtrips",
-      "result": "ok"
-    },
-    {
-      "name": "current_native_preserves_exercise_identity_relationships_locks_modes_and_heading_rules",
-      "result": "ok"
-    },
-    {
-      "name": "existing_membership_survives_heading_confirmation_removal_rename_and_reopen",
-      "result": "ok"
-    },
-    {
-      "name": "shared_edits_use_one_revision_and_stale_second_connection_cannot_overwrite",
+      "name": "removing_view_preserves_master_ink_membership_and_protection",
       "result": "ok"
     },
     {
@@ -885,19 +966,11 @@
       "result": "ok"
     },
     {
-      "name": "pagination_never_bisects_indivisible_work_or_silently_scales",
+      "name": "selected_exercise_export_excludes_unrelated_master_content_and_roundtrips",
       "result": "ok"
     },
     {
-      "name": "graph_derivative_preserves_authored_order_and_refuses_concealed_points",
-      "result": "ok"
-    },
-    {
-      "name": "diagram_svg_escapes_labels_and_canvas_scope_rejects_hidden_payload",
-      "result": "ok"
-    },
-    {
-      "name": "derivative_scope_and_fresh_auth_cannot_be_bypassed",
+      "name": "shared_edits_use_one_revision_and_stale_second_connection_cannot_overwrite",
       "result": "ok"
     },
     {
@@ -905,27 +978,19 @@
       "result": "ok"
     },
     {
-      "name": "reentrant_close_from_verifier_fails_without_self_join_or_retained_access",
+      "name": "derivative_scope_and_fresh_auth_cannot_be_bypassed",
       "result": "ok"
     },
     {
-      "name": "byte_budgets_are_independent_and_rejection_does_not_acknowledge_a_save",
+      "name": "graph_derivative_preserves_authored_order_and_refuses_concealed_points",
       "result": "ok"
     },
     {
-      "name": "offline_recovery_help_is_readonly_and_available_while_app_locked",
+      "name": "pagination_never_bisects_indivisible_work_or_silently_scales",
       "result": "ok"
     },
     {
-      "name": "failed_host_initialisation_releases_ownership_before_returning",
-      "result": "ok"
-    },
-    {
-      "name": "active_call_and_shutdown_drain_hold_ownership_until_original_ink_is_committed",
-      "result": "ok"
-    },
-    {
-      "name": "threaded_host_commits_reopens_and_rejects_unknown_version_and_fields",
+      "name": "diagram_svg_escapes_labels_and_canvas_scope_rejects_hidden_payload",
       "result": "ok"
     },
     {
@@ -933,19 +998,23 @@
       "result": "ok"
     },
     {
-      "name": "query_saturation_reserves_edit_admission_and_preserves_edit_undo_order",
+      "name": "active_call_and_shutdown_drain_hold_ownership_until_original_ink_is_committed",
       "result": "ok"
     },
     {
-      "name": "host_restores_revision_bound_selection_without_silently_rebinding_after_edit",
+      "name": "byte_budgets_are_independent_and_rejection_does_not_acknowledge_a_save",
       "result": "ok"
     },
     {
-      "name": "recovery_identity_is_stable_but_never_grants_content_or_receipt_access",
+      "name": "concurrent_host_calls_return_distinct_committed_content",
       "result": "ok"
     },
     {
-      "name": "host_workspace_discovers_last_view_after_reopen_without_serializing_locked_targets",
+      "name": "failed_host_initialisation_releases_ownership_before_returning",
+      "result": "ok"
+    },
+    {
+      "name": "dropped_receipts_still_drain_on_close_and_observers_see_final_closed_state",
       "result": "ok"
     },
     {
@@ -957,11 +1026,15 @@
       "result": "ok"
     },
     {
-      "name": "verifier_panic_fails_closed_without_killing_the_writer_or_retaining_access",
+      "name": "host_restores_revision_bound_selection_without_silently_rebinding_after_edit",
       "result": "ok"
     },
     {
-      "name": "concurrent_host_calls_return_distinct_committed_content",
+      "name": "host_workspace_discovers_last_view_after_reopen_without_serializing_locked_targets",
+      "result": "ok"
+    },
+    {
+      "name": "offline_recovery_help_is_readonly_and_available_while_app_locked",
       "result": "ok"
     },
     {
@@ -969,23 +1042,31 @@
       "result": "ok"
     },
     {
-      "name": "dropped_receipts_still_drain_on_close_and_observers_see_final_closed_state",
+      "name": "query_saturation_reserves_edit_admission_and_preserves_edit_undo_order",
       "result": "ok"
     },
     {
-      "name": "optional_backup_metadata_budget_failure_keeps_authoring_available",
+      "name": "recovery_identity_is_stable_but_never_grants_content_or_receipt_access",
       "result": "ok"
     },
     {
-      "name": "native_review_confirmation_fresh_proof_foreign_host_and_closed_host_are_enforced",
+      "name": "reentrant_close_from_verifier_fails_without_self_join_or_retained_access",
       "result": "ok"
     },
     {
-      "name": "reserved_cleanup_retires_backup_when_ordinary_queries_are_saturated",
+      "name": "threaded_host_commits_reopens_and_rejects_unknown_version_and_fields",
+      "result": "ok"
+    },
+    {
+      "name": "verifier_panic_fails_closed_without_killing_the_writer_or_retaining_access",
       "result": "ok"
     },
     {
       "name": "capture_cancels_running_and_idle_reviews_without_reviving_them_after_pen_up",
+      "result": "ok"
+    },
+    {
+      "name": "blocked_sink_does_not_hold_writer_and_source_edits_invalidate_completion",
       "result": "ok"
     },
     {
@@ -997,7 +1078,19 @@
       "result": "ok"
     },
     {
-      "name": "verifier_and_sink_panics_do_not_kill_authoring_or_leave_a_backup_reservation",
+      "name": "finished_ciphertext_does_not_release_ownership_while_sink_destruction_is_blocked",
+      "result": "ok"
+    },
+    {
+      "name": "native_review_confirmation_fresh_proof_foreign_host_and_closed_host_are_enforced",
+      "result": "ok"
+    },
+    {
+      "name": "optional_backup_metadata_budget_failure_keeps_authoring_available",
+      "result": "ok"
+    },
+    {
+      "name": "reserved_cleanup_retires_backup_when_ordinary_queries_are_saturated",
       "result": "ok"
     },
     {
@@ -1005,11 +1098,7 @@
       "result": "ok"
     },
     {
-      "name": "blocked_sink_does_not_hold_writer_and_source_edits_invalidate_completion",
-      "result": "ok"
-    },
-    {
-      "name": "finished_ciphertext_does_not_release_ownership_while_sink_destruction_is_blocked",
+      "name": "verifier_and_sink_panics_do_not_kill_authoring_or_leave_a_backup_reservation",
       "result": "ok"
     },
     {
@@ -1033,7 +1122,15 @@
       "result": "ok"
     },
     {
-      "name": "ordinary_json_cannot_supply_a_review_plan_or_platform_grant",
+      "name": "changed_revision_can_be_reacquired_from_revoked_state_without_silent_anchor_relocation",
+      "result": "ok"
+    },
+    {
+      "name": "bounded_selection_plans_can_be_released_and_cannot_be_supplied_as_json_grants",
+      "result": "ok"
+    },
+    {
+      "name": "live_read_lease_survives_pen_and_view_changes_but_not_release_or_restart",
       "result": "ok"
     },
     {
@@ -1041,15 +1138,39 @@
       "result": "ok"
     },
     {
+      "name": "ordinary_json_cannot_supply_a_review_plan_or_platform_grant",
+      "result": "ok"
+    },
+    {
+      "name": "read_and_revision_tokens_are_bounded_private_and_revision_checked",
+      "result": "ok"
+    },
+    {
       "name": "rejecting_a_prepared_revision_consumes_it_without_changing_the_source",
       "result": "ok"
     },
     {
-      "name": "revocation_and_missing_sources_retire_reads_without_touching_authored_work",
+      "name": "relock_scope_changes_and_failed_authentication_retire_old_capabilities",
       "result": "ok"
     },
     {
-      "name": "relock_scope_changes_and_failed_authentication_retire_old_capabilities",
+      "name": "independent_pdf_retention_survives_source_revoke_but_not_its_own_revoke_or_locks",
+      "result": "ok"
+    },
+    {
+      "name": "retained_pdf_lease_shares_capacity_and_preserves_old_revision_under_new_source_edition",
+      "result": "ok"
+    },
+    {
+      "name": "retained_pdf_lock_applies_to_metadata_chunks_and_staging_even_with_independent_authority",
+      "result": "ok"
+    },
+    {
+      "name": "reviewed_pdf_replacement_updates_lineage_and_retires_the_old_live_read",
+      "result": "ok"
+    },
+    {
+      "name": "revocation_and_missing_sources_retire_reads_without_touching_authored_work",
       "result": "ok"
     },
     {
@@ -1061,27 +1182,7 @@
       "result": "ok"
     },
     {
-      "name": "changed_revision_can_be_reacquired_from_revoked_state_without_silent_anchor_relocation",
-      "result": "ok"
-    },
-    {
-      "name": "live_read_lease_survives_pen_and_view_changes_but_not_release_or_restart",
-      "result": "ok"
-    },
-    {
-      "name": "reviewed_pdf_replacement_updates_lineage_and_retires_the_old_live_read",
-      "result": "ok"
-    },
-    {
-      "name": "bounded_selection_plans_can_be_released_and_cannot_be_supplied_as_json_grants",
-      "result": "ok"
-    },
-    {
-      "name": "read_and_revision_tokens_are_bounded_private_and_revision_checked",
-      "result": "ok"
-    },
-    {
-      "name": "trusted_selection_is_reviewed_and_same_revision_regrant_preserves_source_identity",
+      "name": "retained_pdf_streaming_is_explicit_atomic_bounded_and_content_checked",
       "result": "ok"
     },
     {
@@ -1089,39 +1190,7 @@
       "result": "ok"
     },
     {
-      "name": "retained_pdf_lock_applies_to_metadata_chunks_and_staging_even_with_independent_authority",
-      "result": "ok"
-    },
-    {
-      "name": "retained_pdf_lease_shares_capacity_and_preserves_old_revision_under_new_source_edition",
-      "result": "ok"
-    },
-    {
-      "name": "retained_pdf_streaming_is_explicit_atomic_bounded_and_content_checked",
-      "result": "ok"
-    },
-    {
-      "name": "independent_pdf_retention_survives_source_revoke_but_not_its_own_revoke_or_locks",
-      "result": "ok"
-    },
-    {
-      "name": "excessive_trusted_capture_sessions_disable_optional_work_but_preserve_authoring",
-      "result": "ok"
-    },
-    {
-      "name": "reentrant_close_from_model_callback_cancels_without_self_join",
-      "result": "ok"
-    },
-    {
-      "name": "capture_priority_reaches_a_running_adapter_and_does_not_wait_for_it_to_save_ink",
-      "result": "ok"
-    },
-    {
-      "name": "host_close_invalidates_prepared_work_while_pending_reviews_remain_explicit",
-      "result": "ok"
-    },
-    {
-      "name": "capture_priority_cancels_old_work_and_nested_contacts_never_resume_each_other",
+      "name": "trusted_selection_is_reviewed_and_same_revision_regrant_preserves_source_identity",
       "result": "ok"
     },
     {
@@ -1129,35 +1198,7 @@
       "result": "ok"
     },
     {
-      "name": "completed_work_cannot_resurrect_after_relock_reauthentication_or_reopen",
-      "result": "ok"
-    },
-    {
-      "name": "processing_admission_counts_unrun_sources_and_close_retires_them_without_waiting_for_callers",
-      "result": "ok"
-    },
-    {
-      "name": "idle_runtime_cleanup_is_off_writer_and_reentrant_close_never_releases_ownership_early",
-      "result": "ok"
-    },
-    {
       "name": "batch_acceptance_spanning_documents_records_independent_document_undo",
-      "result": "ok"
-    },
-    {
-      "name": "host_manual_recognition_review_correction_and_acceptance_preserve_original_ink",
-      "result": "ok"
-    },
-    {
-      "name": "pending_reviews_are_discoverable_after_restart_without_a_loaded_model_and_hide_locked_source",
-      "result": "ok"
-    },
-    {
-      "name": "overlapping_region_or_whole_block_selections_leave_every_review_pending",
-      "result": "ok"
-    },
-    {
-      "name": "selected_regions_publish_independent_reviews_and_explicit_batch_acceptance_is_atomic",
       "result": "ok"
     },
     {
@@ -1165,7 +1206,51 @@
       "result": "ok"
     },
     {
-      "name": "source_permissions_are_current_and_review_cannot_bypass_a_block_lock",
+      "name": "capture_priority_cancels_old_work_and_nested_contacts_never_resume_each_other",
+      "result": "ok"
+    },
+    {
+      "name": "capture_priority_reaches_a_running_adapter_and_does_not_wait_for_it_to_save_ink",
+      "result": "ok"
+    },
+    {
+      "name": "completed_work_cannot_resurrect_after_relock_reauthentication_or_reopen",
+      "result": "ok"
+    },
+    {
+      "name": "excessive_trusted_capture_sessions_disable_optional_work_but_preserve_authoring",
+      "result": "ok"
+    },
+    {
+      "name": "host_close_invalidates_prepared_work_while_pending_reviews_remain_explicit",
+      "result": "ok"
+    },
+    {
+      "name": "host_manual_recognition_review_correction_and_acceptance_preserve_original_ink",
+      "result": "ok"
+    },
+    {
+      "name": "idle_runtime_cleanup_is_off_writer_and_reentrant_close_never_releases_ownership_early",
+      "result": "ok"
+    },
+    {
+      "name": "overlapping_region_or_whole_block_selections_leave_every_review_pending",
+      "result": "ok"
+    },
+    {
+      "name": "pending_reviews_are_discoverable_after_restart_without_a_loaded_model_and_hide_locked_source",
+      "result": "ok"
+    },
+    {
+      "name": "processing_admission_counts_unrun_sources_and_close_retires_them_without_waiting_for_callers",
+      "result": "ok"
+    },
+    {
+      "name": "reentrant_close_from_model_callback_cancels_without_self_join",
+      "result": "ok"
+    },
+    {
+      "name": "selected_regions_publish_independent_reviews_and_explicit_batch_acceptance_is_atomic",
       "result": "ok"
     },
     {
@@ -1173,15 +1258,19 @@
       "result": "ok"
     },
     {
+      "name": "source_permissions_are_current_and_review_cannot_bypass_a_block_lock",
+      "result": "ok"
+    },
+    {
       "name": "encoded_source_byte_budget_is_independent_of_job_count_and_does_not_evict_input",
       "result": "ok"
     },
     {
-      "name": "capture_cancels_idle_and_running_restore_without_reviving_it_at_pen_up",
+      "name": "close_retains_native_sqlite_ownership_through_read_and_reader_destructor_retirement",
       "result": "ok"
     },
     {
-      "name": "close_retains_native_sqlite_ownership_through_read_and_reader_destructor_retirement",
+      "name": "capture_cancels_idle_and_running_restore_without_reviving_it_at_pen_up",
       "result": "ok"
     },
     {
@@ -1229,11 +1318,31 @@
       "result": "ok"
     },
     {
+      "name": "crop_emits_only_selected_pixels_and_strips_original_trailing_bytes_without_rewriting_asset",
+      "result": "ok"
+    },
+    {
+      "name": "fractional_crop_rounds_inward_and_a_crop_with_no_complete_pixel_requires_review",
+      "result": "ok"
+    },
+    {
+      "name": "jpeg_crop_encodes_png_but_nonidentity_exif_orientation_requires_review",
+      "result": "ok"
+    },
+    {
+      "name": "two_crops_of_one_asset_have_distinct_outputs_and_explicit_source_ink_is_still_included",
+      "result": "ok"
+    },
+    {
+      "name": "malformed_and_oversized_images_fail_without_bypassing_fresh_block_protection",
+      "result": "ok"
+    },
+    {
       "name": "checkpoints_preserve_stable_begin_order_and_interruption_never_invents_samples",
       "result": "ok"
     },
     {
-      "name": "unfinished_prefix_cannot_enter_store_queue_or_portable_document_and_sealed_retry_is_exact",
+      "name": "legacy_schema9_backup_defaults_to_completed_without_rewriting_source_or_receipt",
       "result": "ok"
     },
     {
@@ -1245,7 +1354,7 @@
       "result": "ok"
     },
     {
-      "name": "legacy_schema9_backup_defaults_to_completed_without_rewriting_source_or_receipt",
+      "name": "unfinished_prefix_cannot_enter_store_queue_or_portable_document_and_sealed_retry_is_exact",
       "result": "ok"
     },
     {
@@ -1253,27 +1362,15 @@
       "result": "ok"
     },
     {
-      "name": "missing_layer_never_falls_back_and_identical_committed_receipt_does_not_rebind_membership",
-      "result": "ok"
-    },
-    {
       "name": "layer_capture_checks_owner_protection_and_rolls_back_source_and_destination_on_failure",
       "result": "ok"
     },
     {
+      "name": "missing_layer_never_falls_back_and_identical_committed_receipt_does_not_rebind_membership",
+      "result": "ok"
+    },
+    {
       "name": "capture_and_layer_membership_commit_undo_redo_and_reopen_together_without_rewriting_ink",
-      "result": "ok"
-    },
-    {
-      "name": "malformed_membership_aliases_and_fresh_protection_cannot_leak_or_change_layers",
-      "result": "ok"
-    },
-    {
-      "name": "scene_orders_layers_then_z_and_paginates_without_dropping_nested_reference_placeholders",
-      "result": "ok"
-    },
-    {
-      "name": "legacy_canvas_migrates_to_an_implicit_base_without_rewriting_original_payloads",
       "result": "ok"
     },
     {
@@ -1285,6 +1382,14 @@
       "result": "ok"
     },
     {
+      "name": "legacy_canvas_migrates_to_an_implicit_base_without_rewriting_original_payloads",
+      "result": "ok"
+    },
+    {
+      "name": "malformed_membership_aliases_and_fresh_protection_cannot_leak_or_change_layers",
+      "result": "ok"
+    },
+    {
       "name": "native_copy_remaps_layer_and_embed_overrides_and_derivatives_respect_default_visibility",
       "result": "ok"
     },
@@ -1293,23 +1398,11 @@
       "result": "ok"
     },
     {
+      "name": "scene_orders_layers_then_z_and_paginates_without_dropping_nested_reference_placeholders",
+      "result": "ok"
+    },
+    {
       "name": "encrypted_backup_preserves_layer_undo_and_rejects_downgraded_current_and_historical_extensions",
-      "result": "ok"
-    },
-    {
-      "name": "invalid_objects_reject_duplicate_ids_ragged_cells_and_nonfinite_axes",
-      "result": "ok"
-    },
-    {
-      "name": "images_cannot_bypass_locks_even_after_replacing_visible_content",
-      "result": "ok"
-    },
-    {
-      "name": "table_cell_edit_preserves_identity_neighbours_and_source_ink",
-      "result": "ok"
-    },
-    {
-      "name": "protected_canvas_cannot_leak_through_embed_or_group",
       "result": "ok"
     },
     {
@@ -1321,11 +1414,35 @@
       "result": "ok"
     },
     {
-      "name": "view_settings_and_protected_placeholders_reopen_without_secret_text",
+      "name": "invalid_objects_reject_duplicate_ids_ragged_cells_and_nonfinite_axes",
+      "result": "ok"
+    },
+    {
+      "name": "images_cannot_bypass_locks_even_after_replacing_visible_content",
+      "result": "ok"
+    },
+    {
+      "name": "protected_canvas_cannot_leak_through_embed_or_group",
       "result": "ok"
     },
     {
       "name": "native_v3_roundtrip_preserves_assets_layout_groups_and_embeds_with_new_ids",
+      "result": "ok"
+    },
+    {
+      "name": "table_cell_edit_preserves_identity_neighbours_and_source_ink",
+      "result": "ok"
+    },
+    {
+      "name": "view_settings_and_protected_placeholders_reopen_without_secret_text",
+      "result": "ok"
+    },
+    {
+      "name": "chronology_filters_by_actual_creation_without_journals",
+      "result": "ok"
+    },
+    {
+      "name": "app_lock_and_inherited_protection_do_not_grant_via_link_or_move",
       "result": "ok"
     },
     {
@@ -1337,19 +1454,11 @@
       "result": "ok"
     },
     {
-      "name": "stale_edit_and_interrupted_move_do_not_change_saved_state",
-      "result": "ok"
-    },
-    {
       "name": "module_moves_check_descendants_cycles_and_depth_atomically",
       "result": "ok"
     },
     {
-      "name": "chronology_filters_by_actual_creation_without_journals",
-      "result": "ok"
-    },
-    {
-      "name": "app_lock_and_inherited_protection_do_not_grant_via_link_or_move",
+      "name": "stale_edit_and_interrupted_move_do_not_change_saved_state",
       "result": "ok"
     },
     {
@@ -1381,23 +1490,7 @@
       "result": "ok"
     },
     {
-      "name": "hostile_native_relationships_rejected_even_with_recomputed_checksum",
-      "result": "ok"
-    },
-    {
       "name": "corrupt_native_import_and_interruption_do_not_touch_existing_documents",
-      "result": "ok"
-    },
-    {
-      "name": "export_plan_cannot_survive_later_lock_or_source_change",
-      "result": "ok"
-    },
-    {
-      "name": "hostile_cross_kind_identifier_aliases_are_rejected_before_import",
-      "result": "ok"
-    },
-    {
-      "name": "raw_ink_requires_deliberate_inclusion_and_subset_export_never_follows_links",
       "result": "ok"
     },
     {
@@ -1413,11 +1506,23 @@
       "result": "ok"
     },
     {
-      "name": "encrypted_package_opens_with_password_or_independent_recovery_key",
+      "name": "export_plan_cannot_survive_later_lock_or_source_change",
       "result": "ok"
     },
     {
-      "name": "structured_math_and_component_offsets_validate_without_interpreting_or_repairing_content",
+      "name": "hostile_cross_kind_identifier_aliases_are_rejected_before_import",
+      "result": "ok"
+    },
+    {
+      "name": "hostile_native_relationships_rejected_even_with_recomputed_checksum",
+      "result": "ok"
+    },
+    {
+      "name": "raw_ink_requires_deliberate_inclusion_and_subset_export_never_follows_links",
+      "result": "ok"
+    },
+    {
+      "name": "encrypted_package_opens_with_password_or_independent_recovery_key",
       "result": "ok"
     },
     {
@@ -1425,7 +1530,7 @@
       "result": "ok"
     },
     {
-      "name": "view_discovery_separates_master_and_exercise_and_rechecks_app_lock",
+      "name": "observed_ink_region_bookmarks_copy_global_ids_and_old_format_tags_cannot_hide_them",
       "result": "ok"
     },
     {
@@ -1433,15 +1538,11 @@
       "result": "ok"
     },
     {
-      "name": "view_restore_and_discovery_reject_misbound_persistent_identity",
-      "result": "ok"
-    },
-    {
-      "name": "view_discovery_reopens_saved_positions_and_filters_fresh_block_protection",
-      "result": "ok"
-    },
-    {
       "name": "schema10_upgrade_keeps_legacy_view_payload_byte_for_byte_and_absent_bookmark_is_not_invented",
+      "result": "ok"
+    },
+    {
+      "name": "structured_math_and_component_offsets_validate_without_interpreting_or_repairing_content",
       "result": "ok"
     },
     {
@@ -1449,7 +1550,15 @@
       "result": "ok"
     },
     {
-      "name": "observed_ink_region_bookmarks_copy_global_ids_and_old_format_tags_cannot_hide_them",
+      "name": "view_discovery_reopens_saved_positions_and_filters_fresh_block_protection",
+      "result": "ok"
+    },
+    {
+      "name": "view_discovery_separates_master_and_exercise_and_rechecks_app_lock",
+      "result": "ok"
+    },
+    {
+      "name": "view_restore_and_discovery_reject_misbound_persistent_identity",
       "result": "ok"
     },
     {
@@ -1457,15 +1566,47 @@
       "result": "ok"
     },
     {
+      "name": "absent_zero_outside_domain_and_interior_pressure_have_explicit_derived_widths",
+      "result": "ok"
+    },
+    {
+      "name": "eraser_source_unit_underflow_is_rejected_without_changing_preferences",
+      "result": "ok"
+    },
+    {
+      "name": "invalid_responses_and_effective_widths_fail_without_installing_them",
+      "result": "ok"
+    },
+    {
+      "name": "legacy_layout_stream_reads_schema15_without_inventing_pressure_settings",
+      "result": "ok"
+    },
+    {
+      "name": "original_svg_uses_recorded_response_and_reports_missing_sensor_values_without_rewriting_ink",
+      "result": "ok"
+    },
+    {
+      "name": "pressure_and_eraser_preferences_persist_and_new_fields_cannot_claim_an_old_native_version",
+      "result": "ok"
+    },
+    {
+      "name": "response_is_snapshotted_per_contact_and_raw_samples_are_never_rewritten",
+      "result": "ok"
+    },
+    {
+      "name": "aggregate_and_stream_backups_keep_exact_pressure_metadata_and_reject_schema_downgrade",
+      "result": "ok"
+    },
+    {
       "name": "converter_work_is_owned_cancelled_by_retirement_and_contains_format_panics",
       "result": "ok"
     },
     {
-      "name": "running_work_observes_removal_and_pins_resources_until_actual_worker_retirement",
+      "name": "prepared_work_freezes_engine_choice_and_keeps_explicit_proposal_acceptance",
       "result": "ok"
     },
     {
-      "name": "prepared_work_freezes_engine_choice_and_keeps_explicit_proposal_acceptance",
+      "name": "running_work_observes_removal_and_pins_resources_until_actual_worker_retirement",
       "result": "ok"
     },
     {
@@ -1477,10 +1618,6 @@
       "result": "ok"
     },
     {
-      "name": "worker_file_clone_keeps_resource_reserved_after_owner_is_dropped",
-      "result": "ok"
-    },
-    {
       "name": "cloned_worker_reservations_survive_thread_transfer_until_the_last_handle_retires",
       "result": "ok"
     },
@@ -1489,15 +1626,15 @@
       "result": "ok"
     },
     {
-      "name": "resume_discards_only_unacknowledged_tail_after_simulated_interruption",
-      "result": "ok"
-    },
-    {
       "name": "local_install_resume_retry_and_integrity_precede_publication",
       "result": "ok"
     },
     {
-      "name": "incompatible_raster_egress_and_unreviewed_licence_are_rejected",
+      "name": "worker_file_clone_keeps_resource_reserved_after_owner_is_dropped",
+      "result": "ok"
+    },
+    {
+      "name": "resume_discards_only_unacknowledged_tail_after_simulated_interruption",
       "result": "ok"
     },
     {
@@ -1505,11 +1642,7 @@
       "result": "ok"
     },
     {
-      "name": "readiness_requires_consent_integrity_and_actual_probe",
-      "result": "ok"
-    },
-    {
-      "name": "panicking_model_probe_becomes_failed_readiness_without_disabling_notes",
+      "name": "incompatible_raster_egress_and_unreviewed_licence_are_rejected",
       "result": "ok"
     },
     {
@@ -1517,11 +1650,11 @@
       "result": "ok"
     },
     {
-      "name": "stale_inference_and_stale_proposal_cannot_overwrite_corrections",
+      "name": "locked_ink_and_proposals_cannot_be_sent_or_reviewed_without_access",
       "result": "ok"
     },
     {
-      "name": "locked_ink_and_proposals_cannot_be_sent_or_reviewed_without_access",
+      "name": "panicking_model_probe_becomes_failed_readiness_without_disabling_notes",
       "result": "ok"
     },
     {
@@ -1529,7 +1662,23 @@
       "result": "ok"
     },
     {
+      "name": "readiness_requires_consent_integrity_and_actual_probe",
+      "result": "ok"
+    },
+    {
       "name": "rejection_and_failed_atomic_accept_leave_ink_untouched",
+      "result": "ok"
+    },
+    {
+      "name": "proposal_review_acceptance_and_source_survive_reopen",
+      "result": "ok"
+    },
+    {
+      "name": "stale_inference_and_stale_proposal_cannot_overwrite_corrections",
+      "result": "ok"
+    },
+    {
+      "name": "stored_proposal_cannot_rebind_protected_output_to_a_public_block",
       "result": "ok"
     },
     {
@@ -1541,23 +1690,15 @@
       "result": "ok"
     },
     {
-      "name": "stored_proposal_cannot_rebind_protected_output_to_a_public_block",
-      "result": "ok"
-    },
-    {
-      "name": "proposal_review_acceptance_and_source_survive_reopen",
-      "result": "ok"
-    },
-    {
-      "name": "two_connections_cannot_silently_overwrite_same_revision",
-      "result": "ok"
-    },
-    {
       "name": "failed_migration_rolls_back_and_newer_schema_is_not_downgraded",
       "result": "ok"
     },
     {
       "name": "process_exit_before_and_after_commit_preserves_correct_durable_boundary",
+      "result": "ok"
+    },
+    {
+      "name": "two_connections_cannot_silently_overwrite_same_revision",
       "result": "ok"
     },
     {
@@ -1569,15 +1710,15 @@
       "result": "ok"
     },
     {
+      "name": "region_exports_remap_ids_and_keep_accepted_text",
+      "result": "ok"
+    },
+    {
       "name": "regions_split_merge_without_replacing_observations_and_undo_restores_partition",
       "result": "ok"
     },
     {
       "name": "selected_region_receives_only_selected_vector_strokes_and_commits_only_it",
-      "result": "ok"
-    },
-    {
-      "name": "region_exports_remap_ids_and_keep_accepted_text",
       "result": "ok"
     },
     {
@@ -1593,7 +1734,7 @@
       "result": "ok"
     },
     {
-      "name": "source_link_never_bypasses_note_lock_or_creates_network_action",
+      "name": "link_default_managed_copy_requires_consent_and_matching_bytes",
       "result": "ok"
     },
     {
@@ -1601,19 +1742,11 @@
       "result": "ok"
     },
     {
-      "name": "link_default_managed_copy_requires_consent_and_matching_bytes",
-      "result": "ok"
-    },
-    {
       "name": "missing_pdf_view_reopens_and_relink_never_matches_by_filename",
       "result": "ok"
     },
     {
-      "name": "style_is_snapshotted_on_begin_and_configuration_changes_do_not_rebind_active_ink",
-      "result": "ok"
-    },
-    {
-      "name": "original_svg_preserves_rgba_width_and_single_sample_dots_and_reports_unknown_appearance",
+      "name": "source_link_never_bypasses_note_lock_or_creates_network_action",
       "result": "ok"
     },
     {
@@ -1621,7 +1754,15 @@
       "result": "ok"
     },
     {
+      "name": "original_svg_preserves_rgba_width_and_single_sample_dots_and_reports_unknown_appearance",
+      "result": "ok"
+    },
+    {
       "name": "source_style_and_receipt_survive_edits_reopen_native_copy_and_legacy_format_validation",
+      "result": "ok"
+    },
+    {
+      "name": "style_is_snapshotted_on_begin_and_configuration_changes_do_not_rebind_active_ink",
       "result": "ok"
     },
     {
@@ -1629,11 +1770,11 @@
       "result": "ok"
     },
     {
-      "name": "optimistic_layout_checks_and_rollback_preserve_the_previous_workspace",
+      "name": "fresh_protection_redacts_targets_and_keep_can_resize_only_existing_private_slots",
       "result": "ok"
     },
     {
-      "name": "fresh_protection_redacts_targets_and_keep_can_resize_only_existing_private_slots",
+      "name": "independent_views_pdf_position_tool_and_active_pane_reopen_without_touching_observations",
       "result": "ok"
     },
     {
@@ -1641,11 +1782,11 @@
       "result": "ok"
     },
     {
-      "name": "schema11_upgrade_creates_an_empty_workspace_without_rewriting_saved_view_payloads",
+      "name": "optimistic_layout_checks_and_rollback_preserve_the_previous_workspace",
       "result": "ok"
     },
     {
-      "name": "independent_views_pdf_position_tool_and_active_pane_reopen_without_touching_observations",
+      "name": "schema11_upgrade_creates_an_empty_workspace_without_rewriting_saved_view_payloads",
       "result": "ok"
     },
     {
@@ -1657,15 +1798,11 @@
       "result": "ok"
     },
     {
-      "name": "math_subtree_edit_preserves_incomplete_fence_and_neighbours",
-      "result": "ok"
-    },
-    {
       "name": "bad_samples_duplicate_ids_and_unordered_strokes_are_rejected",
       "result": "ok"
     },
     {
-      "name": "mode_defaults_and_inheritance_do_not_convert_existing_ink",
+      "name": "active_use_retirement_keeps_checkpoint_and_originals",
       "result": "ok"
     },
     {
@@ -1673,7 +1810,15 @@
       "result": "ok"
     },
     {
+      "name": "math_subtree_edit_preserves_incomplete_fence_and_neighbours",
+      "result": "ok"
+    },
+    {
       "name": "interrupted_capture_rolls_back_block_strokes_and_document_revision",
+      "result": "ok"
+    },
+    {
+      "name": "mode_defaults_and_inheritance_do_not_convert_existing_ink",
       "result": "ok"
     },
     {
@@ -1685,26 +1830,22 @@
       "result": "ok"
     },
     {
-      "name": "unauthorised_history_retirement_skips_locked_content",
-      "result": "ok"
-    },
-    {
-      "name": "active_use_retirement_keeps_checkpoint_and_originals",
-      "result": "ok"
-    },
-    {
       "name": "stale_edits_and_view_toggles_never_mutate_source",
       "result": "ok"
     },
     {
       "name": "source_ink_is_lossless_after_reopen_transform_erase_and_history_retirement",
       "result": "ok"
+    },
+    {
+      "name": "unauthorised_history_retirement_skips_locked_content",
+      "result": "ok"
     }
   ],
   "backend_accepted": false,
-  "finished_utc": "2026-10-25T23:05:25.522414+00:00",
+  "finished_utc": "2026-10-26T01:32:48.625553+00:00",
   "totals": {
-    "passed": 335,
+    "passed": 365,
     "failed": 0,
     "ignored": 0
   }
