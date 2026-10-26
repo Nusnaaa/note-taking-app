@@ -34,6 +34,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
     private val reserve = File(directory, "emergency.reserve")
     private val pdf: PdfWorkspace
     private val selections: PdfSelectionManager
+    private val engines: NotebookEngines
     private val backups: NotebookBackups
     private val schedules: NotebookSchedules
     private val restores: NotebookRestores
@@ -50,12 +51,16 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
     init {
         var createdPdf: PdfWorkspace? = null
         var createdSelections: PdfSelectionManager? = null
+        var createdEngines: NotebookEngines? = null
         var createdBackups: NotebookBackups? = null
         var createdSchedules: NotebookSchedules? = null
         var createdRestores: NotebookRestores? = null
         try {
             check(directory.isDirectory || directory.mkdirs())
             require(!java.nio.file.Files.isSymbolicLink(directory.toPath()))
+            val loadedEngines = NotebookEngines { handle.join() }
+            createdEngines = loadedEngines
+            engines = loadedEngines
             val loadedBackups = NotebookBackups(File(directory, "backup-staging"), context.noBackupFilesDir, { handle.join() },
                 { expected -> backupBarrier(expected).join() },
                 { expected -> try { backupBarrier(expected).join() === expected && backupStatusSnapshot((expected as BackupStamp).takeIf { it.delegated }).join().authoringQuiescent } catch (_: Exception) { false } }, backupFault, backupDocuments,
@@ -129,6 +134,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
             closed = true
             sharedClosing.complete(null)
             handle.completeExceptionally(error)
+            try { createdEngines?.close() } catch (_: Exception) { }
             try { createdRestores?.close() } catch (_: Exception) { }
             try { createdSchedules?.close() } catch (_: Exception) { }
             try { createdBackups?.close() } catch (_: Exception) { }
@@ -138,7 +144,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
             executor.shutdown()
             Thread({
                 try {
-                    awaitStopped(executor); createdRestores?.awaitClosed(); createdSchedules?.awaitClosed(); createdBackups?.awaitClosed(); createdPdf?.awaitClosed(); createdSelections?.awaitClosed(); selectionProvider.awaitClosed()
+                    awaitStopped(executor); createdEngines?.awaitClosed(); createdRestores?.awaitClosed(); createdSchedules?.awaitClosed(); createdBackups?.awaitClosed(); createdPdf?.awaitClosed(); createdSelections?.awaitClosed(); selectionProvider.awaitClosed()
                     ownership.close()
                     sharedOwnershipReleased.complete(null)
                 } catch (_: Exception) { /* ownership remains unavailable if cleanup fails */ }
@@ -146,6 +152,9 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
             throw error
         }
     }
+
+    /** Trusted compiled-provider controller. It owns a separate optional worker. */
+    @Synchronized fun engines(): NotebookEngines { check(!closed); return engines }
 
     /** Observation cancellation does not cancel an admitted edit/checkpoint. */
     private fun <T> submitAdmitted(action: () -> T, writer: BackendWriter, authoring: Boolean = true, bytes: Long = 256): CompletableFuture<T> {
@@ -641,7 +650,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
         // Session input takes its own monitor before backend admission. Freeze
         // outside the backend monitor so close cannot invert that lock order.
         val closingCaptures = sessions.flatMap { session -> session.freezeForClose().map { session to it } }
-        schedules.close(); backups.close(); restores.close(); pdf.close(); selections.close()
+        engines.close(); schedules.close(); backups.close(); restores.close(); pdf.close(); selections.close()
         Thread({
             try {
                 executor.shutdown()
@@ -655,7 +664,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
                     NativeBridge.close(handle.join())
                 }
                 nativeClosed.complete(null)
-                schedules.awaitClosed(); backups.awaitClosed(); restores.awaitClosed(); pdf.awaitClosed(); selections.awaitClosed()
+                engines.awaitClosed(); schedules.awaitClosed(); backups.awaitClosed(); restores.awaitClosed(); pdf.awaitClosed(); selections.awaitClosed()
                 ownership.close()
                 sharedOwnershipReleased.complete(null)
                 if (checkpointFailure == null) fullyClosed.complete(null) else fullyClosed.completeExceptionally(checkpointFailure)
