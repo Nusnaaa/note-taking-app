@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.ActiveCaptureJournalTest" tests="20" skipped="0" failures="0" errors="0" timestamp="2026-10-26T19:07:43" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="1.447">
+  <properties/>
+  <testcase name="checkpointsPreserveExactPrefixAndRejectStaleChangedOrReboundUpdates" classname="org.stemnotebook.backend.ActiveCaptureJournalTest" time="0.157"/>
+  <testcase name="sealedBlockedRecordsAreReviewableWithoutChangingTheirObservedEndingOrRequiringApprovalMutation" classname="org.stemnotebook.backend.ActiveCaptureJournalTest" time="0.081"/>
+  <testcase name="explicitFingerProvenanceSurvivesRecoveryAndCannotBeReboundToPen" classname="org.stemnotebook.backend.ActiveCaptureJournalTest" time="0.076"/>
+  <testcase name="recoveryIsExplicitInterruptedEvidenceAndCannotPublishBeforeReview" classname="org.stemnotebook.backend.ActiveCaptureJournalTest" time="0.019"/>
+  <testcase name="cellTargetSurvivesRecoveryAndOnlyExplicitRetargetCanChangeIt" classname="org.stemnotebook.backend.ActiveCaptureJournalTest" time="0.032"/>
+  <testcase name="actualProcessExitAtFileBoundariesRecoversLastValidObservedPrefix" classname="org.stemnotebook.backend.ActiveCaptureJournalTest" time="0.894"/>
+  <testcase name="nativeFailureAndAmbiguousAcknowledgementKeepExactSealedRecordForRetry" classname="org.stemnotebook.backend.ActiveCaptureJournalTest" time="0.011"/>
+  <testcase name="tornUnacknowledgedTemporaryIsPreservedSeparatelyFromValidCheckpoint" classname="org.stemnotebook.backend.ActiveCaptureJournalTest" time="0.014"/>
+  <testcase name="reviewedRetargetPreservesSealedObservationsAndRejectsActiveStaleOrImplicitRebinding" classname="org.stemnotebook.backend.ActiveCaptureJournalTest" time="0.019"/>
+  <testcase name="unreviewedOrActiveSessionDoesNotBlockIndependentCompletedInput" classname="org.stemnotebook.backend.ActiveCaptureJournalTest" time="0.012"/>
+  <testcase name="versionFiveRecordDecodesResponseWithoutInventingCellBinding" classname="org.stemnotebook.backend.ActiveCaptureJournalTest" time="0.011"/>
+  <testcase name="versionTwoGoldenRecordPreservesStyleWithoutInventingADestination" classname="org.stemnotebook.backend.ActiveCaptureJournalTest" time="0.011"/>
+  <testcase name="versionThreeRetainsPenAndLayerWithoutInventingFingerInput" classname="org.stemnotebook.backend.ActiveCaptureJournalTest" time="0.009"/>
+  <testcase name="retargetPublicationFailureRetainsAnHonestRecoverableDestinationAndExactStroke" classname="org.stemnotebook.backend.ActiveCaptureJournalTest" time="0.021"/>
+  <testcase name="versionOneGoldenRecordRecoversWithoutInventingStyleAndUpgradesOnlyRecoveryMetadata" classname="org.stemnotebook.backend.ActiveCaptureJournalTest" time="0.009"/>
+  <testcase name="layerDestinationIsDurableAndCannotBeReboundByLaterCheckpointsOrRecovery" classname="org.stemnotebook.backend.ActiveCaptureJournalTest" time="0.019"/>
+  <testcase name="cancellationNeverSubmitsTentativeContactAndQuotaDoesNotEvictOlderInk" classname="org.stemnotebook.backend.ActiveCaptureJournalTest" time="0.008"/>
+  <testcase name="styleSurvivesBinaryRecoveryAndCannotBeReboundByAChangedCheckpointHeader" classname="org.stemnotebook.backend.ActiveCaptureJournalTest" time="0.013"/>
+  <testcase name="versionFiveRetainsChosenResponseAndExactAbsentZeroObservationsAcrossRecovery" classname="org.stemnotebook.backend.ActiveCaptureJournalTest" time="0.013"/>
+  <testcase name="malformedAuthoritativeDataAndForeignLibraryBindingFailWithoutDeletingEvidence" classname="org.stemnotebook.backend.ActiveCaptureJournalTest" time="0.007"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

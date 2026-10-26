@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.PdfSelectionTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-26T18:47:15" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="3.756">
+  <properties/>
+  <testcase name="staleNativeGenerationAndLockedContextFailBeforeAnyUnreviewedChange" classname="org.stemnotebook.backend.PdfSelectionTest" time="0.101"/>
+  <testcase name="rejectionAndRelockRetireReviewWithoutGrantingOrCreatingSource" classname="org.stemnotebook.backend.PdfSelectionTest" time="0.094"/>
+  <testcase name="invalidPickerDataAndNonPdfSignatureDoNotCreateSourceMetadata" classname="org.stemnotebook.backend.PdfSelectionTest" time="0.073"/>
+  <testcase name="timeoutRetainsAdmissionForUncooperativeProviderWhileNotesStayWritable" classname="org.stemnotebook.backend.PdfSelectionTest" time="1.08"/>
+  <testcase name="cancellationAfterNativeCommitAcceptanceWaitsForTheActualReceipt" classname="org.stemnotebook.backend.PdfSelectionTest" time="1.13"/>
+  <testcase name="selectionIsNonMutatingUntilAcceptedAndPersistsOnlyReadGrantOnCommit" classname="org.stemnotebook.backend.PdfSelectionTest" time="0.07"/>
+  <testcase name="bytesOrPermissionChangingAfterReviewCannotApplyTheOldSelection" classname="org.stemnotebook.backend.PdfSelectionTest" time="0.079"/>
+  <testcase name="sameRevisionAndChangedEditionCanBothRestoreARevokedStableSource" classname="org.stemnotebook.backend.PdfSelectionTest" time="0.099"/>
+  <testcase name="providerFailurePublishesWhileOwnDeadlineAndProviderRetirementAreBlocked" classname="org.stemnotebook.backend.PdfSelectionTest" time="1.028"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

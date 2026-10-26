@@ -405,7 +405,7 @@ fn schema16_migrates_without_changing_notebooks_and_both_backups_preserve_action
         .unwrap();
     drop(db);
     let mut s = Store::open(&path).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 19);
+    assert_eq!(s.schema_version().unwrap(), 20);
     assert_eq!(
         s.entity(note.id, &a).unwrap().title,
         "retained schema16 note"

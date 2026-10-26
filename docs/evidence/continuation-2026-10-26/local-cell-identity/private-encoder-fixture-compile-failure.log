@@ -1,0 +1,14 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+error[E0624]: method `encode` is private
+   --> core/tests/table_cell_ink.rs:805:24
+    |
+805 |     let bytes = legacy.encode().unwrap();
+    |                        ^^^^^^ private method
+    |
+   ::: /tmp/stem-engine-catalogue-work/core/src/portable.rs:101:5
+    |
+101 |     fn encode(&self) -> Result<Vec<u8>> {
+    |     ----------------------------------- private method defined here
+
+For more information about this error, try `rustc --explain E0624`.
+error: could not compile `stem-core` (test "table_cell_ink") due to 1 previous error

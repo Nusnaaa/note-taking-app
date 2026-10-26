@@ -31,6 +31,7 @@ impl Store {
                 .into_iter()
                 .map(|strokes| Region {
                     id: Id::new(),
+                    cell: None,
                     strokes,
                     content: None,
                 })
@@ -47,6 +48,9 @@ impl Store {
         access: &Access,
     ) -> Result<Block> {
         self.edit_block(block, revision, access, |b| {
+            if matches!(b.content, Content::Table(_)) {
+                return Err(Error::ReviewRequired);
+            }
             let at = b
                 .regions
                 .iter()
@@ -69,6 +73,7 @@ impl Store {
                 at..=at,
                 parts.into_iter().map(|strokes| Region {
                     id: Id::new(),
+                    cell: None,
                     strokes,
                     content: None,
                 }),
@@ -84,6 +89,9 @@ impl Store {
         access: &Access,
     ) -> Result<Block> {
         self.edit_block(block, revision, access, |b| {
+            if matches!(b.content, Content::Table(_)) {
+                return Err(Error::ReviewRequired);
+            }
             let ids: BTreeSet<_> = regions.iter().copied().collect();
             if ids.len() != regions.len() || ids.len() < 2 {
                 return Err(Error::Invalid("merge selection"));
@@ -101,6 +109,7 @@ impl Store {
                 .collect();
             let merged = Region {
                 id: Id::new(),
+                cell: None,
                 strokes: b
                     .source_ids
                     .iter()
@@ -142,7 +151,7 @@ impl Store {
             let region = b
                 .regions
                 .iter()
-                .find(|r| r.id == id)
+                .find(|r| r.target() == id)
                 .ok_or(Error::Unavailable)?;
             snapshot.strokes.retain(|s| region.strokes.contains(&s.id));
             if snapshot.strokes.is_empty() {
@@ -171,7 +180,7 @@ impl Store {
             block
                 .regions
                 .iter_mut()
-                .find(|r| r.id == id)
+                .find(|r| r.target() == id)
                 .ok_or(Error::Unavailable)?
                 .content = Some(content);
         } else {

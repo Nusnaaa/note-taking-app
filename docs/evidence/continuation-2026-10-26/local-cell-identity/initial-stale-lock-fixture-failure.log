@@ -1,0 +1,74 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 50.77s
+     Running tests/objects.rs (/tmp/stem-pen-response-target/debug/deps/objects-9e63ebed9dbede95)
+
+running 8 tests
+test canvas_embeds_keep_independent_pinned_cameras_and_reject_cycles ... ok
+test grouped_transform_is_atomic_and_never_changes_original_points ... ok
+test invalid_objects_reject_duplicate_ids_ragged_cells_and_nonfinite_axes ... ok
+test images_cannot_bypass_locks_even_after_replacing_visible_content ... ok
+test protected_canvas_cannot_leak_through_embed_or_group ... ok
+test native_v3_roundtrip_preserves_assets_layout_groups_and_embeds_with_new_ids ... ok
+test table_cell_edit_preserves_identity_neighbours_and_source_ink ... ok
+test view_settings_and_protected_placeholders_reopen_without_secret_text ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.22s
+
+     Running tests/positions.rs (/tmp/stem-pen-response-target/debug/deps/positions-e9abf30088cf6a38)
+
+running 10 tests
+test exercise_membership_and_current_block_protection_gate_bookmark_metadata_and_replacement ... ok
+test observed_ink_region_bookmarks_copy_global_ids_and_old_format_tags_cannot_hide_them ... ok
+test rich_labels_and_multiblock_ranges_preserve_content_and_reject_foreign_owners ... ok
+test schema10_upgrade_keeps_legacy_view_payload_byte_for_byte_and_absent_bookmark_is_not_invented ... ok
+test structured_math_and_component_offsets_validate_without_interpreting_or_repairing_content ... ok
+test unicode_selection_reopens_and_changed_content_requires_explicit_fresh_bookmark ... ok
+test view_discovery_reopens_saved_positions_and_filters_fresh_block_protection ... ok
+test view_discovery_separates_master_and_exercise_and_rechecks_app_lock ... ok
+test view_restore_and_discovery_reject_misbound_persistent_identity ... ok
+test encrypted_backup_retains_stale_bookmarks_and_schema10_defaults_without_rewriting_views ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 39.60s
+
+     Running tests/regions.rs (/tmp/stem-pen-response-target/debug/deps/regions-877ecba2bb77be6d)
+
+running 4 tests
+test invalid_partition_and_overlapping_split_are_atomic ... ok
+test regions_split_merge_without_replacing_observations_and_undo_restores_partition ... ok
+test region_exports_remap_ids_and_keep_accepted_text ... ok
+test selected_region_receives_only_selected_vector_strokes_and_commits_only_it ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+     Running tests/table_cell_ink.rs (/tmp/stem-pen-response-target/debug/deps/table_cell_ink-06a46d5cce999031)
+
+running 13 tests
+test capture_is_idempotent_scoped_atomic_and_undo_preserves_observations ... ok
+test accepting_another_cell_retains_existing_manual_correction_and_marker ... ok
+test derivative_exports_cell_text_once_and_discloses_unconverted_ink_omission ... ok
+test host_capture_and_scoped_cell_proposal_preserve_neighbouring_values ... ok
+test incremental_capture_preserves_session_order_and_acknowledges_exact_replay ... ok
+test independent_cell_review_updates_only_chosen_cell_and_stale_proposals_fail ... ok
+test independent_table_copy_remaps_saved_cell_cursor_with_its_target ... ok
+test invalid_target_identity_and_injected_commit_failure_leave_source_unchanged ... ok
+test local_cell_targets_are_independent_across_tables_and_fresh_protection_still_applies ... FAILED
+test manual_cell_correction_is_independent_and_new_ink_never_rewrites_it ... ok
+test native_copy_preserves_cell_binding_with_independent_ids_and_refuses_legacy_tag ... ok
+test classic_backup_preserves_cells_ink_and_rejects_legacy_tags_even_after_undo ... ok
+test streaming_backup_preserves_cell_targets_and_blocks_legacy_schema_smuggling ... ok
+
+failures:
+
+---- local_cell_targets_are_independent_across_tables_and_fresh_protection_still_applies stdout ----
+
+thread 'local_cell_targets_are_independent_across_tables_and_fresh_protection_still_applies' panicked at core/tests/table_cell_ink.rs:385:10:
+called `Result::unwrap()` on an `Err` value: Conflict
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    local_cell_targets_are_independent_across_tables_and_fresh_protection_still_applies
+
+test result: FAILED. 12 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 21.51s
+
+error: test failed, to rerun pass `-p stem-core --test table_cell_ink`

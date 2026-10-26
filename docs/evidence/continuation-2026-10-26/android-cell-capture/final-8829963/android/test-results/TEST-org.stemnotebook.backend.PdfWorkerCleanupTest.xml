@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.PdfWorkerCleanupTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-26T18:47:19" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="0.058">
+  <properties/>
+  <testcase name="failedReplyClosesBothPipeEnds" classname="org.stemnotebook.backend.PdfWorkerCleanupTest" time="0.03"/>
+  <testcase name="invalidDimensionsCloseInputBeforeParserConstruction" classname="org.stemnotebook.backend.PdfWorkerCleanupTest" time="0.028"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -297,7 +297,7 @@ fn native_copy_remaps_layer_and_embed_overrides_and_derivatives_respect_default_
     .unwrap();
     let bytes = native(&s, &[c, host.id]);
     let mut doc = NativeDocument::decode(&bytes).unwrap();
-    assert_eq!(doc.version, 11);
+    assert_eq!(doc.version, 12);
     doc.version = 7;
     assert!(doc.validate().is_err());
     let mut target = Store::memory().unwrap();
@@ -419,7 +419,7 @@ fn legacy_canvas_migrates_to_an_implicit_base_without_rewriting_original_payload
     db.pragma_update(None, "user_version", 13).unwrap();
     drop(db);
     let s = Store::open(&path).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 19);
+    assert_eq!(s.schema_version().unwrap(), 20);
     assert_eq!(s.canvas_layers(c.id, &a).unwrap().revision, 0);
     assert_eq!(
         ids(s.canvas_scene(c.id, None, 0, 10, &a).unwrap()),

@@ -76,6 +76,9 @@ fn block_content(
     control: Option<&JobControl>,
 ) -> Result<()> {
     b.validate()?;
+    if version < 12 && b.regions.iter().any(|region| region.cell.is_some()) {
+        return Err(Error::Unsupported);
+    }
     if version < 11 && b.has_table_ink() {
         return Err(Error::Unsupported);
     }
@@ -127,7 +130,7 @@ impl Store {
         control: Option<&JobControl>,
     ) -> Result<()> {
         check(control)?;
-        if !matches!(version, 1..=11) {
+        if !matches!(version, 1..=12) {
             return Err(Error::Unsupported);
         }
         self.validate_backup_prelude(version, control)?;
@@ -1068,7 +1071,7 @@ mod tests {
     #[test]
     fn schema_feature_gates_match_aggregate_oracle() {
         let s = fixture();
-        for version in 1..=11 {
+        for version in 1..=12 {
             assert_eq!(
                 s.validate_backup_state(version).is_ok(),
                 s.validate_backup_state_aggregate(version).is_ok(),

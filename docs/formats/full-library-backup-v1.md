@@ -1,8 +1,8 @@
 # Whole-library backup v1
 
-Current writer: schema 19. The schema-8 description below is historical; later
+Current writer: schema 20. The schema-8 description below is historical; later
 sections describe supported migrations, streaming and semantic-validation changes.
-See the schema-19 table-cell extension below for the latest feature boundary.
+See the schema-20 local-cell extension below for the latest feature boundary.
 
 This is a logical snapshot of the implemented schema, independent of native subset
 v3. It covers current stored state, not unimplemented application features. The only
@@ -158,3 +158,14 @@ semantic validation. Older tags reject table-cell regions in current content,
 retained history and Undo before/after block payloads. Both formats preserve raw
 observations independently of undo; runtime/file capabilities remain excluded.
 See [native-subset-v11.md](native-subset-v11.md).
+
+## Schema 20 — local cell targets on global regions
+
+Physical tables, columns and streaming indices are unchanged from schema19. Native
+subset v12 adds optional explicit `Region.cell` local to its table, leaving
+`Region.id` globally unique. New cell captures use this explicit field. Known
+schema19/v11 aliases omit it and are not rewritten. JSON writes20/read9–20 and
+streaming writes20/read15–20. Pre-schema20 data rejects explicit targets in current
+blocks, retained history and Undo before/after rows. Migration retains pending
+legacy-shape review fingerprints and raw receipt bytes. See
+[native-subset-v12.md](native-subset-v12.md).

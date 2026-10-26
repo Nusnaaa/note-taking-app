@@ -240,7 +240,7 @@ fn pressure_and_eraser_preferences_persist_and_new_fields_cannot_claim_an_old_na
         )
         .unwrap();
     let mut document = NativeDocument::decode(&exported.bytes).unwrap();
-    assert_eq!(document.version, 11);
+    assert_eq!(document.version, 12);
     document.version = 9;
     assert!(document.validate().is_err());
 }
@@ -413,7 +413,7 @@ fn legacy_layout_stream_reads_schema15_without_inventing_pressure_settings() {
         restored.store().source_ink(block.id, &a).unwrap(),
         vec![original]
     );
-    assert_eq!(restored.store().schema_version().unwrap(), 19);
+    assert_eq!(restored.store().schema_version().unwrap(), 20);
 }
 
 #[test]

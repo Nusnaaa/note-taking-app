@@ -1,0 +1,7 @@
+$ /tmp/stem-cargo/bin/cargo clippy --workspace --all-targets --locked --offline -- -D warnings
+exit_code=0
+
+    Blocking waiting for file lock on package cache
+    Checking stem-core v0.1.0 (/home/linus/Projects/software/note-taking-app/repo/core)
+    Checking stem-bridge v0.1.0 (/home/linus/Projects/software/note-taking-app/repo/bridge)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 23.48s

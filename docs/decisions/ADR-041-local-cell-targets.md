@@ -1,0 +1,13 @@
+# ADR 041 — local cell targets and global ink-region identity
+
+Status: native compatibility implementation; table editing/layout and complete backend acceptance remain open.
+
+Cells were originally identified within their containing table. ADR039's initial cell-ink route reused the cell ID as a global region ID, so valid repeated local IDs across different tables could not both be captured. It also rejected local IDs equal to unrelated global object IDs. Those restrictions were inconsistent with the existing table value model.
+
+A region now carries an optional `cell` target. New table captures allocate an independent global region ID and store the table-local cell ID in this field. Local IDs may repeat across tables and overlap global identifier values. Global region uniqueness/ownership still applies to `Region.id`; within one table, two regions cannot claim the same effective cell target. Cell bindings on non-table content are invalid. Existing v11/schema19 cell aliases omit the field and retain their interpretation without payload rewriting. Ordinary freehand regions continue to omit the field.
+
+Public table-cell capture, recognition/proposal and raw-cell-cursor selectors remain the logical cell ID scoped by the block. General freehand selectors remain region IDs. Snapshot filtering, explicit acceptance/correction, manual cell editing and caret validation use the same effective target. Independent copies remap region IDs, local cell references, source IDs and saved cursors consistently. Table-region split/merge refuses implicit reassignment rather than discarding a cell binding. Android's durable v6 capture route already retains the composite block/cell/revision target and needs no private-record rewrite.
+
+Native subset v12 and library/backup schema20 fence the explicit `cell` field. This is a semantic migration with no physical column change or stored block/receipt rewrite. Pre-v12/pre-schema20 tags reject the new field in current content, retained history and Undo rows. Known v11 aliases remain readable; synthetic schema19-shape pending proposals retain their exact block bytes, source receipt and fingerprint through migration and can still be explicitly accepted.
+
+Component tests cover repeated local IDs with independent captures/proposals/batch acceptance, global-ID overlap, native v10 plain tables and v11 aliases, mixed old/new bindings, copied typed/raw cursors, malformed duplicate targets, protection and backup feature fences. They do not establish complete table layout/row/column editing, arbitrary legacy scene fidelity, real recogniser quality or backend completion. Earlier fixture failures are retained separately from passing checks.

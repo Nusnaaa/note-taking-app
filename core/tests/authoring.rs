@@ -272,7 +272,7 @@ fn native_copy_and_schema15_backup_keep_scoped_presets_and_reject_downgraded_ext
         .unwrap()
         .bytes;
     let doc = NativeDocument::decode(&bytes).unwrap();
-    assert_eq!(doc.version, 11);
+    assert_eq!(doc.version, 12);
     let mut old = doc.clone();
     old.version = 8;
     assert!(old.validate().is_err());
@@ -291,7 +291,7 @@ fn native_copy_and_schema15_backup_keep_scoped_presets_and_reject_downgraded_ext
     )
     .unwrap();
     let mut snapshot: serde_json::Value = serde_json::from_slice(&opened).unwrap();
-    assert_eq!(snapshot["schema"], 19);
+    assert_eq!(snapshot["schema"], 20);
     snapshot["tables"]
         .as_object_mut()
         .unwrap()
@@ -368,7 +368,7 @@ fn schema14_upgrade_keeps_unconfigured_view_payload_exactly_without_inventing_pr
     db.pragma_update(None, "user_version", 14).unwrap();
     drop(db);
     let s = Store::open(&path).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 19);
+    assert_eq!(s.schema_version().unwrap(), 20);
     assert_eq!(s.view(v.id, &a).unwrap(), v);
     drop(s);
     let db = rusqlite::Connection::open(&path).unwrap();

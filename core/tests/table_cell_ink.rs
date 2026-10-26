@@ -115,7 +115,8 @@ fn capture_is_idempotent_scoped_atomic_and_undo_preserves_observations() {
         .append_cell_capture(ticket, block.id, 0, first, ink.clone(), &access)
         .unwrap();
     assert_eq!(captured.revision, 1);
-    assert_eq!(captured.regions[0].id, first);
+    assert_ne!(captured.regions[0].id, first);
+    assert_eq!(captured.regions[0].cell, Some(first));
     assert_eq!(
         store
             .append_cell_capture(ticket, block.id, 0, first, ink.clone(), &access)
@@ -158,7 +159,7 @@ fn independent_cell_review_updates_only_chosen_cell_and_stale_proposals_fail() {
     assert!(accepted
         .regions
         .iter()
-        .find(|r| r.id == second)
+        .find(|r| r.cell.unwrap_or(r.id) == second)
         .unwrap()
         .content
         .is_none());
@@ -230,8 +231,8 @@ fn native_copy_preserves_cell_binding_with_independent_ids_and_refuses_legacy_ta
         .unwrap()
         .bytes;
     let mut document = NativeDocument::decode(&bytes).unwrap();
-    assert_eq!(document.version, 11);
-    document.version = 10;
+    assert_eq!(document.version, 12);
+    document.version = 11;
     assert!(matches!(document.validate(), Err(Error::Unsupported)));
     let mut copy = Store::memory().unwrap();
     let ids = copy.import_native(&bytes, &access).unwrap();
@@ -240,10 +241,11 @@ fn native_copy_preserves_cell_binding_with_independent_ids_and_refuses_legacy_ta
         panic!()
     };
     assert_ne!(table.rows[0][0].id, first);
-    assert_eq!(copied.regions[0].id, table.rows[0][0].id);
+    assert_eq!(copied.regions[0].cell, Some(table.rows[0][0].id));
+    assert_ne!(copied.regions[0].id, table.rows[0][0].id);
     assert_ne!(copied.regions[0].strokes, block.regions[0].strokes);
     assert!(copy
-        .region_snapshot(copied.id, copied.regions[0].id, &access)
+        .region_snapshot(copied.id, table.rows[0][0].id, &access)
         .is_ok());
 }
 
@@ -270,15 +272,15 @@ fn classic_backup_preserves_cells_ink_and_rejects_legacy_tags_even_after_undo() 
         )
         .unwrap();
     let restored = Store::restore_backup_password(&backup.bytes, password).unwrap();
-    assert_eq!(restored.schema_version().unwrap(), 19);
+    assert_eq!(restored.schema_version().unwrap(), 20);
     assert_eq!(
         restored.source_ink(block.id, &access).unwrap(),
         store.source_ink(block.id, &access).unwrap()
     );
     let plain = crypto::decrypt(&backup.bytes, crypto::Credential::Password(password)).unwrap();
     let mut json: serde_json::Value = serde_json::from_slice(&plain).unwrap();
-    assert_eq!(json["schema"], 19);
-    json["schema"] = 18.into();
+    assert_eq!(json["schema"], 20);
+    json["schema"] = 19.into();
     let disguised = crypto::encrypt(&serde_json::to_vec(&json).unwrap(), password).unwrap();
     assert!(matches!(
         Store::restore_backup_password(&disguised.bytes, password),
@@ -335,7 +337,7 @@ fn streaming_backup_preserves_cell_targets_and_blocks_legacy_schema_smuggling() 
     let mut plain = Vec::new();
     reader.read_to_end(&mut plain).unwrap();
     reader.finish().unwrap();
-    plain[8..12].copy_from_slice(&18u32.to_be_bytes());
+    plain[8..12].copy_from_slice(&19u32.to_be_bytes());
     let mut writer = crypto::stream::EncryptStream::new(Vec::new(), password).unwrap();
     writer.write_all(&plain).unwrap();
     let disguised = writer.finish().unwrap();
@@ -352,20 +354,34 @@ fn streaming_backup_preserves_cell_targets_and_blocks_legacy_schema_smuggling() 
 }
 
 #[test]
-fn duplicate_cell_targets_across_tables_and_fresh_protection_fail_closed() {
+fn local_cell_targets_are_independent_across_tables_and_fresh_protection_still_applies() {
     use stem_core::security::Scope;
     let (mut store, access, note, block, first, _) = fixture();
     let duplicate = store
         .append_content(note, block.content.clone(), &access)
         .unwrap();
     let _captured = capture(&mut store, &access, &block, first, 0);
-    assert!(matches!(
-        store.append_cell_capture(Id::new(), duplicate.id, 0, first, vec![stroke(1)], &access),
-        Err(Error::Conflict)
-    ));
+    let second = store
+        .append_cell_capture(Id::new(), duplicate.id, 0, first, vec![stroke(1)], &access)
+        .unwrap();
+    let original = store.block(block.id, &access).unwrap();
+    assert_ne!(original.regions[0].id, second.regions[0].id);
+    assert_eq!(original.regions[0].cell, second.regions[0].cell);
+    assert_ne!(
+        store
+            .region_snapshot(block.id, first, &access)
+            .unwrap()
+            .strokes()[0]
+            .id,
+        store
+            .region_snapshot(duplicate.id, first, &access)
+            .unwrap()
+            .strokes()[0]
+            .id
+    );
     let scoped = common::access([Scope::Block(duplicate.id)]);
     let locked = store
-        .set_block_lock(duplicate.id, 0, true, &scoped)
+        .set_block_lock(duplicate.id, second.revision, true, &scoped)
         .unwrap();
     assert!(matches!(
         store.append_cell_capture(
@@ -378,7 +394,7 @@ fn duplicate_cell_targets_across_tables_and_fresh_protection_fail_closed() {
         ),
         Err(Error::Denied)
     ));
-    assert!(store.source_ink(duplicate.id, &scoped).unwrap().is_empty());
+    assert_eq!(store.source_ink(duplicate.id, &scoped).unwrap().len(), 1);
 }
 
 #[test]
@@ -631,7 +647,8 @@ fn independent_table_copy_remaps_saved_cell_cursor_with_its_target() {
     };
     assert_ne!(cell, first);
     assert_eq!(cell, table.rows[0][0].id);
-    assert_eq!(doc.blocks[0].current.regions[0].id, cell);
+    assert_eq!(doc.blocks[0].current.regions[0].cell, Some(cell));
+    assert_ne!(doc.blocks[0].current.regions[0].id, cell);
     assert_eq!(
         target
             .restore_view(view.id, &access)
@@ -666,4 +683,382 @@ fn accepting_another_cell_retains_existing_manual_correction_and_marker() {
         CellValue::Text("author deliberately wrote this".into())
     );
     assert_eq!(table.rows[0][1].value, CellValue::Text("1 + 1 = 3".into()));
+}
+
+fn native_bytes(store: &Store, note: Id, access: &Access) -> Vec<u8> {
+    use stem_core::portable::ExportProtection;
+    store
+        .finish_native_export(
+            store.prepare_native_export(&[note], true, access).unwrap(),
+            ExportProtection::Plaintext {
+                acknowledge_protected: true,
+            },
+            &mut TestAuth(true),
+            true,
+        )
+        .unwrap()
+        .bytes
+}
+#[test]
+fn repeated_local_cell_keys_have_independent_proposals_and_atomic_batch_acceptance() {
+    let (mut store, access, note, first, cell, _) = fixture();
+    let second = store
+        .append_content(note, first.content.clone(), &access)
+        .unwrap();
+    let first = capture(&mut store, &access, &first, cell, 0);
+    let second = capture(&mut store, &access, &second, cell, 1);
+    let a = propose(&mut store, &access, first.id, cell);
+    let b = propose(&mut store, &access, second.id, cell);
+    store
+        .correct_proposal(
+            a.id,
+            Content::Text("first deliberate error".into()),
+            &access,
+        )
+        .unwrap();
+    store
+        .correct_proposal(b.id, Content::Numeric("001".into()), &access)
+        .unwrap();
+    let accepted = store
+        .accept_proposals(&[(a.id, 0), (b.id, 0)], true, &access)
+        .unwrap();
+    assert_eq!(accepted.len(), 2);
+    let Content::Table(a) = &store.block(first.id, &access).unwrap().content else {
+        panic!()
+    };
+    let Content::Table(b) = &store.block(second.id, &access).unwrap().content else {
+        panic!()
+    };
+    assert_eq!(
+        a.rows[0][0].value,
+        CellValue::Text("first deliberate error".into())
+    );
+    assert_eq!(b.rows[0][0].value, CellValue::Numeric("001".into()));
+}
+#[test]
+fn local_cell_keys_may_equal_existing_entity_and_block_identifiers() {
+    let (mut store, access, note, _, _, _) = fixture();
+    let content = Content::Table(Table {
+        rows: vec![vec![Cell {
+            id: note,
+            value: CellValue::Text("local".into()),
+        }]],
+        header_rows: 0,
+    });
+    let block = store.append_content(note, content, &access).unwrap();
+    let block = capture(&mut store, &access, &block, note, 0);
+    assert_ne!(block.regions[0].id, note);
+    assert_eq!(block.regions[0].cell, Some(note));
+    let second = store
+        .append_content(
+            note,
+            Content::Table(Table {
+                rows: vec![vec![Cell {
+                    id: Id::new(),
+                    value: CellValue::Text("local".into()),
+                }]],
+                header_rows: 0,
+            }),
+            &access,
+        )
+        .unwrap();
+    let replaced = store
+        .edit_content(
+            second.id,
+            0,
+            Content::Table(Table {
+                rows: vec![vec![Cell {
+                    id: second.id,
+                    value: CellValue::Text("local".into()),
+                }]],
+                header_rows: 0,
+            }),
+            &access,
+        )
+        .unwrap();
+    let captured = capture(&mut store, &access, &replaced, second.id, 1);
+    assert_ne!(captured.regions[0].id, second.id);
+    let mut copy = Store::memory().unwrap();
+    let roots = copy
+        .import_native(&native_bytes(&store, note, &access), &access)
+        .unwrap();
+    assert!(copy.blocks(roots[0], 0, 10, &access).is_ok());
+}
+#[test]
+fn version_eleven_aliases_remain_readable_and_mix_with_new_independent_regions() {
+    use stem_core::portable::NativeDocument;
+    let (mut store, access, note, block, first, _) = fixture();
+    capture(&mut store, &access, &block, first, 0);
+    let mut legacy = NativeDocument::decode(&native_bytes(&store, note, &access)).unwrap();
+    for block in &mut legacy.blocks {
+        for state in std::iter::once(&mut block.current)
+            .chain(block.history.iter_mut().map(|history| &mut history.block))
+        {
+            for region in &mut state.regions {
+                if let Some(cell) = region.cell.take() {
+                    region.id = cell;
+                }
+            }
+        }
+    }
+    legacy.version = 11;
+    legacy.validate().unwrap();
+    use sha2::{Digest, Sha256};
+    let payload = serde_json::to_string(&legacy).unwrap();
+    let checksum = format!("{:x}", Sha256::digest(payload.as_bytes()));
+    let bytes =
+        serde_json::to_vec(&serde_json::json!({"sha256":checksum,"payload":payload})).unwrap();
+    let mut restored = Store::memory().unwrap();
+    let roots = restored.import_native(&bytes, &access).unwrap();
+    let copied = restored.blocks(roots[0], 0, 10, &access).unwrap().remove(0);
+    let Content::Table(table) = &copied.content else {
+        panic!()
+    };
+    let first = table.rows[0][0].id;
+    let second = table.rows[0][1].id;
+    assert!(copied.regions[0].cell.is_none());
+    assert_eq!(copied.regions[0].id, first);
+    let proposal = propose(&mut restored, &access, copied.id, first);
+    let accepted = restored.accept_proposal(proposal.id, 0, &access).unwrap();
+    let mixed = capture(&mut restored, &access, &accepted, second, 1);
+    assert!(mixed
+        .regions
+        .iter()
+        .any(|region| region.id == first && region.cell.is_none()));
+    assert!(mixed
+        .regions
+        .iter()
+        .any(|region| region.cell == Some(second) && region.id != second));
+}
+
+#[test]
+fn schema19_legacy_shape_preserves_pending_review_and_raw_receipt_during_migration() {
+    let root = tempfile::tempdir().unwrap();
+    let path = root.path().join("legacy.db");
+    let access = Access::public();
+    let mut store = Store::open(&path).unwrap();
+    let note = store
+        .create(Kind::Note, None, "legacy shape", &access)
+        .unwrap();
+    let ticket = Id::new();
+    let cell = Id::new();
+    let table = store
+        .append_content(
+            note.id,
+            Content::Table(Table {
+                rows: vec![vec![Cell {
+                    id: cell,
+                    value: CellValue::Text("legacy".into()),
+                }]],
+                header_rows: 0,
+            }),
+            &access,
+        )
+        .unwrap();
+    store
+        .append_cell_capture(ticket, table.id, 0, cell, vec![stroke(0)], &access)
+        .unwrap();
+    drop(store);
+    // Construct the documented schema19 representation, including retained rows.
+    fn old_payload(encoded: &str) -> String {
+        let mut block: Block = serde_json::from_str(encoded).unwrap();
+        for region in &mut block.regions {
+            if let Some(cell) = region.cell.take() {
+                region.id = cell;
+            }
+        }
+        serde_json::to_string(&block).unwrap()
+    }
+    let db = rusqlite::Connection::open(&path).unwrap();
+    for name in ["blocks", "history"] {
+        let rows = db
+            .prepare(&format!("SELECT rowid,payload FROM {name}"))
+            .unwrap()
+            .query_map([], |row| {
+                Ok((row.get::<_, i64>(0)?, row.get::<_, String>(1)?))
+            })
+            .unwrap()
+            .collect::<std::result::Result<Vec<_>, _>>()
+            .unwrap();
+        for (row, payload) in rows {
+            db.execute(
+                &format!("UPDATE {name} SET payload=?1 WHERE rowid=?2"),
+                rusqlite::params![old_payload(&payload), row],
+            )
+            .unwrap();
+        }
+    }
+    let rows=db.prepare("SELECT operation,item,before_row,after_row FROM edit_changes WHERE table_name='blocks'").unwrap().query_map([],|row|Ok((row.get::<_,i64>(0)?,row.get::<_,String>(1)?,row.get::<_,Option<String>>(2)?,row.get::<_,Option<String>>(3)?))).unwrap().collect::<std::result::Result<Vec<_>,_>>().unwrap();
+    for (operation, item, before, after) in rows {
+        let convert = |encoded: Option<String>| {
+            encoded.map(|encoded| {
+                let mut fields: Vec<serde_json::Value> = serde_json::from_str(&encoded).unwrap();
+                let at = fields.len() - 1;
+                fields[at] = old_payload(fields[at].as_str().unwrap()).into();
+                serde_json::to_string(&fields).unwrap()
+            })
+        };
+        db.execute("UPDATE edit_changes SET before_row=?1,after_row=?2 WHERE operation=?3 AND table_name='blocks' AND item=?4",rusqlite::params![convert(before),convert(after),operation,item]).unwrap();
+    }
+    drop(db);
+    let mut store = Store::open(&path).unwrap();
+    let pending = propose(&mut store, &access, table.id, cell);
+    drop(store);
+    let db = rusqlite::Connection::open(&path).unwrap();
+    let old_block: String = db
+        .query_row(
+            "SELECT payload FROM blocks WHERE id=?1",
+            [table.id.to_string()],
+            |row| row.get(0),
+        )
+        .unwrap();
+    let receipt: String = db
+        .query_row(
+            "SELECT fingerprint FROM capture_receipts WHERE ticket=?1",
+            [ticket.to_string()],
+            |row| row.get(0),
+        )
+        .unwrap();
+    assert!(!old_block.contains("\"cell\":"));
+    db.pragma_update(None, "user_version", 19).unwrap();
+    drop(db);
+    let mut migrated = Store::open(&path).unwrap();
+    assert_eq!(migrated.schema_version().unwrap(), 20);
+    let db = rusqlite::Connection::open(&path).unwrap();
+    assert_eq!(
+        db.query_row(
+            "SELECT payload FROM blocks WHERE id=?1",
+            [table.id.to_string()],
+            |row| row.get::<_, String>(0)
+        )
+        .unwrap(),
+        old_block
+    );
+    assert_eq!(
+        db.query_row(
+            "SELECT fingerprint FROM capture_receipts WHERE ticket=?1",
+            [ticket.to_string()],
+            |row| row.get::<_, String>(0)
+        )
+        .unwrap(),
+        receipt
+    );
+    drop(db);
+    assert_eq!(
+        migrated.proposal(pending.id, &access).unwrap().fingerprint,
+        pending.fingerprint
+    );
+    assert!(migrated
+        .capture_committed(ticket, note.id, &access)
+        .unwrap());
+    let accepted = migrated.accept_proposal(pending.id, 0, &access).unwrap();
+    assert!(accepted.regions[0].cell.is_none());
+    assert_eq!(migrated.source_ink(table.id, &access).unwrap().len(), 1);
+}
+
+#[test]
+fn raw_cell_bookmark_copies_its_local_selector_separately_from_global_region_identity() {
+    use stem_core::{
+        portable::NativeDocument,
+        store::{BookmarkState, Camera, CaretPoint, CaretTarget, SelectionBookmark, ViewSettings},
+    };
+    let (mut store, access, note, block, cell, _) = fixture();
+    let captured = capture(&mut store, &access, &block, cell, 0);
+    let point = CaretPoint {
+        block: block.id,
+        revision: captured.revision,
+        region: Some(cell),
+        target: CaretTarget::Ink {
+            stroke: captured.source_ids[0],
+            sample: 0,
+        },
+    };
+    store
+        .save_view(
+            ViewSettings {
+                id: Id::new(),
+                entity: note,
+                exercise: None,
+                camera: Camera::default(),
+                pen_width_mm: 0.5,
+                colour_rgba: [0, 0, 0, 255],
+                finger_ink: false,
+                anchor: None,
+                bookmark: Some(SelectionBookmark {
+                    anchor: point.clone(),
+                    focus: point,
+                }),
+                authoring: None,
+                revision: 0,
+            },
+            None,
+            &access,
+        )
+        .unwrap();
+    let mut copied = Store::memory().unwrap();
+    let roots = copied
+        .import_native(&native_bytes(&store, note, &access), &access)
+        .unwrap();
+    let doc = NativeDocument::decode(&native_bytes(&copied, roots[0], &access)).unwrap();
+    let selected = &doc.attachments.views[0].bookmark.as_ref().unwrap().anchor;
+    assert_eq!(selected.region, doc.blocks[0].current.regions[0].cell);
+    assert_ne!(selected.region, Some(doc.blocks[0].current.regions[0].id));
+    assert_eq!(
+        copied
+            .restore_view(doc.attachments.views[0].id, &access)
+            .unwrap()
+            .bookmark_state,
+        BookmarkState::Current
+    );
+}
+#[test]
+fn duplicate_local_targets_within_one_table_and_cell_bindings_on_prose_are_invalid() {
+    let (mut store, access, _, block, cell, _) = fixture();
+    let block = capture(&mut store, &access, &block, cell, 0);
+    let mut duplicate = block.clone();
+    let mut extra = duplicate.regions[0].clone();
+    extra.id = Id::new();
+    let source = Id::new();
+    extra.strokes = vec![source];
+    duplicate.source_ids.push(source);
+    duplicate.visible_strokes.push(source);
+    duplicate.regions.push(extra);
+    assert!(matches!(
+        duplicate.validate(),
+        Err(Error::Invalid("duplicate table ink target"))
+    ));
+    let mut prose = block;
+    prose.content = Content::Ink;
+    assert!(prose.validate().is_err());
+}
+
+#[test]
+fn version_ten_tables_with_repeated_local_ids_import_and_capture_without_rewriting_values() {
+    use sha2::{Digest, Sha256};
+    use stem_core::portable::NativeDocument;
+    let (mut store, access, note, first, _, _) = fixture();
+    store
+        .append_content(note, first.content.clone(), &access)
+        .unwrap();
+    let mut old = NativeDocument::decode(&native_bytes(&store, note, &access)).unwrap();
+    old.version = 10;
+    old.validate().unwrap();
+    let payload = serde_json::to_string(&old).unwrap();
+    let sha256 = format!("{:x}", Sha256::digest(payload.as_bytes()));
+    let bytes =
+        serde_json::to_vec(&serde_json::json!({"sha256":sha256,"payload":payload})).unwrap();
+    let mut imported = Store::memory().unwrap();
+    let roots = imported.import_native(&bytes, &access).unwrap();
+    let blocks = imported.blocks(roots[0], 0, 10, &access).unwrap();
+    assert_eq!(blocks.len(), 2);
+    let Content::Table(table) = &blocks[0].content else {
+        panic!()
+    };
+    let cell = table.rows[0][0].id;
+    let one = capture(&mut imported, &access, &blocks[0], cell, 0);
+    let two = capture(&mut imported, &access, &blocks[1], cell, 1);
+    assert_ne!(one.regions[0].id, two.regions[0].id);
+    assert_eq!(one.regions[0].cell, two.regions[0].cell);
+    assert_eq!(one.content, blocks[0].content);
+    assert_eq!(two.content, blocks[1].content);
 }

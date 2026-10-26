@@ -20,8 +20,16 @@ pub enum Display {
 #[serde(deny_unknown_fields)]
 pub struct Region {
     pub id: Id,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cell: Option<Id>,
     pub strokes: Vec<Id>,
     pub content: Option<Content>,
+}
+impl Region {
+    /// Table-local cell identity, or the unchanged legacy/general region key.
+    pub(crate) fn target(&self) -> Id {
+        self.cell.unwrap_or(self.id)
+    }
 }
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -64,9 +72,11 @@ impl Block {
             return Err(Error::ResourceLimit);
         }
         let mut region_ids = BTreeSet::new();
+        let mut cell_targets = BTreeSet::new();
         let mut assigned = BTreeSet::new();
         for region in &self.regions {
-            if !region_ids.insert(region.id)
+            if (region.cell.is_some() && !matches!(self.content, Content::Table(_)))
+                || !region_ids.insert(region.id)
                 || region.strokes.is_empty()
                 || region
                     .strokes
@@ -90,11 +100,14 @@ impl Block {
         }
         if let Content::Table(table) = &self.content {
             for region in &self.regions {
+                if !cell_targets.insert(region.target()) {
+                    return Err(Error::Invalid("duplicate table ink target"));
+                }
                 let cell = table
                     .rows
                     .iter()
                     .flatten()
-                    .find(|cell| cell.id == region.id)
+                    .find(|cell| cell.id == region.target())
                     .ok_or(Error::Invalid("table ink cell"))?;
                 if region
                     .content

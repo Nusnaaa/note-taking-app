@@ -24,9 +24,9 @@ class CellCaptureIntegrationTest {
         val response=JSONObject(backend.request(JSONObject().put("version",1).put("command",command).toString()).get(10,TimeUnit.SECONDS))
         assertTrue(response.optString("error"),response.getBoolean("ok"));return response.getJSONObject("data")
     }
-    private fun table(backend:NotebookBackend):Triple<UUID,UUID,UUID> {
+    private fun table(backend:NotebookBackend, cell:UUID = UUID.randomUUID()):Triple<UUID,UUID,UUID> {
         val note=UUID.fromString(call(backend,JSONObject().put("op","Create").put("kind","Note").put("parent",JSONObject.NULL).put("title","cell fixture")).getString("id"))
-        val cell=UUID.randomUUID();val neighbour=UUID.randomUUID()
+        val neighbour=UUID.randomUUID()
         val content=JSONObject("""{"type":"Table","value":{"rows":[[{"id":"$cell","value":{"type":"Text","value":"old"}},{"id":"$neighbour","value":{"type":"Numeric","value":"001"}}]],"header_rows":0}}""")
         val block=UUID.fromString(call(backend,JSONObject().put("op","Append").put("entity",note).put("content",content)).getString("id"))
         return Triple(note,block,cell)
@@ -101,6 +101,21 @@ class CellCaptureIntegrationTest {
             for (sequence in 1L..260L) assertTrue(backend.checkpointCapture(session,stroke(session,sequence),sequence+1,false).get(10,TimeUnit.SECONDS).committed)
             assertTrue(backend.checkpointCapture(session,first,1,false,binding).get(10,TimeUnit.SECONDS).committed)
             assertEquals(261L,block(backend,id).getLong("revision"))
+        } finally {close(backend)}
+    }
+
+    @Test fun distinctTablesWithRepeatedLocalCellIdsCaptureIndependently() {
+        val backend=NotebookBackend(platform(temporary.newFolder()))
+        try {
+            val shared=UUID.randomUUID();val (a,first,_)=table(backend,shared);val (b,second,_)=table(backend,shared)
+            val one=backend.openCaptureSession(a,"table-source",cell=CaptureCell(first,shared,0))
+            val two=backend.openCaptureSession(b,"table-source",cell=CaptureCell(second,shared,0))
+            assertTrue(backend.checkpointCapture(one,stroke(one,0),1,false).get(10,TimeUnit.SECONDS).committed)
+            assertTrue(backend.checkpointCapture(two,stroke(two,0),1,false).get(10,TimeUnit.SECONDS).committed)
+            val firstRegion=block(backend,first).getJSONArray("regions").getJSONObject(0)
+            val secondRegion=block(backend,second).getJSONArray("regions").getJSONObject(0)
+            assertNotEquals(firstRegion.getString("id"),secondRegion.getString("id"))
+            assertEquals(shared.toString(),firstRegion.getString("cell"));assertEquals(shared.toString(),secondRegion.getString("cell"))
         } finally {close(backend)}
     }
 

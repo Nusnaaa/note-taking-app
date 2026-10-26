@@ -1723,3 +1723,15 @@ The source checksum, original receipt/conflicting outbox and fresh destination
 block/cell/revision are rechecked at confirmation. A stale review changes neither
 routing nor notebook content. A successful private route checkpoint still needs its
 separate committed receipt; source points/style/identity remain unchanged.
+
+
+### Local cell selectors and global region IDs
+
+In native v12/schema20, new table ink has a global `Region.id` and an explicit
+`Region.cell` local to its table. Cell IDs may repeat in different tables or equal
+global object IDs. Table capture, recognition and raw-cell cursor calls continue
+to pass the logical cell ID scoped by the table block. Ordinary freehand calls
+pass the region ID. V11 aliases omit `cell` and keep their previous mapping; no
+private capture-v6 target or stored receipt is rewritten. New native copies remap
+both identities and preserve current/stale bookmark behaviour. Per-table duplicate
+targets and cell bindings on non-table content are rejected.

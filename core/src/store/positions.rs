@@ -140,7 +140,7 @@ impl CaretPoint {
             let r = b
                 .regions
                 .iter()
-                .find(|r| r.id == region)
+                .find(|r| r.target() == region)
                 .ok_or(Error::Invalid("caret region"))?;
             if let CaretTarget::Ink { stroke, .. } = self.target {
                 if !r.strokes.contains(&stroke) {

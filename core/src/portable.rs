@@ -107,7 +107,16 @@ impl NativeDocument {
         })?)
     }
     pub fn validate(&self) -> Result<()> {
-        if !matches!(self.version, 1..=11) {
+        if !matches!(self.version, 1..=12) {
+            return Err(Error::Unsupported);
+        }
+        if self.version < 12
+            && self.blocks.iter().any(|block| {
+                std::iter::once(&block.current)
+                    .chain(block.history.iter().map(|history| &history.block))
+                    .any(|state| state.regions.iter().any(|region| region.cell.is_some()))
+            })
+        {
             return Err(Error::Unsupported);
         }
         if self.version < 11
@@ -582,7 +591,7 @@ impl Store {
             omissions.push("App workspace and pane activation are library-local and are not included in native copies; selected saved views remain included.".into());
         }
         let mut document = NativeDocument {
-            version: 11,
+            version: 12,
             created_ms: now_ms(),
             entities,
             blocks,
@@ -726,6 +735,7 @@ impl Store {
             b.source_ids = b.source_ids.iter().map(|i| ids[i]).collect();
             for region in &mut b.regions {
                 region.id = ids[&region.id];
+                region.cell = region.cell.map(|cell| ids[&cell]);
                 region.strokes = region.strokes.iter().map(|id| ids[id]).collect();
             }
             b.visible_strokes = b.visible_strokes.iter().map(|i| ids[i]).collect();

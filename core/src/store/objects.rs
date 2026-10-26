@@ -273,7 +273,11 @@ impl Store {
                 CellValue::Maths(node) => Content::Maths(node.clone()),
             };
             table.edit(cell, value)?;
-            if let Some(region) = block.regions.iter_mut().find(|region| region.id == cell) {
+            if let Some(region) = block
+                .regions
+                .iter_mut()
+                .find(|region| region.target() == cell)
+            {
                 region.content = Some(content);
             }
             block.manually_corrected = true;

@@ -1,4 +1,4 @@
-//! Explicit table-cell capture. Cell IDs are region IDs inside their table;
+//! Explicit table-cell capture. Cell IDs are local targets of global ink regions;
 //! original observations remain owned by the table independently of undo.
 use super::*;
 use crate::{content::Content, digest, ink::Stroke};
@@ -61,7 +61,9 @@ impl Store {
         let fingerprint = digest(&serde_json::to_vec(&(block, revision, cell, &strokes))?);
         self.write_for(owner, |db| {
             let mut current = Self::read_block(db, block, access)?;
-            if entity.is_some_and(|entity| current.entity != entity) { return Err(Error::Conflict); }
+            if entity.is_some_and(|entity| current.entity != entity) {
+                return Err(Error::Conflict);
+            }
             let old: Option<(String, String)> = db
                 .query_row(
                     "SELECT block,fingerprint FROM capture_receipts WHERE ticket=?1",
@@ -91,34 +93,21 @@ impl Store {
             }
             let mut previous = BTreeMap::new();
             for original in Self::original_strokes(db, &current)? {
-                previous.entry(original.capture_session).and_modify(|sequence: &mut u64| *sequence = (*sequence).max(original.sequence))
+                previous
+                    .entry(original.capture_session)
+                    .and_modify(|sequence: &mut u64| *sequence = (*sequence).max(original.sequence))
                     .or_insert(original.sequence);
             }
             for stroke in &strokes {
-                if previous.insert(stroke.capture_session, stroke.sequence).is_some_and(|sequence| stroke.sequence <= sequence) {
+                if previous
+                    .insert(stroke.capture_session, stroke.sequence)
+                    .is_some_and(|sequence| stroke.sequence <= sequence)
+                {
                     return Err(Error::Invalid("cell capture session order"));
                 }
             }
             if current.source_ids.len().saturating_add(strokes.len()) > 4096 {
                 return Err(Error::ResourceLimit);
-            }
-            if cell == block
-                || cell == owner
-                || current.source_ids.contains(&cell)
-                || ids.contains(&cell)
-            {
-                return Err(Error::Invalid("cell region identity"));
-            }
-            if !current.regions.iter().any(|region| region.id == cell) {
-                for table in ["entities", "blocks", "strokes", "links", "exercises", "image_assets", "object_groups", "embeds", "view_settings"] {
-                    if db.prepare(&format!("SELECT 1 FROM {table} WHERE id=?1"))?.exists([cell.to_string()])? {
-                        return Err(Error::Conflict);
-                    }
-                }
-                if db.prepare("SELECT 1 FROM blocks b,json_each(b.payload,'$.regions') r WHERE b.id<>?1 AND json_extract(r.value,'$.id')=?2 UNION ALL SELECT 1 FROM history h,json_each(h.payload,'$.regions') r WHERE h.block<>?1 AND json_extract(r.value,'$.id')=?2 UNION ALL SELECT 1 FROM canvas_layers c,json_each(c.payload,'$.layers') l WHERE json_extract(l.value,'$.id')=?2 LIMIT 1")?
-                    .exists(rusqlite::params![block.to_string(),cell.to_string()])? {
-                    return Err(Error::Conflict);
-                }
             }
             let new_ids: Vec<_> = strokes.iter().map(|stroke| stroke.id).collect();
             for stroke in &strokes {
@@ -135,12 +124,17 @@ impl Store {
             }
             current.source_ids.extend(&new_ids);
             current.visible_strokes.extend(&new_ids);
-            if let Some(region) = current.regions.iter_mut().find(|region| region.id == cell) {
+            if let Some(region) = current
+                .regions
+                .iter_mut()
+                .find(|region| region.target() == cell)
+            {
                 region.strokes.extend(new_ids);
                 region.content = None; // new ink awaits an independent review; prior cell text stays retained
             } else {
                 current.regions.push(Region {
-                    id: cell,
+                    id: Id::new(),
+                    cell: Some(cell),
                     strokes: new_ids,
                     content: None,
                 });
