@@ -1,0 +1,3 @@
+$ javac -d /tmp/stem-jni-discard-classes android/backend/src/main/java/org/stemnotebook/backend/NativeBridge.java bridge/tests/java/*.java
+exit_code=0
+

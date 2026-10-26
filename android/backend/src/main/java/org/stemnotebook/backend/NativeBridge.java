@@ -85,6 +85,32 @@ public final class NativeBridge {
         try { return new EngineJob(host,token,false); }
         catch(Throwable failure) { releaseEngineJob(host,token); throw failure; }
     }
+    private static native long beginEngineDiscard(long host,String version,boolean confirmed,String resumeAction,long budgetMillis);
+    private static native String engineDiscardActionId(long host,long token);
+    private static native String runEngineDiscard(long host,long token,String privateRoot);
+    public static native String engineResourceActions(long host,String after,int limit);
+    public static native String engineResourceAction(long host,String action);
+    /** Single-use explicit discard. Failed replies can follow partial physical or metadata effects.
+     * Keep actionId for fresh history lookup and explicitly consented Pending retry. */
+    public static final class EngineDiscard implements AutoCloseable {
+        private final long host,token;
+        public final String actionId;
+        private boolean started,closed;
+        private EngineDiscard(long host,long token,String actionId) {this.host=host;this.token=token;this.actionId=actionId;}
+        public String discard(String privateRoot) {
+            synchronized(this) {if(started || closed) throw engineFailure();started=true;}
+            try {return runEngineDiscard(host,token,privateRoot);} finally {close();}
+        }
+        @Override public void close() {
+            synchronized(this) {if(closed)return;closed=true;}
+            releaseEngineJob(host,token);
+        }
+    }
+    public static EngineDiscard engineDiscard(long host,String version,boolean confirmed,String resumeAction,long budgetMillis) {
+        long token=beginEngineDiscard(host,version,confirmed,resumeAction,budgetMillis);
+        try {return new EngineDiscard(host,token,engineDiscardActionId(host,token));}
+        catch(Throwable error) {releaseEngineJob(host,token);throw error;}
+    }
     private static native long beginEngineRemoval(long host,String version,long budgetMillis);
     private static native void runEngineRemoval(long host,long token);
     /** Logical removal acknowledgement. Files remain retained; previously pinned

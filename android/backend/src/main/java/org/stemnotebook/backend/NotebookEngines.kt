@@ -20,7 +20,7 @@ class NotebookEngines internal constructor(private val modelRoot: File? = null, 
     enum class FailureReason { Unavailable, Cancelled, Busy, Closed, InvalidInput }
     /** Cancellation/error is not a rollback acknowledgement. A native metadata
      * attempt may need fresh version/proposal discovery after an uncertain reply. */
-    class Failure(val reason: FailureReason, val metadataMayHaveChanged: Boolean = false) :
+    class Failure(val reason: FailureReason, val metadataMayHaveChanged: Boolean = false, val resourceActionId: UUID? = null) :
         IllegalStateException("Notebook engine operation unavailable")
     enum class Installation { Staged, Installed, Removed }
     /** Descriptor JSON preserves provenance; managed resource paths are omitted. */
@@ -31,6 +31,11 @@ class NotebookEngines internal constructor(private val modelRoot: File? = null, 
     data class RecoveryEntry(val id: UUID, val state: RecoveryState, val descriptorJson: String?,
                              val totalBytes: Long?, val committedBytes: Long?, val consentMillis: Long?)
     data class RecoveryPage(val entries: List<RecoveryEntry>, val next: UUID?)
+    enum class ResourceActionState { Pending, Completed }
+    data class ResourceAction(val id: UUID, val version: UUID, val originalLibrary: UUID,
+        val state: ResourceActionState, val descriptorJson: String, val totalBytes: Long,
+        val committedBytes: Long, val importConsentMillis: Long, val requestedMillis: Long)
+    data class ResourceActions(val actions: List<ResourceAction>, val next: UUID?)
     data class Selected(val task: Task, val engine: String)
     data class Default(val task: Task, val engine: String, val runtimeReady: Boolean)
     data class Catalogue(val versions: List<Version>, val next: UUID?, val defaults: List<Default>)
@@ -50,14 +55,16 @@ class NotebookEngines internal constructor(private val modelRoot: File? = null, 
         { action -> Thread(action, "stem-engines").apply { isDaemon = true; workerThread = this } }, ThreadPoolExecutor.AbortPolicy())
 
     class Pending<T : Any> internal constructor(private val result: CompletableFuture<T>, private val cancelAction: () -> Boolean,
-                                                private val observerCheck: () -> Unit) : Closeable {
+                                                private val observerCheck: () -> Unit, private val actionIdentity: () -> UUID? = { null }) : Closeable {
+        /** Available once native planning finishes, before physical work; no access grant. */
+        val resourceActionId: UUID? get() = actionIdentity()
         val isReady: Boolean get() = result.isDone
         /** Observing the result does not transfer or repeat the native operation. */
         fun await(): T {
             observerCheck()
             return try { result.get() }
-            catch (error: InterruptedException) { cancel(); Thread.currentThread().interrupt(); throw Failure(FailureReason.Cancelled, true) }
-            catch (error: ExecutionException) { throw error.cause as? Failure ?: Failure(FailureReason.Unavailable, true) }
+            catch (error: InterruptedException) { cancel(); Thread.currentThread().interrupt(); throw Failure(FailureReason.Cancelled, true, resourceActionId) }
+            catch (error: ExecutionException) { throw error.cause as? Failure ?: Failure(FailureReason.Unavailable, true, resourceActionId) }
         }
         /** Requests cooperative cancellation. Known committed results remain
          * observable, including after close; this never promises no effects. */
@@ -71,10 +78,11 @@ class NotebookEngines internal constructor(private val modelRoot: File? = null, 
         private var finished = false
         private var job: AutoCloseable? = null
         @Volatile var metadataAttempted = false
-        fun check() { synchronized(lock) { if (cancelled) throw Failure(FailureReason.Cancelled, metadataAttempted) } }
+        @Volatile var resourceActionId: UUID? = null
+        fun check() { synchronized(lock) { if (cancelled) throw Failure(FailureReason.Cancelled, metadataAttempted, resourceActionId) } }
         fun attach(value: AutoCloseable) {
             val reject = synchronized(lock) { if (cancelled) true else { job = value; false } }
-            if (reject) { value.close(); throw Failure(FailureReason.Cancelled, metadataAttempted) }
+            if (reject) { value.close(); throw Failure(FailureReason.Cancelled, metadataAttempted, resourceActionId) }
         }
         fun detach(value: AutoCloseable) { synchronized(lock) { if (job === value) job = null } }
         fun cancel(): Boolean {
@@ -89,9 +97,9 @@ class NotebookEngines internal constructor(private val modelRoot: File? = null, 
         fun complete(value: T?, error: Throwable?) {
             val failure = synchronized(lock) {
                 finished = true
-                if (error == null) null else if (error is Failure) error else Failure(
+                if (error == null) null else if (error is Failure) Failure(error.reason, error.metadataMayHaveChanged || metadataAttempted, error.resourceActionId ?: resourceActionId) else Failure(
                     if (cancelled || error is CancellationException) FailureReason.Cancelled else FailureReason.Unavailable,
-                    metadataAttempted)
+                    metadataAttempted, resourceActionId)
             }
             if (failure == null) result.complete(requireNotNull(value)) else result.completeExceptionally(failure)
         }
@@ -123,7 +131,45 @@ class NotebookEngines internal constructor(private val modelRoot: File? = null, 
                 throw Failure(if (rejected) FailureReason.Busy else FailureReason.Unavailable, !rejected)
             }
         }
-        return Pending(operation.result, operation::cancel, ::observerOnly)
+        return Pending(operation.result, operation::cancel, ::observerOnly, { operation.resourceActionId })
+    }
+    private fun resourceAction(row: JSONObject): ResourceAction {
+        require(row.getInt("format") == 1 && row.getString("kind") == "DiscardImport")
+        return ResourceAction(UUID.fromString(row.getString("id")), UUID.fromString(row.getString("version")),
+            UUID.fromString(row.getString("library")), ResourceActionState.valueOf(row.getString("state")),
+            row.getJSONObject("descriptor").toString(), row.getLong("total"), row.getLong("committed"),
+            row.getLong("import_consent_ms"), row.getLong("requested_ms"))
+    }
+    /** Explicit unpublished-transfer cleanup. Errors never acknowledge physical rollback.
+     * Pending.resourceActionId / Failure.resourceActionId retain uncertain history identity. */
+    fun discardImport(version: UUID, confirmed: Boolean, resumeAction: UUID? = null,
+                      budgetMillis: Long = 30000): Pending<ResourceAction> {
+        budget(budgetMillis)
+        if (!confirmed) throw Failure(FailureReason.InvalidInput)
+        val root = modelRoot ?: throw Failure(FailureReason.Unavailable)
+        return submit { operation ->
+            val host = nativeHandle(); operation.check()
+            val job = NativeBridge.engineDiscard(host, version.toString(), true, resumeAction?.toString(), budgetMillis)
+            try {
+                operation.resourceActionId = UUID.fromString(job.actionId)
+                operation.attach(job); operation.metadataAttempted = true
+                resourceAction(JSONObject(job.discard(root.absolutePath)))
+            } finally { operation.detach(job); job.close() }
+        }
+    }
+    fun resourceAction(id: UUID): Pending<ResourceAction> = submit { operation ->
+        val host = nativeHandle(); operation.check()
+        resourceAction(JSONObject(NativeBridge.engineResourceAction(host, id.toString())))
+    }
+    fun resourceActions(after: UUID? = null, limit: Int = 32): Pending<ResourceActions> {
+        if (limit !in 1..128) throw Failure(FailureReason.InvalidInput)
+        return submit { operation ->
+            val host = nativeHandle(); operation.check()
+            val page = JSONObject(NativeBridge.engineResourceActions(host, after?.toString(), limit))
+            val rows = page.getJSONArray("actions"); val actions = ArrayList<ResourceAction>()
+            for (index in 0 until rows.length()) actions.add(resourceAction(rows.getJSONObject(index)))
+            ResourceActions(Collections.unmodifiableList(actions), if (page.isNull("next")) null else UUID.fromString(page.getString("next")))
+        }
     }
     /** Explicit version removal. This does not acknowledge disk reclamation or
      * actual retirement of every previously admitted inference worker. */

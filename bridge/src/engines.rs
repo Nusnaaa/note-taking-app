@@ -1,5 +1,6 @@
 //! Trusted worker-only compiled provider boundary. Never supplied by notebook
 //! JSON. SDK construction, inference and disposal occur outside registry locks.
+mod discard;
 mod import;
 mod recovery;
 mod removal;
@@ -36,6 +37,7 @@ enum Work {
     Recognition(HostRecognitionWork),
     Recovery(stem_core::host::HostEngineRecoveryPlan),
     Removal(stem_core::host::HostEngineRemovalPlan),
+    Discard(stem_core::host::HostEngineDiscardPlan),
     ImportPlan(stem_core::host::HostEngineImportPlan),
     ImportTransfer(stem_core::host::HostEngineImportTransfer),
 }

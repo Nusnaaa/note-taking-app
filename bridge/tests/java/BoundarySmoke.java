@@ -88,6 +88,7 @@ public final class BoundarySmoke {
         EngineImportBoundarySmoke.run();
         EngineBoundarySmoke.run();
         EngineRemovalBoundarySmoke.run();
+        EngineDiscardBoundarySmoke.run();
         BackupBoundarySmoke.run();
         OpenBoundarySmoke.main(new String[0]);
         RestoreBoundarySmoke.main(new String[0]);

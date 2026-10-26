@@ -187,6 +187,7 @@ class NotebookEnginesTest {
     @Test fun engineOwnersUseTheJniParentLoader() {
         assertSame(NativeBridge::class.java.classLoader,NativeBridge.EngineRecovery::class.java.classLoader)
         assertSame(NativeBridge::class.java.classLoader,NativeBridge.EngineRemoval::class.java.classLoader)
+        assertSame(NativeBridge::class.java.classLoader,NativeBridge.EngineDiscard::class.java.classLoader)
     }
     @Test fun removalPreservesAcceptedContentAndKnownReceiptAcrossReopen() {
         val path=temporary.newFolder().resolve("library.db").absolutePath
@@ -327,6 +328,68 @@ class NotebookEnginesTest {
             release.countDown();assertTrue(retiring.await(10,TimeUnit.SECONDS));assertFalse(closing.isDone);assertThrows(IllegalStateException::class.java){LibraryOwnership.acquire(root)}
             releaseRetire.countDown();closing.get(20,TimeUnit.SECONDS);assertEquals(NotebookEngines.FailureReason.Cancelled,failure {pending.await()}.reason);assertEquals(1,calls.get());LibraryOwnership.acquire(root).close()
         } finally {release.countDown();releaseRetire.countDown();backend.closeFullyAsync().get(20,TimeUnit.SECONDS)}
+    }
+
+    private fun interruptedDiscardFixture(engines: NotebookEngines): UUID {
+        val bytes = "model".toByteArray()
+        val sha = java.security.MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it.toInt() and 255) }
+        val manifest = JSONObject(descriptor()).put("resource_sha256",sha).toString()
+        val transfer = AtomicReference<NotebookEngines.Transfer>()
+        val pending = engines.importResource(manifest,5,true,null,30000,{ transfer.set(it) }) { _,_ ->
+            object: NativeBridge.EngineInput {
+                var reads = 0
+                override fun read(buffer: ByteArray,control: NativeBridge.EngineControl): Int {
+                    control.check(); if (reads++ != 0) throw IllegalArgumentException("private fixture interruption")
+                    buffer[0] = 'm'.code.toByte(); buffer[1] = 'o'.code.toByte(); return 2
+                }
+                override fun retire() {}
+            }
+        }
+        observer { failure { pending.await() } }
+        return transfer.get().version
+    }
+    @Test fun explicitDiscardReturnsDurableTypedHistoryAndRetainsStableActionIdentity() {
+        val host = NativeBridge.open(temporary.newFolder().resolve("library.db").absolutePath)
+        val models = temporary.newFolder("discard-models"); val engines = NotebookEngines(models) { host }
+        try {
+            val version = interruptedDiscardFixture(engines)
+            assertEquals(2L,File(models,"$version.part").length())
+            assertEquals(NotebookEngines.FailureReason.InvalidInput, failure { engines.discardImport(version,false) }.reason)
+            val pending = engines.discardImport(version,true)
+            val receipt = observer { pending.await() }
+            assertEquals(pending.resourceActionId,receipt.id); assertEquals(version,receipt.version)
+            assertEquals(NotebookEngines.ResourceActionState.Completed,receipt.state)
+            assertEquals(2L,receipt.committedBytes);assertEquals(5L,receipt.totalBytes)
+            assertFalse(File(models,"$version.part").exists());assertFalse(File(models,"$version.install.json").exists())
+            assertTrue(File(models,"$version.owner.lock").isFile)
+            assertEquals(receipt,observer { engines.resourceAction(receipt.id).await() })
+            val page = observer { engines.resourceActions(limit=1).await() }
+            assertEquals(listOf(receipt),page.actions); assertNull(page.next)
+            assertThrows(UnsupportedOperationException::class.java) { (page.actions as MutableList).clear() }
+            assertTrue(observer { engines.catalogue().await() }.versions.isEmpty())
+        } finally { engines.close();NativeBridge.close(host);observer { engines.awaitClosed() } }
+    }
+    @Test fun failedDiscardPreservesActionIdentityWithoutPromisingRollbackOrInventingPendingHistory() {
+        val host = NativeBridge.open(temporary.newFolder().resolve("library.db").absolutePath)
+        val models = temporary.newFolder("discard-invalid"); val engines = NotebookEngines(models) { host }
+        try {
+            val version = interruptedDiscardFixture(engines)
+            val part = File(models,"$version.part"); val outside = temporary.newFile("independent").apply { writeText("outside source") }
+            assertTrue(part.delete());java.nio.file.Files.createSymbolicLink(part.toPath(),outside.toPath())
+            val pending = engines.discardImport(version,true)
+            val error = observer { failure { pending.await() } }
+            assertTrue(error.metadataMayHaveChanged);assertNotNull(error.resourceActionId)
+            assertEquals(pending.resourceActionId,error.resourceActionId)
+            assertEquals("outside source",outside.readText());assertTrue(java.nio.file.Files.isSymbolicLink(part.toPath()))
+            assertTrue(observer { engines.resourceActions().await() }.actions.isEmpty())
+            val unknown = observer { failure { engines.resourceAction(error.resourceActionId!!).await() } }
+            assertFalse(unknown.metadataMayHaveChanged)
+            assertTrue(part.delete());part.writeText("mo")
+            val fresh = observer { engines.discardImport(version,true).await() }
+            assertNotEquals(error.resourceActionId,fresh.id)
+            assertEquals(NotebookEngines.ResourceActionState.Completed,fresh.state)
+            assertEquals("outside source",outside.readText())
+        } finally { engines.close();NativeBridge.close(host);observer { engines.awaitClosed() } }
     }
 
 }

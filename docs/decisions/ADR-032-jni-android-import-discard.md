@@ -1,0 +1,11 @@
+# ADR 032 — JNI/Android explicit unpublished-import discard
+
+Status: implemented boundary/controller; component verification recorded separately. Installed SDK resource reclamation and broader backend acceptance remain open.
+
+A trusted compiled Java `EngineDiscard` owns one native optional job. Explicit confirmation is required and the Host allocates its stable action ID during metadata planning, before preparation or filesystem work. The Java owner exposes that ID before its single-use `discard` call. It uses the same cancellation/close registry and Host lifecycle as import, recovery and logical removal. No JSON notebook command grants deletion authority.
+
+The worker prepares exclusive transfer ownership, requests durable Pending authorisation on the writer, removes only known unpublished transfer files with linked control, then requests Completed recording. The JNI result preserves known completion through cancellation after the successful metadata commit. Errors can follow physical or metadata effects and are generic; the action ID permits fresh app-authorised history lookup and explicitly confirmed Pending retry. Closing a job requests cancellation and retains actual Host ownership until cleanup retires.
+
+The bounded Android optional controller uses its configured private no-backup model depot. It exposes immutable typed history with original library/consent, requested action identity, descriptor, observed byte counts and Pending/Completed state. It does not expose live permits or resource paths. Pending operations expose `resourceActionId` after native planning, and failures retain that ID plus conservative metadata uncertainty. A failed preparation can have an allocated ID without a durable history row; callers must discover the outcome rather than inventing Pending/Completed or automatic retry. A completed action cannot be reused as a new deletion permit.
+
+Direct Java tests use synthetic interrupted transfer bytes through actual JNI. The same aggregate fixture runs before and after R8 release classfile optimisation with the normal consumer rules, and verifies fixture renaming. Android component tests use actual desktop JNI in API-35 simulation. These are not device/ART or real recogniser/model acceptance tests. Installed/published versions remain excluded; their cleanup needs independent SDK-resource lease integration.
