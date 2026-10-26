@@ -1,6 +1,6 @@
 # ADR 028 — transactional engine removal and off-writer retirement
 
-Status: native Store/Host logical removal; JNI/Android removal and explicit resource cleanup remain open.
+Status: native Store/Host and JNI/Android logical removal; explicit resource cleanup remains open.
 
 A removal plan captures the current library identity, database generation and exact engine-version record under current app access. Publication rejects foreign, stale, cancelled and runtime-mismatched plans before changing SQLite. A transaction marks the version Removed and clears its active pointer and durable defaults when it is the active version. It checks current access, generation and job control inside the write. Removing an inactive version leaves the active runtime/default intact; a newly prepared repeat removal of an already Removed version performs no further write.
 
@@ -9,3 +9,8 @@ After successful durable commit, an exclusive Manager borrow detaches the active
 The Host reserves removal in the existing bounded optional lifecycle. The writer receives only weak slot/manager references and linked JobControl; the synchronous caller retains the strong owners through the reply. Manager acquisition uses try_lock. A private candidate cell pins any detached runtime through SQL publication and until temporary writer references and manager guards have dropped. Success and failure phase transitions then enable the existing off-writer retirement lane. The writer performs no model-file I/O, probe, inference or provider cleanup. A known committed success remains success if cancellation races its reply.
 
 Capture, access and close authority use the existing scope epoch. Closing the library waits for actual retirement, including a blocking SDK destructor; authoring can proceed while retirement is blocked. Failed SQL publication leaves the current runtime/default usable. This implements logical version removal, not complete disk reclamation: explicit lease-safe cleanup and interrupted-transfer discard still need separate integration and acceptance. No automatic cleanup of unknown, corrupt or legacy installation records is introduced.
+
+
+JNI/Android adoption uses a single-use EngineRemoval job in the existing native registry. Begin captures the current version-removal plan and bounded deadline; run publishes through Host authority, then releases the plan so its detached SDK owner retires through the Host lane. Closing the Java owner or cancelling the controller Pending cancels the native job. Native handles and callbacks are not held under the registry mutex while waiting for SQL or SDK retirement.
+
+NotebookEngines.remove runs on its existing bounded optional worker and returns Removed(version) only after a known metadata acknowledgement. It records metadata uncertainty on failed publication attempts and preserves a known receipt after late cancellation. The receipt explicitly promises neither disk reclamation nor retirement of every previously pinned SDK. The pure Java owner follows the JNI parent-loader policy in Robolectric. The JNI fixture separately checks accepted-content/raw-ink preservation, stale/cancelled/capture/replay rejection, inactive-version removal, blocking SDK cleanup with available authoring, and actual ownership through an in-flight callback and library close/reopen. No model files are automatically deleted.

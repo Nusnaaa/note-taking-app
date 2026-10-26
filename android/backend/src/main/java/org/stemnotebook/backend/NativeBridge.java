@@ -85,6 +85,28 @@ public final class NativeBridge {
         try { return new EngineJob(host,token,false); }
         catch(Throwable failure) { releaseEngineJob(host,token); throw failure; }
     }
+    private static native long beginEngineRemoval(long host,String version,long budgetMillis);
+    private static native void runEngineRemoval(long host,long token);
+    /** Logical removal acknowledgement. Files remain retained; previously pinned
+     * SDK work may still be retiring after remove returns. */
+    public static final class EngineRemoval implements AutoCloseable {
+        private final long host,token;
+        private boolean started,closed;
+        private EngineRemoval(long host,long token) {this.host=host;this.token=token;}
+        public void remove() {
+            synchronized(this) {if(started || closed) throw engineFailure();started=true;}
+            try {runEngineRemoval(host,token);} finally {close();}
+        }
+        @Override public void close() {
+            synchronized(this) {if(closed)return;closed=true;}
+            releaseEngineJob(host,token);
+        }
+    }
+    public static EngineRemoval engineRemoval(long host,String version,long budgetMillis) {
+        long token=beginEngineRemoval(host,version,budgetMillis);
+        try {return new EngineRemoval(host,token);}
+        catch(Throwable error) {releaseEngineJob(host,token);throw error;}
+    }
     private static native long beginEngineRecovery(long host, long budgetMillis);
     private static native String runEngineRecovery(long host, long token, String privateRoot, String after, int limit);
     /** Single-use read-only scan, cancelled through the same native scope as imports. */

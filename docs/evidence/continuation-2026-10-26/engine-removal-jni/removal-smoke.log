@@ -1,0 +1,3 @@
+PASS: JNI removal preserves raw ink and accepted content, clears active defaults, preserves inactive choices and rejects stale/cancelled/capture/replayed jobs (1)
+PASS: JNI logical removal acknowledges metadata while SDK retirement blocks, authoring stays available and close retains library ownership (1)
+PASS: JNI removal invalidates in-flight output and retains actual SDK ownership through inference and cleanup before reopen (1)

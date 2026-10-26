@@ -184,8 +184,62 @@ class NotebookEnginesTest {
             assertEquals(NotebookEngines.FailureReason.Closed,failure {engines.stageResourceFree(descriptor(),true)}.reason)
         } finally {release.countDown();releaseRetire.countDown();backend.closeFullyAsync().get(20,TimeUnit.SECONDS)}
     }
-    @Test fun recoveryOwnerUsesTheJniParentLoader() {
+    @Test fun engineOwnersUseTheJniParentLoader() {
         assertSame(NativeBridge::class.java.classLoader,NativeBridge.EngineRecovery::class.java.classLoader)
+        assertSame(NativeBridge::class.java.classLoader,NativeBridge.EngineRemoval::class.java.classLoader)
+    }
+    @Test fun removalPreservesAcceptedContentAndKnownReceiptAcrossReopen() {
+        val path=temporary.newFolder().resolve("library.db").absolutePath
+        var host=NativeBridge.open(path);var engines=NotebookEngines {host}
+        val model=Model()
+        try {
+            val version=observer {engines.stageResourceFree(descriptor(),true).await()}.version
+            observer {engines.activate(version,0,30000,factory(model)).await()}
+            observer {engines.selectDefault(NotebookEngines.Task.Prose,"synthetic-kotlin").await()}
+            val note=UUID.fromString(native(host,JSONObject().put("op","Create").put("kind","Note").put("parent",JSONObject.NULL).put("title","accepted removal fixture")).getJSONObject("data").getString("id"))
+            val block=UUID.fromString(native(host,inkCommand(note)).getJSONObject("data").getString("id"))
+            val source=JSONObject().put("op","SourceInk").put("block",block.toString());val raw=native(host,source).get("data").toString()
+            val proposal=observer {engines.recognise(block,null,NotebookEngines.Task.Prose,null,30000).await()}
+            native(host,JSONObject().put("op","AcceptProposal").put("proposal",proposal.id.toString()).put("candidate",0))
+            val inactive=observer {engines.stageResourceFree(descriptor("2"),true).await()}.version
+            observer {engines.remove(inactive,30000).await()};assertEquals(0,model.retired.get())
+            assertTrue(observer {engines.catalogue().await()}.versions.any {it.runtimeReady})
+            val pending=engines.remove(version,30000);assertEquals(version,observer {pending.await()}.version)
+            assertFalse(pending.cancel());assertEquals(version,observer {pending.await()}.version)
+            assertEquals(version,observer {engines.remove(version,30000).await()}.version)
+            val catalogue=observer {engines.catalogue().await()}
+            assertFalse(catalogue.versions.any {it.runtimeReady});assertTrue(catalogue.defaults.isEmpty())
+            assertTrue(catalogue.versions.all {it.installation==NotebookEngines.Installation.Removed})
+            assertEquals(raw,native(host,source).get("data").toString())
+            assertTrue(native(host,JSONObject().put("op","Block").put("block",block.toString())).get("data").toString().contains("1 + 1 = 3"))
+            observer {failure {engines.recognise(block,null,NotebookEngines.Task.Prose,null,30000).await()}}
+            engines.close();NativeBridge.close(host);observer {engines.awaitClosed()};assertEquals(1,model.retired.get())
+            host=NativeBridge.open(path);engines=NotebookEngines {host}
+            assertTrue(observer {engines.catalogue().await()}.versions.all {it.installation==NotebookEngines.Installation.Removed && !it.runtimeReady})
+            assertEquals(raw,native(host,source).get("data").toString())
+        } finally {engines.close();NativeBridge.close(host);observer {engines.awaitClosed()}}
+    }
+    @Test fun removalAcknowledgesMetadataWhileSdkRetiresAndCloseKeepsOwnership() {
+        val path=temporary.newFolder().resolve("library.db").absolutePath;val host=NativeBridge.open(path)
+        val engines=NotebookEngines {host};val entered=CountDownLatch(1);val release=CountDownLatch(1)
+        val closer=Executors.newSingleThreadExecutor()
+        val model=object:Model() {override fun retire(){super.retire();entered.countDown();assertTrue(release.await(10,TimeUnit.SECONDS))}}
+        try {
+            val version=observer {engines.stageResourceFree(descriptor(),true).await()}.version
+            observer {engines.activate(version,0,30000,factory(model)).await()}
+            val removed=observer {engines.remove(version,30000).await()};assertEquals(version,removed.version)
+            assertTrue(entered.await(10,TimeUnit.SECONDS))
+            native(host,JSONObject().put("op","Create").put("kind","Note").put("parent",JSONObject.NULL).put("title","authoring during cleanup"))
+            engines.close();val closing=closer.submit {NativeBridge.close(host)}
+            val until=System.nanoTime()+TimeUnit.SECONDS.toNanos(10)
+            while(true){try {NativeBridge.recognitionStatus(host)}catch(closed:IllegalStateException){break};assertTrue(System.nanoTime()<until);Thread.yield()}
+            assertFalse(closing.isDone);assertThrows(IllegalStateException::class.java) {NativeBridge.open(path)}
+            release.countDown();closing.get(10,TimeUnit.SECONDS);assertEquals(1,model.retired.get())
+            val reopened=NativeBridge.open(path);NativeBridge.close(reopened)
+        } finally {
+            release.countDown();engines.close();try {NativeBridge.close(host)}catch(closed:IllegalStateException){}
+            closer.shutdownNow();assertTrue(closer.awaitTermination(10,TimeUnit.SECONDS));observer {engines.awaitClosed()}
+        }
     }
     @Test fun recoveryIsReadOnlyRedactedLibraryBoundAndSurvivesReopen() {
         val path=temporary.newFolder().resolve("library.db").absolutePath

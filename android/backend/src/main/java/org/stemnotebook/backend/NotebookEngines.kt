@@ -36,6 +36,8 @@ class NotebookEngines internal constructor(private val modelRoot: File? = null, 
     data class Catalogue(val versions: List<Version>, val next: UUID?, val defaults: List<Default>)
     data class Staged(val version: UUID)
     data class Installed(val version: UUID)
+    /** Logical disablement only; files and independently pinned SDK resources remain retained. */
+    data class Removed(val version: UUID)
     data class Transfer(val version: UUID, val committedBytes: Long)
     /** Read the review through current native authority; retain no transcript here. */
     data class Proposal(val id: UUID, val block: UUID, val revision: Long)
@@ -122,6 +124,19 @@ class NotebookEngines internal constructor(private val modelRoot: File? = null, 
             }
         }
         return Pending(operation.result, operation::cancel, ::observerOnly)
+    }
+    /** Explicit version removal. This does not acknowledge disk reclamation or
+     * actual retirement of every previously admitted inference worker. */
+    fun remove(version: UUID, budgetMillis: Long): Pending<Removed> {
+        budget(budgetMillis)
+        return submit { operation ->
+            val host = nativeHandle(); operation.check()
+            val job = NativeBridge.engineRemoval(host,version.toString(),budgetMillis)
+            try {
+                operation.attach(job);operation.metadataAttempted = true
+                job.remove();Removed(version)
+            } finally {operation.detach(job);job.close()}
+        }
     }
     /** Read-only private-depot discovery. RecordedComplete is not current hash
      * verification or runtime readiness; resume/finish and activation are separate. */

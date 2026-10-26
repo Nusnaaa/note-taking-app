@@ -2,6 +2,7 @@
 //! JSON. SDK construction, inference and disposal occur outside registry locks.
 mod import;
 mod recovery;
+mod removal;
 use super::{allocate_handle, bounded_string, fail, hosts};
 use jni::{
     objects::{GlobalRef, JByteArray, JClass, JObject, JString, JValue},
@@ -34,6 +35,7 @@ enum Work {
     Activation(HostEngineActivationPlan, u64),
     Recognition(HostRecognitionWork),
     Recovery(stem_core::host::HostEngineRecoveryPlan),
+    Removal(stem_core::host::HostEngineRemovalPlan),
     ImportPlan(stem_core::host::HostEngineImportPlan),
     ImportTransfer(stem_core::host::HostEngineImportTransfer),
 }
