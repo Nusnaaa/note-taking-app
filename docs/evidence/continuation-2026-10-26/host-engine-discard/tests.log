@@ -1,0 +1,45 @@
+$ cargo test -p stem-core --test host_engine_discard --test engine_discard --test host_engine_import --locked --offline
+exit_code=0
+
+   Compiling stem-core v0.1.0 (/home/linus/Projects/software/note-taking-app/repo/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.75s
+     Running tests/engine_discard.rs (/tmp/stem-activation-target/debug/deps/engine_discard-8de16e058c2a97fd)
+
+running 9 tests
+test authorisation_permit_cannot_be_rebound_to_a_different_preparation_of_the_same_record ... ok
+test cancellation_after_authorisation_preserves_files_and_retry_survives_reopen ... ok
+test cancelled_and_foreign_authorisation_never_delete_and_retry_can_finish_after_lost_completion ... ok
+test discard_records_original_consent_before_delete_and_preserves_notebook_content ... ok
+test discard_rejects_legacy_foreign_and_pending_version_cannot_publish_again ... ok
+test publication_and_sql_failure_prevent_deletion_and_keep_history_atomic ... ok
+test resource_actions_require_fresh_app_access_and_page_without_paths ... ok
+test symlink_payload_refuses_the_entire_discard_before_any_file_is_deleted ... ok
+test schema16_migrates_without_changing_notebooks_and_both_backups_preserve_action_history ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 31.08s
+
+     Running tests/host_engine_discard.rs (/tmp/stem-activation-target/debug/deps/host_engine_discard-1c512e0a33dccd5e)
+
+running 6 tests
+test action_history_and_new_plans_require_current_app_authority ... ok
+test admission_and_foreign_host_publication_are_bounded_and_file_neutral ... ok
+test capture_after_consent_cancels_file_work_and_explicit_retry_keeps_original_action ... ok
+test deleted_files_with_lost_completion_recover_after_close_without_rollback_claim ... ok
+test durable_pending_precedes_deletion_and_completed_receipt_is_idempotent ... ok
+test relock_and_parent_cancellation_never_grant_file_deletion ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+
+     Running tests/host_engine_import.rs (/tmp/stem-activation-target/debug/deps/host_engine_import-a03a7dc31d2d3ae9)
+
+running 7 tests
+test cancelled_prepared_import_retires_ownership_without_staging_metadata ... ok
+test authoring_runs_during_blocked_reader_and_pen_cancel_preserves_explicit_resume ... ok
+test close_waits_for_reader_return_and_actual_reader_destructor_before_reopen ... ok
+test foreign_host_and_stale_generation_cannot_publish_and_fresh_resume_keeps_transfer_id ... ok
+test host_prepared_publication_owns_transfer_until_actual_retirement ... ok
+test provider_error_payload_retires_inside_running_scope_and_cannot_escape_with_library_owner ... ok
+test metadata_reservation_is_bounded_and_completed_import_does_not_load_a_runtime ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s
+

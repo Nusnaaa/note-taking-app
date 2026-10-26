@@ -16,6 +16,8 @@ use std::{
     thread::{self, ThreadId},
 };
 mod activation;
+pub(super) mod discard;
+pub use discard::{HostDiscardedEngineImport, HostEngineDiscardPlan, HostPreparedEngineDiscard};
 mod recovery;
 pub(super) mod removal;
 pub use recovery::HostEngineRecoveryPlan;
@@ -101,6 +103,9 @@ enum Phase {
     ActivationInput,
     StoredPlan(Option<Box<crate::store::EngineActivationPlan>>),
     ImportPlan(Option<Box<crate::store::EngineImportPlan>>),
+    DiscardPlan(Option<Box<crate::store::EngineDiscardPlan>>),
+    DiscardCandidate(Arc<discard::DiscardCandidate>),
+    DiscardPublishing(Arc<discard::DiscardCandidate>),
     RecoveryPlan(Option<Box<crate::store::EngineRecoveryPlan>>),
     ImportTransfer(Option<Box<crate::store::EngineImportTransfer>>),
     ImportPrepared(Arc<resource_import::ImportCandidate>),
@@ -154,6 +159,7 @@ impl Slot {
                 Phase::Running
                     | Phase::StoredPublishing(_)
                     | Phase::ImportPublishing(_)
+                    | Phase::DiscardPublishing(_)
                     | Phase::RemovalPublishing(_)
                     | Phase::Finished
             ) {

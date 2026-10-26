@@ -38,8 +38,9 @@ pub use engine_catalogue::{EngineCatalogueSnapshot, EngineDefault, EngineRuntime
 use recognition::RecognitionScope;
 pub use recognition::{
     HostActivationSource, HostActivationWork, HostCompletedActivation, HostDetachedRuntime,
-    HostDetachmentSource, HostEngineActivationPlan, HostEngineImportPlan, HostEngineImportTransfer,
-    HostEngineRecoveryPlan, HostEngineRemovalPlan, HostPreparedEngineActivation,
+    HostDetachmentSource, HostDiscardedEngineImport, HostEngineActivationPlan,
+    HostEngineDiscardPlan, HostEngineImportPlan, HostEngineImportTransfer, HostEngineRecoveryPlan,
+    HostEngineRemovalPlan, HostPreparedEngineActivation, HostPreparedEngineDiscard,
     HostPreparedEngineImport, HostRecognitionWork, RecognitionSource, RecognitionStatus,
 };
 mod pdf;
@@ -470,6 +471,23 @@ enum Message {
     ActivationSource(mpsc::Sender<Result<HostActivationSource>>),
     EngineActivationPlan(Id, mpsc::Sender<Result<HostEngineActivationPlan>>),
     EngineRecoveryPlan(mpsc::Sender<Result<HostEngineRecoveryPlan>>),
+    EngineDiscardPlan(
+        Id,
+        bool,
+        Option<Id>,
+        mpsc::Sender<Result<HostEngineDiscardPlan>>,
+    ),
+    PublishEngineDiscard(
+        recognition::discard::DiscardPublication,
+        bool,
+        mpsc::Sender<Result<crate::store::EngineResourceAction>>,
+    ),
+    EngineResourceAction(Id, mpsc::Sender<Result<crate::store::EngineResourceAction>>),
+    EngineResourceActions(
+        Option<Id>,
+        usize,
+        mpsc::Sender<Result<crate::store::EngineResourceActions>>,
+    ),
     EngineRemovalPlan(Id, mpsc::Sender<Result<HostEngineRemovalPlan>>),
     RemoveEngine(
         recognition::removal::RemovalPublication,
@@ -688,6 +706,44 @@ impl Host {
                                     )
                                 }))
                                 .unwrap_or(Err(Error::WorkerFailed));
+                            let _ =
+                                input.complete(envelope.authoring, envelope.bytes, result.is_err());
+                            let _ = reply.send(result);
+                        }
+                        Message::EngineDiscardPlan(id, confirmed, resume, reply) => {
+                            let result =
+                                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                                    recognition_scope
+                                        .engine_discard_plan(&store, &access, id, confirmed, resume)
+                                }))
+                                .unwrap_or(Err(Error::WorkerFailed));
+                            let _ =
+                                input.complete(envelope.authoring, envelope.bytes, result.is_err());
+                            let _ = reply.send(result);
+                        }
+                        Message::PublishEngineDiscard(publication, complete, reply) => {
+                            let result =
+                                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                                    recognition_scope.publish_discard(
+                                        &mut store,
+                                        &access,
+                                        publication,
+                                        complete,
+                                    )
+                                }))
+                                .unwrap_or(Err(Error::WorkerFailed));
+                            let _ =
+                                input.complete(envelope.authoring, envelope.bytes, result.is_err());
+                            let _ = reply.send(result);
+                        }
+                        Message::EngineResourceAction(id, reply) => {
+                            let result = store.engine_resource_action(id, &access);
+                            let _ =
+                                input.complete(envelope.authoring, envelope.bytes, result.is_err());
+                            let _ = reply.send(result);
+                        }
+                        Message::EngineResourceActions(after, limit, reply) => {
+                            let result = store.engine_resource_actions(after, limit, &access);
                             let _ =
                                 input.complete(envelope.authoring, envelope.bytes, result.is_err());
                             let _ = reply.send(result);
@@ -1031,6 +1087,66 @@ impl Host {
             true,
             128,
         )?;
+        rx.recv().map_err(|_| Error::WorkerFailed)?
+    }
+    pub fn engine_discard_plan(
+        &self,
+        version: Id,
+        confirmed: bool,
+        resume_action: Option<Id>,
+    ) -> Result<HostEngineDiscardPlan> {
+        let (tx, rx) = mpsc::channel();
+        self.mailbox.admit(
+            Message::EngineDiscardPlan(version, confirmed, resume_action, tx),
+            false,
+            128,
+        )?;
+        rx.recv().map_err(|_| Error::WorkerFailed)?
+    }
+    /// Commits Pending before physical deletion. A failed reply may be uncertain.
+    pub fn authorise_engine_discard(
+        &self,
+        prepared: &HostPreparedEngineDiscard,
+        control: &crate::processing::JobControl,
+    ) -> Result<crate::store::EngineResourceAction> {
+        let (tx, rx) = mpsc::channel();
+        self.mailbox.admit(
+            Message::PublishEngineDiscard(prepared.publication(control), false, tx),
+            true,
+            128,
+        )?;
+        rx.recv().map_err(|_| Error::WorkerFailed)?
+    }
+    pub fn complete_engine_discard(
+        &self,
+        removed: &HostDiscardedEngineImport,
+        control: &crate::processing::JobControl,
+    ) -> Result<crate::store::EngineResourceAction> {
+        let (tx, rx) = mpsc::channel();
+        self.mailbox.admit(
+            Message::PublishEngineDiscard(removed.publication(control), true, tx),
+            true,
+            128,
+        )?;
+        rx.recv().map_err(|_| Error::WorkerFailed)?
+    }
+    pub fn engine_resource_action(&self, id: Id) -> Result<crate::store::EngineResourceAction> {
+        let (tx, rx) = mpsc::channel();
+        self.mailbox
+            .admit(Message::EngineResourceAction(id, tx), false, 128)?;
+        rx.recv().map_err(|_| Error::WorkerFailed)?
+    }
+    pub fn engine_resource_actions(
+        &self,
+        after: Option<Id>,
+        limit: usize,
+    ) -> Result<crate::store::EngineResourceActions> {
+        if !(1..=128).contains(&limit) {
+            return Err(Error::ResourceLimit);
+        }
+        let (tx, rx) = mpsc::channel();
+        self.mailbox
+            .admit(Message::EngineResourceActions(after, limit, tx), false, 128)?;
         rx.recv().map_err(|_| Error::WorkerFailed)?
     }
     pub fn engine_removal_plan(&self, version: Id) -> Result<HostEngineRemovalPlan> {

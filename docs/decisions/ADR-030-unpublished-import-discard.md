@@ -1,6 +1,6 @@
 # ADR 030 — explicit unpublished-import discard and durable action history
 
-Status: native Core/Store discard; Host cancellation/access lifecycle, JNI/Android adoption and installed SDK resource reclamation remain open.
+Status: native Core/Store discard; ADR 031 adds the Host cancellation/access lifecycle. JNI/Android adoption and installed SDK resource reclamation remain open.
 
 Schema 17 adds the strict `engine_resource_actions` table with an index on the target version. Records retain the original import consent timestamp, descriptor/hash, declared size, observed committed offset, original library identity, explicit discard request timestamp and Pending/Completed outcome. They contain no model bytes, filesystem path or serializable deletion authority. Pending means a durable approved request whose physical outcome may still be uncertain; it does not schedule automatic cleanup.
 
@@ -10,6 +10,6 @@ Store authorisation rechecks current app/library authority and absence of every 
 
 Deletion consumes the preparation and permit, checks deadline/control before each known unlink, removes only `<id>.resource`, `<id>.part` and finally `<id>.install.json`, then syncs the directory. It never recursively deletes a directory or removes the stable coordination inode. The guard survives through completion recording. If deletion or final recording fails, there is no rollback/no-effect promise: the durable Pending action and remaining binding permit explicit recovery. Completed recording is separate and idempotent for the same actual result. Partial work is not automatically resumed after restart.
 
-Core callers must supply current linked job authority during file work; the future Host wrapper must keep the running lifecycle through actual guard retirement and use metadata-only writer messages. The native Core permit is not a substitute for Host epoch/relock/capture checks. No production H.I. or ordinary notebook-JSON route is introduced here.
+Core callers must supply current linked job authority during file work; the Host wrapper (ADR 031) must keep the running lifecycle through actual guard retirement and use metadata-only writer messages. The native Core permit is not a substitute for Host epoch/relock/capture checks. No production H.I. or ordinary notebook-JSON route is introduced here.
 
 Whole-library JSON backup now writes schema 17 and appends the new three-column table; older schemas receive an empty table and cannot smuggle the extension under an older tag. Streaming appends table index 31 and reads known schemas 15, 16 and 17; old streams end before the added table. The footer remains magic plus row count. Audit payloads, SQL identities and absence of contradictory published-version rows are validated before restore succeeds. Notebook subset format remains v10 because this app-global model history is not notebook content. Restored history retains its original library identity and cannot authorize deletion in the newly identified library. Pending-resource omissions remain visible; model bytes and local paths remain excluded.

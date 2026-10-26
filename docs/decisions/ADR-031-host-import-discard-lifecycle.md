@@ -1,0 +1,11 @@
+# ADR 031 — Host-owned unpublished import discard
+
+Status: implemented native Host boundary; component verification recorded separately. JNI/Android discard and installed SDK file reclamation remain open.
+
+The Host reserves a discard plan through its app-authorised writer mailbox. The plan exposes a stable action ID before any worker filesystem operation. Explicit consent and optional Pending-action retry are mandatory Core checks. Private lifecycle phases share recognition's capacity, library owner, expiry and capture/relock epoch. Admission reserves 512 KiB for the bounded record, ledger descriptor and permit that may coexist; this is an engineering memory bound, not a performance SLO.
+
+Preparation and deletion consume single-use native handles on optional workers with linked caller/lifecycle control. Preparation acquires the stable transfer guard. Writer authorisation borrows a phase-pinned prepared cell and commits Pending before storing its opaque permit. Only the worker can consume the preparation and permit to remove the known files. Completion borrows the actual removed result, records Completed and retains the guard until actual off-writer retirement. Metadata-only messages carry weak references and controls; they never transfer a file owner to the writer.
+
+A shared publication phase excludes idle cancellation while writer temporaries borrow the cell. The writer drops its temporary candidate reference before enabling retirement. Known SQL success is returned even if cancellation races the reply. A failed authorisation/completion reply does not promise metadata rollback or physical rollback. After cancellation, lost completion or close, durable Pending history supports a new explicitly authorised retry; no startup cleanup is scheduled automatically. Close joins actual guard retirement even when a caller still retains an inert completed-work handle.
+
+Bounded action history/read APIs require fresh app authority. No ordinary notebook JSON route, production H.I., arbitrary recursive deletion or current SDK-resource quiescence claim is added. Staged/Installed/Removed versions still refuse this flow. Synthetic fixtures exercise Host lifecycle behavior; they do not establish real model or device acceptance.
