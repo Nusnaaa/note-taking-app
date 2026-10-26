@@ -16,6 +16,9 @@ public final class NativeBridge {
     public static native String recognitionStatus(long handle);
     /** Trusted app-compiled descriptor only, with explicit installation consent.
      * This stages no model file and does not establish runtime readiness. */
+    /** Metadata snapshot; installed versions require explicit runtime activation. */
+    public static native String engineCatalogue(long host, String after, int limit);
+    public static native void selectEngineDefault(long host, String task, String engine);
     public static native String stageResourceFreeEngine(long handle, String descriptor, boolean confirmed);
     private static native long beginEngineActivation(long host, String version, long maxLoadBytes, long budgetMillis);
     private static native long beginEngineRecognition(long host, String block, String region, String task, String engine, long budgetMillis);

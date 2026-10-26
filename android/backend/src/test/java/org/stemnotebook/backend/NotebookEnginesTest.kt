@@ -52,6 +52,41 @@ class NotebookEnginesTest {
         assertEquals("stem-engines",Thread.currentThread().name);assertTrue(descriptor.contains("OrderedStrokesV1"));assertNull(resource);control.check();model
     }
     private fun inkCommand(note: UUID) = JSONObject("""{"op":"Capture","ticket":"${UUID.randomUUID()}","entity":"$note","strokes":[{"id":"${UUID.randomUUID()}","capture_session":"${UUID.randomUUID()}","sequence":0,"pointer_id":1,"coordinate_space":"synthetic-local-units","tool":"Pen","end":"Completed","points":[{"x":0.1,"y":0.2,"time_us":10,"pressure":null,"tilt_rad":null,"orientation_rad":null,"buttons":null},{"x":1.1,"y":1.2,"time_us":20,"pressure":0.0,"tilt_rad":null,"orientation_rad":null,"buttons":0}]}]}""")
+    @Test fun catalogueTracksPagingDefaultAndExplicitReload() {
+        val path = temporary.newFolder().resolve("library.db").absolutePath
+        var host = NativeBridge.open(path)
+        var engines = NotebookEngines { host }
+        try {
+            failure { engines.catalogue(limit = 0) }
+            val staged = observer { engines.stageResourceFree(descriptor(), true).await() }
+            val other = observer { engines.stageResourceFree(descriptor("2"), true).await() }
+            val first = observer { engines.catalogue(limit = 1).await() }
+            assertEquals(1, first.versions.size); assertNotNull(first.next)
+            val second = observer { engines.catalogue(first.next, 1).await() }
+            assertNull(second.next)
+            assertEquals(setOf(staged.version,other.version), (first.versions + second.versions).map { it.id }.toSet())
+            assertFalse(first.versions[0].runtimeReady)
+            assertFalse(first.versions[0].descriptorJson.contains("local_resource"))
+            observer { failure { engines.selectDefault(NotebookEngines.Task.Prose,"synthetic-kotlin").await() } }
+            observer { engines.activate(staged.version,0,30000,factory(Model())).await() }
+            observer { engines.selectDefault(NotebookEngines.Task.Prose,"synthetic-kotlin").await() }
+            val ready = observer { engines.catalogue().await() }
+            assertEquals(1,ready.versions.count { it.runtimeReady })
+            assertTrue(ready.defaults.single().runtimeReady)
+            val note = UUID.fromString(native(host,JSONObject().put("op","Create").put("kind","Note").put("parent",JSONObject.NULL).put("title","default fixture")).getJSONObject("data").getString("id"))
+            val block = UUID.fromString(native(host,inkCommand(note)).getJSONObject("data").getString("id"))
+            observer { engines.recognise(block,null,NotebookEngines.Task.Prose,null,30000).await() }
+            engines.close(); NativeBridge.close(host)
+            host = NativeBridge.open(path); engines = NotebookEngines { host }
+            val unloaded = observer { engines.catalogue().await() }
+            assertEquals(1,unloaded.versions.count { it.active })
+            assertFalse(unloaded.versions.any { it.runtimeReady })
+            assertFalse(unloaded.defaults.single().runtimeReady)
+            observer { engines.activate(staged.version,0,30000,factory(Model())).await() }
+            assertTrue(observer { engines.catalogue().await() }.defaults.single().runtimeReady)
+            observer { engines.recognise(block,null,NotebookEngines.Task.Prose,null,30000).await() }
+        } finally { engines.close(); NativeBridge.close(host) }
+    }
     @Test fun workerWorkflowPreservesSourceAndKnownReceiptsAfterLateCancellation() {
         val host = NativeBridge.open(temporary.newFolder().resolve("library.db").absolutePath)
         val engines = NotebookEngines {host}

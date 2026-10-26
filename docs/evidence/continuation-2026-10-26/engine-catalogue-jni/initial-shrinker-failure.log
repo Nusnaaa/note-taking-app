@@ -1,0 +1,48 @@
+Error in program input 'target/catalogue-smoke':
+com.android.tools.r8.internal.Ke: Unsupported source file type
+Compilation failed
+Exception in thread "main" java.lang.RuntimeException: com.android.tools.r8.CompilationFailedException: Compilation failed to complete, origin: target/catalogue-smoke
+	at com.android.tools.r8.internal.so.a(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:131)
+	at com.android.tools.r8.R8.main(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:5)
+Caused by: com.android.tools.r8.CompilationFailedException: Compilation failed to complete, origin: target/catalogue-smoke
+	at Version.fakeStackEntry(Version_8.6.2-dev.java:0)
+	at com.android.tools.r8.T.a(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:5)
+	at com.android.tools.r8.internal.so.a(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:82)
+	at com.android.tools.r8.internal.so.a(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:32)
+	at com.android.tools.r8.internal.so.a(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:31)
+	at com.android.tools.r8.BaseCommand$Builder.build(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:2)
+	at com.android.tools.r8.R8.b(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:22)
+	at com.android.tools.r8.R8.a(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:1549)
+	at com.android.tools.r8.internal.so.a(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:118)
+	... 1 more
+Caused by: com.android.tools.r8.internal.Ke: Unsupported source file type
+	at com.android.tools.r8.utils.i$a.c(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:38)
+	at com.android.tools.r8.BaseCommand$Builder.e(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:3)
+	at com.android.tools.r8.BaseCommand$Builder.a(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:16)
+	at com.android.tools.r8.BaseCommand$Builder.addProgramFiles(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:3)
+	at com.android.tools.r8.BaseCommand$Builder.addProgramFiles(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:1)
+	at com.android.tools.r8.q0.a(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:285)
+	at com.android.tools.r8.q0.a(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:84)
+	at com.android.tools.r8.R8Command.parse(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:1)
+	... 4 more
+	Suppressed: java.lang.RuntimeException: com.android.tools.r8.internal.g: com.android.tools.r8.internal.Ke: Unsupported source file type
+		at com.android.tools.r8.internal.w50.a(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:29)
+		at com.android.tools.r8.shaking.T2.a(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:25)
+		at com.android.tools.r8.R8Command$Builder.p(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:18)
+		at com.android.tools.r8.R8Command$Builder.makeCommand(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:1)
+		at com.android.tools.r8.BaseCommand$Builder.a(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:2)
+		at com.android.tools.r8.internal.so.a(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:28)
+		at com.android.tools.r8.BaseCommand$Builder.build(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:2)
+		... 4 more
+	Caused by: com.android.tools.r8.internal.g: com.android.tools.r8.internal.Ke: Unsupported source file type
+		at com.android.tools.r8.internal.w50.a(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:21)
+		at com.android.tools.r8.internal.w50.error(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:1)
+		at com.android.tools.r8.BaseCommand$Builder.e(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:7)
+		at com.android.tools.r8.BaseCommand$Builder.a(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:16)
+		at com.android.tools.r8.BaseCommand$Builder.addProgramFiles(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:3)
+		at com.android.tools.r8.BaseCommand$Builder.addProgramFiles(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:1)
+		at com.android.tools.r8.q0.a(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:285)
+		at com.android.tools.r8.q0.a(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:84)
+		at com.android.tools.r8.R8Command.parse(R8_8.6.2-dev_7fc7c6f786a921c1190fae64678f9d13ea8a32a8034f1ca657e7734636ef3f68:1)
+		... 4 more
+	Caused by: [CIRCULAR REFERENCE: com.android.tools.r8.internal.Ke: Unsupported source file type]

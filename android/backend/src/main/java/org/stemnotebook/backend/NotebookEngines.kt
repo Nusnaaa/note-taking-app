@@ -5,6 +5,7 @@ import org.json.JSONObject
 import java.io.Closeable
 import java.io.File
 import java.util.UUID
+import java.util.Collections
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletableFuture
@@ -21,6 +22,14 @@ class NotebookEngines internal constructor(private val modelRoot: File? = null, 
      * attempt may need fresh version/proposal discovery after an uncertain reply. */
     class Failure(val reason: FailureReason, val metadataMayHaveChanged: Boolean = false) :
         IllegalStateException("Notebook engine operation unavailable")
+    enum class Installation { Staged, Installed, Removed }
+    /** Descriptor JSON preserves provenance; managed resource paths are omitted. */
+    data class Version(val id: UUID, val engine: String, val version: String, val descriptorJson: String,
+                       val installation: Installation, val bytes: Long, val installedMillis: Long?,
+                       val active: Boolean, val runtimeReady: Boolean)
+    data class Selected(val task: Task, val engine: String)
+    data class Default(val task: Task, val engine: String, val runtimeReady: Boolean)
+    data class Catalogue(val versions: List<Version>, val next: UUID?, val defaults: List<Default>)
     data class Staged(val version: UUID)
     data class Installed(val version: UUID)
     data class Transfer(val version: UUID, val committedBytes: Long)
@@ -110,6 +119,41 @@ class NotebookEngines internal constructor(private val modelRoot: File? = null, 
         }
         return Pending(operation.result, operation::cancel, ::observerOnly)
     }
+    /** Bounded metadata snapshot through current native access. No model load. */
+    fun catalogue(after: UUID? = null, limit: Int = 32): Pending<Catalogue> {
+        if (limit !in 1..128) throw Failure(FailureReason.InvalidInput)
+        return submit { operation ->
+            val host = nativeHandle(); operation.check()
+            val page = JSONObject(NativeBridge.engineCatalogue(host, after?.toString(), limit))
+            val rows = page.getJSONArray("versions")
+            val versions = ArrayList<Version>()
+            for (index in 0 until rows.length()) {
+                val row = rows.getJSONObject(index)
+                val descriptor = row.getJSONObject("descriptor")
+                versions.add(Version(UUID.fromString(row.getString("id")), descriptor.getString("id"),
+                    descriptor.getString("version"), descriptor.toString(), Installation.valueOf(row.getString("state")),
+                    row.getLong("bytes"), if (row.isNull("installed_ms")) null else row.getLong("installed_ms"),
+                    row.getBoolean("active"), row.getBoolean("runtime_ready")))
+            }
+            val preferences = page.getJSONArray("defaults")
+            val defaults = ArrayList<Default>()
+            for (index in 0 until preferences.length()) {
+                val row = preferences.getJSONObject(index)
+                defaults.add(Default(Task.valueOf(row.getString("task")), row.getString("engine"), row.getBoolean("runtime_ready")))
+            }
+            Catalogue(Collections.unmodifiableList(versions), if (page.isNull("next")) null else UUID.fromString(page.getString("next")),
+                Collections.unmodifiableList(defaults))
+        }
+    }
+    fun selectDefault(task: Task, engine: String): Pending<Selected> {
+        if (engine.isEmpty() || engine.length > 256 || engine.toByteArray(Charsets.UTF_8).size > 256) throw Failure(FailureReason.InvalidInput)
+        return submit { operation ->
+            val host = nativeHandle(); operation.check(); operation.metadataAttempted = true
+            NativeBridge.selectEngineDefault(host, task.name, engine)
+            // This acknowledgement does not promise readiness at a future use.
+            Selected(task, engine)
+        }
+    }
     /** Explicit consent for a resource-free compiled adapter, not a model-file import. */
     fun stageResourceFree(descriptor: String, confirmed: Boolean): Pending<Staged> {
         if (descriptor.length > 65536 || descriptor.toByteArray(Charsets.UTF_8).size > 65536) throw Failure(FailureReason.InvalidInput)
@@ -135,9 +179,9 @@ class NotebookEngines internal constructor(private val modelRoot: File? = null, 
             } finally { operation.detach(job); job.close() }
         }
     }
-    fun recognise(block: UUID, region: UUID?, task: Task, engine: String, budgetMillis: Long): Pending<Proposal> {
+    fun recognise(block: UUID, region: UUID?, task: Task, engine: String?, budgetMillis: Long): Pending<Proposal> {
         budget(budgetMillis)
-        if (engine.isEmpty() || engine.length > 256 || engine.toByteArray(Charsets.UTF_8).size > 256) throw Failure(FailureReason.InvalidInput)
+        if (engine != null && (engine.isEmpty() || engine.length > 256 || engine.toByteArray(Charsets.UTF_8).size > 256)) throw Failure(FailureReason.InvalidInput)
         return submit { operation ->
             val host = nativeHandle(); operation.check()
             val job = NativeBridge.engineRecognition(host, block.toString(), region?.toString(), task.name, engine, budgetMillis)

@@ -59,6 +59,11 @@ public final class EngineBoundarySmoke {
             rejected(() -> NativeBridge.stageResourceFreeEngine(host,descriptor("1").replace("OrderedStrokesV1","MandatoryRaster"),true));
             rejected(() -> NativeBridge.stageResourceFreeEngine(host,descriptor("1").replace("\"content_egress\":false","\"content_egress\":true"),true));
             String version=id(NativeBridge.stageResourceFreeEngine(host,descriptor("1"),true));
+            String catalogue=NativeBridge.engineCatalogue(host,null,1);
+            check(catalogue.contains("\"runtime_ready\":false") && !catalogue.contains("local_resource"));
+            rejected(() -> NativeBridge.engineCatalogue(host,null,0));
+            rejected(() -> NativeBridge.engineCatalogue(host,"bad-cursor",1));
+            rejected(() -> NativeBridge.selectEngineDefault(host,"Prose","synthetic-jni"));
             String block=block(host), original=source(host,block);
             rejected(() -> NativeBridge.engineRecognition(host,block,null,"Prose","synthetic-jni",30000));
             Model model=new Model(host);Factory factory=new Factory(model);
@@ -66,7 +71,12 @@ public final class EngineBoundarySmoke {
                 job.activate(factory);rejected(() -> job.activate(factory));
             }
             check(!factory.control.active() && !model.last.active());
-            try(var job=NativeBridge.engineRecognition(host,block,null,"Prose","synthetic-jni",30000)) {
+            check(NativeBridge.engineCatalogue(host,null,1).contains("\"runtime_ready\":true"));
+            NativeBridge.selectEngineDefault(host,"Prose","synthetic-jni");
+            rejected(() -> NativeBridge.selectEngineDefault(host,"Unknown","synthetic-jni"));
+            rejected(() -> NativeBridge.selectEngineDefault(host,"Maths","synthetic-jni"));
+            check(NativeBridge.engineCatalogue(host,null,1).contains("\"task\":\"Prose\""));
+            try(var job=NativeBridge.engineRecognition(host,block,null,"Prose",null,30000)) {
                 String proposal=job.recognise();check(proposal.contains("\"state\":\"Pending\"") && proposal.contains("1 + 1 = 3"));rejected(job::recognise);
             }
             check(!model.last.active() && original.equals(source(host,block)));

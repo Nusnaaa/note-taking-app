@@ -4,7 +4,7 @@ mod import;
 use super::{allocate_handle, bounded_string, fail, hosts};
 use jni::{
     objects::{GlobalRef, JByteArray, JClass, JObject, JString, JValue},
-    sys::{jboolean, jlong, jstring},
+    sys::{jboolean, jint, jlong, jstring},
     JNIEnv, JavaVM,
 };
 use std::{
@@ -542,6 +542,67 @@ pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_runEngineRecog
             fail(&mut env);
             std::ptr::null_mut()
         }
+    }
+}
+
+/// Metadata-only routes clone the host owner before waiting for the writer.
+#[no_mangle]
+pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_engineCatalogue(
+    mut env: JNIEnv<'_>,
+    _: JClass<'_>,
+    handle: jlong,
+    after: JString<'_>,
+    limit: jint,
+) -> jstring {
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> Option<jstring> {
+        if !(1..=128).contains(&limit) {
+            return None;
+        }
+        let after = if after.is_null() {
+            None
+        } else {
+            Some(Id::parse(&bounded_string(&mut env, &after, 36)?).ok()?)
+        };
+        let host = Arc::clone(hosts().lock().ok()?.get(&handle)?);
+        let page = host.engine_catalogue(after, limit as usize).ok()?;
+        let json = serde_json::to_string(&page).ok()?;
+        if json.len() > MAX_JSON {
+            return None;
+        }
+        Some(env.new_string(json).ok()?.into_raw())
+    }));
+    match result {
+        Ok(Some(value)) => value,
+        _ => {
+            clear_exception(&mut env);
+            fail(&mut env);
+            std::ptr::null_mut()
+        }
+    }
+}
+#[no_mangle]
+pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_selectEngineDefault(
+    mut env: JNIEnv<'_>,
+    _: JClass<'_>,
+    handle: jlong,
+    task: JString<'_>,
+    engine: JString<'_>,
+) {
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> Option<()> {
+        let task = match bounded_string(&mut env, &task, 16)?.as_str() {
+            "Maths" => Task::Maths,
+            "Prose" => Task::Prose,
+            "Numeric" => Task::Numeric,
+            "Code" => Task::Code,
+            _ => return None,
+        };
+        let engine = bounded_string(&mut env, &engine, 256)?;
+        let host = Arc::clone(hosts().lock().ok()?.get(&handle)?);
+        host.select_engine(task, &engine).ok()
+    }));
+    if !matches!(result, Ok(Some(()))) {
+        clear_exception(&mut env);
+        fail(&mut env);
     }
 }
 

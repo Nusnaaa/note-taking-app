@@ -1,0 +1,33 @@
+    Checking stem-core v0.1.0 (/tmp/stem-engine-catalogue-jni-work/core)
+    Checking stem-bridge v0.1.0 (/tmp/stem-engine-catalogue-jni-work/bridge)
+error: items after a test module
+   --> bridge/src/engines.rs:549:1
+    |
+549 |   mod tests {
+    |   ^^^^^^^^^
+...
+600 | / pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_engineCatalogue(
+601 | |     mut env: JNIEnv<'_>,
+602 | |     _: JClass<'_>,
+603 | |     handle: jlong,
+604 | |     after: JString<'_>,
+605 | |     limit: jint,
+606 | | ) -> jstring {
+    | |____________^
+...
+634 | / pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_selectEngineDefault(
+635 | |     mut env: JNIEnv<'_>,
+636 | |     _: JClass<'_>,
+637 | |     handle: jlong,
+638 | |     task: JString<'_>,
+639 | |     engine: JString<'_>,
+640 | | ) {
+    | |_^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#items_after_test_module
+    = note: `-D clippy::items-after-test-module` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::items_after_test_module)]`
+    = help: move the items to before the test module was defined
+
+error: could not compile `stem-bridge` (lib test) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
