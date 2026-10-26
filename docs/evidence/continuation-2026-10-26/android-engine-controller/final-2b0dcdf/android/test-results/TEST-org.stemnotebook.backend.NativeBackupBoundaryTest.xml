@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.NativeBackupBoundaryTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-26T04:54:44" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="31.888">
+  <properties/>
+  <testcase name="protectedBackupRequiresCurrentAccessFreshProofAndConfirmation" classname="org.stemnotebook.backend.NativeBackupBoundaryTest" time="4.623"/>
+  <testcase name="foreignNativeTokensCannotConsumeOwnersReview" classname="org.stemnotebook.backend.NativeBackupBoundaryTest" time="4.583"/>
+  <testcase name="cancelledRetiringCallbackRetainsNativeOwnerAndLeavesWriterFree" classname="org.stemnotebook.backend.NativeBackupBoundaryTest" time="4.661"/>
+  <testcase name="ciphertextSummaryKeyAndSingleUseOwnership" classname="org.stemnotebook.backend.NativeBackupBoundaryTest" time="4.538"/>
+  <testcase name="invalidPasswordAndSinkFailureRetireExactlyOnceWithoutKey" classname="org.stemnotebook.backend.NativeBackupBoundaryTest" time="8.928"/>
+  <testcase name="callbackCloseDoesNotSelfJoinOrReturnRecoveryKey" classname="org.stemnotebook.backend.NativeBackupBoundaryTest" time="4.555"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

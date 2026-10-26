@@ -3,8 +3,8 @@
 # compiler_hash: abaab469b5ebd4dd2bb91ba0ed6f45277faae4ca
 # common_typos_disable
 # {"id":"com.android.tools.r8.mapping","version":"2.2"}
-# pg_map_id: c195f72
-# pg_map_hash: SHA-256 c195f728b3768370d930c673ed78bb7bd004560ea3eccb758ac9514f741e6a13
+# pg_map_id: 69c2a36
+# pg_map_hash: SHA-256 69c2a363ce30c91533d88563df2fecc21ee9c036cbfa46da9dadd1a769b26961
 BackupBoundarySmoke -> e:
 # {"id":"sourceFile","fileName":"BackupBoundarySmoke.java"}
     char[] PASSWORD -> a
@@ -76,7 +76,65 @@ BoundarySmoke$1 -> f:
       # {"id":"com.android.tools.r8.residualsignature","signature":"(Ljava/lang/String;Ljava/lang/String;Ljava/util/concurrent/atomic/AtomicInteger;)V"}
 BoundarySmoke$Proof -> g:
 # {"id":"sourceFile","fileName":"BoundarySmoke.java"}
-OpenBoundarySmoke -> h:
+EngineBoundarySmoke -> l:
+# {"id":"sourceFile","fileName":"EngineBoundarySmoke.java"}
+    1:1:java.lang.String id(java.lang.String):0:0 -> a
+    1:1:java.lang.String block(long):0 -> a
+    2:2:java.lang.String block(long):0:0 -> a
+    3:3:java.lang.String id(java.lang.String):0:0 -> a
+    3:3:java.lang.String block(long):0 -> a
+    4:4:void check(boolean):0:0 -> a
+    5:5:java.lang.String descriptor(java.lang.String):0:0 -> a
+    6:6:void lambda$run$12(long,java.lang.String):0:0 -> a
+    7:7:org.stemnotebook.backend.NativeBridge$Recogniser lambda$run$13(java.util.concurrent.atomic.AtomicInteger,java.lang.String,byte[],org.stemnotebook.backend.NativeBridge$EngineControl):0:0 -> a
+    8:8:void lambda$run$4(org.stemnotebook.backend.NativeBridge$EngineJob,EngineBoundarySmoke$Factory):0:0 -> a
+      # {"id":"com.android.tools.r8.residualsignature","signature":"(Lorg/stemnotebook/backend/NativeBridge$EngineJob;Lj;)V"}
+    9:9:void lambda$run$5(org.stemnotebook.backend.NativeBridge$EngineJob):0:0 -> a
+    10:10:void lambda$run$7(org.stemnotebook.backend.NativeBridge$EngineJob,java.util.concurrent.atomic.AtomicInteger):0:0 -> a
+    11:11:void rejected(java.lang.Runnable):0:0 -> a
+    12:12:java.lang.String id(java.lang.String):0:0 -> a
+    12:12:void run():0 -> a
+    13:13:void run():0:0 -> a
+    14:14:java.lang.String id(java.lang.String):0:0 -> a
+    14:14:void run():0 -> a
+    15:15:void run():0:0 -> a
+    16:16:java.lang.String id(java.lang.String):0:0 -> a
+    16:16:void run():0 -> a
+    17:17:void run():0:0 -> a
+    1:1:void lambda$run$0(long):0:0 -> b
+    2:2:void lambda$run$10(java.lang.String):0:0 -> b
+    3:3:void lambda$run$3(long,java.lang.String):0:0 -> b
+    4:4:org.stemnotebook.backend.NativeBridge$Recogniser lambda$run$6(java.util.concurrent.atomic.AtomicInteger,java.lang.String,byte[],org.stemnotebook.backend.NativeBridge$EngineControl):0:0 -> b
+    5:5:void lambda$run$8(org.stemnotebook.backend.NativeBridge$EngineJob):0:0 -> b
+    1:1:void lambda$run$1(long):0:0 -> c
+    2:2:void lambda$run$11(java.lang.String):0:0 -> c
+    3:3:java.lang.String request(long,java.lang.String):0:0 -> c
+    1:1:void lambda$run$14(long):0:0 -> d
+    2:2:java.lang.String source(long,java.lang.String):0:0 -> d
+    void lambda$run$2(long) -> e
+    void lambda$run$9(long) -> f
+EngineBoundarySmoke$1 -> h:
+# {"id":"sourceFile","fileName":"EngineBoundarySmoke.java"}
+    java.util.concurrent.atomic.AtomicInteger val$failedRetire -> a
+EngineBoundarySmoke$2 -> i:
+# {"id":"sourceFile","fileName":"EngineBoundarySmoke.java"}
+    java.util.concurrent.atomic.AtomicInteger val$retireFailure -> a
+EngineBoundarySmoke$Factory -> j:
+# {"id":"sourceFile","fileName":"EngineBoundarySmoke.java"}
+    EngineBoundarySmoke$Model model -> a
+      # {"id":"com.android.tools.r8.residualsignature","signature":"Lk;"}
+    org.stemnotebook.backend.NativeBridge$EngineControl control -> b
+EngineBoundarySmoke$Model -> k:
+# {"id":"sourceFile","fileName":"EngineBoundarySmoke.java"}
+    long host -> a
+    java.util.concurrent.atomic.AtomicInteger retired -> b
+    org.stemnotebook.backend.NativeBridge$EngineControl last -> c
+    java.util.concurrent.CountDownLatch entered -> d
+    java.util.concurrent.CountDownLatch release -> e
+    java.util.concurrent.CountDownLatch retiring -> f
+    java.util.concurrent.CountDownLatch releaseRetire -> g
+    java.lang.String output -> h
+OpenBoundarySmoke -> m:
 # {"id":"sourceFile","fileName":"OpenBoundarySmoke.java"}
     1:1:void rejected(java.lang.String):0:0 -> a
     1:1:void main(java.lang.String[]):0 -> a
@@ -95,7 +153,7 @@ OpenBoundarySmoke -> h:
     9:9:void main(java.lang.String[]):0 -> a
     10:10:void main(java.lang.String[]):0:0 -> a
     11:11:void rejected(java.lang.String,boolean):0:0 -> a
-RestoreBoundarySmoke -> o:
+RestoreBoundarySmoke -> t:
 # {"id":"sourceFile","fileName":"RestoreBoundarySmoke.java"}
     char[] recoveryKey -> a
     char[] PASSWORD -> b
@@ -103,7 +161,7 @@ RestoreBoundarySmoke -> o:
     2:2:boolean lambda$backup$0(java.lang.String):0:0 -> a
     3:3:java.lang.String prepare(org.stemnotebook.backend.NativeBridge$RestoreJob,RestoreBoundarySmoke$Input,java.nio.file.Path):0:0 -> a
     3:3:void lambda$main$10(org.stemnotebook.backend.NativeBridge$RestoreJob,RestoreBoundarySmoke$Input,java.nio.file.Path):0 -> a
-      # {"id":"com.android.tools.r8.residualsignature","signature":"(Lorg/stemnotebook/backend/NativeBridge$RestoreJob;Ln;Ljava/nio/file/Path;)V"}
+      # {"id":"com.android.tools.r8.residualsignature","signature":"(Lorg/stemnotebook/backend/NativeBridge$RestoreJob;Ls;Ljava/nio/file/Path;)V"}
     4:4:void lambda$main$17(org.stemnotebook.backend.NativeBridge$RestoreJob,java.nio.file.Path):0:0 -> a
     5:5:void main(java.lang.String[]):0:0 -> a
       # {"id":"com.android.tools.r8.residualsignature","signature":"()V"}
@@ -154,39 +212,39 @@ RestoreBoundarySmoke -> o:
     1:1:void lambda$main$1(long):0:0 -> b
     2:2:java.lang.String prepare(org.stemnotebook.backend.NativeBridge$RestoreJob,RestoreBoundarySmoke$Input,java.nio.file.Path):0:0 -> b
     2:2:void lambda$main$11(org.stemnotebook.backend.NativeBridge$RestoreJob,RestoreBoundarySmoke$Input,java.nio.file.Path):0 -> b
-      # {"id":"com.android.tools.r8.residualsignature","signature":"(Lorg/stemnotebook/backend/NativeBridge$RestoreJob;Ln;Ljava/nio/file/Path;)V"}
+      # {"id":"com.android.tools.r8.residualsignature","signature":"(Lorg/stemnotebook/backend/NativeBridge$RestoreJob;Ls;Ljava/nio/file/Path;)V"}
     3:3:boolean lambda$main$16(java.lang.String):0:0 -> b
     4:4:void lambda$main$4(org.stemnotebook.backend.NativeBridge$RestoreJob,java.nio.file.Path):0:0 -> b
     1:1:void lambda$main$12(org.stemnotebook.backend.NativeBridge$RestoreJob,RestoreBoundarySmoke$Input,java.nio.file.Path):0:0 -> c
-      # {"id":"com.android.tools.r8.residualsignature","signature":"(Lorg/stemnotebook/backend/NativeBridge$RestoreJob;Ln;Ljava/nio/file/Path;)V"}
+      # {"id":"com.android.tools.r8.residualsignature","signature":"(Lorg/stemnotebook/backend/NativeBridge$RestoreJob;Ls;Ljava/nio/file/Path;)V"}
     2:2:void lambda$main$15(long):0:0 -> c
     3:3:boolean lambda$main$2(java.lang.String):0:0 -> c
     4:4:void lambda$main$6(org.stemnotebook.backend.NativeBridge$RestoreJob,java.nio.file.Path):0:0 -> c
     1:1:java.lang.String prepare(org.stemnotebook.backend.NativeBridge$RestoreJob,RestoreBoundarySmoke$Input,java.nio.file.Path):0:0 -> d
     1:1:void lambda$main$13(org.stemnotebook.backend.NativeBridge$RestoreJob,RestoreBoundarySmoke$Input,java.nio.file.Path):0 -> d
-      # {"id":"com.android.tools.r8.residualsignature","signature":"(Lorg/stemnotebook/backend/NativeBridge$RestoreJob;Ln;Ljava/nio/file/Path;)V"}
+      # {"id":"com.android.tools.r8.residualsignature","signature":"(Lorg/stemnotebook/backend/NativeBridge$RestoreJob;Ls;Ljava/nio/file/Path;)V"}
     2:2:boolean lambda$main$3(java.lang.String):0:0 -> d
     1:1:void lambda$main$14(org.stemnotebook.backend.NativeBridge$RestoreJob,RestoreBoundarySmoke$Input,java.nio.file.Path):0:0 -> e
-      # {"id":"com.android.tools.r8.residualsignature","signature":"(Lorg/stemnotebook/backend/NativeBridge$RestoreJob;Ln;Ljava/nio/file/Path;)V"}
+      # {"id":"com.android.tools.r8.residualsignature","signature":"(Lorg/stemnotebook/backend/NativeBridge$RestoreJob;Ls;Ljava/nio/file/Path;)V"}
     2:2:boolean lambda$main$5(java.lang.String):0:0 -> e
     void lambda$main$7(org.stemnotebook.backend.NativeBridge$RestoreJob,RestoreBoundarySmoke$Input,java.nio.file.Path) -> f
-      # {"id":"com.android.tools.r8.residualsignature","signature":"(Lorg/stemnotebook/backend/NativeBridge$RestoreJob;Ln;Ljava/nio/file/Path;)V"}
+      # {"id":"com.android.tools.r8.residualsignature","signature":"(Lorg/stemnotebook/backend/NativeBridge$RestoreJob;Ls;Ljava/nio/file/Path;)V"}
     1:1:java.lang.String prepare(org.stemnotebook.backend.NativeBridge$RestoreJob,RestoreBoundarySmoke$Input,java.nio.file.Path):0:0 -> g
     1:1:void lambda$main$8(org.stemnotebook.backend.NativeBridge$RestoreJob,RestoreBoundarySmoke$Input,java.nio.file.Path):0 -> g
-      # {"id":"com.android.tools.r8.residualsignature","signature":"(Lorg/stemnotebook/backend/NativeBridge$RestoreJob;Ln;Ljava/nio/file/Path;)V"}
+      # {"id":"com.android.tools.r8.residualsignature","signature":"(Lorg/stemnotebook/backend/NativeBridge$RestoreJob;Ls;Ljava/nio/file/Path;)V"}
     1:1:java.lang.String prepare(org.stemnotebook.backend.NativeBridge$RestoreJob,RestoreBoundarySmoke$Input,java.nio.file.Path):0:0 -> h
     1:1:void lambda$main$9(org.stemnotebook.backend.NativeBridge$RestoreJob,RestoreBoundarySmoke$Input,java.nio.file.Path):0 -> h
-      # {"id":"com.android.tools.r8.residualsignature","signature":"(Lorg/stemnotebook/backend/NativeBridge$RestoreJob;Ln;Ljava/nio/file/Path;)V"}
-RestoreBoundarySmoke$1 -> i:
+      # {"id":"com.android.tools.r8.residualsignature","signature":"(Lorg/stemnotebook/backend/NativeBridge$RestoreJob;Ls;Ljava/nio/file/Path;)V"}
+RestoreBoundarySmoke$1 -> n:
 # {"id":"sourceFile","fileName":"RestoreBoundarySmoke.java"}
     java.io.ByteArrayOutputStream val$out -> a
-RestoreBoundarySmoke$2 -> j:
+RestoreBoundarySmoke$2 -> o:
 # {"id":"sourceFile","fileName":"RestoreBoundarySmoke.java"}
-RestoreBoundarySmoke$3 -> k:
+RestoreBoundarySmoke$3 -> p:
 # {"id":"sourceFile","fileName":"RestoreBoundarySmoke.java"}
-RestoreBoundarySmoke$4 -> l:
+RestoreBoundarySmoke$4 -> q:
 # {"id":"sourceFile","fileName":"RestoreBoundarySmoke.java"}
-RestoreBoundarySmoke$5 -> m:
+RestoreBoundarySmoke$5 -> r:
 # {"id":"sourceFile","fileName":"RestoreBoundarySmoke.java"}
     java.util.concurrent.CountDownLatch val$entered -> e
     java.util.concurrent.CountDownLatch val$release -> f
@@ -194,7 +252,7 @@ RestoreBoundarySmoke$5 -> m:
     2:2:void RestoreBoundarySmoke.check(boolean):0:0 -> read
     2:2:int read(byte[]):0 -> read
     3:3:int read(byte[]):0:0 -> read
-RestoreBoundarySmoke$Input -> n:
+RestoreBoundarySmoke$Input -> s:
 # {"id":"sourceFile","fileName":"RestoreBoundarySmoke.java"}
     byte[] bytes -> a
     int offset -> b
@@ -214,7 +272,15 @@ org.stemnotebook.backend.NativeBridge$BackupOutput -> org.stemnotebook.backend.N
 # {"id":"sourceFile","fileName":"NativeBridge.java"}
 org.stemnotebook.backend.NativeBridge$BackupReview -> org.stemnotebook.backend.NativeBridge$BackupReview:
 # {"id":"sourceFile","fileName":"NativeBridge.java"}
+org.stemnotebook.backend.NativeBridge$EngineControl -> org.stemnotebook.backend.NativeBridge$EngineControl:
+# {"id":"sourceFile","fileName":"NativeBridge.java"}
+org.stemnotebook.backend.NativeBridge$EngineJob -> org.stemnotebook.backend.NativeBridge$EngineJob:
+# {"id":"sourceFile","fileName":"NativeBridge.java"}
 org.stemnotebook.backend.NativeBridge$PdfGrant -> org.stemnotebook.backend.NativeBridge$PdfGrant:
+# {"id":"sourceFile","fileName":"NativeBridge.java"}
+org.stemnotebook.backend.NativeBridge$Recogniser -> org.stemnotebook.backend.NativeBridge$Recogniser:
+# {"id":"sourceFile","fileName":"NativeBridge.java"}
+org.stemnotebook.backend.NativeBridge$RecogniserFactory -> org.stemnotebook.backend.NativeBridge$RecogniserFactory:
 # {"id":"sourceFile","fileName":"NativeBridge.java"}
 org.stemnotebook.backend.NativeBridge$RestoreInput -> org.stemnotebook.backend.NativeBridge$RestoreInput:
 # {"id":"sourceFile","fileName":"NativeBridge.java"}

@@ -1,8 +1,8 @@
 {
-  "started_utc": "2026-10-26T01:47:26.446026+00:00",
-  "source_commit": "0240da46de0e442523162fac9f2d50d66144f55b",
+  "started_utc": "2026-10-26T04:48:46.512453+00:00",
+  "source_commit": "2b0dcdffd743ff99037d574da42d19e4c787fe35",
   "working_tree_before": "",
-  "full_working_tree_before": "?? docs/evidence/continuation-2026-10-24/host-restore/",
+  "full_working_tree_before": "",
   "build_environment": {
     "CARGO_INCREMENTAL": "0",
     "CARGO_BUILD_JOBS": "2"
@@ -16,7 +16,7 @@
     "Cargo.toml": "201677b8ae08f5c9da36f6ebc332a39457766527f1ceeb70d5d49abefe68caf1",
     "README.md": "d758f5bf2f47e2a460befc41515612d44d0d2c33545e9df8efc52390e32f2601",
     "android/backend/build.gradle.kts": "e972092a84e5e6e7a1a10fd6b421fa666dc1f18667279fd52c97cf68b2ba9c57",
-    "android/backend/consumer-rules.pro": "0b41f2eadcf6ed39f21ceea859e5dfba502cd1cbeaa909fdf6345d658b1cff8e",
+    "android/backend/consumer-rules.pro": "b9152dd780e5b8942f01aa6548617dade2d49f1d2825ebff02825e0fa5eb5823",
     "android/backend/gradle.lockfile": "cbec11f0c961a5a5bfe6aab69d9bf761a8b8e27bc19034fd5b8eb6589005941e",
     "android/backend/src/main/AndroidManifest.xml": "7c338d3ad2ad5d8d0c5a17e3b4ddd0c95a15bc2e94f41d2e5bd17ecb9e2d4cfc",
     "android/backend/src/main/java/org/stemnotebook/backend/ActiveCaptureJournal.kt": "a39d18eac767025b64fedc0219ac3ec45d841c143026eaf327e467256ab55bd0",
@@ -37,10 +37,11 @@
     "android/backend/src/main/java/org/stemnotebook/backend/InkAccumulator.kt": "9f01d06a645dd898ddba461cf9911dd26fb913c0a14879de8a5811db77f937c3",
     "android/backend/src/main/java/org/stemnotebook/backend/JournaledCaptureSession.kt": "91f770e5b44f2dd9eeb81ea974bc363265c476a4d7adfdacf8ff2d8b9b1b8d6b",
     "android/backend/src/main/java/org/stemnotebook/backend/LibraryOwnership.kt": "664e17e6fd36cd95e00ed10acf2f15d24c1efaed86cc7594f36ad038c59f8647",
-    "android/backend/src/main/java/org/stemnotebook/backend/NativeBridge.java": "c468449326af6304a90af006f023050261144eee3eab453932255e5f7dffc9f5",
-    "android/backend/src/main/java/org/stemnotebook/backend/NotebookBackend.kt": "85786e0d0c5a03901a420beba1c7b1358ca6c53cfeb68155ab6c8c8f89ce86c6",
+    "android/backend/src/main/java/org/stemnotebook/backend/NativeBridge.java": "25fca76b03091c3ba3dcb16872f246b8baa683bbbd84be39ec81c83fd618c1fe",
+    "android/backend/src/main/java/org/stemnotebook/backend/NotebookBackend.kt": "22634f38c523671d170e3d71863b142a07a50a741b678ccbc86b34dfe37c1850",
     "android/backend/src/main/java/org/stemnotebook/backend/NotebookBackupJobService.kt": "c2195a25b9eefc8887ba440c3a558213479d77516c062ca6a68a1ba4a490c9bd",
     "android/backend/src/main/java/org/stemnotebook/backend/NotebookBackups.kt": "b2653a55f4157defe32ca6b89d97e53a609f4116368440caa1a86863985b8cbd",
+    "android/backend/src/main/java/org/stemnotebook/backend/NotebookEngines.kt": "108e4e053a55dd8eb43834e0527d57ca720967b3bb23f827895eb771741334e7",
     "android/backend/src/main/java/org/stemnotebook/backend/NotebookRestores.kt": "df838fd4962138d9f534f53c80ece8b669f5462680b09ef6ae3924718d8fae21",
     "android/backend/src/main/java/org/stemnotebook/backend/NotebookRuntime.kt": "ec07c7008ccedb3d9a5ce2fe4804010f624743d40c3ecf5ddc7d13ae8edbe485",
     "android/backend/src/main/java/org/stemnotebook/backend/NotebookSchedules.kt": "73c3b879bc77d4b28249a5b7be888446d3c24886695381841accb3c9d3526a42",
@@ -77,12 +78,13 @@
     "android/backend/src/test/java/org/stemnotebook/backend/FixturePdfConnection.kt": "18109d1f2020732cf9aa7c4fb7393fbbcd05609a8ab7991d0b3b2b3d670cf62c",
     "android/backend/src/test/java/org/stemnotebook/backend/InkAccumulatorTest.kt": "0b2afebe66ee9f9383c8f7e9dc6d4a35c327aef55ed4f0268764b4fc0bb0c580",
     "android/backend/src/test/java/org/stemnotebook/backend/InterruptedCaptureTest.kt": "53c2e17d1c724ba553d39040f67a08a454323be2b8d0ea7c2e8d2422b291ef5b",
-    "android/backend/src/test/java/org/stemnotebook/backend/JniBackendRunner.kt": "81fbe1eea838c203f21441987cdeb5fa067c022dca69d8ff494ed44cc2ddd700",
+    "android/backend/src/test/java/org/stemnotebook/backend/JniBackendRunner.kt": "fcd312b1a98b68d82ae6c17c24f8d27c2f7702286cf69c9d9a91877e1715b51b",
     "android/backend/src/test/java/org/stemnotebook/backend/JournaledCaptureIntegrationTest.kt": "bc1a45f91b29e8784fb767b08ee75858cc933bd1947875a57120898bf3b610a5",
     "android/backend/src/test/java/org/stemnotebook/backend/MotionCaptureTest.kt": "256a7105fe9c0654caf919e9e7e3a7b230bdbaa19f66f3292f0469ca32653b39",
     "android/backend/src/test/java/org/stemnotebook/backend/NativeBackupBoundaryTest.kt": "3d38f785e57253b8d2ee29123d0153040dbd4bdacbbfca97a19fac9807d20d08",
     "android/backend/src/test/java/org/stemnotebook/backend/NotebookBackupJobServiceTest.kt": "f51dd0729641e94b1e8b298ef0e8e605792a8eac983428e9c247344a53963665",
     "android/backend/src/test/java/org/stemnotebook/backend/NotebookBackupsTest.kt": "873e13b2e41cf89a619e42c054928e383137e2fa1560d19a5621aad06712265c",
+    "android/backend/src/test/java/org/stemnotebook/backend/NotebookEnginesTest.kt": "557d6c63090dd0fa8a01bd791f2fac2c132a2115fecbe59b9663ed422d823bcc",
     "android/backend/src/test/java/org/stemnotebook/backend/NotebookRestoresTest.kt": "b0a04dd4ec2ba03f49a535a7ddddea72e6bcf3196bf98fc4dedb8c564865fa4b",
     "android/backend/src/test/java/org/stemnotebook/backend/NotebookRuntimeTest.kt": "d5c1fa3b6e6d4f2790180343a158d182f20ca0a73b9d317a7b0418a1b16f1657",
     "android/backend/src/test/java/org/stemnotebook/backend/NotebookSchedulesTest.kt": "623d976e5b7eaac67927d6c83223d392b3d68cc6a30834717175eef3ba97c3db",
@@ -103,10 +105,12 @@
     "android/settings.gradle.kts": "6436c45283cacfd750b43e199f4ce8703078f5c240db2d0e64b4d702283973c4",
     "bridge/Cargo.toml": "7fa6579766d201ee1d7da8f8dc28f1d7c92a43a4b0417f32804c264b51805b84",
     "bridge/src/backup.rs": "181e42dc57fb616a0df21cd049735d36ad4b63ffcc540fe45640812b3e2ce341",
-    "bridge/src/lib.rs": "0cf62ce4cbde1e53d1aad73fc097901dd03256a2e9963238211689693d8d4d24",
+    "bridge/src/engines.rs": "d561a20ca8a5b14cbb7d0b212c56f0fe86a05a5265b171dd4bd001d0a7251307",
+    "bridge/src/lib.rs": "6815664b4e4b6b774fde0b0737515aa62cdf2a1242452e31c7b1a999633647b2",
     "bridge/src/restore.rs": "64674692a0c3b092f18a813237babeac258dc0ec0ffe1154be6f7040e683208a",
     "bridge/tests/java/BackupBoundarySmoke.java": "0e346d79323233b1bc7e336a50c8560198d17ae73b60520a3dd3e705d3f25830",
-    "bridge/tests/java/BoundarySmoke.java": "9dd1abda6c08c71dc1f6914863e48164e9fe00604c8a2e6848e9f2c1f1f42c43",
+    "bridge/tests/java/BoundarySmoke.java": "756a4b775a3b92d39fd8cabdf9278245941451ebff95e61a3c88193db7f6f737",
+    "bridge/tests/java/EngineBoundarySmoke.java": "d1d6aa32816fe58f48b7e840d91f5ba01766dbfe35e3a1fcf0f7f3218a9675b0",
     "bridge/tests/java/OpenBoundarySmoke.java": "a381cc37286dfafd39d54b5adafc068aad90f6fa10f5825af8bceee0bfd26e28",
     "bridge/tests/java/RestoreBoundarySmoke.java": "b2d839ffd104edcac191f5231def8047e26438ff877d6a9207d57f8b6ff74e8d",
     "bridge/tests/java/shrinker-entry.pro": "6499951820f04a798ac49ad973cb994bcd357e04ae874ae98dbeae709347fcf2",
@@ -145,32 +149,36 @@
     "core/src/export/image_crop.rs": "dbd1e86eb5988dd24c0602b4f36185e19b9f02f59602c33fafbc566b639ae625",
     "core/src/export/source_ink.rs": "e63c1a751651d95b110eda38abedd84c386d54bffce40a8c96c95f4b518064d6",
     "core/src/help.rs": "a829ef9b06668ff734dd5c1b72de00afd76c865f6fd6118dadc84a1d001b2988",
-    "core/src/host.rs": "fa943b500835890dd397b0b27e40701ec60c0f8281c6cbdc8e8bf1d47646620d",
+    "core/src/host.rs": "2e8e339c478e1185697304eca1e718a54a6ba714c55101dbdea9c54519249fdb",
     "core/src/host/backup.rs": "d53b5ccf33babb86b26f986353e663794d7fa6753cf8155dbdfde69dabb73dce",
     "core/src/host/deletion.rs": "57db1f4ef7f3843a839f8a7906fde7b192b6bc6d682e5ea17f85728567f3c2e7",
     "core/src/host/mailbox.rs": "e94e7c33ed3e1c56172ba52f23169a54fa80f55f10f5365caa63b3418626186f",
     "core/src/host/ownership.rs": "4754a1671bfb7410bd741696d5004732fa354f71a2bbb5a5badef40e4098af7f",
     "core/src/host/pdf.rs": "a2234618fcfa05e273402a57eecacb515e517eba27d17211e0dfe5d8b9fdc8da",
-    "core/src/host/recognition.rs": "e88709e221b72aafe84bba860d0f1b735ae43fb2718fe114c82da0eeacdf264e",
-    "core/src/host/recognition/activation.rs": "426a95f49e98415f75cff4afe2b4365ca3491c67a8af9fe33d39cc5213d57c17",
+    "core/src/host/recognition.rs": "9cf78c7eeb7eb18cfc9e9052bafb259a8205a743e50949f28beb2203dfe37a2e",
+    "core/src/host/recognition/activation.rs": "fe429023f3d0c0b14094bb3156ee6ce57e552be3a7e9c013225d6c193331682b",
+    "core/src/host/recognition/stored_activation.rs": "4ed0a737b0dd725fbed2cd209cfd48ab64611539b5b2c3097d9c1baaf0c245cc",
     "core/src/host/restore.rs": "022abbb1934d6443331c6978875b262dff8be43a122cbfdf16271781bcc89530",
+    "core/src/host/runtime.rs": "c8aa8f7880d686577755761db68d0de194434ce0781232a39e23b7e854fa84d7",
     "core/src/ink.rs": "b7188c46a2a72387132b853f8bd33a37b4329b9963547076657278b3aedb2070",
     "core/src/ink/erasure.rs": "61c70a4a04f03231de3e3c0915448afd8cde489feb7377bc68ba6f8a7ae4eb0b",
     "core/src/ink/pressure.rs": "7c47cf97309b898bf865a8b94127739c22810f06565498333683f2ae9b8660ab",
     "core/src/lib.rs": "dd8a3fb56d844e4c1967586e686499b0779319bfa22ea2e888c3bb1eda4b4396",
     "core/src/objects.rs": "071a855f967d86b13f2549667538bf8e90d49003f503d95feed766a52d60440b",
     "core/src/portable.rs": "100cb8272712e8c78f7c769dd1abbf317ed96d734c66803e69fcd32237cf368e",
-    "core/src/processing.rs": "94279e4ec297718ab51fac4d98fbdb6c5ea9338daf306867a6136bb761ed98bb",
+    "core/src/processing.rs": "2aec9dce509038040aa326a78335473c71da96174ae53db720dcd49342ad34b8",
     "core/src/processing/activation.rs": "d10432657a42cf0db035c4535e2bbec07c803a7116c52dc40eeb5b055e945935",
+    "core/src/processing/retirement.rs": "0ecc9b1f7931f3b082fdb62f6b7ddadbe1614aa0341abc3943301006361f9e69",
     "core/src/provisioning.rs": "d372e0dc3e3bdd2ecf620843e61a723d77cfdf80d0ea927bba7d442c91eb2e25",
     "core/src/render.rs": "49efca3a4d906df3c25036e1ab664e089f584b4aca8ff54f0de73a4f2e167cf0",
     "core/src/security.rs": "266a1fa53c490ae501b833fc065a72e73a95e4d8adc5b399e01162c596836ac7",
     "core/src/sources.rs": "54574b289cdb178e0cae3cb6b730a55bbe6689434675b3e79f2f53bef3a48a0d",
-    "core/src/store.rs": "d3e95bcaf587ec146083688c5aa6a9889020c17b88304f664397d7ff4433559d",
+    "core/src/store.rs": "88076047bb6cb586360f65c128d86f79fb54eb82c980f8bc75ae999c3dd35431",
     "core/src/store/authoring.rs": "cfcaf66e00b5c057e13cd424075330b5fd523f04691f1e59f74a8c0ca29b2437",
     "core/src/store/capture_recovery.rs": "e84e9cee04253725b00abc1d28bc9e5909f3818d8c1926cce8f6940cdd263dee",
     "core/src/store/editing.rs": "4616bcc760b178ce9deb15785f0f2d01a1ac60e61d27bb4fd406aa50751602c5",
-    "core/src/store/engines.rs": "4cf6d0470c5450a0c95e24287b80e5d04e8376a134738011bbfe6021d85b3673",
+    "core/src/store/engines.rs": "dca761f32888c73951576aff1d5cc32036a1dd3a32ee28ce112d5bb1a9be4fa7",
+    "core/src/store/engines/activation.rs": "821cb2381ae7331260fed492fc8544a7653e2d2d648ef039865fecd21867dfb6",
     "core/src/store/exercises.rs": "e0ae69684ed6b5aa18aaed2342a9d037c2d216c94eaad7410f28851bc21c8e3d",
     "core/src/store/layers.rs": "2f7fcfe46905e594eb773d9a223667164696da70af3f3a3b466398e7749eeba6",
     "core/src/store/navigation.rs": "314577d93e5602151ecb6270bac5f2874f316d86d254ce1d90ea5e760dbe30f3",
@@ -195,6 +203,7 @@
     "core/tests/crypto_stream.rs": "bb5f6b04731b2fb89d42181fe0f791b2bdc41048fbc959ce392e14782c05b797",
     "core/tests/deletion.rs": "2b0d0ea4205b9f91677f08a16c18fe11ee300bbb7310b12dc03864642c36cb31",
     "core/tests/editing.rs": "60c13a9f8fb6fa7fdcdbd14617b56ca0ece6e6e737ba9d5f09d598180388f747",
+    "core/tests/engine_activation_plan.rs": "7300950debe326984b8bd6dab96209a6eb148be1d6fa963fe3dc5d16bc3dece2",
     "core/tests/engines.rs": "dd1a07bd2a03829621cb311ddeec02087629e033c101435d66179a47df4808ed",
     "core/tests/eraser_batch.rs": "b41db5d153c72852c8faebdf7a70052821c4d7a9f5865b2efd3ef71618e41703",
     "core/tests/eraser_gesture.rs": "12baa2f3088b87ed552ee594d20eebd5a02fabc0f893cad67d253d22eea5b4ae",
@@ -202,9 +211,10 @@
     "core/tests/exercises.rs": "60c72a93dc16e8d42e1fb9327d4de3e7082babdeca2559442007e0b21d7e3e03",
     "core/tests/export.rs": "d1acfbe1f9993519afc273b72ebdb96694222836864773b6746a873c349fa4ae",
     "core/tests/host.rs": "8f8b09914098b325b1e39d1cd2f29721007a30e22821b93a4a22f69dc7698b9c",
-    "core/tests/host_activation.rs": "8d233d5c7e81eebb53783fd1133d767debd3e027ec59ecd81befdd6ec5d0b35b",
+    "core/tests/host_activation.rs": "cd2783a2659f9e380ec95fb82218064ce2f668b94ddbad96a6fea01444e5e8fb",
     "core/tests/host_backup.rs": "7bce2e54b91a7c87674b858e19dbf04e5b2866ccaafede774af83cb4cf92f59d",
     "core/tests/host_deletion.rs": "20eaffe1f0fd2a88ebb2f2547a037cd318601aa86a49639437d722ab1606c8f8",
+    "core/tests/host_engine_activation_plan.rs": "6d4e002025f1a728bbcaa18c886635e3ac19a40c6a8e0f40460f5d1bc34a9859",
     "core/tests/host_pdf.rs": "04a2868e327f8210b68a581fbe2032bd09d1fbe5cd0b17a08a687e501df6f038",
     "core/tests/host_recognition.rs": "8f2f7e13faf1ef35de1ba8367c5e87d5e5a4a424b04a53e6a5de963794f3998b",
     "core/tests/host_restore.rs": "26044b3f7740bef06b05d4184d0896648eba8a00196d609bc727f53200098005",
@@ -220,10 +230,12 @@
     "core/tests/pressure_response.rs": "98b139f9e9b64d00e22d15b0741b1ee8a639e8cfcf15b2371290163433463645",
     "core/tests/processing_work.rs": "206071e2a1a9b6246ecc52d04b112df584918b0ab2745c8b6d6bdec80980c9a1",
     "core/tests/provisioning.rs": "93a934dd4e6301fc12d5ea5e15f1282f2d17fc5911b0b9cc72aa34d1946fb0cd",
+    "core/tests/ready_runtime.rs": "74e4c5f122cf4152d42bb5b408727b86f796e68a07e7f305aa71c19d695cc26d",
     "core/tests/recognition.rs": "ddb25848865fa33e673849ba04183c277cb433c1709ed821905bef56cc2e5df3",
     "core/tests/recovery.rs": "3e797ea4f1a58505b6085316f5523db7892b435e8cbf4b28b4b26bfa03bfaf9a",
     "core/tests/regions.rs": "a49f05d5b3e1d425abcd0fccb15dea283951d6a391306dc702582de4109091b3",
     "core/tests/render.rs": "7b92eb55f450e24fd24940b3e876b90828632171546fab2271b16708919a4bb7",
+    "core/tests/runtime_detachment.rs": "abe16c1bc2d812096ac3f27a109f15b904a4fb65ba85eb200cf3799c2a513661",
     "core/tests/sources.rs": "442dd7fa2ad1b671666c87a3ba291ccfac7fce6719c265be7170dd2f81904b6a",
     "core/tests/stroke_style.rs": "511ca2a516b33b72e276bdd4b45ea5e908352c65f38827bb9c46d35e8a9bfca4",
     "core/tests/workspace.rs": "84f849709d2bfc7d542eaeeaece0be01a0a3be56f6bc1cf9d9abbf9da74a62b9",
@@ -245,6 +257,12 @@
     "docs/decisions/ADR-015-cropped-image-derivatives.md": "a45817d46934f18b7dbc64d6dac5a9d529269aac0515d279bdf1270613fd8b4c",
     "docs/decisions/ADR-016-owned-engine-activation.md": "d3d200d3d5f11063dcbde9a982d71fe9546888f8183415100b64a175245b7d97",
     "docs/decisions/ADR-017-host-owned-activation.md": "e3ae90b7f47cd5650eb0848110935be86429c2d2928e00e81699c69daf4854f6",
+    "docs/decisions/ADR-018-owned-runtime-detachment.md": "2bc75ec3414eee7456d15f5fcff961cb6b2b69432f8ec686d9f8d46f42063975",
+    "docs/decisions/ADR-019-ready-runtime-handoff.md": "037d47b9c3a5469ac0bfb872c07c0cfe02d9c625931d50a3d2a6c75135485ddf",
+    "docs/decisions/ADR-020-stored-activation-plans.md": "19db07ef1020a6e3a998c2a51b1860e16fddab2e98232181ef41d6413f8c4786",
+    "docs/decisions/ADR-021-host-private-runtime-registry.md": "a1319318ebc9a85b053987d097142a96e88312f88fc5cb6adb876f9303e524fc",
+    "docs/decisions/ADR-022-jni-local-recogniser-providers.md": "dc7fdb16a315ea020a5133c6a58680af466540393dbee9a1b38666387ea58402",
+    "docs/decisions/ADR-023-android-optional-engine-controller.md": "bd88ff6f6b8ac7628fd6aace33af416ce48c84651ae505a0e67f05e52c98a213",
     "docs/decisions/owner-authorisation-2026-10-22.md": "4fedeef87589b9028ce27cc4ee64878fae9fdd42cbbe9a8d8c093ca3091c0788",
     "docs/formats/BACKUP_POLICY_STORE.md": "86e0fd1acad565e730be2f8c8a8870020ab822f1e5603858c31f4010fe53b975",
     "docs/formats/BACKUP_PUBLICATION_HISTORY.md": "421c2dd947cc2b2128304fdeebfa801ee873c7b76f27582a5bbf05881536bd0a",
@@ -254,6 +272,7 @@
     "docs/formats/SCHEDULED_BACKUP_FOUNDATIONS.md": "7721f1757739a464ae6261ee8b27461f94d2abb254e6644328539e5b51113db9",
     "docs/formats/SHARED_NOTEBOOK_RUNTIME.md": "4ad8abf6fb22bf15842f4990d1ee3bdb18c7365df84ee7837c35c880c2df7e83",
     "docs/formats/cropped-image-derivative-v1.md": "3889a0c8959fdfa93c485896ab196176a2a8d7df9d2084a282565bf76d6ce2da",
+    "docs/formats/engine-activation-plan-v1.md": "54c13a5e096c945928b65a1480752d7c4336d240880154d9e36587bfeb2c2afd",
     "docs/formats/eraser-gesture-v1.md": "43101d6bf89332844223e9e6bc4fd09560a1d4e0b77a0cb51a4a562ccf437038",
     "docs/formats/full-library-backup-v1.md": "bc30ab921c7cb3afaed7df442ea3ffbe80644966452066d066d3be6fa30d9f74",
     "docs/formats/host-activation-v1.md": "5ef5a59e838c549bc4032329f3112af7f30c389f6594d80ec47c8bde60886832",
@@ -265,6 +284,8 @@
     "docs/formats/native-subset-v9.md": "c6a695b93aa5707bfbc157d31043409da58bf393c9532f0d3cfa9cc06a1d5635",
     "docs/formats/owned-activation-v1.md": "4663e8c8c146ef6c6465dae7ea2570a2bad7de0f352c95af4a37f121b7105883",
     "docs/formats/pressure-response-v1.md": "933bf6a9ec8815b837eddc442817ebfda557b11f076aafcef713473bc44a6e64",
+    "docs/formats/ready-runtime-v1.md": "02197e81e8eff42a6bd61ca85d88ab267be285e6992f10b71712739c444373d0",
+    "docs/formats/runtime-detachment-v1.md": "5d613e9d9a14d49f19ec335ca0712c30703bbd06e82c60ad6db40a31a084dcd6",
     "docs/imported/01_START/WORK_START_PROMPT.md": "8586b5ec6bd1aaa9cd09d74b0b64632c92b64d01e8a2cf2fea16b4c7faf4ea89",
     "docs/imported/02_GOVERNANCE/CURRENT_AUTHORITY_AND_PRECEDENCE.md": "54882f8dd5b69fafb5d3e3ab8279f3e650c08311d984c477da423b716726163e",
     "docs/imported/02_GOVERNANCE/RELEASE_SCOPE_AND_ARCHITECTURE.md": "1f2ff1b29629dc0c823fe7baa518303036802041eae0189b11fc647113fd9721",
@@ -294,19 +315,19 @@
     "docs/licensing/dependency-inventory.json": "c86a26e424db68595a545e056ad6726307d9167b564590ea565bba3e08c05c32",
     "docs/spec/approved-v0.5.8.md": "68612d4dc4d0e69c61f0018fbcf67bf779559bcbb120bcd0f6c3f9333f27b7b3",
     "docs/verification/DEFERRED_MANUAL.md": "c694b9fe185c216204dfd72aa6c55d1f8d21e06c431bb50b126bce1a6b514e1c",
-    "docs/verification/HOST_INTEGRATION.md": "d9ce8070ccc73e4f55ce3d5c736abe330ead837819ef8d068253b83db52ac70b",
+    "docs/verification/HOST_INTEGRATION.md": "362ed81d73d93b53480b6164831c46c583fdf3a7ba1b447db1692513bbf1fc8e",
     "docs/verification/TEST_PLAN.md": "9072e4e45bb15ff1a859d7cab76d45dd9289fbd19ec6556a636afebec2460c82",
-    "docs/verification/backend-gaps.json": "0c82e6fd26b14aa6e33757012af838f580dfc6a1cfc1f5e8e1e2ff6e062a6237",
-    "docs/verification/candidates-current.csv": "fa7541dfc2c62f9f3525cc29a7666ee3eb2c3822ed75f5476f99011c7f65c795",
-    "docs/verification/inherited-current.csv": "9a38fa4f1de098bc6fc3bd7512beec00a3751e03c13d8252f2a0dade8b129713",
-    "docs/verification/requirements-current.csv": "dc885179b7c0fe856b92491bb49955cbbdd17fe7071e3d50d20d958e3ba357e3",
+    "docs/verification/backend-gaps.json": "9153da0bc50e9dd5d4047faec884b8f3ed273c20b13e415c70edc9cceedf87a8",
+    "docs/verification/candidates-current.csv": "4bf682aaa939efc17a52f951613ca91a7687a7a17126001cef10e280e9bfe6f5",
+    "docs/verification/inherited-current.csv": "17f76c87d7a55986b9f3aa4ac038d2e2c91e2fb356f6ea918b0053c570961ebb",
+    "docs/verification/requirements-current.csv": "513fca360826c5febd271c03e9b7e22e9486752629ee8cc0cd98b7328c0dc6b2",
     "docs/verification/traceability-manifest.json": "15d09e00b540a512b8e0b6afd98b06824e93d743d80317963ebe18d91d3adb22",
     "rust-toolchain.toml": "c33d1f0b1b8fda448bea32d7dc867aa64947c87169fd9de7122ffccad1dd80f9",
-    "tools/backend_gate.py": "6c924452f65676d8534651723073555ae5657430c9580e73e87d712e9ad7671b",
+    "tools/backend_gate.py": "ed3a05d915bf3ef7396d0f256e4bad3b0c2853bdf383f2a006ccf7b5e7cf1534",
     "tools/dependency_inventory.py": "51dc9dcd28cab69c8af36b976d65aa67557d6afe8827be162a431d1854232315",
-    "tools/traceability.py": "7c66bc19f076ce25dd9369baeba2298a1c67ab8f66f3fc8a14a0d3931695ae6d",
+    "tools/traceability.py": "e3a6d6deb68056e52ca99d7d931fade23065f890fb49d9f646999d974025f4c6",
     "tools/validate.py": "2a25d3f4c6d487754f7b73bc0f415809cdf9e8416fe9f651f0302522a373711a",
-    "tools/validate_android.py": "db39e2663790d7d807e1a6a50a60480bd69ae09a19930c76819fef29daea0a21",
+    "tools/validate_android.py": "976dd1579ccfe67e67626174d5b2060868bd90902d170ec04e0c7747e5f10771",
     "tools/validate_jni.py": "f94111ea41b4a1d778cf9c9967a2a74251f93515e372b670c50a16c50aa7d45e"
   },
   "checks": [
@@ -321,7 +342,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 1.153,
+      "seconds": 1.254,
       "log": "format.log"
     },
     {
@@ -339,7 +360,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 24.52,
+      "seconds": 23.141,
       "log": "lint.log"
     },
     {
@@ -353,7 +374,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 1277.126,
+      "seconds": 1141.998,
       "log": "tests.log"
     },
     {
@@ -368,7 +389,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 213.896,
+      "seconds": 241.642,
       "log": "release-build.log"
     },
     {
@@ -380,7 +401,7 @@
       ],
       "exit_code": 0,
       "result": "PASS",
-      "seconds": 0.509,
+      "seconds": 0.508,
       "log": "traceability.log"
     }
   ],
@@ -390,19 +411,11 @@
       "result": "ok"
     },
     {
+      "name": "engines::tests::closing_registry_scan_cannot_be_followed_by_late_job_admission",
+      "result": "ok"
+    },
+    {
       "name": "backup::source_asset_validation_tests::source_asset_hash_rejects_text_and_missing_rows",
-      "result": "ok"
-    },
-    {
-      "name": "backup::source_asset_validation_tests::sqlite_chunk_hash_matches_bytes_at_boundaries_and_detects_late_corruption",
-      "result": "ok"
-    },
-    {
-      "name": "backup::streaming::pull::tests::exact_and_next_row_queries_seek_the_rowid_index_instead_of_scanning_a_prefix",
-      "result": "ok"
-    },
-    {
-      "name": "backup::validation::tests::cancellation_inside_semantic_validation_removes_work_indexes",
       "result": "ok"
     },
     {
@@ -410,11 +423,23 @@
       "result": "ok"
     },
     {
-      "name": "backup::validation::tests::containment_depth_cycles_and_retired_entities_keep_the_same_rules",
+      "name": "backup::streaming::pull::tests::exact_and_next_row_queries_seek_the_rowid_index_instead_of_scanning_a_prefix",
+      "result": "ok"
+    },
+    {
+      "name": "backup::source_asset_validation_tests::sqlite_chunk_hash_matches_bytes_at_boundaries_and_detects_late_corruption",
       "result": "ok"
     },
     {
       "name": "backup::validation::tests::checkpoint_checks_busy_readers_and_keeps_sqlite_in_charge_of_stage_io",
+      "result": "ok"
+    },
+    {
+      "name": "backup::validation::tests::cancellation_inside_semantic_validation_removes_work_indexes",
+      "result": "ok"
+    },
+    {
+      "name": "backup::validation::tests::containment_depth_cycles_and_retired_entities_keep_the_same_rules",
       "result": "ok"
     },
     {
@@ -490,6 +515,10 @@
       "result": "ok"
     },
     {
+      "name": "host::runtime::tests::close_rejects_new_leases_and_waits_for_actual_last_lease_then_off_lock_sdk_drop",
+      "result": "ok"
+    },
+    {
       "name": "processing::authority_control_tests::linking_authority_keeps_parent_cancellation_deadline_and_exact_expiry",
       "result": "ok"
     },
@@ -526,19 +555,19 @@
       "result": "ok"
     },
     {
-      "name": "provider_error_payloads_remain_owned_until_completion_retirement_even_after_cancellation",
-      "result": "ok"
-    },
-    {
       "name": "converter_probe_and_abandoned_work_never_invent_ready_state",
       "result": "ok"
     },
     {
-      "name": "synchronous_compatibility_keeps_original_provider_error_for_the_caller",
+      "name": "provider_error_payloads_remain_owned_until_completion_retirement_even_after_cancellation",
       "result": "ok"
     },
     {
       "name": "superseded_and_foreign_completions_cannot_enable_an_engine_or_overwrite_new_state",
+      "result": "ok"
+    },
+    {
+      "name": "synchronous_compatibility_keeps_original_provider_error_for_the_caller",
       "result": "ok"
     },
     {
@@ -698,6 +727,10 @@
       "result": "ok"
     },
     {
+      "name": "full_queue_retains_old_work_and_failed_persistence_can_retry",
+      "result": "ok"
+    },
+    {
       "name": "observed_samples_are_exact_and_invalid_events_leave_capture_recoverable",
       "result": "ok"
     },
@@ -707,10 +740,6 @@
     },
     {
       "name": "scheduler_leases_work_across_threads_and_unwind",
-      "result": "ok"
-    },
-    {
-      "name": "full_queue_retains_old_work_and_failed_persistence_can_retry",
       "result": "ok"
     },
     {
@@ -746,11 +775,11 @@
       "result": "ok"
     },
     {
-      "name": "code_plaintext_is_exact_and_markdown_fence_cannot_be_closed_by_content",
+      "name": "converter_preserves_deliberately_wrong_math_without_solving",
       "result": "ok"
     },
     {
-      "name": "converter_preserves_deliberately_wrong_math_without_solving",
+      "name": "code_plaintext_is_exact_and_markdown_fence_cannot_be_closed_by_content",
       "result": "ok"
     },
     {
@@ -830,7 +859,47 @@
       "result": "ok"
     },
     {
-      "name": "batch_acceptance_is_selected_and_atomic_on_stale_members",
+      "name": "cancelled_converter_commit_preserves_staged_state_and_fresh_converter_flow_succeeds",
+      "result": "ok"
+    },
+    {
+      "name": "changed_resource_and_load_limit_reject_before_replacing_live_engine",
+      "result": "ok"
+    },
+    {
+      "name": "converter_factory_uses_the_same_verified_resource_contract",
+      "result": "ok"
+    },
+    {
+      "name": "factory_panic_and_factory_cancellation_leave_old_runtime_and_metadata_unchanged",
+      "result": "ok"
+    },
+    {
+      "name": "corrupt_stored_identity_resource_or_privacy_metadata_never_invokes_factory",
+      "result": "ok"
+    },
+    {
+      "name": "failed_probe_and_commit_keep_previous_runtime_and_retry_preserves_candidate_holder",
+      "result": "ok"
+    },
+    {
+      "name": "preparation_probes_without_live_manager_borrow_and_commit_publishes_durable_version",
+      "result": "ok"
+    },
+    {
+      "name": "resource_rejection_or_cancel_never_invokes_sdk_factory",
+      "result": "ok"
+    },
+    {
+      "name": "sdk_factory_receives_verified_snapshot_even_when_resource_path_changes_during_load",
+      "result": "ok"
+    },
+    {
+      "name": "typed_factories_reject_the_other_adapter_family_before_construction",
+      "result": "ok"
+    },
+    {
+      "name": "stale_generation_and_foreign_library_cannot_commit_prepared_candidate",
       "result": "ok"
     },
     {
@@ -842,11 +911,15 @@
       "result": "ok"
     },
     {
-      "name": "installed_provenance_and_profiles_reopen_without_fabricated_runtime_readiness",
+      "name": "batch_acceptance_is_selected_and_atomic_on_stale_members",
       "result": "ok"
     },
     {
       "name": "removing_engine_preserves_notebooks_strokes_and_accepted_work",
+      "result": "ok"
+    },
+    {
+      "name": "installed_provenance_and_profiles_reopen_without_fabricated_runtime_readiness",
       "result": "ok"
     },
     {
@@ -922,11 +995,11 @@
       "result": "ok"
     },
     {
-      "name": "existing_membership_survives_heading_confirmation_removal_rename_and_reopen",
+      "name": "failed_extraction_and_reassignment_roll_back_every_membership",
       "result": "ok"
     },
     {
-      "name": "failed_extraction_and_reassignment_roll_back_every_membership",
+      "name": "existing_membership_survives_heading_confirmation_removal_rename_and_reopen",
       "result": "ok"
     },
     {
@@ -950,11 +1023,11 @@
       "result": "ok"
     },
     {
-      "name": "protected_reassignment_carries_lock_even_when_unassigned",
+      "name": "only_confirmed_matching_headings_extract_previously_unassigned_work",
       "result": "ok"
     },
     {
-      "name": "only_confirmed_matching_headings_extract_previously_unassigned_work",
+      "name": "protected_reassignment_carries_lock_even_when_unassigned",
       "result": "ok"
     },
     {
@@ -978,11 +1051,11 @@
       "result": "ok"
     },
     {
-      "name": "derivative_scope_and_fresh_auth_cannot_be_bypassed",
+      "name": "converted_only_export_never_reads_or_discloses_original_ink",
       "result": "ok"
     },
     {
-      "name": "converted_only_export_never_reads_or_discloses_original_ink",
+      "name": "derivative_scope_and_fresh_auth_cannot_be_bypassed",
       "result": "ok"
     },
     {
@@ -998,11 +1071,11 @@
       "result": "ok"
     },
     {
-      "name": "active_call_and_shutdown_drain_hold_ownership_until_original_ink_is_committed",
+      "name": "asynchronous_writer_retry_tickets_and_lock_scopes_are_enforced",
       "result": "ok"
     },
     {
-      "name": "asynchronous_writer_retry_tickets_and_lock_scopes_are_enforced",
+      "name": "active_call_and_shutdown_drain_hold_ownership_until_original_ink_is_committed",
       "result": "ok"
     },
     {
@@ -1014,11 +1087,11 @@
       "result": "ok"
     },
     {
-      "name": "dropped_receipts_still_drain_on_close_and_observers_see_final_closed_state",
+      "name": "failed_host_initialisation_releases_ownership_before_returning",
       "result": "ok"
     },
     {
-      "name": "failed_host_initialisation_releases_ownership_before_returning",
+      "name": "dropped_receipts_still_drain_on_close_and_observers_see_final_closed_state",
       "result": "ok"
     },
     {
@@ -1070,7 +1143,19 @@
       "result": "ok"
     },
     {
+      "name": "detachment_requires_current_host_epoch_and_does_not_remove_ready_engine_after_pen_cancellation",
+      "result": "ok"
+    },
+    {
       "name": "host_and_app_authority_bind_completion_and_locked_app_cannot_reserve_activation",
+      "result": "ok"
+    },
+    {
+      "name": "host_detachment_cleanup_can_reenter_shared_manager_after_controller_unlocks",
+      "result": "ok"
+    },
+    {
+      "name": "host_owned_detached_runtime_keeps_owner_until_off_writer_cleanup_finishes",
       "result": "ok"
     },
     {
@@ -1154,6 +1239,66 @@
       "result": "ok"
     },
     {
+      "name": "close_waits_for_probe_and_actual_cleanup_before_library_can_reopen",
+      "result": "ok"
+    },
+    {
+      "name": "busy_manager_rejects_without_writer_wait_and_preserves_candidate_for_retry",
+      "result": "ok"
+    },
+    {
+      "name": "dropping_unrun_recognition_after_manager_detach_queues_sdk_retirement_off_caller",
+      "result": "ok"
+    },
+    {
+      "name": "host_close_retires_private_manager_off_writer_before_releasing_library",
+      "result": "ok"
+    },
+    {
+      "name": "host_factory_runs_off_writer_and_remains_owned_until_cancelled_construction_returns",
+      "result": "ok"
+    },
+    {
+      "name": "host_publication_installs_runtime_and_durable_metadata_and_rejects_replay",
+      "result": "ok"
+    },
+    {
+      "name": "host_private_runtime_recognises_into_a_review_without_rewriting_source",
+      "result": "ok"
+    },
+    {
+      "name": "idle_prepared_disposal_is_off_writer_and_holds_owner_until_cleanup",
+      "result": "ok"
+    },
+    {
+      "name": "metadata_reservation_is_bounded_and_never_probes_or_marks_installed",
+      "result": "ok"
+    },
+    {
+      "name": "pen_cancellation_prevents_host_publication_after_preparation",
+      "result": "ok"
+    },
+    {
+      "name": "probe_is_off_writer_and_pen_cancellation_never_revives_a_prepared_candidate",
+      "result": "ok"
+    },
+    {
+      "name": "queued_publication_does_not_lock_registry_while_writer_authenticates",
+      "result": "ok"
+    },
+    {
+      "name": "relock_cancels_old_metadata_plan_and_locked_app_cannot_reserve_new_plan",
+      "result": "ok"
+    },
+    {
+      "name": "publication_rejects_foreign_scope_and_stale_generation_without_installing",
+      "result": "ok"
+    },
+    {
+      "name": "replaced_runtime_cleanup_is_off_writer_and_keeps_library_ownership",
+      "result": "ok"
+    },
+    {
       "name": "changed_revision_can_be_reacquired_from_revoked_state_without_silent_anchor_relocation",
       "result": "ok"
     },
@@ -1174,6 +1319,10 @@
       "result": "ok"
     },
     {
+      "name": "independent_pdf_retention_survives_source_revoke_but_not_its_own_revoke_or_locks",
+      "result": "ok"
+    },
+    {
       "name": "read_and_revision_tokens_are_bounded_private_and_revision_checked",
       "result": "ok"
     },
@@ -1183,10 +1332,6 @@
     },
     {
       "name": "relock_scope_changes_and_failed_authentication_retire_old_capabilities",
-      "result": "ok"
-    },
-    {
-      "name": "independent_pdf_retention_survives_source_revoke_but_not_its_own_revoke_or_locks",
       "result": "ok"
     },
     {
@@ -1206,11 +1351,11 @@
       "result": "ok"
     },
     {
-      "name": "selection_requires_fresh_verification_on_acceptance_and_rejection_is_single_use",
+      "name": "retained_pdf_streaming_is_explicit_atomic_bounded_and_content_checked",
       "result": "ok"
     },
     {
-      "name": "retained_pdf_streaming_is_explicit_atomic_bounded_and_content_checked",
+      "name": "selection_requires_fresh_verification_on_acceptance_and_rejection_is_single_use",
       "result": "ok"
     },
     {
@@ -1670,6 +1815,26 @@
       "result": "ok"
     },
     {
+      "name": "candidate_probe_can_reenter_existing_registry_before_publication",
+      "result": "ok"
+    },
+    {
+      "name": "failed_candidate_keeps_old_engine_and_unready_transfer_has_no_effect",
+      "result": "ok"
+    },
+    {
+      "name": "extraction_freezes_source_work_and_abandoned_holder_disposes_candidate",
+      "result": "ok"
+    },
+    {
+      "name": "family_mismatch_preserves_both_holders_and_unsupported_tasks_have_no_fallback",
+      "result": "ok"
+    },
+    {
+      "name": "replacement_invalidates_old_work_but_keeps_it_pinned_and_preserves_compatible_default",
+      "result": "ok"
+    },
+    {
       "name": "failed_resource_reverification_clears_previous_readiness",
       "result": "ok"
     },
@@ -1710,11 +1875,11 @@
       "result": "ok"
     },
     {
-      "name": "stored_proposal_cannot_rebind_protected_output_to_a_public_block",
+      "name": "stored_proposal_identity_mismatch_cannot_acknowledge_a_correction",
       "result": "ok"
     },
     {
-      "name": "stored_proposal_identity_mismatch_cannot_acknowledge_a_correction",
+      "name": "stored_proposal_cannot_rebind_protected_output_to_a_public_block",
       "result": "ok"
     },
     {
@@ -1763,6 +1928,26 @@
     },
     {
       "name": "unicode_maths_and_paginated_text_produce_real_pdf_with_embedded_fonts",
+      "result": "ok"
+    },
+    {
+      "name": "converter_work_pins_detached_runtime_and_synchronous_remove_still_disposes_idle_adapters",
+      "result": "ok"
+    },
+    {
+      "name": "detached_cleanup_can_reenter_the_manager_after_lock_release",
+      "result": "ok"
+    },
+    {
+      "name": "detach_disables_selection_without_destroying_adapter_and_old_inference_cannot_run",
+      "result": "ok"
+    },
+    {
+      "name": "dropping_detached_holder_is_not_a_false_acknowledgement_of_running_worker_resource_retirement",
+      "result": "ok"
+    },
+    {
+      "name": "reused_identifier_does_not_accept_old_activation_or_restore_removed_default",
       "result": "ok"
     },
     {
@@ -1875,9 +2060,9 @@
     }
   ],
   "backend_accepted": false,
-  "finished_utc": "2026-10-26T02:12:43.723640+00:00",
+  "finished_utc": "2026-10-26T05:12:15.135076+00:00",
   "totals": {
-    "passed": 372,
+    "passed": 413,
     "failed": 0,
     "ignored": 0
   }
