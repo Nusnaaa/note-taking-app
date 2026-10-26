@@ -454,6 +454,11 @@ enum Message {
     RecognitionSource(Id, Option<Id>, mpsc::Sender<Result<RecognitionSource>>),
     ActivationSource(mpsc::Sender<Result<HostActivationSource>>),
     EngineActivationPlan(Id, mpsc::Sender<Result<HostEngineActivationPlan>>),
+    StageResourceFreeEngine(
+        Box<crate::processing::Descriptor>,
+        bool,
+        mpsc::Sender<Result<crate::store::EngineVersion>>,
+    ),
     PublishEngine(recognition::EnginePublication, mpsc::Sender<Result<()>>),
     DetachmentSource(mpsc::Sender<Result<HostDetachmentSource>>),
     PublishRecognition(
@@ -603,6 +608,23 @@ impl Host {
                                         &mut store,
                                         &access,
                                         publication,
+                                    )
+                                }))
+                                .unwrap_or(Err(Error::WorkerFailed));
+                            let _ =
+                                input.complete(envelope.authoring, envelope.bytes, result.is_err());
+                            let _ = reply.send(result);
+                        }
+                        Message::StageResourceFreeEngine(descriptor, consented, reply) => {
+                            let result =
+                                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                                    store.stage_engine(
+                                        *descriptor,
+                                        None,
+                                        std::path::Path::new(""),
+                                        0,
+                                        consented,
+                                        &access,
                                     )
                                 }))
                                 .unwrap_or(Err(Error::WorkerFailed));
@@ -832,6 +854,28 @@ impl Host {
         let (tx, rx) = mpsc::channel();
         self.mailbox
             .admit(Message::DetachmentSource(tx), false, 128)?;
+        rx.recv().map_err(|_| Error::WorkerFailed)?
+    }
+    /// Trusted explicit installation of a compiled adapter without a model file.
+    /// Resource-backed imports require their independent local staging workflow.
+    pub fn stage_resource_free_engine(
+        &self,
+        descriptor: crate::processing::Descriptor,
+        consented: bool,
+    ) -> Result<crate::store::EngineVersion> {
+        if descriptor.resource_sha256.is_some() {
+            return Err(Error::Invalid("resource-free engine"));
+        }
+        let bytes = serde_json::to_vec(&descriptor)?.len();
+        if bytes > 65536 {
+            return Err(Error::ResourceLimit);
+        }
+        let (tx, rx) = mpsc::channel();
+        self.mailbox.admit(
+            Message::StageResourceFreeEngine(Box::new(descriptor), consented, tx),
+            true,
+            bytes + 128,
+        )?;
         rx.recv().map_err(|_| Error::WorkerFailed)?
     }
     /// Capture stored version metadata and reserve optional preparation work.

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.RestoreStageLifecycleTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-26T04:14:42" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="19.437">
+  <properties/>
+  <testcase name="unclassifiedBytesCanOnlyBePreservedInQuarantineAndAreDiscoverableAfterRestart" classname="org.stemnotebook.backend.RestoreStageLifecycleTest" time="0.113"/>
+  <testcase name="confirmedKnownDiscardUnblocksRestoreAndPreservesOriginalDrafts" classname="org.stemnotebook.backend.RestoreStageLifecycleTest" time="9.176"/>
+  <testcase name="cancellationBeforeTransferRetainsOwnershipAndLeavesSourceUntouched" classname="org.stemnotebook.backend.RestoreStageLifecycleTest" time="0.229"/>
+  <testcase name="actualAbruptNativeStageExitLeavesOnlyExplicitlyReviewedScratchForDiscard" classname="org.stemnotebook.backend.RestoreStageLifecycleTest" time="9.277"/>
+  <testcase name="inspectingAHardlinkedDatabaseNeverOpensRawPayloadDescriptorsOrDisturbsWriterLocks" classname="org.stemnotebook.backend.RestoreStageLifecycleTest" time="0.088"/>
+  <testcase name="closeAfterTransferPreservesAnUncertainReceiptAndRestartCanFinishKnownDiscard" classname="org.stemnotebook.backend.RestoreStageLifecycleTest" time="0.257"/>
+  <testcase name="falseOrStaleVerificationCannotDeleteChangedBytes" classname="org.stemnotebook.backend.RestoreStageLifecycleTest" time="0.079"/>
+  <testcase name="nativeRestoreReservationAndAccessEpochExcludeInvalidOrForeignReviews" classname="org.stemnotebook.backend.RestoreStageLifecycleTest" time="0.126"/>
+  <testcase name="paginationCursorsAreOpaqueAndInvalidatedByAccessChanges" classname="org.stemnotebook.backend.RestoreStageLifecycleTest" time="0.092"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

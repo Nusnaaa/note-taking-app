@@ -14,6 +14,74 @@ public final class NativeBridge {
     /** Trusted observed-contact hint, no content or persistence acknowledgement. */
     public static native void setCapturePriority(long handle, String session, boolean active);
     public static native String recognitionStatus(long handle);
+    /** Trusted app-compiled descriptor only, with explicit installation consent.
+     * This stages no model file and does not establish runtime readiness. */
+    public static native String stageResourceFreeEngine(long handle, String descriptor, boolean confirmed);
+    private static native long beginEngineActivation(long host, String version, long maxLoadBytes, long budgetMillis);
+    private static native long beginEngineRecognition(long host, String block, String region, String task, String engine, long budgetMillis);
+    private static native void runEngineActivation(long host, long token, RecogniserFactory factory);
+    private static native String runEngineRecognition(long host, long token);
+    private static native void releaseEngineJob(long host, long token);
+    private static native boolean checkEngineControl(long token);
+    /** Valid only during its callback. Retaining it cannot extend authority. */
+    public static final class EngineControl {
+        private final long token;
+        private EngineControl(long token) { this.token=token; }
+        public boolean active() { return checkEngineControl(token); }
+        public void check() { if(!active()) throw engineFailure(); }
+    }
+    /** SDK construction runs on the optional caller worker, after integrity and
+     * consent checks. Resource bytes are wiped after create returns. Load them or
+     * keep a protected copy before returning; null means no staged resource.
+     * A throwing factory must retire every partially constructed SDK itself.
+     * No network, telemetry or raster requirement is permitted. */
+    public interface RecogniserFactory {
+        Recogniser create(String descriptor, byte[] verifiedResource, EngineControl control) throws Exception;
+    }
+    /** Trusted local ordered digital-ink adapter. Output is RecognitionOutput
+     * JSON; core validates modality, bounds and freshness before storing review.
+     * retire must release every owned SDK resource before returning, including
+     * when it throws. Other SDK clones are outside this cooperative contract. */
+    public interface Recogniser {
+        void probe(EngineControl control) throws Exception;
+        String recognise(String orderedInk, String task, EngineControl control) throws Exception;
+        void retire() throws Exception;
+    }
+    private static IllegalStateException engineFailure() { return new IllegalStateException("Native notebook operation failed"); }
+    /** All begin/run calls belong on an optional worker, never the authoring
+     * executor. Close cancels; it does not acknowledge global SDK retirement. */
+    public static final class EngineJob implements AutoCloseable {
+        private final long host, token;
+        private final boolean activation;
+        private boolean started, closed;
+        private EngineJob(long host, long token, boolean activation) { this.host=host; this.token=token; this.activation=activation; }
+        private synchronized void start(boolean expected) { if(started || closed || expected!=activation) throw engineFailure(); started=true; }
+        public void activate(RecogniserFactory factory) {
+            start(true);
+            try { if(factory==null) throw engineFailure(); runEngineActivation(host,token,factory); }
+            finally { close(); }
+        }
+        /** Returns a durable pending proposal; source ink is unchanged. */
+        public String recognise() {
+            start(false);
+            try { return runEngineRecognition(host,token); }
+            finally { close(); }
+        }
+        @Override public void close() {
+            synchronized(this) { if(closed) return; closed=true; }
+            releaseEngineJob(host,token);
+        }
+    }
+    public static EngineJob engineActivation(long host, String version, long maxLoadBytes, long budgetMillis) {
+        long token=beginEngineActivation(host,version,maxLoadBytes,budgetMillis);
+        try { return new EngineJob(host,token,true); }
+        catch(Throwable failure) { releaseEngineJob(host,token); throw failure; }
+    }
+    public static EngineJob engineRecognition(long host, String block, String region, String task, String engine, long budgetMillis) {
+        long token=beginEngineRecognition(host,block,region,task,engine,budgetMillis);
+        try { return new EngineJob(host,token,false); }
+        catch(Throwable failure) { releaseEngineJob(host,token); throw failure; }
+    }
     public interface Verification { boolean verify(String challenge); }
     public static native void authenticate(long handle, String scopes, Verification verification);
     /** Trusted provider observation; never populated from JSON or supplied by model code. */

@@ -1,0 +1,81 @@
+    Checking stem-core v0.1.0 (/tmp/stem-jni-engines-work/core)
+    Checking stem-bridge v0.1.0 (/tmp/stem-jni-engines-work/bridge)
+error[E0277]: the trait bound `stem_core::Error: From<jni::errors::Error>` is not satisfied
+   --> bridge/src/engines.rs:101:13
+    |
+101 |         env.with_local_frame(8, |env| -> Result<()> {
+    |             ^^^^^^^^^^^^^^^^ the trait `From<jni::errors::Error>` is not implemented for `stem_core::Error`
+    |
+    = help: the following other types implement trait `From<T>`:
+              `stem_core::Error` implements `From<rusqlite::error::Error>`
+              `stem_core::Error` implements `From<serde_json::Error>`
+              `stem_core::Error` implements `From<std::io::Error>`
+note: required by a bound in `JNIEnv::<'local>::with_local_frame`
+   --> /tmp/stem-cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jni-0.21.1/src/wrapper/jnienv.rs:849:12
+    |
+846 |     pub fn with_local_frame<F, T, E>(&mut self, capacity: i32, f: F) -> std::result::Result<T, E>
+    |            ---------------- required by a bound in this associated function
+...
+849 |         E: From<Error>,
+    |            ^^^^^^^^^^^ required by this bound in `JNIEnv::<'local>::with_local_frame`
+
+error[E0277]: the trait bound `stem_core::Error: From<jni::errors::Error>` is not satisfied
+   --> bridge/src/engines.rs:135:13
+    |
+135 |         env.with_local_frame(12, |env| -> Result<RecognitionOutput> {
+    |             ^^^^^^^^^^^^^^^^ the trait `From<jni::errors::Error>` is not implemented for `stem_core::Error`
+    |
+    = help: the following other types implement trait `From<T>`:
+              `stem_core::Error` implements `From<rusqlite::error::Error>`
+              `stem_core::Error` implements `From<serde_json::Error>`
+              `stem_core::Error` implements `From<std::io::Error>`
+note: required by a bound in `JNIEnv::<'local>::with_local_frame`
+   --> /tmp/stem-cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jni-0.21.1/src/wrapper/jnienv.rs:849:12
+    |
+846 |     pub fn with_local_frame<F, T, E>(&mut self, capacity: i32, f: F) -> std::result::Result<T, E>
+    |            ---------------- required by a bound in this associated function
+...
+849 |         E: From<Error>,
+    |            ^^^^^^^^^^^ required by this bound in `JNIEnv::<'local>::with_local_frame`
+
+error[E0308]: mismatched types
+   --> bridge/src/engines.rs:142:68
+    |
+142 |             let text = bounded_string(env, &JString::from(output), MAX_JSON).ok_or(Error::ResourceLimit)?;
+    |                        --------------                              ^^^^^^^^ expected `i32`, found `usize`
+    |                        |
+    |                        arguments to this function are incorrect
+    |
+note: function defined here
+   --> bridge/src/lib.rs:263:4
+    |
+263 | fn bounded_string(env: &mut JNIEnv<'_>, value: &JString<'_>, maximum: i32) -> Option<String> {
+    |    ^^^^^^^^^^^^^^                                            ------------
+help: you can convert a `usize` to an `i32` and panic if the converted value doesn't fit
+    |
+142 |             let text = bounded_string(env, &JString::from(output), MAX_JSON.try_into().unwrap()).ok_or(Error::ResourceLimit)?;
+    |                                                                            ++++++++++++++++++++
+
+error[E0277]: the trait bound `stem_core::Error: From<jni::errors::Error>` is not satisfied
+   --> bridge/src/engines.rs:190:9
+    |
+190 |     env.with_local_frame(12, |env| -> Result<Box<dyn Recogniser>> {
+    |         ^^^^^^^^^^^^^^^^ the trait `From<jni::errors::Error>` is not implemented for `stem_core::Error`
+    |
+    = help: the following other types implement trait `From<T>`:
+              `stem_core::Error` implements `From<rusqlite::error::Error>`
+              `stem_core::Error` implements `From<serde_json::Error>`
+              `stem_core::Error` implements `From<std::io::Error>`
+note: required by a bound in `JNIEnv::<'local>::with_local_frame`
+   --> /tmp/stem-cargo/registry/src/index.crates.io-1949cf8c6b5b557f/jni-0.21.1/src/wrapper/jnienv.rs:849:12
+    |
+846 |     pub fn with_local_frame<F, T, E>(&mut self, capacity: i32, f: F) -> std::result::Result<T, E>
+    |            ---------------- required by a bound in this associated function
+...
+849 |         E: From<Error>,
+    |            ^^^^^^^^^^^ required by this bound in `JNIEnv::<'local>::with_local_frame`
+
+Some errors have detailed explanations: E0277, E0308.
+For more information about an error, try `rustc --explain E0277`.
+error: could not compile `stem-bridge` (lib) due to 4 previous errors
+warning: build failed, waiting for other jobs to finish...

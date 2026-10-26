@@ -1,0 +1,13 @@
+    Checking stem-core v0.1.0 (/tmp/stem-jni-engines-work/core)
+    Checking stem-bridge v0.1.0 (/tmp/stem-jni-engines-work/bridge)
+warning: unused variable: `max_load`
+   --> bridge/src/engines.rs:457:36
+    |
+457 |         let Work::Activation(plan, max_load) = work else {
+    |                                    ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_max_load`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: `stem-bridge` (lib) generated 1 warning
+warning: `stem-bridge` (lib test) generated 1 warning (1 duplicate)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.57s

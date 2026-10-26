@@ -24,3 +24,12 @@
 -keepclassmembers class * implements org.stemnotebook.backend.NativeBridge$BackupAuthorization {
     public boolean verify(java.lang.String, int, java.lang.String, java.lang.String, boolean);
 }
+
+-keepclassmembers class * implements org.stemnotebook.backend.NativeBridge$RecogniserFactory {
+    public org.stemnotebook.backend.NativeBridge$Recogniser create(java.lang.String, byte[], org.stemnotebook.backend.NativeBridge$EngineControl);
+}
+-keepclassmembers class * implements org.stemnotebook.backend.NativeBridge$Recogniser {
+    public void probe(org.stemnotebook.backend.NativeBridge$EngineControl);
+    public java.lang.String recognise(java.lang.String, java.lang.String, org.stemnotebook.backend.NativeBridge$EngineControl);
+    public void retire();
+}

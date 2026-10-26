@@ -480,6 +480,11 @@ impl RecognitionSource {
 pub struct HostRecognitionWork {
     slot: Arc<Slot>,
 }
+impl Drop for HostRecognitionWork {
+    fn drop(&mut self) {
+        self.slot.cancel_idle();
+    }
+}
 struct RunningGuard {
     slot: Arc<Slot>,
 }

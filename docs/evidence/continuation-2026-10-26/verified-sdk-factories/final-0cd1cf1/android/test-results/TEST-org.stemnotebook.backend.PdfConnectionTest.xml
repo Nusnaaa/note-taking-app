@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.PdfConnectionTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-26T04:14:25" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="0.105">
+  <properties/>
+  <testcase name="usesFreshIsolatedBindingWithoutSourceOrNotebookMetadataAndStopsOnClose" classname="org.stemnotebook.backend.PdfConnectionTest" time="0.063"/>
+  <testcase name="closeRacingABlockingBindUnbindsItsLateRegistrationExactlyOnce" classname="org.stemnotebook.backend.PdfConnectionTest" time="0.042"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,9 @@
+   Compiling stem-bridge v0.1.0 (/tmp/stem-jni-engines-work/bridge)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.61s
+     Running unittests src/lib.rs (/tmp/stem-pen-response-target/debug/deps/stem_bridge-8a8ae9df0e79b094)
+
+running 1 test
+test engines::tests::closing_registry_scan_cannot_be_followed_by_late_job_admission ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.04s
+

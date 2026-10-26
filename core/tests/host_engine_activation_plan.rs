@@ -661,3 +661,36 @@ fn host_factory_runs_off_writer_and_remains_owned_until_cancelled_construction_r
     assert_eq!(calls.load(Ordering::Acquire), 0);
     closer.join().unwrap().unwrap();
 }
+
+#[test]
+fn dropping_unrun_recognition_after_manager_detach_queues_sdk_retirement_off_caller() {
+    let (root, h, _) = fixture(8);
+    let block = ink_block(&h);
+    let (cleanup, entered, release) = gate();
+    let (adapter, _) = model(None, Some(cleanup));
+    let mut manager = Manager::new();
+    manager.register_recogniser(descriptor(), adapter).unwrap();
+    manager.activate_local("synthetic", None, true).unwrap();
+    let work = h
+        .recognition_source(block, None)
+        .unwrap()
+        .prepare(&manager, Task::Prose, Some("synthetic"))
+        .unwrap();
+    drop(manager.detach("synthetic").unwrap());
+    drop(work);
+    assert_ne!(
+        entered.recv_timeout(Duration::from_secs(10)).unwrap(),
+        thread::current().id()
+    );
+    call(
+        &h,
+        Command::Help {
+            topic: stem_core::help::Topic::Recognition,
+        },
+    );
+    let closing = Arc::clone(&h);
+    let closer = thread::spawn(move || closing.close().unwrap());
+    assert!(Host::open(root.path().join("library.db"), 8).is_err());
+    release.send(()).unwrap();
+    closer.join().unwrap();
+}
