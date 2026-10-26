@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.BackendWriterTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-26T11:36:53" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="0.019">
+  <properties/>
+  <testcase name="unusedWriterClosesWithoutStartingAThread" classname="org.stemnotebook.backend.BackendWriterTest" time="0.003"/>
+  <testcase name="actionFailuresRetireCapacityAndAuthoringAttentionIsSticky" classname="org.stemnotebook.backend.BackendWriterTest" time="0.004"/>
+  <testcase name="cancelledObservationAndShutdownCannotRetractAdmittedInkOrInterruptRunningWork" classname="org.stemnotebook.backend.BackendWriterTest" time="0.003"/>
+  <testcase name="reservedCountsIncludeRunningWorkAndQueuedReadsYieldToFifoEdits" classname="org.stemnotebook.backend.BackendWriterTest" time="0.002"/>
+  <testcase name="byteBudgetsCannotBorrowAcrossLanesAndRecoverOnlyAfterActualCompletion" classname="org.stemnotebook.backend.BackendWriterTest" time="0.003"/>
+  <testcase name="subscriptionsCoalesceAndWakeWithoutObserverCallbacksOnWriter" classname="org.stemnotebook.backend.BackendWriterTest" time="0.004"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
