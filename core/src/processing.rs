@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 mod activation;
 pub use activation::{ActivationWork, CompletedActivation};
 mod retirement;
-pub use retirement::DetachedRuntime;
+pub use retirement::{DetachedRuntime, ReadyRuntime};
 use std::{
     collections::BTreeMap,
     sync::{

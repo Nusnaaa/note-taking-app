@@ -1,0 +1,17 @@
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on build directory
+    Checking stem-core v0.1.0 (/tmp/stem-runtime-handoff-work/core)
+    Checking stem-bridge v0.1.0 (/tmp/stem-runtime-handoff-work/bridge)
+error: unused import: `content::Content`
+  --> core/tests/ready_runtime.rs:11:5
+   |
+11 |     content::Content,
+   |     ^^^^^^^^^^^^^^^^
+   |
+   = note: `-D unused-imports` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(unused_imports)]`
+
+error: could not compile `stem-core` (test "ready_runtime") due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
