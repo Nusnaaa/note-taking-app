@@ -2,6 +2,8 @@
 //! This manager does not download code, open sockets, or own document storage.
 use crate::{content::Content, digest, store::InkSnapshot, Error, Result};
 use serde::{Deserialize, Serialize};
+mod activation;
+pub use activation::{ActivationWork, CompletedActivation};
 use std::{
     collections::BTreeMap,
     sync::{
@@ -176,6 +178,7 @@ pub trait Converter: Send + Sync {
         -> Result<Converted>;
 }
 
+#[derive(Clone)]
 enum Adapter {
     Recogniser(Arc<dyn Recogniser>),
     Converter(Arc<dyn Converter>),
@@ -185,6 +188,7 @@ struct Entry {
     adapter: Adapter,
     readiness: Readiness,
     validity: Arc<AtomicBool>,
+    activation_epoch: Arc<AtomicBool>,
 }
 impl Entry {
     fn new(descriptor: Descriptor, adapter: Adapter, readiness: Readiness) -> Self {
@@ -194,10 +198,12 @@ impl Entry {
             adapter,
             readiness,
             validity,
+            activation_epoch: Arc::new(AtomicBool::new(false)),
         }
     }
     fn retire(&self) {
         self.validity.store(false, Ordering::Release);
+        self.activation_epoch.store(false, Ordering::Release);
     }
 }
 #[derive(Default)]
@@ -367,41 +373,12 @@ impl Manager {
         resource: Option<&[u8]>,
         consented: bool,
     ) -> Result<()> {
-        if !consented {
-            return Err(Error::Denied);
+        let work = self.prepare_activation(id, resource, consented)?;
+        let mut completed = work.run_unbounded();
+        let result = self.complete_activation(&mut completed);
+        if let Some(error) = completed.take_legacy_error() {
+            return Err(error);
         }
-        let entry = self.entries.get_mut(id).ok_or(Error::EngineUnavailable)?;
-        // Re-verification starts fail-closed. A failed resource check cannot leave
-        // stale Ready state from a previous activation. Updates will later stage
-        // separate old/new entries; this operation revalidates this exact entry.
-        entry.retire();
-        entry.validity = Arc::new(AtomicBool::new(false));
-        entry.readiness = Readiness::Failed;
-        if let Some(expected) = &entry.descriptor.resource_sha256 {
-            if resource.is_none_or(|r| digest(r) != *expected) {
-                return Err(Error::Integrity);
-            }
-        } else if resource.is_some() {
-            return Err(Error::Invalid("unexpected model data"));
-        }
-        let result = match &entry.adapter {
-            Adapter::Recogniser(r) => {
-                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| r.probe()))
-                    .map_err(|_| Error::WorkerFailed)
-                    .and_then(|result| result)
-            }
-            Adapter::Converter(c) => {
-                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| c.probe()))
-                    .map_err(|_| Error::WorkerFailed)
-                    .and_then(|r| r)
-            }
-        };
-        entry.validity.store(result.is_ok(), Ordering::Release);
-        entry.readiness = if result.is_ok() {
-            Readiness::Ready
-        } else {
-            Readiness::Failed
-        };
         result
     }
     pub fn readiness(&self, id: &str) -> Readiness {

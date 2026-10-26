@@ -1,0 +1,104 @@
+    Blocking waiting for file lock on build directory
+   Compiling stem-core v0.1.0 (/tmp/stem-owned-activation-work/core)
+    Finished `test` profile [unoptimized] target(s) in 50.78s
+     Running tests/activation_work.rs (/tmp/stem-activation-target/debug/deps/activation_work-5627be0ac685519f)
+
+running 7 tests
+test superseded_and_foreign_completions_cannot_enable_an_engine_or_overwrite_new_state ... ok
+test consent_failure_preserves_ready_but_failed_integrity_reverification_retires_old_readiness ... ok
+test cancellation_before_probe_or_after_probe_prevents_readiness_and_probe_failures_are_contained ... ok
+test synchronous_compatibility_keeps_original_provider_error_for_the_caller ... ok
+test provider_error_payloads_remain_owned_until_completion_retirement_even_after_cancellation ... ok
+test converter_probe_and_abandoned_work_never_invent_ready_state ... ok
+test blocked_probe_releases_manager_borrow_and_removal_keeps_adapter_until_completion_retirement ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/converters.rs (/tmp/stem-activation-target/debug/deps/converters-894504b75b460596)
+
+running 4 tests
+test code_plaintext_is_exact_and_markdown_fence_cannot_be_closed_by_content ... ok
+test converter_preserves_deliberately_wrong_math_without_solving ... ok
+test offline_help_covers_recovery_and_unsearchable_ink_without_remote_dependency ... ok
+test unsupported_maths_is_reported_and_xml_is_escaped ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/engines.rs (/tmp/stem-activation-target/debug/deps/engines-743d545642f32c8b)
+
+running 7 tests
+test resource_installation_requires_consent_digest_and_bounded_streaming ... ok
+test converters_have_durable_staged_lifecycle_and_failed_probe_preserves_previous ... ok
+test removing_engine_preserves_notebooks_strokes_and_accepted_work ... ok
+test staged_probe_or_commit_failure_keeps_previous_verified_engine ... ok
+test installed_provenance_and_profiles_reopen_without_fabricated_runtime_readiness ... ok
+test another_connection_changing_state_during_probe_prevents_stale_activation ... ok
+test batch_acceptance_is_selected_and_atomic_on_stale_members ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+     Running tests/host_recognition.rs (/tmp/stem-activation-target/debug/deps/host_recognition-3ceb64efdd121fe8)
+
+running 18 tests
+test host_close_invalidates_prepared_work_while_pending_reviews_remain_explicit ... ok
+test reentrant_close_from_model_callback_cancels_without_self_join ... ok
+test idle_runtime_cleanup_is_off_writer_and_reentrant_close_never_releases_ownership_early ... ok
+test blocked_inference_never_holds_writer_and_relock_rejects_late_output ... ok
+test excessive_trusted_capture_sessions_disable_optional_work_but_preserve_authoring ... ok
+test capture_priority_reaches_a_running_adapter_and_does_not_wait_for_it_to_save_ink ... ok
+test completed_work_cannot_resurrect_after_relock_reauthentication_or_reopen ... ok
+test capture_priority_cancels_old_work_and_nested_contacts_never_resume_each_other ... ok
+test processing_admission_counts_unrun_sources_and_close_retires_them_without_waiting_for_callers ... ok
+test batch_acceptance_spanning_documents_records_independent_document_undo ... ok
+test pending_reviews_are_discoverable_after_restart_without_a_loaded_model_and_hide_locked_source ... ok
+test overlapping_region_or_whole_block_selections_leave_every_review_pending ... ok
+test host_manual_recognition_review_correction_and_acceptance_preserve_original_ink ... ok
+test selected_regions_publish_independent_reviews_and_explicit_batch_acceptance_is_atomic ... ok
+test cancelled_stale_unscoped_and_forged_results_cannot_publish ... ok
+test source_permissions_are_current_and_review_cannot_bypass_a_block_lock ... ok
+test shutdown_keeps_library_ownership_until_blocked_worker_really_retires ... ok
+test encoded_source_byte_budget_is_independent_of_job_count_and_does_not_evict_input ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 11.22s
+
+     Running tests/processing_work.rs (/tmp/stem-activation-target/debug/deps/processing_work-54062d797726a3ee)
+
+running 4 tests
+test converter_work_is_owned_cancelled_by_retirement_and_contains_format_panics ... ok
+test running_work_observes_removal_and_pins_resources_until_actual_worker_retirement ... ok
+test prepared_work_freezes_engine_choice_and_keeps_explicit_proposal_acceptance ... ok
+test removal_failed_reverification_and_manager_drop_invalidate_prepared_work ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests/provisioning.rs (/tmp/stem-activation-target/debug/deps/provisioning-5fd38038ae88ec17)
+
+running 6 tests
+test active_resource_lease_prevents_deletion_until_worker_releases_it ... ok
+test worker_file_clone_keeps_resource_reserved_after_owner_is_dropped ... ok
+test cloned_worker_reservations_survive_thread_transfer_until_the_last_handle_retires ... ok
+test incomplete_hash_mismatch_and_no_consent_do_not_activate_resources ... ok
+test resume_discards_only_unacknowledged_tail_after_simulated_interruption ... ok
+test local_install_resume_retry_and_integrity_precede_publication ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/recognition.rs (/tmp/stem-activation-target/debug/deps/recognition-369e5d9b7e83f2da)
+
+running 13 tests
+test incompatible_raster_egress_and_unreviewed_licence_are_rejected ... ok
+test failed_resource_reverification_clears_previous_readiness ... ok
+test readiness_requires_consent_integrity_and_actual_probe ... ok
+test cancel_timeout_and_worker_panic_discard_results ... ok
+test panicking_model_probe_becomes_failed_readiness_without_disabling_notes ... ok
+test locked_ink_and_proposals_cannot_be_sent_or_reviewed_without_access ... ok
+test stale_inference_and_stale_proposal_cannot_overwrite_corrections ... ok
+test rejection_and_failed_atomic_accept_leave_ink_untouched ... ok
+test model_switch_and_remove_leave_accepted_content_and_raw_strokes ... ok
+test stored_proposal_identity_mismatch_cannot_acknowledge_a_correction ... ok
+test stored_proposal_protection_precedes_malformed_payload_parsing ... ok
+test stored_proposal_cannot_rebind_protected_output_to_a_public_block ... ok
+test proposal_review_acceptance_and_source_survive_reopen ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+

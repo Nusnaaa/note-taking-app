@@ -1,0 +1,7 @@
+    Checking stem-core v0.1.0 (/tmp/stem-owned-activation-work/core)
+    Checking thiserror v1.0.69
+    Checking jni-sys v0.3.1
+    Checking cesu8 v1.1.0
+    Checking jni v0.21.1
+    Checking stem-bridge v0.1.0 (/tmp/stem-owned-activation-work/bridge)
+    Finished `dev` profile [unoptimized] target(s) in 23.28s
