@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.EngineModelSourceTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-26T06:26:19" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="0.244">
+  <properties/>
+  <testcase name="selectedReadOnlyProviderResumesAtAcknowledgedOffsetAndClosesItsActualDescriptor" classname="org.stemnotebook.backend.EngineModelSourceTest" time="0.214"/>
+  <testcase name="pickerRequiresContentReadObservationWithoutOpeningOrPersistingPermission" classname="org.stemnotebook.backend.EngineModelSourceTest" time="0.03"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

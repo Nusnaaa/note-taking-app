@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.BackupSchedulePolicyTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-10-26T06:26:17" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="1.19">
+  <properties/>
+  <testcase name="twoControllersCannotAdmitTheSameActiveScheduleTwice" classname="org.stemnotebook.backend.BackupSchedulePolicyTest" time="0.082"/>
+  <testcase name="lostRegistrationAndRunAcknowledgementsAreDiscoverableWithoutDuplicateRuns" classname="org.stemnotebook.backend.BackupSchedulePolicyTest" time="0.138"/>
+  <testcase name="providerPolicyNeedsRecordedCompleteConsentForExactLibraryAndTree" classname="org.stemnotebook.backend.BackupSchedulePolicyTest" time="0.111"/>
+  <testcase name="publicationOutcomeIsImmutableAndDoesNotReenableDisabledPolicy" classname="org.stemnotebook.backend.BackupSchedulePolicyTest" time="0.096"/>
+  <testcase name="disableRejectsStaleJobsAndRetainsActualRunFenceUntilCompletion" classname="org.stemnotebook.backend.BackupSchedulePolicyTest" time="0.117"/>
+  <testcase name="durableCredentialRetirementAtomicallyDisablesReferencingSchedule" classname="org.stemnotebook.backend.BackupSchedulePolicyTest" time="0.087"/>
+  <testcase name="wrongRoleOrLibraryCannotSupplyDelegationIntent" classname="org.stemnotebook.backend.BackupSchedulePolicyTest" time="0.062"/>
+  <testcase name="delegationIntentCannotEnableOrRunAndRetirementDisablesTheBoundSchedule" classname="org.stemnotebook.backend.BackupSchedulePolicyTest" time="0.096"/>
+  <testcase name="persistedSetupNeverRunsUntilExactRegistrationAcknowledges" classname="org.stemnotebook.backend.BackupSchedulePolicyTest" time="0.081"/>
+  <testcase name="credentialRetirementDuringRunKeepsFenceAndNeverReenablesOnCompletion" classname="org.stemnotebook.backend.BackupSchedulePolicyTest" time="0.105"/>
+  <testcase name="retirementRollbackCannotDisableScheduleWithoutRetiringItsCredential" classname="org.stemnotebook.backend.BackupSchedulePolicyTest" time="0.071"/>
+  <testcase name="scheduleRequiresConsentReadySameLibraryPasswordAndExactCurrentRevision" classname="org.stemnotebook.backend.BackupSchedulePolicyTest" time="0.143"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,26 +1,27 @@
 $ /tmp/stem-cargo/bin/cargo test --workspace --locked --offline
 exit_code=0
 
-   Compiling stem-bridge v0.1.0 (/tmp/stem-engine-import-work/bridge)
-   Compiling stem-core v0.1.0 (/tmp/stem-engine-import-work/core)
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 07s
-     Running unittests src/lib.rs (/tmp/stem-activation-target/debug/deps/stem_bridge-8d048e2479405dce)
+    Blocking waiting for file lock on package cache
+   Compiling stem-bridge v0.1.0 (/tmp/stem-jni-import-work/bridge)
+   Compiling stem-core v0.1.0 (/tmp/stem-jni-import-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 21s
+     Running unittests src/lib.rs (/tmp/stem-pen-response-target/debug/deps/stem_bridge-8d048e2479405dce)
 
 running 2 tests
 test handle_tests::exhaustion_never_wraps_or_reuses_a_handle ... ok
 test engines::tests::closing_registry_scan_cannot_be_followed_by_late_job_admission ... ok
 
-test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
 
-     Running unittests src/lib.rs (/tmp/stem-activation-target/debug/deps/stem_core-8a459d8a65baac19)
+     Running unittests src/lib.rs (/tmp/stem-pen-response-target/debug/deps/stem_core-8a459d8a65baac19)
 
 running 33 tests
 test backup::source_asset_validation_tests::source_asset_hash_rejects_text_and_missing_rows ... ok
 test backup::publication_tests::post_link_failure_is_uncertain_and_never_removes_the_new_recovered_copy ... ok
-test backup::streaming::pull::tests::exact_and_next_row_queries_seek_the_rowid_index_instead_of_scanning_a_prefix ... ok
 test backup::source_asset_validation_tests::sqlite_chunk_hash_matches_bytes_at_boundaries_and_detects_late_corruption ... ok
-test backup::validation::tests::cancellation_inside_semantic_validation_removes_work_indexes ... ok
+test backup::streaming::pull::tests::exact_and_next_row_queries_seek_the_rowid_index_instead_of_scanning_a_prefix ... ok
 test backup::validation::tests::checkpoint_checks_busy_readers_and_keeps_sqlite_in_charge_of_stage_io ... ok
+test backup::validation::tests::cancellation_inside_semantic_validation_removes_work_indexes ... ok
 test backup::validation::tests::containment_depth_cycles_and_retired_entities_keep_the_same_rules ... ok
 test backup::validation::tests::embed_work_queries_use_covering_primary_key_without_temporary_sorting ... ok
 test backup::validation::tests::deep_embed_graph_uses_sqlite_stack_and_detects_back_edges ... ok
@@ -50,40 +51,40 @@ test store::storage_tests::sqlite_full_reports_failure_and_preserves_committed_w
 test backup::validation::tests::whole_library_stream_restore_exceeds_subset_entity_block_and_exercise_caps has been running for over 60 seconds
 test backup::validation::tests::whole_library_stream_restore_exceeds_subset_entity_block_and_exercise_caps ... ok
 
-test result: ok. 33 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 101.40s
+test result: ok. 33 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 100.67s
 
-     Running unittests src/bin/notebook_cli.rs (/tmp/stem-activation-target/debug/deps/notebook_cli-44775c21c9815a73)
-
-running 0 tests
-
-test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
-
-     Running unittests src/bin/recovery_probe.rs (/tmp/stem-activation-target/debug/deps/recovery_probe-fbc0f913037cb809)
+     Running unittests src/bin/notebook_cli.rs (/tmp/stem-pen-response-target/debug/deps/notebook_cli-44775c21c9815a73)
 
 running 0 tests
 
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-     Running unittests src/bin/render_probe.rs (/tmp/stem-activation-target/debug/deps/render_probe-0eaec9a3ebca4a7b)
+     Running unittests src/bin/recovery_probe.rs (/tmp/stem-pen-response-target/debug/deps/recovery_probe-fbc0f913037cb809)
 
 running 0 tests
 
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-     Running tests/activation_work.rs (/tmp/stem-activation-target/debug/deps/activation_work-d9115e7c908de3f8)
+     Running unittests src/bin/render_probe.rs (/tmp/stem-pen-response-target/debug/deps/render_probe-0eaec9a3ebca4a7b)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/activation_work.rs (/tmp/stem-pen-response-target/debug/deps/activation_work-d9115e7c908de3f8)
 
 running 7 tests
 test cancellation_before_probe_or_after_probe_prevents_readiness_and_probe_failures_are_contained ... ok
 test blocked_probe_releases_manager_borrow_and_removal_keeps_adapter_until_completion_retirement ... ok
+test converter_probe_and_abandoned_work_never_invent_ready_state ... ok
 test consent_failure_preserves_ready_but_failed_integrity_reverification_retires_old_readiness ... ok
 test provider_error_payloads_remain_owned_until_completion_retirement_even_after_cancellation ... ok
-test converter_probe_and_abandoned_work_never_invent_ready_state ... ok
-test superseded_and_foreign_completions_cannot_enable_an_engine_or_overwrite_new_state ... ok
 test synchronous_compatibility_keeps_original_provider_error_for_the_caller ... ok
+test superseded_and_foreign_completions_cannot_enable_an_engine_or_overwrite_new_state ... ok
 
 test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-     Running tests/authoring.rs (/tmp/stem-activation-target/debug/deps/authoring-b61d9f8f748ce7f0)
+     Running tests/authoring.rs (/tmp/stem-pen-response-target/debug/deps/authoring-b61d9f8f748ce7f0)
 
 running 6 tests
 test invalid_or_dangling_presets_reject_atomically_without_silent_selection_repair ... ok
@@ -93,9 +94,9 @@ test presets_calibrate_and_reopen_without_moving_view_or_rewriting_observations 
 test schema14_upgrade_keeps_unconfigured_view_payload_exactly_without_inventing_presets_or_guides ... ok
 test native_copy_and_schema15_backup_keep_scoped_presets_and_reject_downgraded_extensions ... ok
 
-test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 32.92s
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 32.02s
 
-     Running tests/backup.rs (/tmp/stem-activation-target/debug/deps/backup-84f7ac3d814cf80c)
+     Running tests/backup.rs (/tmp/stem-pen-response-target/debug/deps/backup-84f7ac3d814cf80c)
 
 running 9 tests
 test backup_plan_cannot_cross_library_or_survive_a_write ... ok
@@ -105,12 +106,12 @@ test malformed_authenticated_backup_is_rejected_before_exposing_restored_store .
 test restore_publication_never_overwrites_live_database_and_reopens ... ok
 test rich_library_restores_objects_views_anchors_proposals_profiles_and_capture_receipts ... ok
 test purge_retires_detailed_undo_payloads_and_backup_rejects_forged_journal_rows ... ok
-test whole_library_backup_retains_trash_history_membership_undo_and_source_metadata ... ok
 test schema8_logical_backup_upgrades_without_inventing_old_undo_actions ... ok
+test whole_library_backup_retains_trash_history_membership_undo_and_source_metadata ... ok
 
-test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 47.96s
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 48.03s
 
-     Running tests/backup_delegation.rs (/tmp/stem-activation-target/debug/deps/backup_delegation-5134cd5242a35c5e)
+     Running tests/backup_delegation.rs (/tmp/stem-pen-response-target/debug/deps/backup_delegation-5134cd5242a35c5e)
 
 running 7 tests
 test close_retains_exclusive_ownership_through_actual_authorizer_destruction ... ok
@@ -123,7 +124,7 @@ test delegated_encryption_preserves_app_and_note_locks_and_independent_restore .
 
 test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 9.93s
 
-     Running tests/backup_pull.rs (/tmp/stem-activation-target/debug/deps/backup_pull-73b3b0610f41ab4e)
+     Running tests/backup_pull.rs (/tmp/stem-pen-response-target/debug/deps/backup_pull-73b3b0610f41ab4e)
 
 running 5 tests
 test bounded_pulls_span_large_cells_and_restore_exact_source_with_independent_encryption ... ok
@@ -132,9 +133,9 @@ test a_blocked_ciphertext_sink_holds_no_read_transaction_or_authoring_writer ...
 test replacing_or_relocking_a_cached_access_capability_never_reuses_its_old_scope_decision ... ok
 test long_runs_of_live_caches_yield_and_never_export_cache_bytes_when_retained_assets_are_selected ... ok
 
-test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 11.08s
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 10.99s
 
-     Running tests/backup_stream.rs (/tmp/stem-activation-target/debug/deps/backup_stream-54cda4bb691b182d)
+     Running tests/backup_stream.rs (/tmp/stem-pen-response-target/debug/deps/backup_stream-54cda4bb691b182d)
 
 running 8 tests
 test cancelled_stream_restore_removes_private_staging_and_does_not_modify_source ... ok
@@ -147,9 +148,9 @@ test truncation_trailing_data_malformed_tables_and_budget_failures_leave_no_rest
 test whole_library_larger_than_legacy_limit_roundtrips_with_incremental_encryption_and_private_sqlite_restore has been running for over 60 seconds
 test whole_library_larger_than_legacy_limit_roundtrips_with_incremental_encryption_and_private_sqlite_restore ... ok
 
-test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 113.69s
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 113.28s
 
-     Running tests/capture.rs (/tmp/stem-activation-target/debug/deps/capture-ceac380fbe32b2fc)
+     Running tests/capture.rs (/tmp/stem-pen-response-target/debug/deps/capture-ceac380fbe32b2fc)
 
 running 8 tests
 test capture_cancels_background_work_without_faking_resource_release ... ok
@@ -163,7 +164,7 @@ test full_queue_retains_old_work_and_failed_persistence_can_retry ... ok
 
 test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
 
-     Running tests/capture_privacy.rs (/tmp/stem-activation-target/debug/deps/capture_privacy-74adfbfbd4ef8a5b)
+     Running tests/capture_privacy.rs (/tmp/stem-pen-response-target/debug/deps/capture_privacy-74adfbfbd4ef8a5b)
 
 running 5 tests
 test naming_a_public_destination_does_not_bypass_the_receipts_actual_owner_lock ... ok
@@ -174,7 +175,7 @@ test receipt_uses_current_exercise_protection_even_when_original_target_was_mast
 
 test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
 
-     Running tests/capture_recovery.rs (/tmp/stem-activation-target/debug/deps/capture_recovery-268616c039514100)
+     Running tests/capture_recovery.rs (/tmp/stem-pen-response-target/debug/deps/capture_recovery-268616c039514100)
 
 running 3 tests
 test retired_capture_evidence_requires_target_authority_and_cannot_reopen_documents ... ok
@@ -183,7 +184,7 @@ test subtree_purge_preflight_and_commit_failure_do_not_partially_erase_protected
 
 test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
 
-     Running tests/converters.rs (/tmp/stem-activation-target/debug/deps/converters-e0d6bc6e65e2095f)
+     Running tests/converters.rs (/tmp/stem-pen-response-target/debug/deps/converters-e0d6bc6e65e2095f)
 
 running 4 tests
 test converter_preserves_deliberately_wrong_math_without_solving ... ok
@@ -193,7 +194,7 @@ test offline_help_covers_recovery_and_unsearchable_ink_without_remote_dependency
 
 test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-     Running tests/crypto_stream.rs (/tmp/stem-activation-target/debug/deps/crypto_stream-8951e110ddb5f014)
+     Running tests/crypto_stream.rs (/tmp/stem-pen-response-target/debug/deps/crypto_stream-8951e110ddb5f014)
 
 running 6 tests
 test envelope_and_frames_are_readable_by_rustcrypto_primitives_independent_of_the_stream_reader ... ok
@@ -204,9 +205,9 @@ test streaming_password_and_recovery_roundtrip_across_arbitrary_writes_and_flush
 test streaming_above_old_64_mib_envelope_limit_uses_only_bounded_io_frames has been running for over 60 seconds
 test streaming_above_old_64_mib_envelope_limit_uses_only_bounded_io_frames ... ok
 
-test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 108.89s
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 109.88s
 
-     Running tests/deletion.rs (/tmp/stem-activation-target/debug/deps/deletion-9df0667d10dbd7f2)
+     Running tests/deletion.rs (/tmp/stem-pen-response-target/debug/deps/deletion-9df0667d10dbd7f2)
 
 running 4 tests
 test capture_target_manifest_omits_purged_descendants_and_revalidation_checks_fresh_proof ... ok
@@ -214,9 +215,9 @@ test container_retirement_handles_independently_trashed_and_already_purged_desce
 test permanent_review_is_kind_generation_confirmation_and_transaction_bound ... ok
 test trash_pages_count_only_authorised_entries_and_restore_requires_current_revision ... ok
 
-test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
 
-     Running tests/editing.rs (/tmp/stem-activation-target/debug/deps/editing-d31eebf565b9ded5)
+     Running tests/editing.rs (/tmp/stem-pen-response-target/debug/deps/editing-d31eebf565b9ded5)
 
 running 7 tests
 test editing_after_undo_discards_redo_branch_but_keeps_source_history ... ok
@@ -227,9 +228,9 @@ test undo_requires_current_locks_and_cannot_remove_protection ... ok
 test undo_redo_survives_reopen_and_never_rewinds_revisions ... ok
 test whole_backup_restores_undo_and_redo_without_touching_live_library ... ok
 
-test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 14.73s
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 15.41s
 
-     Running tests/engine_activation_plan.rs (/tmp/stem-activation-target/debug/deps/engine_activation_plan-5b6f40745d609d97)
+     Running tests/engine_activation_plan.rs (/tmp/stem-pen-response-target/debug/deps/engine_activation_plan-5b6f40745d609d97)
 
 running 11 tests
 test cancelled_converter_commit_preserves_staged_state_and_fresh_converter_flow_succeeds ... ok
@@ -244,9 +245,9 @@ test sdk_factory_receives_verified_snapshot_even_when_resource_path_changes_duri
 test typed_factories_reject_the_other_adapter_family_before_construction ... ok
 test stale_generation_and_foreign_library_cannot_commit_prepared_candidate ... ok
 
-test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.23s
 
-     Running tests/engine_import_plan.rs (/tmp/stem-activation-target/debug/deps/engine_import_plan-c8fd6e0088a7129b)
+     Running tests/engine_import_plan.rs (/tmp/stem-pen-response-target/debug/deps/engine_import_plan-c8fd6e0088a7129b)
 
 running 8 tests
 test import_records_bound_consent_and_stages_verified_resource_with_stable_retry ... ok
@@ -258,9 +259,9 @@ test staged_retry_reports_installed_metadata_but_never_revives_a_removed_version
 test stale_generation_or_cancelled_commit_preserves_resumable_verified_resource ... ok
 test truncated_trailing_corrupt_and_cancelled_inputs_never_stage_metadata ... ok
 
-test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.26s
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s
 
-     Running tests/engines.rs (/tmp/stem-activation-target/debug/deps/engines-a0ca3aba976ce501)
+     Running tests/engines.rs (/tmp/stem-pen-response-target/debug/deps/engines-a0ca3aba976ce501)
 
 running 7 tests
 test another_connection_changing_state_during_probe_prevents_stale_activation ... ok
@@ -271,9 +272,9 @@ test installed_provenance_and_profiles_reopen_without_fabricated_runtime_readine
 test resource_installation_requires_consent_digest_and_bounded_streaming ... ok
 test staged_probe_or_commit_failure_keeps_previous_verified_engine ... ok
 
-test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.19s
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
 
-     Running tests/eraser_batch.rs (/tmp/stem-activation-target/debug/deps/eraser_batch-75ca608d5c6c54ff)
+     Running tests/eraser_batch.rs (/tmp/stem-pen-response-target/debug/deps/eraser_batch-75ca608d5c6c54ff)
 
 running 4 tests
 test late_stale_denied_cross_master_duplicate_and_failure_never_publish_a_prefix ... ok
@@ -283,7 +284,7 @@ test pair_budget_is_shared_across_the_compound_operation_not_reset_per_block ...
 
 test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s
 
-     Running tests/eraser_gesture.rs (/tmp/stem-activation-target/debug/deps/eraser_gesture-1ca3067c12961ace)
+     Running tests/eraser_gesture.rs (/tmp/stem-pen-response-target/debug/deps/eraser_gesture-1ca3067c12961ace)
 
 running 6 tests
 test degenerate_extreme_distance_rejects_instead_of_silently_reporting_a_miss ... ok
@@ -293,17 +294,17 @@ test radius_boundary_collinear_disjoint_and_miss_do_not_create_false_hits_or_und
 test source_space_and_revision_protection_overflow_and_commit_failure_preserve_visibility ... ok
 test resource_limit_or_later_mixed_space_never_publishes_an_earlier_hit_and_eraser_traces_are_not_targets ... ok
 
-test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s
 
-     Running tests/exercise_migrations.rs (/tmp/stem-activation-target/debug/deps/exercise_migrations-c16506bc14388a86)
+     Running tests/exercise_migrations.rs (/tmp/stem-pen-response-target/debug/deps/exercise_migrations-c16506bc14388a86)
 
 running 2 tests
 test failed_v3_migration_rolls_back_all_new_tables_and_version ... ok
 test v2_upgrade_keeps_existing_content_and_enables_exercises ... ok
 
-test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
 
-     Running tests/exercises.rs (/tmp/stem-activation-target/debug/deps/exercises-09e20565645f15cb)
+     Running tests/exercises.rs (/tmp/stem-pen-response-target/debug/deps/exercises-09e20565645f15cb)
 
 running 18 tests
 test duplicate_titles_keep_distinct_identity_and_metadata_failures_share_status ... ok
@@ -325,28 +326,28 @@ test reassignment_requires_preview_confirmation_and_undo_preserves_new_content .
 test selected_exercise_export_excludes_unrelated_master_content_and_roundtrips ... ok
 test shared_edits_use_one_revision_and_stale_second_connection_cannot_overwrite ... ok
 
-test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.60s
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.56s
 
-     Running tests/export.rs (/tmp/stem-activation-target/debug/deps/export-1662c850f76a1b4b)
+     Running tests/export.rs (/tmp/stem-pen-response-target/debug/deps/export-1662c850f76a1b4b)
 
 running 5 tests
-test converted_only_export_never_reads_or_discloses_original_ink ... ok
 test derivative_scope_and_fresh_auth_cannot_be_bypassed ... ok
+test converted_only_export_never_reads_or_discloses_original_ink ... ok
 test graph_derivative_preserves_authored_order_and_refuses_concealed_points ... ok
 test pagination_never_bisects_indivisible_work_or_silently_scales ... ok
 test diagram_svg_escapes_labels_and_canvas_scope_rejects_hidden_payload ... ok
 
 test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
 
-     Running tests/host.rs (/tmp/stem-activation-target/debug/deps/host-1cb59b7aef18333e)
+     Running tests/host.rs (/tmp/stem-pen-response-target/debug/deps/host-1cb59b7aef18333e)
 
 running 17 tests
 test asynchronous_writer_retry_tickets_and_lock_scopes_are_enforced ... ok
 test active_call_and_shutdown_drain_hold_ownership_until_original_ink_is_committed ... ok
 test byte_budgets_are_independent_and_rejection_does_not_acknowledge_a_save ... ok
 test concurrent_host_calls_return_distinct_committed_content ... ok
-test dropped_receipts_still_drain_on_close_and_observers_see_final_closed_state ... ok
 test failed_host_initialisation_releases_ownership_before_returning ... ok
+test dropped_receipts_still_drain_on_close_and_observers_see_final_closed_state ... ok
 test host_exercise_edits_share_identity_with_master_and_layout_undo_survives_restart ... ok
 test host_ownership_is_cross_process_and_abrupt_exit_recovers_original_ink ... ok
 test host_restores_revision_bound_selection_without_silently_rebinding_after_edit ... ok
@@ -359,9 +360,9 @@ test reentrant_close_from_verifier_fails_without_self_join_or_retained_access ..
 test threaded_host_commits_reopens_and_rejects_unknown_version_and_fields ... ok
 test verifier_panic_fails_closed_without_killing_the_writer_or_retaining_access ... ok
 
-test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.61s
+test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.60s
 
-     Running tests/host_activation.rs (/tmp/stem-activation-target/debug/deps/host_activation-7804e867d2cd82fa)
+     Running tests/host_activation.rs (/tmp/stem-pen-response-target/debug/deps/host_activation-7804e867d2cd82fa)
 
 running 10 tests
 test close_waits_for_running_probe_then_actual_adapter_destruction_before_reopening_library ... ok
@@ -375,14 +376,14 @@ test provider_error_payload_retires_off_writer_after_completion_failure ... ok
 test running_probe_is_cancelled_by_pen_priority_while_authoring_and_raw_source_remain_available ... ok
 test descriptor_frame_rejection_preserves_existing_ready_engine_and_authoring ... ok
 
-test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.23s
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.24s
 
-     Running tests/host_backup.rs (/tmp/stem-activation-target/debug/deps/host_backup-c05d4db731ce0c8c)
+     Running tests/host_backup.rs (/tmp/stem-pen-response-target/debug/deps/host_backup-c05d4db731ce0c8c)
 
 running 11 tests
 test capture_cancels_running_and_idle_reviews_without_reviving_them_after_pen_up ... ok
-test close_waits_for_actual_sink_retirement_and_preserves_exclusive_library_ownership ... ok
 test blocked_sink_does_not_hold_writer_and_source_edits_invalidate_completion ... ok
+test close_waits_for_actual_sink_retirement_and_preserves_exclusive_library_ownership ... ok
 test native_backup_retires_sink_before_receipt_and_restores_exact_original_ink ... ok
 test finished_ciphertext_does_not_release_ownership_while_sink_destruction_is_blocked ... ok
 test native_review_confirmation_fresh_proof_foreign_host_and_closed_host_are_enforced ... ok
@@ -393,25 +394,25 @@ test verifier_and_sink_panics_do_not_kill_authoring_or_leave_a_backup_reservatio
 test native_host_streams_a_library_above_the_legacy_limit_without_releasing_its_writer_ownership has been running for over 60 seconds
 test native_host_streams_a_library_above_the_legacy_limit_without_releasing_its_writer_ownership ... ok
 
-test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 117.26s
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 118.52s
 
-     Running tests/host_deletion.rs (/tmp/stem-activation-target/debug/deps/host_deletion-101f3e899928b5f3)
+     Running tests/host_deletion.rs (/tmp/stem-pen-response-target/debug/deps/host_deletion-101f3e899928b5f3)
 
 running 4 tests
 test held_review_validation_is_non_consuming_generation_bound_and_authorises_capture_targets ... ok
 test host_dependency_review_redacts_private_ids_and_stale_generation_cannot_delete ... ok
-test host_reviews_are_local_and_relock_retires_capabilities_without_declassifying_trash ... ok
 test host_trash_restore_and_reviewed_purge_preserve_then_retire_source_across_reopen ... ok
+test host_reviews_are_local_and_relock_retires_capabilities_without_declassifying_trash ... ok
 
-test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
 
-     Running tests/host_engine_activation_plan.rs (/tmp/stem-activation-target/debug/deps/host_engine_activation_plan-33d0a7b273c89d82)
+     Running tests/host_engine_activation_plan.rs (/tmp/stem-pen-response-target/debug/deps/host_engine_activation_plan-33d0a7b273c89d82)
 
 running 15 tests
-test busy_manager_rejects_without_writer_wait_and_preserves_candidate_for_retry ... ok
 test close_waits_for_probe_and_actual_cleanup_before_library_can_reopen ... ok
-test dropping_unrun_recognition_after_manager_detach_queues_sdk_retirement_off_caller ... ok
+test busy_manager_rejects_without_writer_wait_and_preserves_candidate_for_retry ... ok
 test host_close_retires_private_manager_off_writer_before_releasing_library ... ok
+test dropping_unrun_recognition_after_manager_detach_queues_sdk_retirement_off_caller ... ok
 test host_factory_runs_off_writer_and_remains_owned_until_cancelled_construction_returns ... ok
 test host_private_runtime_recognises_into_a_review_without_rewriting_source ... ok
 test host_publication_installs_runtime_and_durable_metadata_and_rejects_replay ... ok
@@ -424,9 +425,9 @@ test publication_rejects_foreign_scope_and_stale_generation_without_installing .
 test relock_cancels_old_metadata_plan_and_locked_app_cannot_reserve_new_plan ... ok
 test replaced_runtime_cleanup_is_off_writer_and_keeps_library_ownership ... ok
 
-test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.33s
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.35s
 
-     Running tests/host_engine_import.rs (/tmp/stem-activation-target/debug/deps/host_engine_import-a03a7dc31d2d3ae9)
+     Running tests/host_engine_import.rs (/tmp/stem-pen-response-target/debug/deps/host_engine_import-a03a7dc31d2d3ae9)
 
 running 5 tests
 test close_waits_for_reader_return_and_actual_reader_destructor_before_reopen ... ok
@@ -437,7 +438,7 @@ test provider_error_payload_retires_inside_running_scope_and_cannot_escape_with_
 
 test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
 
-     Running tests/host_pdf.rs (/tmp/stem-activation-target/debug/deps/host_pdf-b4fdf27cbf5d0978)
+     Running tests/host_pdf.rs (/tmp/stem-pen-response-target/debug/deps/host_pdf-b4fdf27cbf5d0978)
 
 running 18 tests
 test changed_revision_can_be_reacquired_from_revoked_state_without_silent_anchor_relocation ... ok
@@ -459,9 +460,9 @@ test selection_reviews_are_stale_safe_scope_checked_and_cleared_on_relock ... ok
 test staged_retention_cannot_survive_relock_replay_or_wrong_pdf_bytes ... ok
 test trusted_selection_is_reviewed_and_same_revision_regrant_preserves_source_identity ... ok
 
-test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.71s
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.70s
 
-     Running tests/host_recognition.rs (/tmp/stem-activation-target/debug/deps/host_recognition-8970191f4059537e)
+     Running tests/host_recognition.rs (/tmp/stem-pen-response-target/debug/deps/host_recognition-8970191f4059537e)
 
 running 18 tests
 test blocked_inference_never_holds_writer_and_relock_rejects_late_output ... ok
@@ -483,9 +484,9 @@ test shutdown_keeps_library_ownership_until_blocked_worker_really_retires ... ok
 test source_permissions_are_current_and_review_cannot_bypass_a_block_lock ... ok
 test encoded_source_byte_budget_is_independent_of_job_count_and_does_not_evict_input ... ok
 
-test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 13.03s
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 12.91s
 
-     Running tests/host_restore.rs (/tmp/stem-activation-target/debug/deps/host_restore-b342067e05b35ad1)
+     Running tests/host_restore.rs (/tmp/stem-pen-response-target/debug/deps/host_restore-b342067e05b35ad1)
 
 running 13 tests
 test capture_cancels_idle_and_running_restore_without_reviving_it_at_pen_up ... ok
@@ -504,9 +505,9 @@ test stream_restore_through_host_exceeds_the_legacy_whole_archive_limit ... ok
 test verifier_is_off_live_writer_and_an_independent_copy_does_not_replace_live_edits ... ok
 test wrong_credentials_malformed_finality_and_budgets_retire_input_and_scratch ... ok
 
-test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 350.09s
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 346.31s
 
-     Running tests/image_crop_export.rs (/tmp/stem-activation-target/debug/deps/image_crop_export-a30a11e474cee022)
+     Running tests/image_crop_export.rs (/tmp/stem-pen-response-target/debug/deps/image_crop_export-a30a11e474cee022)
 
 running 5 tests
 test crop_emits_only_selected_pixels_and_strips_original_trailing_bytes_without_rewriting_asset ... ok
@@ -517,7 +518,7 @@ test malformed_and_oversized_images_fail_without_bypassing_fresh_block_protectio
 
 test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
 
-     Running tests/interrupted_capture.rs (/tmp/stem-activation-target/debug/deps/interrupted_capture-72ee18fce9a89e0b)
+     Running tests/interrupted_capture.rs (/tmp/stem-pen-response-target/debug/deps/interrupted_capture-72ee18fce9a89e0b)
 
 running 6 tests
 test checkpoints_preserve_stable_begin_order_and_interruption_never_invents_samples ... ok
@@ -527,18 +528,18 @@ test schema9_upgrade_preserves_original_payload_hash_and_capture_receipt_byte_fo
 test unfinished_prefix_cannot_enter_store_queue_or_portable_document_and_sealed_retry_is_exact ... ok
 test encrypted_schema10_retains_interruption_and_old_schema_cannot_claim_it ... ok
 
-test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 26.92s
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 25.95s
 
-     Running tests/layer_capture.rs (/tmp/stem-activation-target/debug/deps/layer_capture-99d1518c5b506811)
+     Running tests/layer_capture.rs (/tmp/stem-pen-response-target/debug/deps/layer_capture-99d1518c5b506811)
 
 running 3 tests
 test layer_capture_checks_owner_protection_and_rolls_back_source_and_destination_on_failure ... ok
 test missing_layer_never_falls_back_and_identical_committed_receipt_does_not_rebind_membership ... ok
 test capture_and_layer_membership_commit_undo_redo_and_reopen_together_without_rewriting_ink ... ok
 
-test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
 
-     Running tests/layers.rs (/tmp/stem-activation-target/debug/deps/layers-2689388157b94670)
+     Running tests/layers.rs (/tmp/stem-pen-response-target/debug/deps/layers-2689388157b94670)
 
 running 8 tests
 test defaults_and_independent_embed_overrides_preserve_source_and_report_missing_layers ... ok
@@ -550,9 +551,9 @@ test scene_byte_pages_have_explicit_continuations_and_never_load_denied_payloads
 test scene_orders_layers_then_z_and_paginates_without_dropping_nested_reference_placeholders ... ok
 test encrypted_backup_preserves_layer_undo_and_rejects_downgraded_current_and_historical_extensions ... ok
 
-test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 42.78s
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 43.19s
 
-     Running tests/objects.rs (/tmp/stem-activation-target/debug/deps/objects-9e63ebed9dbede95)
+     Running tests/objects.rs (/tmp/stem-pen-response-target/debug/deps/objects-9e63ebed9dbede95)
 
 running 8 tests
 test canvas_embeds_keep_independent_pinned_cameras_and_reject_cycles ... ok
@@ -564,9 +565,9 @@ test native_v3_roundtrip_preserves_assets_layout_groups_and_embeds_with_new_ids 
 test table_cell_edit_preserves_identity_neighbours_and_source_ink ... ok
 test view_settings_and_protected_placeholders_reopen_without_secret_text ... ok
 
-test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
 
-     Running tests/organisation.rs (/tmp/stem-activation-target/debug/deps/organisation-de4a0176b81ed9d7)
+     Running tests/organisation.rs (/tmp/stem-pen-response-target/debug/deps/organisation-de4a0176b81ed9d7)
 
 running 9 tests
 test chronology_filters_by_actual_creation_without_journals ... ok
@@ -579,9 +580,9 @@ test trash_dependency_review_restore_and_permanent_broken_link ... ok
 test unfiled_move_and_reopen_preserve_identity_creation_and_backlinks ... ok
 test complete_parent_matrix_and_no_phantom_containers ... ok
 
-test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.38s
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.39s
 
-     Running tests/pdf_revisions.rs (/tmp/stem-activation-target/debug/deps/pdf_revisions-f40e29868a6b6fe4)
+     Running tests/pdf_revisions.rs (/tmp/stem-pen-response-target/debug/deps/pdf_revisions-f40e29868a6b6fe4)
 
 running 3 tests
 test revoked_source_requires_new_grant_and_exact_revision ... ok
@@ -590,7 +591,7 @@ test source_revision_review_preserves_work_and_requires_anchor_reconnection ... 
 
 test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
 
-     Running tests/portable.rs (/tmp/stem-activation-target/debug/deps/portable-09189a7e4c5d6f73)
+     Running tests/portable.rs (/tmp/stem-pen-response-target/debug/deps/portable-09189a7e4c5d6f73)
 
 running 10 tests
 test both_protected_export_paths_require_fresh_authentication ... ok
@@ -604,9 +605,9 @@ test hostile_native_relationships_rejected_even_with_recomputed_checksum ... ok
 test raw_ink_requires_deliberate_inclusion_and_subset_export_never_follows_links ... ok
 test encrypted_package_opens_with_password_or_independent_recovery_key ... ok
 
-test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 18.91s
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 18.56s
 
-     Running tests/positions.rs (/tmp/stem-activation-target/debug/deps/positions-e9abf30088cf6a38)
+     Running tests/positions.rs (/tmp/stem-pen-response-target/debug/deps/positions-e9abf30088cf6a38)
 
 running 10 tests
 test exercise_membership_and_current_block_protection_gate_bookmark_metadata_and_replacement ... ok
@@ -620,9 +621,9 @@ test view_discovery_separates_master_and_exercise_and_rechecks_app_lock ... ok
 test view_restore_and_discovery_reject_misbound_persistent_identity ... ok
 test encrypted_backup_retains_stale_bookmarks_and_schema10_defaults_without_rewriting_views ... ok
 
-test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 33.11s
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 32.28s
 
-     Running tests/pressure_response.rs (/tmp/stem-activation-target/debug/deps/pressure_response-d671bfbc86e415de)
+     Running tests/pressure_response.rs (/tmp/stem-pen-response-target/debug/deps/pressure_response-d671bfbc86e415de)
 
 running 8 tests
 test absent_zero_outside_domain_and_interior_pressure_have_explicit_derived_widths ... ok
@@ -634,9 +635,9 @@ test pressure_and_eraser_preferences_persist_and_new_fields_cannot_claim_an_old_
 test response_is_snapshotted_per_contact_and_raw_samples_are_never_rewritten ... ok
 test aggregate_and_stream_backups_keep_exact_pressure_metadata_and_reject_schema_downgrade ... ok
 
-test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 27.48s
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 27.39s
 
-     Running tests/processing_work.rs (/tmp/stem-activation-target/debug/deps/processing_work-0922126a6c9bfdf6)
+     Running tests/processing_work.rs (/tmp/stem-pen-response-target/debug/deps/processing_work-0922126a6c9bfdf6)
 
 running 4 tests
 test converter_work_is_owned_cancelled_by_retirement_and_contains_format_panics ... ok
@@ -644,9 +645,9 @@ test prepared_work_freezes_engine_choice_and_keeps_explicit_proposal_acceptance 
 test running_work_observes_removal_and_pins_resources_until_actual_worker_retirement ... ok
 test removal_failed_reverification_and_manager_drop_invalidate_prepared_work ... ok
 
-test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
 
-     Running tests/provisioning.rs (/tmp/stem-activation-target/debug/deps/provisioning-28285a43f5048abb)
+     Running tests/provisioning.rs (/tmp/stem-pen-response-target/debug/deps/provisioning-28285a43f5048abb)
 
 running 8 tests
 test active_resource_lease_prevents_deletion_until_worker_releases_it ... ok
@@ -660,7 +661,7 @@ test legacy_bounded_manifest_above_new_begin_budget_remains_resumable ... ok
 
 test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
 
-     Running tests/ready_runtime.rs (/tmp/stem-activation-target/debug/deps/ready_runtime-033e4b1b972a74eb)
+     Running tests/ready_runtime.rs (/tmp/stem-pen-response-target/debug/deps/ready_runtime-033e4b1b972a74eb)
 
 running 5 tests
 test candidate_probe_can_reenter_existing_registry_before_publication ... ok
@@ -669,9 +670,9 @@ test extraction_freezes_source_work_and_abandoned_holder_disposes_candidate ... 
 test family_mismatch_preserves_both_holders_and_unsupported_tasks_have_no_fallback ... ok
 test replacement_invalidates_old_work_but_keeps_it_pinned_and_preserves_compatible_default ... ok
 
-test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
 
-     Running tests/recognition.rs (/tmp/stem-activation-target/debug/deps/recognition-b8a86db938efe55f)
+     Running tests/recognition.rs (/tmp/stem-pen-response-target/debug/deps/recognition-b8a86db938efe55f)
 
 running 13 tests
 test failed_resource_reverification_clears_previous_readiness ... ok
@@ -688,9 +689,9 @@ test stored_proposal_identity_mismatch_cannot_acknowledge_a_correction ... ok
 test stored_proposal_cannot_rebind_protected_output_to_a_public_block ... ok
 test stored_proposal_protection_precedes_malformed_payload_parsing ... ok
 
-test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.19s
 
-     Running tests/recovery.rs (/tmp/stem-activation-target/debug/deps/recovery-18560bd0a5112177)
+     Running tests/recovery.rs (/tmp/stem-pen-response-target/debug/deps/recovery-18560bd0a5112177)
 
 running 4 tests
 test failed_migration_rolls_back_and_newer_schema_is_not_downgraded ... ok
@@ -698,9 +699,9 @@ test process_exit_before_and_after_commit_preserves_correct_durable_boundary ...
 test two_connections_cannot_silently_overwrite_same_revision ... ok
 test v1_to_current_migration_preserves_entities_and_is_repeatable ... ok
 
-test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
 
-     Running tests/regions.rs (/tmp/stem-activation-target/debug/deps/regions-877ecba2bb77be6d)
+     Running tests/regions.rs (/tmp/stem-pen-response-target/debug/deps/regions-877ecba2bb77be6d)
 
 running 4 tests
 test invalid_partition_and_overlapping_split_are_atomic ... ok
@@ -708,29 +709,29 @@ test region_exports_remap_ids_and_keep_accepted_text ... ok
 test regions_split_merge_without_replacing_observations_and_undo_restores_partition ... ok
 test selected_region_receives_only_selected_vector_strokes_and_commits_only_it ... ok
 
-test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
 
-     Running tests/render.rs (/tmp/stem-activation-target/debug/deps/render-aa1f1b70ca39de81)
+     Running tests/render.rs (/tmp/stem-pen-response-target/debug/deps/render-aa1f1b70ca39de81)
 
 running 3 tests
 test invalid_font_missing_glyph_and_impossible_page_fail_without_partial_output ... ok
 test protected_pdf_requires_fresh_auth_and_stale_plan_cannot_disclose_new_state ... ok
 test unicode_maths_and_paginated_text_produce_real_pdf_with_embedded_fonts ... ok
 
-test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.49s
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.63s
 
-     Running tests/runtime_detachment.rs (/tmp/stem-activation-target/debug/deps/runtime_detachment-d3d3e02d45b1b3a2)
+     Running tests/runtime_detachment.rs (/tmp/stem-pen-response-target/debug/deps/runtime_detachment-d3d3e02d45b1b3a2)
 
 running 5 tests
 test converter_work_pins_detached_runtime_and_synchronous_remove_still_disposes_idle_adapters ... ok
 test detached_cleanup_can_reenter_the_manager_after_lock_release ... ok
-test dropping_detached_holder_is_not_a_false_acknowledgement_of_running_worker_resource_retirement ... ok
 test detach_disables_selection_without_destroying_adapter_and_old_inference_cannot_run ... ok
+test dropping_detached_holder_is_not_a_false_acknowledgement_of_running_worker_resource_retirement ... ok
 test reused_identifier_does_not_accept_old_activation_or_restore_removed_default ... ok
 
 test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
 
-     Running tests/sources.rs (/tmp/stem-activation-target/debug/deps/sources-b170cb8921a5b963)
+     Running tests/sources.rs (/tmp/stem-pen-response-target/debug/deps/sources-b170cb8921a5b963)
 
 running 4 tests
 test link_default_managed_copy_requires_consent_and_matching_bytes ... ok
@@ -738,9 +739,9 @@ test q383_revocation_removes_caches_preserves_authored_work_and_independent_snap
 test missing_pdf_view_reopens_and_relink_never_matches_by_filename ... ok
 test source_link_never_bypasses_note_lock_or_creates_network_action ... ok
 
-test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
 
-     Running tests/stroke_style.rs (/tmp/stem-activation-target/debug/deps/stroke_style-768890ef87655b57)
+     Running tests/stroke_style.rs (/tmp/stem-pen-response-target/debug/deps/stroke_style-768890ef87655b57)
 
 running 5 tests
 test legacy_source_payload_hash_and_receipt_are_not_rewritten_by_schema13_upgrade ... ok
@@ -749,9 +750,9 @@ test source_style_and_receipt_survive_edits_reopen_native_copy_and_legacy_format
 test style_is_snapshotted_on_begin_and_configuration_changes_do_not_rebind_active_ink ... ok
 test encrypted_style_backup_retains_exact_metadata_and_cannot_be_disguised_as_schema12 ... ok
 
-test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 23.04s
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 22.90s
 
-     Running tests/workspace.rs (/tmp/stem-activation-target/debug/deps/workspace-d5297098cac56777)
+     Running tests/workspace.rs (/tmp/stem-pen-response-target/debug/deps/workspace-d5297098cac56777)
 
 running 7 tests
 test fresh_protection_redacts_targets_and_keep_can_resize_only_existing_private_slots ... ok
@@ -762,9 +763,9 @@ test schema11_upgrade_creates_an_empty_workspace_without_rewriting_saved_view_pa
 test trash_restore_and_purge_preserve_slots_but_retire_private_target_references_atomically ... ok
 test encrypted_workspace_restore_revokes_pdf_readiness_and_rejects_malformed_or_downgraded_rows ... ok
 
-test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 41.92s
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 41.32s
 
-     Running tests/writing.rs (/tmp/stem-activation-target/debug/deps/writing-fceaf0b9d7b08a7f)
+     Running tests/writing.rs (/tmp/stem-pen-response-target/debug/deps/writing-fceaf0b9d7b08a7f)
 
 running 11 tests
 test bad_samples_duplicate_ids_and_unordered_strokes_are_rejected ... ok
@@ -779,7 +780,7 @@ test stale_edits_and_view_toggles_never_mutate_source ... ok
 test source_ink_is_lossless_after_reopen_transform_erase_and_history_retirement ... ok
 test unauthorised_history_retirement_skips_locked_content ... ok
 
-test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
 
    Doc-tests stem_bridge
 

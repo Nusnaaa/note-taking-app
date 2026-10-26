@@ -1,0 +1,27 @@
+$ /usr/lib/jvm/java-21-openjdk-amd64/bin/java -Xcheck:jni -Djava.library.path=target/debug -cp /home/linus/Projects/software/note-taking-app/repo/target/jni-1immlo5t/shrunk.jar BoundarySmoke
+exit_code=0
+
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/stem-android-user
+PASS: bounded offline recovery Help without a library handle (1)
+PASS: consented resource import, stable identity, callback reentry, exact binary handoff, source-buffer and factory-array clearing (1)
+PASS: failed input preserves acknowledged offset, foreign resume cannot truncate, exact resumed bytes stage under the same identity (1)
+PASS: native capture authority reaches a blocked Java model-input callback and prevents publication (1)
+
+thread '<unnamed>' panicked at bridge/src/engines/import.rs:75:13:
+engine input retirement failed
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+PASS: input count violations and retirement errors are contained without private diagnostics or repeated cleanup (1)
+PASS: native close owns blocked input opening and actual cleanup until safe library reopen (1)
+PASS: consented typed JNI provider, no implicit readiness, callback reentry, ordered ink, pending review and exact source preservation (1)
+PASS: single-use and cancelled engine jobs, malformed and oversized private provider output containment (1)
+PASS: live ordered-ink callback cancellation through contact authority without blocking authoring or publishing stale output (1)
+PASS: throwing Java probe retires failed SDK once and preserves the old ready runtime (1)
+PASS: JNI close waits for actual inference and SDK retirement before library reopen; installed metadata never recreates readiness (1)
+
+thread 'stem-runtime-retirement' panicked at bridge/src/engines.rs:196:13:
+engine retirement failed
+PASS: explicit SDK retirement error fails close without exposing Java diagnostics or repeating retirement (1)
+PASS: JNI backup ciphertext/char-array key, single-use/cancel, explicit confirmation, callback exception, retirement failure, capture invalidation close ownership, delegated callback/reentry/exception and artifact stamp isolation (9)
+PASS: invalid paths rejected; valid library opens and reopens (1)
+PASS: restore publication, callback bounds/retirement, failure redaction, cancellation and close (7)
+PASS: JNI Unicode, platform-verifier callback, relock, restart, malformed input, closed handles, independent registry access fresh source-selection proof and concurrent close drain and recovery identity/generation (10)
