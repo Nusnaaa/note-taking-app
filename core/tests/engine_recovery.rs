@@ -264,6 +264,16 @@ fn recovery_requires_current_app_access_and_bounded_host_reservations() {
     ));
     drop(first);
     drop(second);
+    // Drop queues cleanup; admission is released by the retirement worker,
+    // not by the caller's destructor. Observe the real capacity acknowledgement.
+    let until = std::time::Instant::now() + Duration::from_secs(10);
+    while h.recognition_status().reserved != 0 {
+        assert!(
+            std::time::Instant::now() < until,
+            "recovery owners did not retire"
+        );
+        std::thread::sleep(Duration::from_millis(1));
+    }
     drop(h.engine_recovery_plan().unwrap());
     h.authenticate(
         [Scope::App].into_iter().collect(),

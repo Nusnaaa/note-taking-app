@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.SharedNotebookPoolTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-10-26T11:29:43" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="0.096">
+  <properties/>
+  <testcase name="cancellationDoesNotCancelSharedOpenAndUnclaimedDeliveryCanBeAbandoned" classname="org.stemnotebook.backend.SharedNotebookPoolTest" time="0.006"/>
+  <testcase name="nativeOpenFailureRetiresResourceBeforeAllowingReplacement" classname="org.stemnotebook.backend.SharedNotebookPoolTest" time="0.001"/>
+  <testcase name="cancelledOnlyOpenerRetainsSlotUntilActualResourceRetirement" classname="org.stemnotebook.backend.SharedNotebookPoolTest" time="0.003"/>
+  <testcase name="failedCloseIsReportedButDoesNotAssertOwnershipRelease" classname="org.stemnotebook.backend.SharedNotebookPoolTest" time="0.001"/>
+  <testcase name="cancelledOpeningWaitsForActualOwnershipAndCloseFailureIsNotAReleaseWitness" classname="org.stemnotebook.backend.SharedNotebookPoolTest" time="0.033"/>
+  <testcase name="slowOpensCannotStarveAnotherRootsActualRetirement" classname="org.stemnotebook.backend.SharedNotebookPoolTest" time="0.003"/>
+  <testcase name="nonLastCancelledReservationDoesNotWaitForAnotherConsumersOwnership" classname="org.stemnotebook.backend.SharedNotebookPoolTest" time="0.001"/>
+  <testcase name="callerCanAwaitCloseWithoutBlockingRegistryOrTheOpenWorker" classname="org.stemnotebook.backend.SharedNotebookPoolTest" time="0.002"/>
+  <testcase name="boundedReservationsRejectExcessWithoutCancellingExistingConsumers" classname="org.stemnotebook.backend.SharedNotebookPoolTest" time="0.003"/>
+  <testcase name="retiringRootsKeepAdmissionSlotsUntilActualRelease" classname="org.stemnotebook.backend.SharedNotebookPoolTest" time="0.002"/>
+  <testcase name="interruptedObservationPreservesReservationForExplicitCloseOrLaterClaim" classname="org.stemnotebook.backend.SharedNotebookPoolTest" time="0.002"/>
+  <testcase name="synchronousFactoryFailureDoesNotPublishResourceOrPoisonOtherLibrary" classname="org.stemnotebook.backend.SharedNotebookPoolTest" time="0.001"/>
+  <testcase name="overlappingConsumersShareOneResourceAndOnlyLastLeaseRetiresIt" classname="org.stemnotebook.backend.SharedNotebookPoolTest" time="0.001"/>
+  <testcase name="externalCloseDeniesLeaseAccessAndOldLeaseCannotCloseReplacement" classname="org.stemnotebook.backend.SharedNotebookPoolTest" time="0.003"/>
+  <testcase name="closeAcknowledgementWithoutOwnershipReleaseCannotAdmitAnotherOwner" classname="org.stemnotebook.backend.SharedNotebookPoolTest" time="0.033"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

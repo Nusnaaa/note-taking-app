@@ -1,0 +1,100 @@
+Attempt 1/10
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.20s
+     Running tests/engine_recovery.rs (/tmp/stem-pen-response-target/debug/deps/engine_recovery-51ef7fc4ab5da458)
+
+running 1 test
+test recovery_requires_current_app_access_and_bounded_host_reservations ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.06s
+
+exit_code=0
+Attempt 2/10
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.17s
+     Running tests/engine_recovery.rs (/tmp/stem-pen-response-target/debug/deps/engine_recovery-51ef7fc4ab5da458)
+
+running 1 test
+test recovery_requires_current_app_access_and_bounded_host_reservations ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.05s
+
+exit_code=0
+Attempt 3/10
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.14s
+     Running tests/engine_recovery.rs (/tmp/stem-pen-response-target/debug/deps/engine_recovery-51ef7fc4ab5da458)
+
+running 1 test
+test recovery_requires_current_app_access_and_bounded_host_reservations ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.05s
+
+exit_code=0
+Attempt 4/10
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.13s
+     Running tests/engine_recovery.rs (/tmp/stem-pen-response-target/debug/deps/engine_recovery-51ef7fc4ab5da458)
+
+running 1 test
+test recovery_requires_current_app_access_and_bounded_host_reservations ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.05s
+
+exit_code=0
+Attempt 5/10
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.15s
+     Running tests/engine_recovery.rs (/tmp/stem-pen-response-target/debug/deps/engine_recovery-51ef7fc4ab5da458)
+
+running 1 test
+test recovery_requires_current_app_access_and_bounded_host_reservations ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.05s
+
+exit_code=0
+Attempt 6/10
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.18s
+     Running tests/engine_recovery.rs (/tmp/stem-pen-response-target/debug/deps/engine_recovery-51ef7fc4ab5da458)
+
+running 1 test
+test recovery_requires_current_app_access_and_bounded_host_reservations ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.06s
+
+exit_code=0
+Attempt 7/10
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.20s
+     Running tests/engine_recovery.rs (/tmp/stem-pen-response-target/debug/deps/engine_recovery-51ef7fc4ab5da458)
+
+running 1 test
+test recovery_requires_current_app_access_and_bounded_host_reservations ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.06s
+
+exit_code=0
+Attempt 8/10
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.21s
+     Running tests/engine_recovery.rs (/tmp/stem-pen-response-target/debug/deps/engine_recovery-51ef7fc4ab5da458)
+
+running 1 test
+test recovery_requires_current_app_access_and_bounded_host_reservations ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.05s
+
+exit_code=0
+Attempt 9/10
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.14s
+     Running tests/engine_recovery.rs (/tmp/stem-pen-response-target/debug/deps/engine_recovery-51ef7fc4ab5da458)
+
+running 1 test
+test recovery_requires_current_app_access_and_bounded_host_reservations ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.04s
+
+exit_code=0
+Attempt 10/10
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.13s
+     Running tests/engine_recovery.rs (/tmp/stem-pen-response-target/debug/deps/engine_recovery-51ef7fc4ab5da458)
+
+running 1 test
+test recovery_requires_current_app_access_and_bounded_host_reservations ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.05s
+
+exit_code=0

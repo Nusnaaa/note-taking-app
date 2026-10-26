@@ -1,0 +1,9 @@
+Attempt 1/10
+error: unexpected argument '--exact' found
+
+  tip: to pass '--exact' as a value, use '-- --exact'
+
+Usage: cargo test --package [<SPEC>] --test [<NAME>] <TESTNAME> [-- [ARGS]...]
+
+For more information, try '--help'.
+exit_code=1
