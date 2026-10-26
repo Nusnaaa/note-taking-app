@@ -33,6 +33,29 @@ class JournaledCaptureIntegrationTest {
         return MotionEvent.obtain(10, time, action, 1, arrayOf(property), arrayOf(coordinate), 0, 0, 1f, 1f, 0, 0, InputDevice.SOURCE_STYLUS, 0)
     }
     private fun submit(session: JournaledCaptureSession, action: Int, time: Long): JournaledCaptureSession.Submission = event(action, time).let { try { session.accept(it).single() } finally { it.recycle() } }
+    @Test(timeout = 30_000) fun sourceSpaceEraserUsesNativeCasUndoAndPreservesCapturedObservationsAcrossReopen() {
+        val context = platform(temporary.newFolder()); var backend = NotebookBackend(context)
+        try {
+            val entity = note(backend); val session = backend.openCaptureSession(entity, "fixed-space")
+            submit(session, MotionEvent.ACTION_DOWN, 10).receipt.get(5, TimeUnit.SECONDS)
+            assertTrue(submit(session, MotionEvent.ACTION_UP, 20).receipt.get(5, TimeUnit.SECONDS).committed)
+            val original = blocks(backend, entity).getJSONObject(0); val id = original.getString("id")
+            val sourceCommand = JSONObject().put("op", "SourceInk").put("block", id)
+            val source = call(backend, sourceCommand).getJSONArray("data").toString()
+            val gesture = JSONObject().put("coordinate_space", "fixed-space").put("radius", 0.25)
+                .put("path", org.json.JSONArray().put(org.json.JSONArray().put(0.125).put(3.5)))
+            val command = JSONObject().put("op", "EraseGesture").put("block", id).put("revision", original.getLong("revision")).put("gesture", gesture)
+            assertEquals(0, call(backend, command).getJSONObject("data").getJSONArray("visible_strokes").length())
+            val stale = JSONObject(backend.request(JSONObject().put("version", 1).put("command", command).toString()).get(5, TimeUnit.SECONDS))
+            assertFalse(stale.getBoolean("ok")); assertEquals(source, call(backend, sourceCommand).getJSONArray("data").toString())
+            call(backend, JSONObject().put("op", "Undo").put("entity", entity.toString()))
+            assertEquals(1, blocks(backend, entity).getJSONObject(0).getJSONArray("visible_strokes").length())
+            call(backend, JSONObject().put("op", "Redo").put("entity", entity.toString()))
+            backend.closeFullyAsync().get(5, TimeUnit.SECONDS); backend = NotebookBackend(context)
+            assertEquals(0, blocks(backend, entity).getJSONObject(0).getJSONArray("visible_strokes").length())
+            assertEquals(source, call(backend, sourceCommand).getJSONArray("data").toString())
+        } finally { backend.closeFullyAsync().get(5, TimeUnit.SECONDS) }
+    }
     @Test(timeout = 30_000) fun explicitDiscardRetiresCallerHeldFramesEvenAfterSessionInterruption() {
         for (interrupted in listOf(false, true)) for (combined in listOf(false, true)) {
             val backend = NotebookBackend(platform(temporary.newFolder()))

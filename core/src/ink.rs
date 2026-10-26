@@ -1,6 +1,8 @@
 //! Recorded observations are immutable. Transforms/predictions belong to views.
+mod erasure;
 mod pressure;
 use crate::{Error, Id, Result};
+pub use erasure::EraserGesture;
 pub use pressure::PressureResponse;
 use serde::{Deserialize, Serialize};
 

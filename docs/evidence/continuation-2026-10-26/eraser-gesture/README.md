@@ -1,0 +1,11 @@
+# Source-space whole-stroke eraser — component evidence
+
+Based on pushed checkpoint caa0a1a. All eight backend gaps remain open; no device/H.I. acceptance or performance SLO claim. Source fingerprints include the new, then-uncommitted files.
+
+`bounded-tests.log`: `cargo test -p stem-core --test eraser_gesture --test writing --test host --locked --offline`, exit 0: 34 passed (6 new eraser cases, 17 existing host cases, 11 existing writing cases). This includes the final incremental per-candidate load and checked source-payload identity. `final-clippy.log`: `cargo clippy --workspace --all-targets --locked --offline -- -D warnings`, exit 0. `jni-build.log`: `cargo build -p stem-bridge --locked --offline`, exit 0, final source. CARGO_TARGET_DIR=/tmp/stem-pen-response-target, CARGO_INCREMENTAL=0, CARGO_BUILD_JOBS=2; Rust/Cargo dependency access was offline.
+
+Development failures retained: the first fixture omitted a required Capture ticket and did not compile. The next run passed four cases but incorrectly expected capture Undo to remove a block; the correct contract hides it while retaining source ink. The assertion was corrected. A further review added checked degenerate extreme-distance arithmetic and a sixth regression. `final-tests.log` precedes incremental loading; `bounded-tests.log` verifies the final implementation.
+
+The gesture works on source centrelines in one explicitly named space and block. It does not implement nib-outline/partial/cross-block/device gesture semantics. Misses preserve revision and the existing Undo operation, hit sets are one Undo operation, original bytes survive reopen, and stale/protected/mixed-space/resource/overflow/storage failures do not publish partial visibility.
+
+`android-tests.log` and the retained XML: 19 JournaledCaptureIntegration tests passed, zero failures/errors/skips, and lint passed. Invocation: Gradle 8.9 `-p android :backend:testDebugUnitTest --tests org.stemnotebook.backend.JournaledCaptureIntegrationTest :backend:lintDebug --offline --no-daemon --console=plain`, JDK 21/API-35 Robolectric, desktop JNI rebuilt from this source. Includes the new explicit erasure/CAS/Undo/source-byte/reopen case. This is not ART/device evidence.

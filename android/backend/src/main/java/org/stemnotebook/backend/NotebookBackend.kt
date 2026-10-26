@@ -617,7 +617,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
         // a path around preview retirement. Ordinary pen/text edits keep the view.
         return op !in setOf(
             "Block", "Mode", "SetMode", "AppendTo", "CaptureTo", "Append", "Capture", "Edit", "EditRegion", "Partition", "SplitRegion", "MergeRegions",
-            "SetHeading", "SetVisible", "SetDisplay", "TransformSelection", "EraseStrokes", "RestoreRevision", "Layout", "SetLayout", "EditCell", "EditDiagramPart",
+            "SetHeading", "SetVisible", "SetDisplay", "TransformSelection", "EraseStrokes", "EraseGesture", "RestoreRevision", "Layout", "SetLayout", "EditCell", "EditDiagramPart",
             "RestoreView", "RestoreWorkspace", "SaveWorkspace", "CreateGroup", "Group", "TransformGroup", "Ungroup", "Embed", "CreateEmbed", "EditEmbed", "DuplicateEmbed", "RemoveEmbed", "Views", "View", "SaveView",
             "Proposals", "Proposal", "CorrectProposal", "RejectProposal", "AcceptProposal", "AcceptProposals", "ConfigureView", "ApplyViewPreset", "ViewPen", "ViewGuides", "TrashEntries", "PrepareDeletion", "ValidateDeletionReview", "ReleaseDeletion", "CaptureRecoveryAccess", "CaptureReceipt", "AddLink", "Links", "RemoveLink", "List", "Create", "Read", "Blocks", "Search", "Exercises", "ExerciseBlocks", "SourceInk", "History", "FlatExercises", "SearchViews", "Status", "Help",
             "CreateExercise", "RenameExercise", "ExerciseVisibility", "OpenInMaster", "Rename",

@@ -1,0 +1,26 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-eraser-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.67s
+     Running tests/eraser_gesture.rs (/tmp/stem-pen-response-target/debug/deps/eraser_gesture-e077494a0853abff)
+
+running 5 tests
+test radius_boundary_collinear_disjoint_and_miss_do_not_create_false_hits_or_undo ... FAILED
+test source_space_and_revision_protection_overflow_and_commit_failure_preserve_visibility ... ok
+test resource_limit_or_later_mixed_space_never_publishes_an_earlier_hit_and_eraser_traces_are_not_targets ... ok
+test crossing_segments_and_single_points_erase_one_operation_and_preserve_source_after_reopen ... ok
+test host_command_is_authoring_and_cas_bound ... ok
+
+failures:
+
+---- radius_boundary_collinear_disjoint_and_miss_do_not_create_false_hits_or_undo stdout ----
+
+thread 'radius_boundary_collinear_disjoint_and_miss_do_not_create_false_hits_or_undo' panicked at core/tests/eraser_gesture.rs:85:5:
+assertion failed: s.blocks(n.id, 0, 10, &a).unwrap().is_empty()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    radius_boundary_collinear_disjoint_and_miss_do_not_create_false_hits_or_undo
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+
+error: test failed, to rerun pass `-p stem-core --test eraser_gesture`

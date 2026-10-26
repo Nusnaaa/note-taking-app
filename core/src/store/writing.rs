@@ -542,6 +542,45 @@ impl Store {
             Ok(())
         })
     }
+    /// One explicitly targeted whole-stroke gesture is one reversible operation.
+    /// Path coordinates already use the recorded source space; layout transforms
+    /// and device coordinates are deliberately not applied implicitly.
+    pub fn erase_gesture(
+        &mut self,
+        id: Id,
+        revision: u64,
+        gesture: &crate::ink::EraserGesture,
+        access: &Access,
+    ) -> Result<Block> {
+        let b = Self::read_block(&self.db, id, access)?;
+        if b.revision != revision {
+            return Err(Error::Conflict);
+        }
+        if !b.visible || b.display != Display::Original {
+            return Err(Error::Unavailable);
+        }
+        gesture.validate()?;
+        if b.visible_strokes.len() > 4096 {
+            return Err(Error::ResourceLimit);
+        }
+        let mut source = b.clone();
+        source
+            .source_ids
+            .retain(|id| b.visible_strokes.contains(id));
+        let mut remaining = 1_000_000usize;
+        let mut hits = Vec::new();
+        for source in &b.visible_strokes {
+            let stroke = Self::original_stroke(&self.db, b.id, *source)?;
+            if gesture.hits(&stroke, &mut remaining)? {
+                hits.push(stroke.id);
+            }
+        }
+        // Missing a stroke does not consume Undo or revise an unchanged block.
+        if hits.is_empty() {
+            return Ok(b);
+        }
+        self.erase_strokes(id, revision, &hits, access)
+    }
     pub fn set_visible(
         &mut self,
         id: Id,
@@ -569,22 +608,27 @@ impl Store {
             Ok(())
         })
     }
-    pub(crate) fn original_strokes(db: &Connection, b: &Block) -> Result<Vec<Stroke>> {
-        let mut strokes = Vec::new();
-        for id in &b.source_ids {
-            let (payload, hash): (String, String) = db.query_row(
-                "SELECT payload,digest FROM strokes WHERE id=?1 AND block=?2",
-                rusqlite::params![id.to_string(), b.id.to_string()],
-                |r| Ok((r.get(0)?, r.get(1)?)),
-            )?;
-            if digest(payload.as_bytes()) != hash {
-                return Err(Error::Integrity);
-            }
-            let s: Stroke = serde_json::from_str(&payload)?;
-            s.validate_persisted()?;
-            strokes.push(s);
+    fn original_stroke(db: &Connection, block: Id, id: Id) -> Result<Stroke> {
+        let (payload, hash): (String, String) = db.query_row(
+            "SELECT payload,digest FROM strokes WHERE id=?1 AND block=?2",
+            rusqlite::params![id.to_string(), block.to_string()],
+            |r| Ok((r.get(0)?, r.get(1)?)),
+        )?;
+        if digest(payload.as_bytes()) != hash {
+            return Err(Error::Integrity);
         }
-        Ok(strokes)
+        let stroke: Stroke = serde_json::from_str(&payload)?;
+        stroke.validate_persisted()?;
+        if stroke.id != id {
+            return Err(Error::Integrity);
+        }
+        Ok(stroke)
+    }
+    pub(crate) fn original_strokes(db: &Connection, b: &Block) -> Result<Vec<Stroke>> {
+        b.source_ids
+            .iter()
+            .map(|id| Self::original_stroke(db, b.id, *id))
+            .collect()
     }
     pub fn source_ink(&self, block: Id, access: &Access) -> Result<Vec<Stroke>> {
         let b = Self::read_block(&self.db, block, access)?;
