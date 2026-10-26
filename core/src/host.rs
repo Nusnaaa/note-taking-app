@@ -239,6 +239,11 @@ pub enum Command {
         bounds: Rect,
         z: i32,
     },
+    TransferCell {
+        source: crate::store::CellTarget,
+        target: crate::store::CellTarget,
+        mode: crate::store::CellTransferMode,
+    },
     TableInkScene {
         block: Id,
     },
@@ -1790,6 +1795,11 @@ fn execute(
                 bounds,
                 z,
             } => serde_json::to_value(s.set_layout(block, expected, bounds, z, a)?)?,
+            Command::TransferCell {
+                source,
+                target,
+                mode,
+            } => serde_json::to_value(s.transfer_cell(source, target, mode, a)?)?,
             Command::TableInkScene { block } => serde_json::to_value(s.table_ink_scene(block, a)?)?,
             Command::SetTableLayout {
                 block,

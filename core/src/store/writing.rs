@@ -726,7 +726,7 @@ impl Store {
             Ok(())
         })
     }
-    fn original_stroke(db: &Connection, block: Id, id: Id) -> Result<Stroke> {
+    pub(crate) fn original_stroke(db: &Connection, block: Id, id: Id) -> Result<Stroke> {
         let (payload, hash): (String, String) = db.query_row(
             "SELECT payload,digest FROM strokes WHERE id=?1 AND block=?2",
             rusqlite::params![id.to_string(), block.to_string()],

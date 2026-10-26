@@ -14,7 +14,9 @@ mod positions;
 mod proposals;
 mod regions;
 mod table_ink;
+mod table_transfer;
 pub use table_ink::CellInkPlacement;
+pub use table_transfer::{CellTarget, CellTransferMode};
 mod workspace;
 mod writing;
 

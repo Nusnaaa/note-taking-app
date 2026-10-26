@@ -1,0 +1,46 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 34.18s
+     Running tests/table_cell_ink.rs (/tmp/stem-pen-response-target/debug/deps/table_cell_ink-06a46d5cce999031)
+
+running 38 tests
+test adopting_legacy_cell_ink_requires_complete_explicit_origins_and_matching_space ... ok
+test accepting_another_cell_retains_existing_manual_correction_and_marker ... ok
+test capture_is_idempotent_scoped_atomic_and_undo_preserves_observations ... ok
+test between_table_cut_is_one_atomic_undo_and_failed_commit_leaves_both_unchanged ... ok
+test captures_before_and_after_reflow_align_in_cell_local_recognition_vectors ... ok
+test cell_layout_reflows_ink_without_rewriting_observations_and_undo_restores_placement ... ok
+test cell_transfer_rechecks_revisions_scope_and_coordinate_mapping ... ok
+test derivative_exports_cell_text_once_and_discloses_unconverted_ink_omission ... ok
+test duplicate_local_targets_within_one_table_and_cell_bindings_on_prose_are_invalid ... ok
+test host_capture_and_scoped_cell_proposal_preserve_neighbouring_values ... ok
+test host_table_structure_command_runs_through_the_writer ... ok
+test incremental_capture_preserves_session_order_and_acknowledges_exact_replay ... ok
+test independent_cell_review_updates_only_chosen_cell_and_stale_proposals_fail ... ok
+test independent_table_copy_remaps_saved_cell_cursor_with_its_target ... ok
+test invalid_target_identity_and_injected_commit_failure_leave_source_unchanged ... ok
+test classic_backup_preserves_cells_ink_and_rejects_legacy_tags_even_after_undo ... ok
+test layout_invalid_geometry_and_stale_cell_proposals_leave_authored_source_intact ... ok
+test layout_classic_backup_preserves_origins_and_refuses_schema20_history ... ok
+test local_cell_keys_may_equal_existing_entity_and_block_identifiers ... ok
+test local_cell_targets_are_independent_across_tables_and_fresh_protection_still_applies ... ok
+test manual_cell_correction_is_independent_and_new_ink_never_rewrites_it ... ok
+test native_copy_preserves_cell_binding_with_independent_ids_and_refuses_legacy_tag ... ok
+test native_layout_copy_remaps_origins_and_rejects_pre13_even_when_only_in_history ... ok
+test raw_cell_bookmark_copies_its_local_selector_separately_from_global_region_identity ... ok
+test removing_an_ink_cell_hides_its_vectors_but_retains_originals_and_undo ... ok
+test repeated_local_cell_keys_have_independent_proposals_and_atomic_batch_acceptance ... ok
+test same_table_ink_copy_creates_independent_identity_without_fabricating_contact_samples ... ok
+test same_table_ink_cut_retargets_existing_sources_and_keeps_replaced_ink_for_undo ... ok
+test schema19_legacy_shape_preserves_pending_review_and_raw_receipt_during_migration ... ok
+test layout_stream_backup_preserves_origins_and_refuses_schema20 ... ok
+test structural_table_edits_do_not_guess_handwriting_placement ... ok
+test structural_table_failure_rolls_back_and_fresh_lock_denies_edits ... ok
+test table_structure_preserves_headers_and_rejects_empty_or_oversized_candidates ... ok
+test typed_cell_cut_copy_preserves_grid_identity_literals_and_undo ... ok
+test typed_table_structure_is_atomic_revision_bound_and_undoable ... ok
+test version_eleven_aliases_remain_readable_and_mix_with_new_independent_regions ... ok
+test version_ten_tables_with_repeated_local_ids_import_and_capture_without_rewriting_values ... ok
+test streaming_backup_preserves_cell_targets_and_blocks_legacy_schema_smuggling ... ok
+
+test result: ok. 38 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 41.76s
+

@@ -1,0 +1,39 @@
+$ /usr/bin/java -Xcheck:jni -Djava.library.path=target/debug -cp /tmp/stem-jni-fqph2e21/classes BoundarySmoke
+exit_code=0
+
+PASS: bounded offline recovery Help without a library handle (1)
+PASS: consented resource import, stable identity, callback reentry, exact binary handoff, source-buffer and factory-array clearing (1)
+PASS: read-only recovery preserves unacknowledged tails, redacts legacy/corrupt metadata, pages and obeys single-use/cancel/capture authority (1)
+PASS: failed input preserves acknowledged offset, foreign resume cannot truncate, exact resumed bytes stage under the same identity (1)
+PASS: native capture authority reaches a blocked Java model-input callback and prevents publication (1)
+
+thread '<unnamed>' panicked at bridge/src/engines/import.rs:75:13:
+engine input retirement failed
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+PASS: input count violations and retirement errors are contained without private diagnostics or repeated cleanup (1)
+PASS: native close owns blocked input opening and actual cleanup until safe library reopen (1)
+PASS: consented typed JNI provider, no implicit readiness, callback reentry, ordered ink, pending review and exact source preservation (1)
+PASS: single-use and cancelled engine jobs, malformed and oversized private provider output containment (1)
+PASS: live ordered-ink callback cancellation through contact authority without blocking authoring or publishing stale output (1)
+PASS: throwing Java probe retires failed SDK once and preserves the old ready runtime (1)
+PASS: JNI close waits for actual inference and SDK retirement before library reopen; installed metadata never recreates readiness (1)
+
+thread 'stem-runtime-retirement' panicked at bridge/src/engines.rs:207:13:
+engine retirement failed
+PASS: explicit SDK retirement error fails close without exposing Java diagnostics or repeating retirement (1)
+PASS: typed converter activation, source-bound immutable fidelity output, single use, unsupported and malformed/oversized containment (1)
+PASS: converter callback off writer, capture cancellation, closed job refusal and preserved source (1)
+PASS: converter verified-resource array wiping, malformed format declaration retirement and previous runtime preservation (1)
+PASS: JNI removal preserves raw ink and accepted content, clears active defaults, preserves inactive choices and rejects stale/cancelled/capture/replayed jobs (1)
+PASS: JNI logical removal acknowledges metadata while SDK retirement blocks, authoring stays available and close retains library ownership (1)
+PASS: JNI removal invalidates in-flight output and retains actual SDK ownership through inference and cleanup before reopen (1)
+PASS: explicit single-use discard, stable receipt before file work, durable metadata/history and published-version refusal (1)
+PASS: closed/capture-invalidated jobs, foreign library and symlink refusal preserve independent bytes without inventing audit completion (1)
+PASS: fresh app authority gates discard plans and retained consent history (1)
+PASS: scoped two-stage reclamation review, explicit consent, stable action identity, durable metadata and single-use history boundary (1)
+PASS: every review flag still refuses a live SDK retirement pin; actual optional retirement permits later explicit reclamation (1)
+PASS: closed/capture-invalidated reviews, explicit symlink-only removal and fresh app-history authority preserve unrelated bytes (1)
+PASS: JNI backup ciphertext/char-array key, single-use/cancel, explicit confirmation, callback exception, retirement failure, capture invalidation close ownership, delegated callback/reentry/exception and artifact stamp isolation (9)
+PASS: invalid paths rejected; valid library opens and reopens (1)
+PASS: restore publication, callback bounds/retirement, failure redaction, cancellation and close (7)
+PASS: JNI Unicode, platform-verifier callback, relock, restart, malformed input, closed handles, independent registry access fresh source-selection proof and concurrent close drain and recovery identity/generation (10)

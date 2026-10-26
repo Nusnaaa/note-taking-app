@@ -1,0 +1,13 @@
+    Checking stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+warning: unused import: `CellInkOrigin`
+ --> core/src/store/table_transfer.rs:7:15
+  |
+7 |     objects::{CellInkOrigin, CellValue, Table},
+  |               ^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: `stem-core` (lib) generated 1 warning (run `cargo fix --lib -p stem-core` to apply 1 suggestion)
+warning: `stem-core` (lib test) generated 1 warning (1 duplicate)
+    Checking stem-bridge v0.1.0 (/tmp/stem-engine-catalogue-work/bridge)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 30.06s

@@ -1270,6 +1270,31 @@ fn host_table_structure_command_runs_through_the_writer() {
     assert_eq!(table.rows[0].len(), 2);
     assert_eq!(table.rows[0][0].value, CellValue::Text("retained".into()));
     assert!(!host.request(&request).unwrap().ok);
+    let transfer = serde_json::to_string(&Request {
+        version: 1,
+        command: Command::TransferCell {
+            source: stem_core::store::CellTarget {
+                block: edited.id,
+                revision: edited.revision,
+                cell: table.rows[0][0].id,
+            },
+            target: stem_core::store::CellTarget {
+                block: edited.id,
+                revision: edited.revision,
+                cell: table.rows[0][1].id,
+            },
+            mode: stem_core::store::CellTransferMode::Copy,
+        },
+    })
+    .unwrap();
+    let response = host.request(&transfer).unwrap();
+    assert!(response.ok, "{:?}", response.error);
+    let result: Vec<Block> = serde_json::from_value(response.data.unwrap()).unwrap();
+    let Content::Table(copied) = &result[0].content else {
+        panic!()
+    };
+    assert_eq!(copied.rows[0][1].value, CellValue::Text("retained".into()));
+    assert!(!host.request(&transfer).unwrap().ok);
 }
 
 fn cell_layout() -> stem_core::objects::TableLayout {
@@ -1691,4 +1716,495 @@ fn layout_invalid_geometry_and_stale_cell_proposals_leave_authored_source_intact
         store.table_ink_scene(block.id, &access),
         Err(Error::Denied)
     ));
+}
+
+fn cell_target(block: &Block, cell: Id) -> stem_core::store::CellTarget {
+    stem_core::store::CellTarget {
+        block: block.id,
+        revision: block.revision,
+        cell,
+    }
+}
+#[test]
+fn typed_cell_cut_copy_preserves_grid_identity_literals_and_undo() {
+    use stem_core::store::CellTransferMode::{Copy, Move};
+    let (mut store, access, note, block, first, second) = fixture();
+    let copied = store
+        .transfer_cell(
+            cell_target(&block, second),
+            cell_target(&block, first),
+            Copy,
+            &access,
+        )
+        .unwrap()
+        .remove(0);
+    let Content::Table(t) = &copied.content else {
+        panic!()
+    };
+    assert_eq!(t.rows[0][0].id, first);
+    assert_eq!(t.rows[0][1].id, second);
+    assert_eq!(t.rows[0][0].value, CellValue::Numeric("001".into()));
+    assert_eq!(t.rows[0][0].value, t.rows[0][1].value);
+    store.undo(note, &access).unwrap();
+    assert_eq!(
+        store.block(block.id, &access).unwrap().content,
+        block.content
+    );
+    let current = store.block(block.id, &access).unwrap();
+    let moved = store
+        .transfer_cell(
+            cell_target(&current, second),
+            cell_target(&current, first),
+            Move,
+            &access,
+        )
+        .unwrap()
+        .remove(0);
+    let Content::Table(t) = &moved.content else {
+        panic!()
+    };
+    assert_eq!(t.rows[0][1].value, CellValue::Text(String::new()));
+    assert_eq!(t.rows[0][0].value, CellValue::Numeric("001".into()));
+    store.undo(note, &access).unwrap();
+    assert_eq!(
+        store.block(block.id, &access).unwrap().content,
+        block.content
+    );
+    store.redo(note, &access).unwrap();
+    assert_eq!(
+        store.block(block.id, &access).unwrap().content,
+        moved.content
+    );
+}
+#[test]
+fn same_table_ink_cut_retargets_existing_sources_and_keeps_replaced_ink_for_undo() {
+    use stem_core::store::CellTransferMode::Move;
+    let (mut store, access, note, block, first, second) = fixture();
+    let block = store
+        .set_table_layout(block.id, 0, cell_layout(), &access)
+        .unwrap();
+    let block = capture(&mut store, &access, &block, first, 0);
+    let block = capture(&mut store, &access, &block, second, 0);
+    let originals = store.source_ink(block.id, &access).unwrap();
+    let moved = store
+        .transfer_cell(
+            cell_target(&block, first),
+            cell_target(&block, second),
+            Move,
+            &access,
+        )
+        .unwrap()
+        .remove(0);
+    assert_eq!(moved.source_ids, block.source_ids);
+    assert_eq!(moved.regions.len(), 1);
+    assert_eq!(moved.regions[0].cell, Some(second));
+    assert_eq!(moved.visible_strokes, vec![originals[0].id]);
+    let scene = store.table_ink_scene(block.id, &access).unwrap();
+    assert_eq!(scene[0].stroke, originals[0]);
+    assert_eq!(scene[0].source_to_surface.tx, 40.);
+    assert_eq!(store.source_ink(block.id, &access).unwrap(), originals);
+    store.undo(note, &access).unwrap();
+    let undone = store.block(block.id, &access).unwrap();
+    assert_eq!(undone.regions, block.regions);
+    assert_eq!(undone.content, block.content);
+    assert_eq!(undone.visible_strokes, block.visible_strokes);
+}
+#[test]
+fn same_table_ink_copy_creates_independent_identity_without_fabricating_contact_samples() {
+    use stem_core::store::CellTransferMode::Copy;
+    let (mut store, access, note, block, first, second) = fixture();
+    let block = store
+        .set_table_layout(block.id, 0, cell_layout(), &access)
+        .unwrap();
+    let block = capture(&mut store, &access, &block, first, 0);
+    let original = store.source_ink(block.id, &access).unwrap().remove(0);
+    let copied = store
+        .transfer_cell(
+            cell_target(&block, first),
+            cell_target(&block, second),
+            Copy,
+            &access,
+        )
+        .unwrap()
+        .remove(0);
+    assert_eq!(copied.regions.len(), 2);
+    assert_ne!(copied.regions[0].id, copied.regions[1].id);
+    let scene = store.table_ink_scene(block.id, &access).unwrap();
+    assert_eq!(scene.len(), 2);
+    let mut independent = scene[1].stroke.clone();
+    assert_ne!(independent.id, original.id);
+    independent.id = original.id;
+    assert_eq!(independent, original);
+    assert_eq!(scene[1].source_to_surface.tx, 40.);
+    assert_eq!(scene[0].source_to_surface.tx, 0.);
+    store.undo(note, &access).unwrap();
+    assert_eq!(store.table_ink_scene(block.id, &access).unwrap().len(), 1);
+    assert_eq!(store.source_ink(block.id, &access).unwrap().len(), 2);
+    store.redo(note, &access).unwrap();
+    assert_eq!(store.table_ink_scene(block.id, &access).unwrap().len(), 2);
+}
+#[test]
+fn between_table_cut_is_one_atomic_undo_and_failed_commit_leaves_both_unchanged() {
+    use stem_core::store::CellTransferMode::Move;
+    let (mut store, access, note, source, first, second) = fixture();
+    let source = store
+        .set_table_layout(source.id, 0, cell_layout(), &access)
+        .unwrap();
+    let source = capture(&mut store, &access, &source, first, 0);
+    let target = store.append_content(note, source.content.clone(), &access);
+    // A content-only append cannot smuggle source placements into a new block.
+    assert!(target.is_err());
+    let Content::Table(mut content) = source.content.clone() else {
+        panic!()
+    };
+    content.layout.as_mut().unwrap().ink_origins.clear();
+    let target = store
+        .append_content(note, Content::Table(content), &access)
+        .unwrap();
+    store.inject_failure(FailurePoint::BeforeCommit);
+    assert!(matches!(
+        store.transfer_cell(
+            cell_target(&source, first),
+            cell_target(&target, second),
+            Move,
+            &access
+        ),
+        Err(Error::Interrupted)
+    ));
+    assert_eq!(store.block(source.id, &access).unwrap(), source);
+    assert_eq!(store.block(target.id, &access).unwrap(), target);
+    let result = store
+        .transfer_cell(
+            cell_target(&source, first),
+            cell_target(&target, second),
+            Move,
+            &access,
+        )
+        .unwrap();
+    assert!(result[0].visible_strokes.is_empty());
+    assert_eq!(store.table_ink_scene(target.id, &access).unwrap().len(), 1);
+    store.undo(note, &access).unwrap();
+    assert_eq!(
+        store.block(source.id, &access).unwrap().content,
+        source.content
+    );
+    assert_eq!(
+        store.block(target.id, &access).unwrap().content,
+        target.content
+    );
+    assert_eq!(store.table_ink_scene(source.id, &access).unwrap().len(), 1);
+    assert!(store
+        .table_ink_scene(target.id, &access)
+        .unwrap()
+        .is_empty());
+    store.redo(note, &access).unwrap();
+    assert_eq!(store.table_ink_scene(target.id, &access).unwrap().len(), 1);
+}
+#[test]
+fn cell_transfer_rechecks_revisions_and_scope() {
+    use stem_core::{security::Scope, store::CellTransferMode::Copy};
+    let (mut store, access, _, block, first, second) = fixture();
+    let block = store
+        .set_table_layout(block.id, 0, cell_layout(), &access)
+        .unwrap();
+    let block = capture(&mut store, &access, &block, first, 0);
+    let mut stale = cell_target(&block, second);
+    stale.revision -= 1;
+    assert!(matches!(
+        store.transfer_cell(cell_target(&block, first), stale, Copy, &access),
+        Err(Error::Conflict)
+    ));
+    let scoped = common::access([Scope::Block(block.id)]);
+    let locked = store
+        .set_block_lock(block.id, block.revision, true, &scoped)
+        .unwrap();
+    assert!(matches!(
+        store.transfer_cell(
+            cell_target(&locked, first),
+            cell_target(&locked, second),
+            Copy,
+            &access
+        ),
+        Err(Error::Denied)
+    ));
+    assert_eq!(store.source_ink(block.id, &scoped).unwrap().len(), 1);
+}
+
+#[test]
+fn cross_master_cell_copy_is_destination_undoable_and_foreign_space_needs_explicit_mapping() {
+    use stem_core::store::CellTransferMode::{Copy, Move};
+    let (mut store, access, _, source, first, second) = fixture();
+    let source = store
+        .set_table_layout(source.id, 0, cell_layout(), &access)
+        .unwrap();
+    let source = capture(&mut store, &access, &source, first, 0);
+    let note = store
+        .create(Kind::Note, None, "destination", &access)
+        .unwrap();
+    let Content::Table(mut content) = source.content.clone() else {
+        panic!()
+    };
+    let layout = content.layout.as_mut().unwrap();
+    layout.ink_origins.clear();
+    layout.coordinate_space = "different-unmapped-units".into();
+    let target = store
+        .append_content(note.id, Content::Table(content), &access)
+        .unwrap();
+    assert!(matches!(
+        store.transfer_cell(
+            cell_target(&source, first),
+            cell_target(&target, second),
+            Copy,
+            &access
+        ),
+        Err(Error::Invalid("cell transfer coordinate space"))
+    ));
+    assert_eq!(store.block(target.id, &access).unwrap(), target);
+    let target = store
+        .set_table_layout(
+            target.id,
+            target.revision,
+            {
+                let mut layout = cell_layout();
+                layout.coordinate_space = "different-unmapped-units".into();
+                layout
+            },
+            &access,
+        )
+        .unwrap();
+    // Coordinate identity is immutable once adopted: use a separate compatible table.
+    let Content::Table(mut content) = source.content.clone() else {
+        panic!()
+    };
+    content.layout.as_mut().unwrap().ink_origins.clear();
+    let compatible = store
+        .append_content(note.id, Content::Table(content), &access)
+        .unwrap();
+    let result = store
+        .transfer_cell(
+            cell_target(&source, first),
+            cell_target(&compatible, second),
+            Copy,
+            &access,
+        )
+        .unwrap();
+    assert_eq!(result[0], source);
+    assert_eq!(store.block(source.id, &access).unwrap(), source);
+    let scene = store.table_ink_scene(compatible.id, &access).unwrap();
+    assert_eq!(scene[0].source_to_surface.tx, 40.);
+    assert!(matches!(
+        store.transfer_cell(
+            cell_target(&source, first),
+            cell_target(&result[1], second),
+            Move,
+            &access
+        ),
+        Err(Error::Invalid("cell move master surface"))
+    ));
+    store.undo(note.id, &access).unwrap();
+    assert!(store
+        .table_ink_scene(compatible.id, &access)
+        .unwrap()
+        .is_empty());
+    assert_eq!(store.block(source.id, &access).unwrap(), source);
+    assert_eq!(store.block(target.id, &access).unwrap(), target);
+}
+#[test]
+fn copied_cell_does_not_resurrect_erased_contacts_and_unplaced_legacy_ink_refuses_transfer() {
+    use stem_core::store::CellTransferMode::Copy;
+    let (mut store, access, _, block, first, second) = fixture();
+    let block = capture(&mut store, &access, &block, first, 0);
+    assert!(matches!(
+        store.transfer_cell(
+            cell_target(&block, first),
+            cell_target(&block, second),
+            Copy,
+            &access
+        ),
+        Err(Error::ReviewRequired)
+    ));
+    let mut layout = cell_layout();
+    layout.ink_origins.push(stem_core::objects::CellInkOrigin {
+        cell: first,
+        stroke: block.source_ids[0],
+        origin: stem_core::objects::Position { x: 0., y: 0. },
+    });
+    let block = store
+        .set_table_layout(block.id, block.revision, layout, &access)
+        .unwrap();
+    let block = store
+        .erase_strokes(block.id, block.revision, &block.visible_strokes, &access)
+        .unwrap();
+    let copied = store
+        .transfer_cell(
+            cell_target(&block, first),
+            cell_target(&block, second),
+            Copy,
+            &access,
+        )
+        .unwrap()
+        .remove(0);
+    assert!(copied.visible_strokes.is_empty());
+    assert_eq!(copied.regions.len(), 2);
+    assert_eq!(store.source_ink(block.id, &access).unwrap().len(), 2);
+    assert!(store.table_ink_scene(block.id, &access).unwrap().is_empty());
+}
+
+#[test]
+fn copied_contact_provenance_and_placement_survive_native_copy_and_encrypted_restore() {
+    use stem_core::{
+        backup::BackupOptions, portable::ExportProtection, store::CellTransferMode::Copy,
+    };
+    let (mut store, access, note, block, first, second) = fixture();
+    let block = store
+        .set_table_layout(block.id, 0, cell_layout(), &access)
+        .unwrap();
+    let block = capture(&mut store, &access, &block, first, 0);
+    let block = capture(&mut store, &access, &block, second, 0);
+    let block = store
+        .transfer_cell(
+            cell_target(&block, first),
+            cell_target(&block, second),
+            Copy,
+            &access,
+        )
+        .unwrap()
+        .remove(0);
+    let expected = store.table_ink_scene(block.id, &access).unwrap();
+    let bytes = store
+        .finish_native_export(
+            store.prepare_native_export(&[note], true, &access).unwrap(),
+            ExportProtection::Plaintext {
+                acknowledge_protected: true,
+            },
+            &mut TestAuth(true),
+            true,
+        )
+        .unwrap()
+        .bytes;
+    let mut independent = Store::memory().unwrap();
+    let entities = independent.import_native(&bytes, &access).unwrap();
+    let imported = independent
+        .blocks(entities[0], 0, 10, &access)
+        .unwrap()
+        .remove(0);
+    let scene = independent.table_ink_scene(imported.id, &access).unwrap();
+    assert_eq!(scene.len(), 2);
+    for (copied, original) in scene.iter().zip(&expected) {
+        assert_ne!(copied.stroke.id, original.stroke.id);
+        assert_eq!(
+            copied.stroke.capture_session,
+            original.stroke.capture_session
+        );
+        assert_eq!(copied.stroke.points, original.stroke.points);
+        assert_eq!(copied.source_to_surface, original.source_to_surface);
+    }
+    assert_eq!(
+        independent.source_ink(imported.id, &access).unwrap().len(),
+        3
+    );
+    let password = "Synthetic copied-contact provenance backup password";
+    let backup = store
+        .finish_backup(
+            store
+                .prepare_backup(
+                    BackupOptions {
+                        include_original_ink: true,
+                        include_authorised_source_assets: false,
+                    },
+                    &access,
+                )
+                .unwrap(),
+            password,
+            &mut TestAuth(true),
+            true,
+        )
+        .unwrap();
+    let restored = Store::restore_backup_password(&backup.bytes, password).unwrap();
+    let scene = restored.table_ink_scene(block.id, &access).unwrap();
+    for (restored, original) in scene.iter().zip(&expected) {
+        assert_eq!(restored.stroke, original.stroke);
+        assert_eq!(restored.source_to_surface, original.source_to_surface);
+    }
+    assert_eq!(restored.source_ink(block.id, &access).unwrap().len(), 3);
+}
+
+#[test]
+fn corrupted_cell_origins_refuse_transfer_without_panicking_or_inserting_source_rows() {
+    use stem_core::{
+        objects::{CellInkOrigin, Position},
+        store::CellTransferMode::Copy,
+    };
+    let root = tempfile::tempdir().unwrap();
+    let path = root.path().join("corrupt-cell.db");
+    let mut store = Store::open(&path).unwrap();
+    let access = Access::public();
+    let note = store
+        .create(Kind::Note, None, "corruption", &access)
+        .unwrap();
+    let first = Id::new();
+    let second = Id::new();
+    let block = store
+        .append_content(
+            note.id,
+            Content::Table(Table {
+                rows: vec![vec![
+                    Cell {
+                        id: first,
+                        value: CellValue::Text("source".into()),
+                    },
+                    Cell {
+                        id: second,
+                        value: CellValue::Text("destination".into()),
+                    },
+                ]],
+                header_rows: 0,
+                layout: Some(cell_layout()),
+            }),
+            &access,
+        )
+        .unwrap();
+    let block = capture(&mut store, &access, &block, first, 0);
+    let mut corrupt = block.clone();
+    let Content::Table(table) = &mut corrupt.content else {
+        panic!()
+    };
+    table
+        .layout
+        .as_mut()
+        .unwrap()
+        .ink_origins
+        .push(CellInkOrigin {
+            cell: first,
+            stroke: Id::new(),
+            origin: Position { x: 0., y: 0. },
+        });
+    let db = rusqlite::Connection::open(&path).unwrap();
+    let payload = serde_json::to_string(&corrupt).unwrap();
+    db.execute(
+        "UPDATE blocks SET payload=?1 WHERE id=?2",
+        rusqlite::params![payload, block.id.to_string()],
+    )
+    .unwrap();
+    assert!(matches!(
+        store.transfer_cell(
+            cell_target(&block, first),
+            cell_target(&block, second),
+            Copy,
+            &access
+        ),
+        Err(Error::Invalid(_))
+    ));
+    let actual: String = db
+        .query_row(
+            "SELECT payload FROM blocks WHERE id=?1",
+            [block.id.to_string()],
+            |r| r.get(0),
+        )
+        .unwrap();
+    assert_eq!(actual, payload);
+    let count: i64 = db
+        .query_row("SELECT count(*) FROM strokes", [], |r| r.get(0))
+        .unwrap();
+    assert_eq!(count, 1);
 }
