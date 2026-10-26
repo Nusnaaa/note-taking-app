@@ -1,0 +1,10 @@
+    Blocking waiting for file lock on build directory
+   Compiling stem-core v0.1.0 (/tmp/stem-shared-runtime-work/core)
+    Finished `test` profile [unoptimized] target(s) in 2m 35s
+     Running unittests src/lib.rs (/tmp/stem-shared-runtime-target/debug/deps/stem_core-d4c08547f51338e0)
+
+running 1 test
+test host::runtime::tests::close_rejects_new_leases_and_waits_for_actual_last_lease_then_off_lock_sdk_drop ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 31 filtered out; finished in 0.00s
+

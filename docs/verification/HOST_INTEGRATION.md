@@ -1646,3 +1646,9 @@ history row. FULL synchronous metadata transactions and directory sync stay with
 the worker lifetime. Close retains the app lease through blocked catalogue work.
 Unknown/future schemas, file links, redirected namespaces and corrupt records are
 preserved and reported unavailable. See BACKUP_PUBLICATION_HISTORY.md and ADR 007.
+
+### Native shared engine controller
+
+`Host::engine_activation_plan(version)` captures stored consent/version/generation metadata and host optional-work authority. On an optional worker, call the plan's typed preparation method with the SDK adapter and resource bound, then `Host::install_prepared_engine(&prepared)` to publish to the private host Manager. Drop the prepared holder after success/failure so old/abandoned SDK ownership retires off the writer. `Host::prepare_runtime_recognition(block,region,task,override_id)` prepares owned work against that manager; run it on an optional worker and publish its completed proposal through the existing revision-safe review path. Explicit override is supported; installed metadata after reopen is not runtime readiness.
+
+Close disables new private manager leases and waits for their actual retirement before library ownership is released, including SDK destructors. Both registry and optional-work retirement reject reentrant self-waits. JNI typed provider registration and Android controllers still require implementation; no model is enabled by these native APIs.

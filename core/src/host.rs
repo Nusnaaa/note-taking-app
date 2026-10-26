@@ -32,6 +32,7 @@ use deletion::DeletionState;
 mod mailbox;
 mod ownership;
 mod recognition;
+mod runtime;
 use recognition::RecognitionScope;
 pub use recognition::{
     HostActivationSource, HostActivationWork, HostCompletedActivation, HostDetachedRuntime,
@@ -493,6 +494,7 @@ impl PendingResponse {
 pub struct Host {
     mailbox: Arc<Mailbox>,
     recognition: Arc<RecognitionScope>,
+    runtime: Arc<runtime::RuntimeRegistry>,
     backups: Arc<BackupScope>,
     restores: Arc<RestoreScope>,
     worker: Mutex<Option<thread::JoinHandle<Result<()>>>>,
@@ -531,6 +533,8 @@ impl Host {
         if path == std::path::Path::new(":memory:") {
             return Err(Error::Invalid("file-backed library path"));
         }
+        let runtime = Arc::new(runtime::RuntimeRegistry::new()?);
+        let runtime_worker = Arc::clone(&runtime);
         let input = Arc::clone(&mailbox);
         let recognition = Arc::new(RecognitionScope::new(limits.query_count.min(8)));
         let recognition_scope = Arc::clone(&recognition);
@@ -753,13 +757,15 @@ impl Host {
                 backup_actor.clear();
                 backup_scope.close();
                 restore_scope.close();
+                runtime_worker.close();
                 recognition_scope.wait_workers();
+                let runtime_result = runtime_worker.wait();
                 backup_scope.wait();
                 restore_scope.wait();
                 input.close();
                 drop(pdf);
                 drop(store);
-                Ok(())
+                runtime_result
             })?;
         match ready_rx.recv() {
             Ok(Ok(())) => {}
@@ -775,6 +781,7 @@ impl Host {
         Ok(Self {
             mailbox,
             recognition,
+            runtime,
             backups,
             restores,
             writer_thread: worker.thread().id(),
@@ -785,12 +792,14 @@ impl Host {
     /// other callers still hold Arc references. Never call from a verifier callback.
     pub fn close(&self) -> Result<()> {
         self.recognition.close();
+        self.runtime.close();
         self.backups.close();
         self.restores.close();
         self.mailbox.close();
         // Check before taking the join mutex: an external closer may already
         // hold it while waiting for this very verifier to return.
         if self.writer_thread == thread::current().id()
+            || self.runtime.is_current_worker()
             || self.recognition.is_current_worker()
             || self.backups.is_current_worker()
             || self.restores.is_current_worker()
@@ -831,6 +840,26 @@ impl Host {
         self.mailbox
             .admit(Message::EngineActivationPlan(version, tx), false, 128)?;
         rx.recv().map_err(|_| Error::WorkerFailed)?
+    }
+    /// Publish into this host's private shared manager. Preparation remains an
+    /// optional-worker operation on a stored, consented activation plan.
+    pub fn install_prepared_engine(&self, prepared: &HostPreparedEngineActivation) -> Result<()> {
+        let lease = self.runtime.lease()?;
+        self.commit_engine_activation(lease.manager(), prepared)
+    }
+    /// Capture authorised ink and prepare owned inference against this host's
+    /// exact current runtime. The returned work runs after releasing the manager.
+    pub fn prepare_runtime_recognition(
+        &self,
+        block: Id,
+        region: Option<Id>,
+        task: crate::processing::Task,
+        override_id: Option<&str>,
+    ) -> Result<HostRecognitionWork> {
+        let source = self.recognition_source(block, region)?;
+        let lease = self.runtime.lease()?;
+        let manager = lease.manager().lock().map_err(|_| Error::WorkerFailed)?;
+        source.prepare(&manager, task, override_id)
     }
     /// Publish a prepared engine on the writer. Call from an optional controller
     /// worker, without holding the shared Manager mutex. A busy Manager rejects

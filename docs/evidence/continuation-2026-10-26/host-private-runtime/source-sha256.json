@@ -1,0 +1,5 @@
+{
+  "core/src/host.rs": "e4badf148aa6a8fdcc6ce5b950a580904d5d8c73887282587dfe31949dd78d9d",
+  "core/src/host/runtime.rs": "c8aa8f7880d686577755761db68d0de194434ce0781232a39e23b7e854fa84d7",
+  "core/tests/host_engine_activation_plan.rs": "0e84a31f22e7d3a635ba43248953093123a34b802a1d31e4c9252335f56c5872"
+}

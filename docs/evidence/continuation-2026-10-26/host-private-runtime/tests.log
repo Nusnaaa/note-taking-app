@@ -1,0 +1,62 @@
+    Blocking waiting for file lock on build directory
+   Compiling stem-core v0.1.0 (/tmp/stem-shared-runtime-work/core)
+    Finished `test` profile [unoptimized] target(s) in 16.38s
+     Running tests/host_activation.rs (/tmp/stem-shared-runtime-target/debug/deps/host_activation-9f0ed26c09b4145e)
+
+running 10 tests
+test host_detachment_cleanup_can_reenter_shared_manager_after_controller_unlocks ... ok
+test running_probe_is_cancelled_by_pen_priority_while_authoring_and_raw_source_remain_available ... ok
+test optional_capacity_and_pen_priority_never_run_a_cancelled_idle_probe_or_mark_authoring_failed ... ok
+test close_waits_for_running_probe_then_actual_adapter_destruction_before_reopening_library ... ok
+test provider_error_payload_retires_off_writer_after_completion_failure ... ok
+test detachment_requires_current_host_epoch_and_does_not_remove_ready_engine_after_pen_cancellation ... ok
+test idle_adapter_cleanup_is_off_writer_and_full_close_retains_library_ownership_until_it_finishes ... ok
+test host_owned_detached_runtime_keeps_owner_until_off_writer_cleanup_finishes ... ok
+test host_and_app_authority_bind_completion_and_locked_app_cannot_reserve_activation ... ok
+test descriptor_frame_rejection_preserves_existing_ready_engine_and_authoring ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.83s
+
+     Running tests/host_engine_activation_plan.rs (/tmp/stem-shared-runtime-target/debug/deps/host_engine_activation_plan-d3ad8418b447fc95)
+
+running 13 tests
+test relock_cancels_old_metadata_plan_and_locked_app_cannot_reserve_new_plan ... ok
+test pen_cancellation_prevents_host_publication_after_preparation ... ok
+test queued_publication_does_not_lock_registry_while_writer_authenticates ... ok
+test host_publication_installs_runtime_and_durable_metadata_and_rejects_replay ... ok
+test idle_prepared_disposal_is_off_writer_and_holds_owner_until_cleanup ... ok
+test probe_is_off_writer_and_pen_cancellation_never_revives_a_prepared_candidate ... ok
+test busy_manager_rejects_without_writer_wait_and_preserves_candidate_for_retry ... ok
+test close_waits_for_probe_and_actual_cleanup_before_library_can_reopen ... ok
+test host_close_retires_private_manager_off_writer_before_releasing_library ... ok
+test metadata_reservation_is_bounded_and_never_probes_or_marks_installed ... ok
+test replaced_runtime_cleanup_is_off_writer_and_keeps_library_ownership ... ok
+test host_private_runtime_recognises_into_a_review_without_rewriting_source ... ok
+test publication_rejects_foreign_scope_and_stale_generation_without_installing ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.33s
+
+     Running tests/host_recognition.rs (/tmp/stem-shared-runtime-target/debug/deps/host_recognition-3ceb64efdd121fe8)
+
+running 18 tests
+test blocked_inference_never_holds_writer_and_relock_rejects_late_output ... ok
+test reentrant_close_from_model_callback_cancels_without_self_join ... ok
+test host_close_invalidates_prepared_work_while_pending_reviews_remain_explicit ... ok
+test excessive_trusted_capture_sessions_disable_optional_work_but_preserve_authoring ... ok
+test capture_priority_cancels_old_work_and_nested_contacts_never_resume_each_other ... ok
+test capture_priority_reaches_a_running_adapter_and_does_not_wait_for_it_to_save_ink ... ok
+test completed_work_cannot_resurrect_after_relock_reauthentication_or_reopen ... ok
+test processing_admission_counts_unrun_sources_and_close_retires_them_without_waiting_for_callers ... ok
+test idle_runtime_cleanup_is_off_writer_and_reentrant_close_never_releases_ownership_early ... ok
+test batch_acceptance_spanning_documents_records_independent_document_undo ... ok
+test pending_reviews_are_discoverable_after_restart_without_a_loaded_model_and_hide_locked_source ... ok
+test host_manual_recognition_review_correction_and_acceptance_preserve_original_ink ... ok
+test selected_regions_publish_independent_reviews_and_explicit_batch_acceptance_is_atomic ... ok
+test overlapping_region_or_whole_block_selections_leave_every_review_pending ... ok
+test cancelled_stale_unscoped_and_forged_results_cannot_publish ... ok
+test source_permissions_are_current_and_review_cannot_bypass_a_block_lock ... ok
+test shutdown_keeps_library_ownership_until_blocked_worker_really_retires ... ok
+test encoded_source_byte_budget_is_independent_of_job_count_and_does_not_evict_input ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 11.29s
+

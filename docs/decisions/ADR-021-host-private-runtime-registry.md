@@ -1,0 +1,9 @@
+# ADR 021 — host-private shared runtime registry
+
+Status: recorded native backend decision. JNI provider/controller adoption remains open.
+
+Each Host owns one private Manager, shared by typed recogniser/converter entries. `install_prepared_engine` uses the stored activation plan and callback-free writer publication from ADR 020. `prepare_runtime_recognition` captures fresh authorised source ink on the writer, then creates owned recognition work under the private Manager lock. Inference runs after releasing that lock. No Manager reference or SDK owner escapes the private controller lease through these APIs; existing explicit caller-owned Manager APIs remain available for trusted native callers.
+
+A dedicated runtime retirement thread owns shutdown disposal. Close rejects new controller leases. Each private lease releases its temporary Manager Arc before decrementing the live-use count. Retirement waits for zero users, takes the last registry Manager owner and drops it outside registry/Manager locks. SDK destruction may reenter close; worker identity rejects a self-wait. The writer independently waits for host optional work and this retirement thread before releasing the Store and library owner. SDK adapters pinned by running/idle recognition work remain covered by existing optional-work admission/retirement. A runtime registry lease is not a notebook access grant.
+
+The private manager begins empty on every open. Stored installed metadata does not recreate runtime readiness, and shutdown does not remove installed metadata. Original ink and pending proposals remain independent of runtime availability. Replaced runtimes still retire through the optional-work lane; private-manager shutdown retires its remaining entries on the dedicated lane. This is cooperative lifecycle ownership, not hard SDK isolation, forced termination, a global memory quota or a device performance result. It enables no real model and makes no new licensing claim.

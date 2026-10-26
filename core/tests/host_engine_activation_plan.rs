@@ -467,3 +467,165 @@ fn queued_publication_does_not_lock_registry_while_writer_authenticates() {
     assert!(result.is_ok() || matches!(result, Err(Error::Cancelled)));
     h.close().unwrap();
 }
+
+struct SharedModel {
+    cleanup: Option<Gate>,
+    host: Option<std::sync::Weak<Host>>,
+}
+impl Recogniser for SharedModel {
+    fn probe(&self) -> Result<()> {
+        Ok(())
+    }
+    fn recognise(
+        &self,
+        ink: &InkSnapshot,
+        _: Task,
+        control: &JobControl,
+    ) -> Result<RecognitionOutput> {
+        control.check()?;
+        assert!(!ink.strokes().is_empty());
+        Ok(RecognitionOutput {
+            candidates: vec![stem_core::content::Content::Text("1 + 1 = 3".into())],
+            raw_output: "1 + 1 = 3".into(),
+            confidence: None,
+            diagnostics: vec![],
+        })
+    }
+}
+impl Drop for SharedModel {
+    fn drop(&mut self) {
+        assert_eq!(thread::current().name(), Some("stem-runtime-retirement"));
+        if let Some(h) = self.host.as_ref().and_then(|h| h.upgrade()) {
+            assert!(matches!(h.close(), Err(Error::WorkerFailed)));
+        }
+        if let Some(gate) = &self.cleanup {
+            gate.wait();
+        }
+    }
+}
+fn data(h: &Host, command: Command) -> serde_json::Value {
+    let response = h
+        .request(
+            &serde_json::to_string(&Request {
+                version: 1,
+                command,
+            })
+            .unwrap(),
+        )
+        .unwrap();
+    assert!(response.ok, "{:?}", response.error);
+    response.data.unwrap()
+}
+fn ink_block(h: &Host) -> Id {
+    let note = Id::parse(
+        data(
+            h,
+            Command::Create {
+                kind: Kind::Note,
+                parent: None,
+                title: "private runtime".into(),
+            },
+        )["id"]
+            .as_str()
+            .unwrap(),
+    )
+    .unwrap();
+    Id::parse(
+        data(
+            h,
+            Command::Capture {
+                ticket: Id::new(),
+                entity: note,
+                strokes: vec![stroke(0)],
+            },
+        )["id"]
+            .as_str()
+            .unwrap(),
+    )
+    .unwrap()
+}
+#[test]
+fn host_private_runtime_recognises_into_a_review_without_rewriting_source() {
+    let (root, h, id) = fixture(8);
+    let block = ink_block(&h);
+    let original = data(&h, Command::SourceInk { block });
+    let ready = h
+        .engine_activation_plan(id)
+        .unwrap()
+        .prepare_recogniser(
+            Box::new(SharedModel {
+                cleanup: None,
+                host: None,
+            }),
+            100,
+            &control(),
+        )
+        .unwrap();
+    h.install_prepared_engine(&ready).unwrap();
+    drop(ready);
+    let work = h
+        .prepare_runtime_recognition(block, None, Task::Prose, Some("synthetic"))
+        .unwrap();
+    let completed = thread::spawn(move || work.run(&control()))
+        .join()
+        .unwrap()
+        .unwrap();
+    let proposal = h.publish_recognition(completed).unwrap();
+    assert_eq!(
+        data(
+            &h,
+            Command::Proposal {
+                proposal: proposal.id
+            }
+        )["output"]["raw_output"],
+        "1 + 1 = 3"
+    );
+    assert_eq!(data(&h, Command::SourceInk { block }), original);
+    h.close().unwrap();
+    let reopened = Host::open(root.path().join("library.db"), 8).unwrap();
+    // Durable installed metadata does not recreate a runtime after restart.
+    assert!(reopened
+        .prepare_runtime_recognition(block, None, Task::Prose, Some("synthetic"))
+        .is_err());
+    assert_eq!(data(&reopened, Command::SourceInk { block }), original);
+    reopened.close().unwrap();
+}
+#[test]
+fn host_close_retires_private_manager_off_writer_before_releasing_library() {
+    let (root, h, id) = fixture(8);
+    let (cleanup, entered, release) = gate();
+    let ready = h
+        .engine_activation_plan(id)
+        .unwrap()
+        .prepare_recogniser(
+            Box::new(SharedModel {
+                cleanup: Some(cleanup),
+                host: Some(Arc::downgrade(&h)),
+            }),
+            100,
+            &control(),
+        )
+        .unwrap();
+    h.install_prepared_engine(&ready).unwrap();
+    drop(ready);
+    wait_for(|| h.recognition_status().reserved == 0);
+    let closing_host = Arc::clone(&h);
+    let (done, closed) = mpsc::channel();
+    let closer = thread::spawn(move || {
+        let result = closing_host.close();
+        done.send(result).unwrap();
+    });
+    entered.recv_timeout(Duration::from_secs(10)).unwrap();
+    assert!(closed.try_recv().is_err());
+    assert!(Host::open(root.path().join("library.db"), 8).is_err());
+    release.send(()).unwrap();
+    closed
+        .recv_timeout(Duration::from_secs(10))
+        .unwrap()
+        .unwrap();
+    closer.join().unwrap();
+    Host::open(root.path().join("library.db"), 8)
+        .unwrap()
+        .close()
+        .unwrap();
+}
