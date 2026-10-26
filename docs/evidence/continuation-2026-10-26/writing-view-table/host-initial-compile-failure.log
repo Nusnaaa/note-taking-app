@@ -1,0 +1,52 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+error[E0412]: cannot find type `ViewSettings` in module `stem_core::objects`
+    --> core/tests/table_cell_ink.rs:1421:35
+     |
+1421 |     let view: stem_core::objects::ViewSettings = serde_json::from_value(call(Command::SaveView {
+     |                                   ^^^^^^^^^^^^ not found in `stem_core::objects`
+     |
+help: consider importing this struct
+     |
+   2 + use stem_core::store::ViewSettings;
+     |
+help: if you import `ViewSettings`, refer to it directly
+     |
+1421 -     let view: stem_core::objects::ViewSettings = serde_json::from_value(call(Command::SaveView {
+1421 +     let view: ViewSettings = serde_json::from_value(call(Command::SaveView {
+     |
+
+error[E0422]: cannot find struct, variant or union type `ViewSettings` in module `stem_core::objects`
+    --> core/tests/table_cell_ink.rs:1422:35
+     |
+1422 |         view: stem_core::objects::ViewSettings {
+     |                                   ^^^^^^^^^^^^ not found in `stem_core::objects`
+     |
+help: consider importing this struct
+     |
+   2 + use stem_core::store::ViewSettings;
+     |
+help: if you import `ViewSettings`, refer to it directly
+     |
+1422 -         view: stem_core::objects::ViewSettings {
+1422 +         view: ViewSettings {
+     |
+
+error[E0433]: failed to resolve: could not find `Camera` in `objects`
+    --> core/tests/table_cell_ink.rs:1426:41
+     |
+1426 |             camera: stem_core::objects::Camera::default(),
+     |                                         ^^^^^^ could not find `Camera` in `objects`
+     |
+help: consider importing this struct
+     |
+   2 + use stem_core::store::Camera;
+     |
+help: if you import `Camera`, refer to it directly
+     |
+1426 -             camera: stem_core::objects::Camera::default(),
+1426 +             camera: Camera::default(),
+     |
+
+Some errors have detailed explanations: E0412, E0422, E0433.
+For more information about an error, try `rustc --explain E0412`.
+error: could not compile `stem-core` (test "table_cell_ink") due to 3 previous errors

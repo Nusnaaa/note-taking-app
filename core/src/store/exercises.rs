@@ -80,7 +80,23 @@ impl Store {
         Ok(serde_json::from_str(&payload.ok_or(Error::Unavailable)?)?)
     }
     pub(crate) fn read_exercise(db: &Connection, id: Id, access: &Access) -> Result<Exercise> {
+        let (master, locked): (String, Option<bool>) = db
+            .query_row(
+                "SELECT master,json_extract(payload,'$.locked') FROM exercises WHERE id=?1",
+                [id.to_string()],
+                |r| Ok((r.get(0)?, r.get(1)?)),
+            )
+            .optional()?
+            .ok_or(Error::Unavailable)?;
+        let master = Id::parse(&master)?;
+        Self::authorise(db, master, access, false)?;
+        if locked.unwrap_or(true) && !access.permits(&Scope::Exercise(id)) {
+            return Err(Error::Denied);
+        }
         let e = Self::raw_exercise(db, id)?;
+        if e.id != id || e.master != master {
+            return Err(Error::Integrity);
+        }
         Self::authorise(db, e.master, access, false)?;
         if e.locked && !access.permits(&Scope::Exercise(id)) {
             return Err(Error::Denied);

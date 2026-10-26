@@ -1,0 +1,10 @@
+Traceability intact: 94 requirements, 103 inherited clauses, 158 candidates; no candidate PASS inferred.
+Traceability intact: 94 requirements, 103 inherited clauses, 158 candidates; no candidate PASS inferred.
+    Checking stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+    Checking stem-bridge v0.1.0 (/tmp/stem-engine-catalogue-work/bridge)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 29.07s
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+   Compiling stem-bridge v0.1.0 (/tmp/stem-engine-catalogue-work/bridge)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 42.33s
+bab91c7e52e4be357dd3d744ba0db4a79b5dda8e65e9181cdc7195bc48c4fa63  /tmp/stem-pen-response-target/debug/libstem_bridge.so
+bab91c7e52e4be357dd3d744ba0db4a79b5dda8e65e9181cdc7195bc48c4fa63  target/debug/libstem_bridge.so

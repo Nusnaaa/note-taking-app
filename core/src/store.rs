@@ -4,8 +4,12 @@
 mod authoring;
 mod canvas_table_scene;
 mod nested_table_scene;
+mod view_table_scene;
 pub use nested_table_scene::{
     CanvasEmbedPathStep, CanvasInkClip, NestedCanvasTableInkPage, NestedCanvasTableInkScope,
+};
+pub use view_table_scene::{
+    WritingViewTablePage, WritingViewTableRequest, WritingViewTableScope, WritingViewTableSource,
 };
 mod capture_recovery;
 mod editing;

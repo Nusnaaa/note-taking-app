@@ -48,6 +48,23 @@ impl Default for Camera {
 }
 
 impl Camera {
+    pub fn to_frame(self, frame: Rect) -> Result<Transform> {
+        self.validate()?;
+        frame.validate()?;
+        let (sin, cos) = self.rotation_rad.sin_cos();
+        let mut value = Transform {
+            a: self.zoom * cos,
+            b: self.zoom * sin,
+            c: -self.zoom * sin,
+            d: self.zoom * cos,
+            tx: 0.,
+            ty: 0.,
+        };
+        value.tx = frame.x + frame.width / 2. - value.a * self.centre_x - value.c * self.centre_y;
+        value.ty = frame.y + frame.height / 2. - value.b * self.centre_x - value.d * self.centre_y;
+        value.validate()?;
+        Ok(value)
+    }
     pub fn validate(self) -> Result<()> {
         if [self.centre_x, self.centre_y, self.zoom, self.rotation_rad]
             .iter()
@@ -881,18 +898,35 @@ impl Store {
         Ok(Self::read_view_db(&self.db, id, access)?.settings)
     }
     pub(crate) fn read_view_db(db: &Connection, id: Id, access: &Access) -> Result<RestoredView> {
-        let (entity, json): (String, String) = db
+        let entity: String = db
             .query_row(
-                "SELECT entity,payload FROM view_settings WHERE id=?1",
+                "SELECT entity FROM view_settings WHERE id=?1",
                 [id.to_string()],
-                |r| Ok((r.get(0)?, r.get(1)?)),
+                |r| r.get(0),
             )
             .optional()?
             .ok_or(Error::Unavailable)?;
-
+        let owner = Id::parse(&entity)?;
+        Self::authorise(db, owner, access, false)?;
+        let exercise: Option<String> = db.query_row(
+            "SELECT json_extract(payload,'$.exercise') FROM view_settings WHERE id=?1",
+            [id.to_string()],
+            |r| r.get(0),
+        )?;
+        let exercise = exercise.as_deref().map(Id::parse).transpose()?;
+        if let Some(exercise) = exercise {
+            if Self::read_exercise(db, exercise, access)?.master != owner {
+                return Err(Error::Integrity);
+            }
+        }
+        let json: String = db.query_row(
+            "SELECT payload FROM view_settings WHERE id=?1",
+            [id.to_string()],
+            |r| r.get(0),
+        )?;
         let v: ViewSettings = serde_json::from_str(&json)?;
         v.validate()?;
-        if v.id != id || v.entity.to_string() != entity {
+        if v.id != id || v.entity.to_string() != entity || v.exercise != exercise {
             return Err(Error::Integrity);
         }
         Self::authorise(db, v.entity, access, false)?;

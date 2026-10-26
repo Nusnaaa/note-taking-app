@@ -35,12 +35,12 @@ pub struct NestedCanvasTableInkPage {
     pub ink: TableInkScenePage,
 }
 impl Store {
-    fn nested_table_scope(
+    pub(crate) fn nested_table_scope(
         db: &Connection,
         scope: &NestedCanvasTableInkScope,
         block: Id,
         access: &Access,
-    ) -> Result<(Transform, Vec<CanvasInkClip>)> {
+    ) -> Result<(Transform, Vec<CanvasInkClip>, Id)> {
         Self::check_canvas(db, scope.canvas, access)?;
         let root = Self::authorise(db, scope.canvas, access, false)?;
         let layers = Self::raw_canvas_layers(db, scope.canvas)?;
@@ -108,18 +108,7 @@ impl Store {
             }
             let camera = e.camera;
             let frame = e.frame;
-            let (sin, cos) = camera.rotation_rad.sin_cos();
-            let mut t = Transform {
-                a: camera.zoom * cos,
-                b: camera.zoom * sin,
-                c: -camera.zoom * sin,
-                d: camera.zoom * cos,
-                tx: 0.,
-                ty: 0.,
-            };
-            t.tx = frame.x + frame.width / 2. - t.a * camera.centre_x - t.c * camera.centre_y;
-            t.ty = frame.y + frame.height / 2. - t.b * camera.centre_x - t.d * camera.centre_y;
-            t.validate()?;
+            let t = camera.to_frame(frame)?;
             matrices.push(t);
             frames.push(frame);
             surface = host.id;
@@ -150,7 +139,7 @@ impl Store {
             suffix = compose(suffix, matrix)?;
         }
         clips.reverse();
-        Ok((suffix, clips))
+        Ok((suffix, clips, surface))
     }
     pub fn nested_canvas_table_ink_scene_page(
         &self,
@@ -161,7 +150,7 @@ impl Store {
         max_points: u32,
         access: &Access,
     ) -> Result<NestedCanvasTableInkPage> {
-        let (outer, clips) = Self::nested_table_scope(&self.db, &scope, block, access)?;
+        let (outer, clips, surface) = Self::nested_table_scope(&self.db, &scope, block, access)?;
         let empty = TableInkScenePage {
             block,
             revision,
@@ -201,7 +190,7 @@ impl Store {
             }
         }
         if Self::nested_table_scope(&self.db, &page.scope, block, access)?
-            != (outer, page.clips.clone())
+            != (outer, page.clips.clone(), surface)
         {
             return Err(Error::Conflict);
         }

@@ -1418,6 +1418,51 @@ fn host_table_structure_command_runs_through_the_writer() {
         .unwrap();
     assert!(page.clips.is_empty());
     assert_eq!(page.ink.fragments[0].points.len(), 1);
+    let view: stem_core::store::ViewSettings = serde_json::from_value(call(Command::SaveView {
+        view: stem_core::store::ViewSettings {
+            id: Id::new(),
+            entity: canvas,
+            exercise: None,
+            camera: stem_core::store::Camera::default(),
+            pen_width_mm: 0.5,
+            colour_rgba: [0, 0, 0, 255],
+            finger_ink: false,
+            anchor: None,
+            bookmark: None,
+            authoring: None,
+            revision: 0,
+        },
+        expected: None,
+    }))
+    .unwrap();
+    let projected: stem_core::store::WritingViewTablePage =
+        serde_json::from_value(call(Command::WritingViewTableInkScenePage {
+            request: stem_core::store::WritingViewTableRequest {
+                scope: stem_core::store::WritingViewTableScope {
+                    view: view.id,
+                    revision: view.revision,
+                    source: stem_core::store::WritingViewTableSource::Direct {
+                        entity_revision: scene.entity_revision,
+                    },
+                },
+                block: copied.id,
+                revision: copied.revision,
+                cursor: None,
+                max_points: 1,
+                viewport: stem_core::objects::Rect {
+                    x: 0.,
+                    y: 0.,
+                    width: 200.,
+                    height: 100.,
+                },
+            },
+        }))
+        .unwrap();
+    assert_eq!(projected.clips.len(), 1);
+    assert_eq!(
+        projected.ink.fragments[0].points,
+        page.ink.fragments[0].points
+    );
 }
 
 fn cell_layout() -> stem_core::objects::TableLayout {
@@ -4228,4 +4273,264 @@ fn nested_canvas_path_refuses_disconnected_links_and_fresh_outer_lock() {
     assert!(store
         .nested_canvas_table_ink_scene_page(current, block.id, block.revision, None, 1, &key)
         .is_ok());
+}
+
+fn saved_table_view(
+    store: &mut Store,
+    entity: Id,
+    exercise: Option<Id>,
+    camera: stem_core::store::Camera,
+    access: &Access,
+) -> stem_core::store::ViewSettings {
+    store
+        .save_view(
+            stem_core::store::ViewSettings {
+                id: Id::new(),
+                entity,
+                exercise,
+                camera,
+                pen_width_mm: 0.5,
+                colour_rgba: [0, 0, 0, 255],
+                finger_ink: false,
+                anchor: None,
+                bookmark: None,
+                authoring: None,
+                revision: 0,
+            },
+            None,
+            access,
+        )
+        .unwrap()
+}
+#[test]
+fn writing_view_camera_projects_nested_ink_and_clips_without_changing_source_samples() {
+    use stem_core::{objects::Rect, store::*};
+    let (mut store, access, root, block, path, _) = nested_table_fixture();
+    let host = store.embed(*path.last().unwrap(), &access).unwrap().host;
+    let view = saved_table_view(
+        &mut store,
+        host,
+        None,
+        Camera {
+            centre_x: 140.,
+            centre_y: 220.,
+            zoom: 3.,
+            rotation_rad: 0.,
+        },
+        &access,
+    );
+    let request = WritingViewTableRequest {
+        scope: WritingViewTableScope {
+            view: view.id,
+            revision: view.revision,
+            source: WritingViewTableSource::Nested(nested_table_scope(
+                &store, root, &path, &access,
+            )),
+        },
+        block: block.id,
+        revision: block.revision,
+        cursor: None,
+        max_points: 1,
+        viewport: Rect {
+            x: 0.,
+            y: 0.,
+            width: 200.,
+            height: 100.,
+        },
+    };
+    let original = store.source_ink(block.id, &access).unwrap();
+    let page = store
+        .writing_view_table_ink_scene_page(request.clone(), &access)
+        .unwrap();
+    assert_eq!(page.clips.len(), 4);
+    assert_eq!(page.clips.last().unwrap().bounds, request.viewport);
+    assert_eq!(
+        page.clips.last().unwrap().to_surface,
+        stem_core::ink::Transform::default()
+    );
+    let t = page.ink.fragments[0].source_to_surface;
+    assert!((t.tx - 100.).abs() < 1e-9);
+    assert!((t.ty - 50.).abs() < 1e-9);
+    assert!((t.b - 6.).abs() < 1e-9);
+    assert!((t.c + 6.).abs() < 1e-9);
+    assert_eq!(page.ink.fragments[0].points, original[0].points[..1]);
+    assert!(serde_json::to_vec(&page).unwrap().len() < 8 * 1024 * 1024);
+    let mut changed = view.clone();
+    changed.camera.zoom = 4.;
+    store
+        .save_view(changed, Some(view.revision), &access)
+        .unwrap();
+    assert!(matches!(
+        store.writing_view_table_ink_scene_page(request, &access),
+        Err(Error::Conflict)
+    ));
+    assert_eq!(store.source_ink(block.id, &access).unwrap(), original);
+}
+#[test]
+fn exercise_table_view_refuses_foreign_members_and_hidden_exercises() {
+    use stem_core::{objects::Rect, store::*};
+    let (mut store, access, note, block, first, _) = fixture();
+    let block = store
+        .set_table_layout(block.id, 0, cell_layout(), &access)
+        .unwrap();
+    let block = capture(&mut store, &access, &block, first, 0);
+    let exercise = store
+        .create_exercise(note, "table subset", &[block.id], &access)
+        .unwrap();
+    let view = saved_table_view(
+        &mut store,
+        note,
+        Some(exercise.id),
+        Camera::default(),
+        &access,
+    );
+    let mut request = WritingViewTableRequest {
+        scope: WritingViewTableScope {
+            view: view.id,
+            revision: view.revision,
+            source: WritingViewTableSource::Direct {
+                entity_revision: store.entity(note, &access).unwrap().revision,
+            },
+        },
+        block: block.id,
+        revision: block.revision,
+        cursor: None,
+        max_points: 1,
+        viewport: Rect {
+            x: 0.,
+            y: 0.,
+            width: 100.,
+            height: 80.,
+        },
+    };
+    assert!(store
+        .writing_view_table_ink_scene_page(request.clone(), &access)
+        .is_ok());
+    let mut content = block.content.clone();
+    if let Content::Table(table) = &mut content {
+        table.layout.as_mut().unwrap().ink_origins.clear();
+    }
+    let foreign = store.append_content(note, content, &access).unwrap();
+    request.scope.source = WritingViewTableSource::Direct {
+        entity_revision: store.entity(note, &access).unwrap().revision,
+    };
+    request.block = foreign.id;
+    request.revision = foreign.revision;
+    assert!(matches!(
+        store.writing_view_table_ink_scene_page(request.clone(), &access),
+        Err(Error::Unavailable)
+    ));
+    request.block = block.id;
+    request.revision = block.revision;
+    store
+        .set_exercise_visible(exercise.id, exercise.revision, false, &access)
+        .unwrap();
+    request.scope.source = WritingViewTableSource::Direct {
+        entity_revision: store.entity(note, &access).unwrap().revision,
+    };
+    assert!(matches!(
+        store.writing_view_table_ink_scene_page(request, &access),
+        Err(Error::Unavailable)
+    ));
+}
+#[test]
+fn direct_canvas_writing_view_respects_layer_visibility() {
+    use stem_core::{objects::Rect, store::*};
+    let (mut store, access, canvas, block, _) = canvas_table_fixture();
+    let view = saved_table_view(&mut store, canvas, None, Camera::default(), &access);
+    let mut request = WritingViewTableRequest {
+        scope: WritingViewTableScope {
+            view: view.id,
+            revision: view.revision,
+            source: WritingViewTableSource::Direct {
+                entity_revision: store.entity(canvas, &access).unwrap().revision,
+            },
+        },
+        block: block.id,
+        revision: block.revision,
+        cursor: None,
+        max_points: 1,
+        viewport: Rect {
+            x: 0.,
+            y: 0.,
+            width: 100.,
+            height: 80.,
+        },
+    };
+    assert!(store
+        .writing_view_table_ink_scene_page(request.clone(), &access)
+        .is_ok());
+    store
+        .set_canvas_layers(
+            CanvasLayers {
+                canvas,
+                revision: 0,
+                base_visible: false,
+                layers: vec![],
+            },
+            0,
+            &access,
+        )
+        .unwrap();
+    request.scope.source = WritingViewTableSource::Direct {
+        entity_revision: store.entity(canvas, &access).unwrap().revision,
+    };
+    assert!(matches!(
+        store.writing_view_table_ink_scene_page(request, &access),
+        Err(Error::Unavailable)
+    ));
+}
+#[test]
+fn view_and_exercise_payloads_are_not_decoded_before_sql_owner_and_exercise_authority() {
+    use stem_core::{security::Scope, store::Camera};
+    let root = tempfile::tempdir().unwrap();
+    let path = root.path().join("view-privacy.db");
+    let mut store = Store::open(&path).unwrap();
+    let access = Access::public();
+    let note = store
+        .create(Kind::Note, None, "private view", &access)
+        .unwrap();
+    let exercise = store
+        .create_exercise(note.id, "private exercise", &[], &access)
+        .unwrap();
+    let view = saved_table_view(
+        &mut store,
+        note.id,
+        Some(exercise.id),
+        Camera::default(),
+        &access,
+    );
+    let db = rusqlite::Connection::open(path).unwrap();
+    let mut payload = serde_json::to_value(&view).unwrap();
+    payload["camera"]["zoom"] = "wrong type".into();
+    db.execute(
+        "UPDATE view_settings SET payload=?1 WHERE id=?2",
+        rusqlite::params![
+            serde_json::to_string(&payload).unwrap(),
+            view.id.to_string()
+        ],
+    )
+    .unwrap();
+    let key = common::access([Scope::Exercise(exercise.id)]);
+    store
+        .set_exercise_lock(exercise.id, exercise.revision, true, &key)
+        .unwrap();
+    assert!(matches!(store.view(view.id, &access), Err(Error::Denied)));
+    assert!(store.view(view.id, &key).is_err());
+    db.execute(
+        "UPDATE exercises SET payload='{}' WHERE id=?1",
+        [exercise.id.to_string()],
+    )
+    .unwrap();
+    assert!(matches!(
+        store.exercise(exercise.id, &access),
+        Err(Error::Denied)
+    ));
+    assert!(matches!(store.view(view.id, &access), Err(Error::Denied)));
+    let owner_key = common::access([Scope::Entity(note.id)]);
+    let owner = store.entity(note.id, &access).unwrap();
+    store
+        .set_lock(note.id, owner.revision, true, &owner_key)
+        .unwrap();
+    assert!(matches!(store.view(view.id, &access), Err(Error::Denied)));
 }

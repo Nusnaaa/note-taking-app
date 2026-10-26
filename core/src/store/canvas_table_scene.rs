@@ -101,22 +101,7 @@ impl Store {
             }
             let camera = embedding.camera;
             let frame = embedding.frame;
-            let (sin, cos) = camera.rotation_rad.sin_cos();
-            transform = Transform {
-                a: camera.zoom * cos,
-                b: camera.zoom * sin,
-                c: -camera.zoom * sin,
-                d: camera.zoom * cos,
-                tx: 0.,
-                ty: 0.,
-            };
-            transform.tx = frame.x + frame.width / 2.
-                - transform.a * camera.centre_x
-                - transform.c * camera.centre_y;
-            transform.ty = frame.y + frame.height / 2.
-                - transform.b * camera.centre_x
-                - transform.d * camera.centre_y;
-            transform.validate()?;
+            transform = camera.to_frame(frame)?;
             clip = Some(frame);
         }
         if !shown {

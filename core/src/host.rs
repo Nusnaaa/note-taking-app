@@ -245,6 +245,9 @@ pub enum Command {
         cursor: Option<crate::store::TableInkCursor>,
         max_points: u32,
     },
+    WritingViewTableInkScenePage {
+        request: crate::store::WritingViewTableRequest,
+    },
     NestedCanvasTableInkScenePage {
         scope: crate::store::NestedCanvasTableInkScope,
         block: Id,
@@ -1536,6 +1539,7 @@ impl Host {
                 | Command::TableInkScenePage { .. }
                 | Command::CanvasTableInkScenePage { .. }
                 | Command::NestedCanvasTableInkScenePage { .. }
+                | Command::WritingViewTableInkScenePage { .. }
                 | Command::Embed { .. }
                 | Command::Views { .. }
                 | Command::View { .. }
@@ -1836,6 +1840,9 @@ fn execute(
             } => serde_json::to_value(
                 s.table_ink_scene_page(block, revision, cursor, max_points, a)?,
             )?,
+            Command::WritingViewTableInkScenePage { request } => {
+                serde_json::to_value(s.writing_view_table_ink_scene_page(request, a)?)?
+            }
             Command::NestedCanvasTableInkScenePage {
                 scope,
                 block,
