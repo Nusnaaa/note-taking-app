@@ -1,0 +1,4 @@
+$ /usr/lib/jvm/java-21-openjdk-amd64/bin/javac -d /home/linus/Projects/software/note-taking-app/repo/target/jni-9wq31n7u android/backend/src/main/java/org/stemnotebook/backend/NativeBridge.java bridge/tests/java/BoundarySmoke.java bridge/tests/java/BackupBoundarySmoke.java bridge/tests/java/EngineBoundarySmoke.java bridge/tests/java/EngineImportBoundarySmoke.java bridge/tests/java/OpenBoundarySmoke.java bridge/tests/java/RestoreBoundarySmoke.java
+exit_code=0
+
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/stem-android-user
