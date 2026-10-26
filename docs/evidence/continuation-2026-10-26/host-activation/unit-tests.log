@@ -1,0 +1,12 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-host-activation-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 21.88s
+     Running unittests src/lib.rs (/tmp/stem-pen-response-target/debug/deps/stem_core-8a459d8a65baac19)
+
+running 4 tests
+test host::recognition::tests::closed_scope_never_issues_a_live_epoch_after_invalidation ... ok
+test host::recognition::tests::expired_processing_authority_cannot_be_refreshed_by_a_later_job_budget ... ok
+test host::recognition::tests::optional_retirement_worker_failure_does_not_disable_authoritative_writing ... ok
+test host::recognition::tests::oversized_processing_frames_fail_without_allocating_an_encoded_copy ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 27 filtered out; finished in 0.54s
+

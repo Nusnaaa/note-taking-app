@@ -1,0 +1,16 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-host-activation-work/core)
+error[E0533]: expected value, found struct variant `Command::Relock`
+   --> core/tests/host_activation.rs:221:14
+    |
+221 |     call(&h, Command::Relock);
+    |              ^^^^^^^^^^^^^^^ not a value
+    |
+help: you might have meant to create a new value of the struct
+    |
+221 -     call(&h, Command::Relock);
+221 +     call(&h, Command::Relock {};
+    |
+
+For more information about this error, try `rustc --explain E0533`.
+error: could not compile `stem-core` (test "host_activation") due to 1 previous error
+warning: build failed, waiting for other jobs to finish...

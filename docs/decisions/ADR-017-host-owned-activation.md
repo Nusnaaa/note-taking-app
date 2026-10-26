@@ -1,0 +1,13 @@
+# ADR 017 — host-owned activation admission and retirement
+
+Status: recorded core backend engineering decision; JNI/provider/device/global resource integration remains open.
+
+Connect ADR 016's owned activation to the host's existing optional-processing scope. The writer handles only an app-authorised metadata reservation and returns `HostActivationSource`. Provider objects and callbacks never enter that mailbox message. The source shares count/descriptor-byte admission with recognition, current access expiry, capture-priority epochs and shutdown ownership.
+
+On an optional worker, prepare the source against the Manager and reviewed local resource bytes. Charge the borrowed descriptor before retiring an existing ready runtime. Count preparation as running while resource integrity is checked, with no host scope/phase lock held across hashing. Run the returned `HostActivationWork` after releasing any Manager lock. Its JobControl links the fixed host access epoch/expiry as well as the Manager activation epoch. Pen contact cancels old work; pen-up creates no renewed authority for it.
+
+`Host::complete_activation` requires the exact current host capability and Manager entry, without writer/provider callbacks. Private result holders retain adapters and original provider error payloads. Idle source/work/result disposal queues payload retirement on the optional retirement lane; count/byte admission and library ownership remain held until actual destruction. Running callbacks retain ownership until they return, even after cancellation/close. Completion after close/capture/access invalidation cannot mark Ready.
+
+Keep the library's exclusive native owner through probe and cleanup retirement. Close waits for both stages; a second Host cannot reopen that library meanwhile. Blocked optional cleanup leaves ordinary authoring available before shutdown begins. Optional metadata/admission failures do not mark authoring failed. Existing recognition source identities/revisions stay in their typed source wrapper; activation reserves no invented document/block identity or ink snapshot.
+
+The existing content-free `recognition_status` scope counters now include activation preparation/probes/retirement. Existing per-host count/frame/aggregate descriptor-source bounds apply. These are admission controls, not performance SLOs or complete model-memory quotas. Global model retirement, cross-host/media scheduling, durable activation/controller integration, real eligible recognisers, JNI provider registration and hard worker isolation remain open. No model is installed or enabled by adding these Rust APIs.

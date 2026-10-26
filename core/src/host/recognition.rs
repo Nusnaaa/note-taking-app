@@ -15,6 +15,8 @@ use std::{
     },
     thread::{self, ThreadId},
 };
+mod activation;
+pub use activation::{HostActivationSource, HostActivationWork, HostCompletedActivation};
 const MAX_FRAME: usize = 8 * 1024 * 1024;
 const MAX_SOURCE_BYTES: usize = 32 * 1024 * 1024;
 pub(super) fn charge(value: &impl Serialize) -> Result<usize> {
@@ -81,12 +83,13 @@ fn retire_now(task: Retirement) {
 enum Phase {
     Source(Option<InkSnapshot>),
     Prepared(Option<Box<RecognitionWork>>),
+    ActivationInput,
+    ActivationPrepared(Option<Box<crate::processing::ActivationWork>>),
+    ActivationResult(Option<Box<crate::processing::CompletedActivation>>),
     Running,
     Finished,
 }
 struct Slot {
-    block: Id,
-    revision: u64,
     authority: WorkAuthority,
     phase: Mutex<Phase>,
     lease: SlotLease,
@@ -377,9 +380,8 @@ impl RecognitionScope {
             return Err(Error::ResourceLimit);
         }
         let ticket = Id::new();
+        let revision = snapshot.revision();
         let slot = Arc::new(Slot {
-            block,
-            revision: snapshot.revision(),
             authority: WorkAuthority {
                 owner: self.owner,
                 ticket,
@@ -402,7 +404,11 @@ impl RecognitionScope {
                 retire_pending: false,
             },
         );
-        Ok(RecognitionSource { slot })
+        Ok(RecognitionSource {
+            slot,
+            block,
+            revision,
+        })
     }
     pub fn check_result(&self, completed: &CompletedRecognition) -> Result<()> {
         if completed
@@ -419,16 +425,18 @@ impl RecognitionScope {
 /// ambiguous publication can be discovered/retried without duplicate reviews.
 pub struct RecognitionSource {
     slot: Arc<Slot>,
+    block: Id,
+    revision: u64,
 }
 impl RecognitionSource {
     pub fn ticket(&self) -> Id {
         self.slot.authority.ticket
     }
     pub fn block(&self) -> Id {
-        self.slot.block
+        self.block
     }
     pub fn revision(&self) -> u64 {
-        self.slot.revision
+        self.revision
     }
     pub fn prepare(
         self,
@@ -555,6 +563,7 @@ mod tests {
             .append_ink(note.id, vec![stroke.clone()], &access)
             .unwrap();
         assert!(scope.source(&store, &access, block.id, None).is_err());
+        assert!(scope.activation_source(&store, &access).is_err());
         assert_eq!(scope.status().reserved, 0);
         assert!(!scope.status().closed);
         assert!(store

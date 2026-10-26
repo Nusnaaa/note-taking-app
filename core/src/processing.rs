@@ -387,6 +387,9 @@ impl Manager {
             .map(|e| e.readiness.clone())
             .unwrap_or(Readiness::Missing)
     }
+    pub fn descriptor(&self, id: &str) -> Option<&Descriptor> {
+        self.entries.get(id).map(|entry| &entry.descriptor)
+    }
     pub fn descriptors(&self) -> Vec<Descriptor> {
         self.entries
             .values()

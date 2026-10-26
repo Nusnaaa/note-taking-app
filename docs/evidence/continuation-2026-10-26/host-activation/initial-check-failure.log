@@ -1,0 +1,35 @@
+    Checking stem-core v0.1.0 (/tmp/stem-host-activation-work/core)
+error[E0624]: method `activation_source` is private
+   --> core/src/host.rs:584:55
+    |
+584 |   ...                   recognition_scope.activation_source(&store, &access)
+    |                                           ^^^^^^^^^^^^^^^^^ private method
+    |
+   ::: core/src/host/recognition/activation.rs:77:5
+    |
+ 77 | /     pub(super) fn activation_source(
+ 78 | |         self: &Arc<Self>,
+ 79 | |         store: &Store,
+ 80 | |         access: &Access,
+ 81 | |     ) -> Result<HostActivationSource> {
+    | |_____________________________________- private method defined here
+
+error[E0624]: method `complete_activation` is private
+   --> core/src/host.rs:797:26
+    |
+797 |           self.recognition.complete_activation(manager, completed)
+    |                            ^^^^^^^^^^^^^^^^^^^ private method
+    |
+   ::: core/src/host/recognition/activation.rs:132:5
+    |
+132 | /     pub(super) fn complete_activation(
+133 | |         &self,
+134 | |         manager: &mut Manager,
+135 | |         completed: &HostCompletedActivation,
+136 | |     ) -> Result<()> {
+    | |___________________- private method defined here
+
+For more information about this error, try `rustc --explain E0624`.
+error: could not compile `stem-core` (lib) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `stem-core` (lib test) due to 2 previous errors

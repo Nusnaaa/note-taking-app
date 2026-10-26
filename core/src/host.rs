@@ -33,7 +33,10 @@ mod mailbox;
 mod ownership;
 mod recognition;
 use recognition::RecognitionScope;
-pub use recognition::{HostRecognitionWork, RecognitionSource, RecognitionStatus};
+pub use recognition::{
+    HostActivationSource, HostActivationWork, HostCompletedActivation, HostRecognitionWork,
+    RecognitionSource, RecognitionStatus,
+};
 mod pdf;
 use crate::sources::PdfSelectionTarget;
 use mailbox::Mailbox;
@@ -447,6 +450,7 @@ impl Response {
 enum Message {
     Backup(Box<backup::Request>),
     RecognitionSource(Id, Option<Id>, mpsc::Sender<Result<RecognitionSource>>),
+    ActivationSource(mpsc::Sender<Result<HostActivationSource>>),
     PublishRecognition(
         Box<CompletedRecognition>,
         mpsc::Sender<Result<crate::store::Proposal>>,
@@ -573,6 +577,16 @@ impl Host {
                                         input.complete(envelope.authoring, envelope.bytes, failed);
                                 },
                             );
+                        }
+                        Message::ActivationSource(reply) => {
+                            let result =
+                                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                                    recognition_scope.activation_source(&store, &access)
+                                }))
+                                .unwrap_or(Err(Error::WorkerFailed));
+                            let _ =
+                                input.complete(envelope.authoring, envelope.bytes, result.is_err());
+                            let _ = reply.send(result);
                         }
                         Message::RecognitionSource(block, region, reply) => {
                             let result =
@@ -765,6 +779,22 @@ impl Host {
     }
     pub fn recognition_status(&self) -> RecognitionStatus {
         self.recognition.status()
+    }
+    /// Reserve optional lifecycle work without sending callbacks to the writer.
+    pub fn activation_source(&self) -> Result<HostActivationSource> {
+        let (tx, rx) = mpsc::channel();
+        self.mailbox
+            .admit(Message::ActivationSource(tx), false, 128)?;
+        rx.recv().map_err(|_| Error::WorkerFailed)?
+    }
+    /// Applies only to this host's current activation capability. Provider/error
+    /// holders remain in the token until off-writer retirement.
+    pub fn complete_activation(
+        &self,
+        manager: &mut crate::processing::Manager,
+        completed: &HostCompletedActivation,
+    ) -> Result<()> {
+        self.recognition.complete_activation(manager, completed)
     }
     pub fn recognition_source(&self, block: Id, region: Option<Id>) -> Result<RecognitionSource> {
         let (tx, rx) = mpsc::channel();
