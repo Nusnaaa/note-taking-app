@@ -1,0 +1,1 @@
+Android validation of exact 0f47711 passed, including 351 JVM tests, ARM64/JNI/shrinking and Gradle packaging. Native validation remains in progress; the source hashes observed so far match all 309 Android inputs. Full native acceptance is not claimed. Eight backend gaps remain open.
