@@ -149,4 +149,45 @@ class NotebookEnginesTest {
             assertEquals(NotebookEngines.FailureReason.Closed,failure {engines.stageResourceFree(descriptor(),true)}.reason)
         } finally {release.countDown();releaseRetire.countDown();backend.closeFullyAsync().get(20,TimeUnit.SECONDS)}
     }
+    @Test fun resourceImportPublishesStableOffsetBeforeOpeningAndClearsVerifiedFactoryBytes() {
+        val host=NativeBridge.open(temporary.newFolder().resolve("library.db").absolutePath)
+        val models=temporary.newFolder("model-depot")
+        val engines=NotebookEngines(models) {host}
+        val bytes=ByteArray(70001) {(it*71+137).toByte()}
+        val sha=java.security.MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") {"%02x".format(it.toInt() and 255)}
+        val manifest=JSONObject(descriptor()).put("resource_sha256",sha).toString()
+        val receipt=AtomicReference<NotebookEngines.Transfer>();val opened=AtomicInteger();val retired=AtomicInteger();val arrays=mutableListOf<ByteArray>();val factoryArray=AtomicReference<ByteArray>()
+        try {
+            val pending=engines.importResource(manifest,bytes.size.toLong(),true,null,30000,{ value -> assertEquals(0,opened.get());receipt.set(value) }) { transfer, control ->
+                assertEquals("stem-engines",Thread.currentThread().name);control.check();assertEquals(receipt.get(),transfer);assertEquals(0L,transfer.committedBytes);opened.incrementAndGet()
+                object:NativeBridge.EngineInput {
+                    var offset=0
+                    override fun read(buffer:ByteArray,current:NativeBridge.EngineControl):Int {current.check();arrays.add(buffer);if(offset==bytes.size)return -1;val n=minOf(buffer.size,bytes.size-offset);bytes.copyInto(buffer,0,offset,offset+n);offset+=n;return n}
+                    override fun retire(){assertEquals(1,retired.incrementAndGet())}
+                }
+            }
+            val staged=observer {pending.await()};assertEquals(receipt.get().version,staged.version);assertEquals(1,opened.get());assertEquals(1,retired.get());arrays.forEach {assertTrue(it.all {value->value==0.toByte()})}
+            val model=Model()
+            observer {engines.activate(staged.version,bytes.size.toLong(),30000) { _,resource,control -> control.check();assertArrayEquals(bytes,resource);factoryArray.set(resource);model }.await()}
+            assertTrue(factoryArray.get().all {it==0.toByte()});assertArrayEquals(bytes,File(models,"${staged.version}.resource").readBytes())
+        } finally {engines.close();NativeBridge.close(host);observer {engines.awaitClosed()}}
+    }
+    @Test fun resourceInputOpeningRemainsOwnedAcrossControllerAndBackendClose(): Unit = observer {
+        val root=temporary.newFolder();val context=object:ContextWrapper(RuntimeEnvironment.getApplication()){override fun getNoBackupFilesDir():File=root}
+        val backend=NotebookBackend(context);val entered=CountDownLatch(1);val release=CountDownLatch(1);val retiring=CountDownLatch(1);val releaseRetire=CountDownLatch(1);val current=AtomicReference<NativeBridge.EngineControl>();val calls=AtomicInteger()
+        val bytes="app-owned resource opening fixture".toByteArray();val sha=java.security.MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") {"%02x".format(it.toInt() and 255)};val manifest=JSONObject(descriptor()).put("resource_sha256",sha).toString()
+        try {
+            val pending=backend.engines().importResource(manifest,bytes.size.toLong(),true,null,30000) { _,control ->
+                current.set(control);entered.countDown();assertTrue(release.await(10,TimeUnit.SECONDS))
+                object:NativeBridge.EngineInput {
+                    override fun read(b:ByteArray,c:NativeBridge.EngineControl):Int {throw AssertionError("cancelled input read")}
+                    override fun retire(){assertEquals(1,calls.incrementAndGet());retiring.countDown();assertTrue(releaseRetire.await(10,TimeUnit.SECONDS))}
+                }
+            }
+            assertTrue(entered.await(10,TimeUnit.SECONDS));val closing=backend.closeFullyAsync();assertFalse(current.get().active());assertFalse(closing.isDone);assertThrows(IllegalStateException::class.java){LibraryOwnership.acquire(root)}
+            release.countDown();assertTrue(retiring.await(10,TimeUnit.SECONDS));assertFalse(closing.isDone);assertThrows(IllegalStateException::class.java){LibraryOwnership.acquire(root)}
+            releaseRetire.countDown();closing.get(20,TimeUnit.SECONDS);assertEquals(NotebookEngines.FailureReason.Cancelled,failure {pending.await()}.reason);assertEquals(1,calls.get());LibraryOwnership.acquire(root).close()
+        } finally {release.countDown();releaseRetire.countDown();backend.closeFullyAsync().get(20,TimeUnit.SECONDS)}
+    }
+
 }

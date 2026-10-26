@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.NotebookEnginesTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-26T06:03:15" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="1.278">
+  <properties/>
+  <testcase name="queueBoundsAndQueuedCancellationDoNotConstructAnotherSdk" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.174"/>
+  <testcase name="resourceInputOpeningRemainsOwnedAcrossControllerAndBackendClose" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.547"/>
+  <testcase name="resourceImportPublishesStableOffsetBeforeOpeningAndClearsVerifiedFactoryBytes" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.168"/>
+  <testcase name="failedProviderIsRedactedRetiredAndDoesNotStrandTheOptionalWorker" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.104"/>
+  <testcase name="workerWorkflowPreservesSourceAndKnownReceiptsAfterLateCancellation" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.143"/>
+  <testcase name="backendCloseKeepsOwnershipThroughBlockedInferenceAndSdkRetirement" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.14"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

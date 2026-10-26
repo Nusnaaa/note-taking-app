@@ -25,5 +25,9 @@ class JniBackendRunner(testClass: Class<*>) : RobolectricTestRunner(testClass) {
             .doNotAcquireClass("org.stemnotebook.backend.NativeBridge\$EngineJob")
             .doNotAcquireClass("org.stemnotebook.backend.NativeBridge\$RecogniserFactory")
             .doNotAcquireClass("org.stemnotebook.backend.NativeBridge\$Recogniser")
+            .doNotAcquireClass("org.stemnotebook.backend.NativeBridge\$EngineImport")
+            .doNotAcquireClass("org.stemnotebook.backend.NativeBridge\$EngineInput")
+            .doNotAcquireClass("org.stemnotebook.backend.NativeBridge\$RetiringEngineInput")
+            .doNotAcquireClass("org.stemnotebook.backend.NativeBridge\$EngineInputFactory")
             .build()
 }

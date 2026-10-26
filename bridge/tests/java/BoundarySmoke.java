@@ -85,6 +85,7 @@ public final class BoundarySmoke {
             try { NativeBridge.finishPdfSelection(selectionHandle,review.group(1),true,proof);throw new AssertionError(); } catch(IllegalStateException expected) { }
             try { NativeBridge.preparePdfSelection(selectionHandle,target,uri,revision,(c,t,l,r) -> {throw new IllegalArgumentException("private provider diagnostic");});throw new AssertionError(); } catch(IllegalStateException expected) {check(!expected.getMessage().contains("private"));}
         } finally {NativeBridge.close(selectionHandle);}
+        EngineImportBoundarySmoke.run();
         EngineBoundarySmoke.run();
         BackupBoundarySmoke.run();
         OpenBoundarySmoke.main(new String[0]);

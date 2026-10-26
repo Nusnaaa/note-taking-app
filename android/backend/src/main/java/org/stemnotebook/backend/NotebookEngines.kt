@@ -3,6 +3,7 @@ package org.stemnotebook.backend
 import android.os.Looper
 import org.json.JSONObject
 import java.io.Closeable
+import java.io.File
 import java.util.UUID
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.CancellationException
@@ -12,8 +13,8 @@ import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 
 /** One bounded optional worker per backend, independent of authoring. Providers
- * are trusted compiled adapters; this class imports no model and enables none. */
-class NotebookEngines internal constructor(private val nativeHandle: () -> Long) : Closeable {
+ * are trusted compiled adapters. Construction imports/enables no model. */
+class NotebookEngines internal constructor(private val modelRoot: File? = null, private val nativeHandle: () -> Long) : Closeable {
     enum class Task { Maths, Prose, Numeric, Code }
     enum class FailureReason { Unavailable, Cancelled, Busy, Closed, InvalidInput }
     /** Cancellation/error is not a rollback acknowledgement. A native metadata
@@ -22,6 +23,7 @@ class NotebookEngines internal constructor(private val nativeHandle: () -> Long)
         IllegalStateException("Notebook engine operation unavailable")
     data class Staged(val version: UUID)
     data class Installed(val version: UUID)
+    data class Transfer(val version: UUID, val committedBytes: Long)
     /** Read the review through current native authority; retain no transcript here. */
     data class Proposal(val id: UUID, val block: UUID, val revision: Long)
 
@@ -52,14 +54,14 @@ class NotebookEngines internal constructor(private val nativeHandle: () -> Long)
         private val lock = Any()
         private var cancelled = false
         private var finished = false
-        private var job: NativeBridge.EngineJob? = null
+        private var job: AutoCloseable? = null
         @Volatile var metadataAttempted = false
         fun check() { synchronized(lock) { if (cancelled) throw Failure(FailureReason.Cancelled, metadataAttempted) } }
-        fun attach(value: NativeBridge.EngineJob) {
+        fun attach(value: AutoCloseable) {
             val reject = synchronized(lock) { if (cancelled) true else { job = value; false } }
             if (reject) { value.close(); throw Failure(FailureReason.Cancelled, metadataAttempted) }
         }
-        fun detach(value: NativeBridge.EngineJob) { synchronized(lock) { if (job === value) job = null } }
+        fun detach(value: AutoCloseable) { synchronized(lock) { if (job === value) job = null } }
         fun cancel(): Boolean {
             val active = synchronized(lock) {
                 if (finished || cancelled) return false
@@ -146,6 +148,32 @@ class NotebookEngines internal constructor(private val nativeHandle: () -> Long)
             } finally { operation.detach(job); job.close() }
         }
     }
+    /** Deliberate model-file copy into the private no-backup depot. started runs
+     * before source opens so callers can retain the stable transfer ID/offset.
+     * Failures preserve resumable files; source factories clean partial opens. */
+    fun importResource(descriptor: String, total: Long, confirmed: Boolean, resume: UUID?, budgetMillis: Long,
+                       started: (Transfer) -> Unit = {},
+                       input: (Transfer, NativeBridge.EngineControl) -> NativeBridge.EngineInput): Pending<Staged> {
+        budget(budgetMillis)
+        val root = modelRoot ?: throw Failure(FailureReason.Unavailable)
+        if (total !in 1..16L*1024*1024*1024 || descriptor.length > 60*1024 || descriptor.toByteArray(Charsets.UTF_8).size > 60*1024) throw Failure(FailureReason.InvalidInput)
+        return submit { operation ->
+            val host = nativeHandle(); operation.check()
+            if (java.nio.file.Files.isSymbolicLink(root.toPath())) throw Failure(FailureReason.Unavailable)
+            operation.metadataAttempted = true // private ledger/files may be published before a reply
+            val job = NativeBridge.engineImport(host,descriptor,total,confirmed,root.absolutePath,resume?.toString(),budgetMillis)
+            try {
+                operation.attach(job)
+                val receipt = Transfer(UUID.fromString(job.version),job.committedBytes)
+                started(receipt);operation.check()
+                val version = JSONObject(job.copy { control -> input(receipt,control) })
+                Staged(UUID.fromString(version.getString("id")))
+            } finally { operation.detach(job);job.close() }
+        }
+    }
+    fun importResource(descriptor: String, total: Long, confirmed: Boolean, resume: UUID?, budgetMillis: Long,
+                       source: EngineModelSource, started: (Transfer) -> Unit = {}): Pending<Staged> =
+        importResource(descriptor,total,confirmed,resume,budgetMillis,started) { transfer, control -> source.open(transfer.committedBytes,control) }
     private fun budget(value: Long) { if (value !in 1..3600000) throw Failure(FailureReason.InvalidInput) }
     override fun close() {
         val pending = synchronized(lock) { if (closed) return; closed = true; operations.toList() }

@@ -1,0 +1,62 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-jni-import-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 41.25s
+     Running tests/engine_import_plan.rs (/tmp/stem-pen-response-target/debug/deps/engine_import_plan-c8fd6e0088a7129b)
+
+running 8 tests
+test plan_requires_consent_and_typed_eligibility_without_creating_files_or_metadata ... ok
+test staged_retry_reports_installed_metadata_but_never_revives_a_removed_version ... ok
+test legacy_transfer_requires_review_before_managed_resume_and_preserves_its_bytes ... ok
+test interrupted_reader_retries_data_and_final_eof_without_losing_durable_offset ... ok
+test import_records_bound_consent_and_stages_verified_resource_with_stable_retry ... ok
+test stale_generation_or_cancelled_commit_preserves_resumable_verified_resource ... ok
+test truncated_trailing_corrupt_and_cancelled_inputs_never_stage_metadata ... ok
+test foreign_or_changed_resume_cannot_truncate_another_imports_unacknowledged_tail ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+     Running tests/host_engine_activation_plan.rs (/tmp/stem-pen-response-target/debug/deps/host_engine_activation_plan-33d0a7b273c89d82)
+
+running 15 tests
+test probe_is_off_writer_and_pen_cancellation_never_revives_a_prepared_candidate ... ok
+test close_waits_for_probe_and_actual_cleanup_before_library_can_reopen ... ok
+test queued_publication_does_not_lock_registry_while_writer_authenticates ... ok
+test host_factory_runs_off_writer_and_remains_owned_until_cancelled_construction_returns ... ok
+test pen_cancellation_prevents_host_publication_after_preparation ... ok
+test dropping_unrun_recognition_after_manager_detach_queues_sdk_retirement_off_caller ... ok
+test busy_manager_rejects_without_writer_wait_and_preserves_candidate_for_retry ... ok
+test idle_prepared_disposal_is_off_writer_and_holds_owner_until_cleanup ... ok
+test relock_cancels_old_metadata_plan_and_locked_app_cannot_reserve_new_plan ... ok
+test metadata_reservation_is_bounded_and_never_probes_or_marks_installed ... ok
+test host_private_runtime_recognises_into_a_review_without_rewriting_source ... ok
+test replaced_runtime_cleanup_is_off_writer_and_keeps_library_ownership ... ok
+test host_publication_installs_runtime_and_durable_metadata_and_rejects_replay ... ok
+test host_close_retires_private_manager_off_writer_before_releasing_library ... ok
+test publication_rejects_foreign_scope_and_stale_generation_without_installing ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.35s
+
+     Running tests/host_engine_import.rs (/tmp/stem-pen-response-target/debug/deps/host_engine_import-a03a7dc31d2d3ae9)
+
+running 5 tests
+test provider_error_payload_retires_inside_running_scope_and_cannot_escape_with_library_owner ... ok
+test authoring_runs_during_blocked_reader_and_pen_cancel_preserves_explicit_resume ... ok
+test close_waits_for_reader_return_and_actual_reader_destructor_before_reopen ... ok
+test metadata_reservation_is_bounded_and_completed_import_does_not_load_a_runtime ... ok
+test foreign_host_and_stale_generation_cannot_publish_and_fresh_resume_keeps_transfer_id ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+     Running tests/provisioning.rs (/tmp/stem-pen-response-target/debug/deps/provisioning-28285a43f5048abb)
+
+running 8 tests
+test active_resource_lease_prevents_deletion_until_worker_releases_it ... ok
+test cloned_worker_reservations_survive_thread_transfer_until_the_last_handle_retires ... ok
+test worker_file_clone_keeps_resource_reserved_after_owner_is_dropped ... ok
+test completed_transfer_rejects_a_symlink_target_without_adopting_external_bytes ... ok
+test incomplete_hash_mismatch_and_no_consent_do_not_activate_resources ... ok
+test resume_discards_only_unacknowledged_tail_after_simulated_interruption ... ok
+test local_install_resume_retry_and_integrity_precede_publication ... ok
+test legacy_bounded_manifest_above_new_begin_budget_remains_resumable ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+

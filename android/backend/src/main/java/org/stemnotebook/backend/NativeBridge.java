@@ -82,6 +82,65 @@ public final class NativeBridge {
         try { return new EngineJob(host,token,false); }
         catch(Throwable failure) { releaseEngineJob(host,token); throw failure; }
     }
+    private static native long beginEngineImport(long host, String descriptor, long total, boolean confirmed, long budgetMillis);
+    private static native EngineImport startEngineImport(long host, long token, String privateRoot, String resume);
+    private static native String copyEngineImport(long host, long token, EngineInputFactory input);
+    /** Selected local model input positioned at committedBytes. read must return
+     * -1 for EOF or 1..buffer.length; zero/oversized counts fail. Retained buffers
+     * are cleared. retire must close all owned input handles even when throwing. */
+    /** Open only inside native running admission. A throwing factory must retire
+     * all partial resources itself; the control is valid during open only. */
+    public interface EngineInputFactory { EngineInput open(EngineControl control) throws Exception; }
+    public interface EngineInput {
+        int read(byte[] buffer, EngineControl control) throws Exception;
+        void retire() throws Exception;
+    }
+    private static final class RetiringEngineInput implements EngineInput {
+        private final EngineInput target;
+        private boolean retired, failed;
+        RetiringEngineInput(EngineInput target) { this.target=target; }
+        public int read(byte[] buffer, EngineControl control) throws Exception { return target.read(buffer,control); }
+        public synchronized void retire() throws Exception {
+            if(retired) { if(failed) throw engineFailure(); return; }
+            retired=true;
+            try { target.retire(); } catch(Throwable error) { failed=true; throw engineFailure(); }
+        }
+    }
+    /** Durable identity/offset available before opening the selected input.
+     * Failure/cancel preserves private transfer files; close is not disk discard. */
+    public static final class EngineImport implements AutoCloseable {
+        private final long host, token;
+        public final String version;
+        public final long committedBytes;
+        private boolean started, closed;
+        private EngineImport(long host,long token,String version,long committed) {
+            this.host=host;this.token=token;this.version=version;committedBytes=committed;
+        }
+        public String copy(EngineInputFactory input) {
+            if(input==null) throw engineFailure();
+            synchronized(this) { if(started || closed) throw engineFailure(); started=true; }
+            try {
+                return copyEngineImport(host,token,control -> {
+                    EngineInput opened=input.open(control);
+                    if(opened==null) throw engineFailure();
+                    try { return new RetiringEngineInput(opened); }
+                    catch(Throwable error) { try {opened.retire();} catch(Throwable ignored) {} throw engineFailure(); }
+                });
+            } catch(Throwable error) { throw engineFailure(); }
+            finally {close();}
+        }
+        @Override public void close() {
+            synchronized(this) {if(closed) return;closed=true;}
+            releaseEngineJob(host,token);
+        }
+    }
+    /** Optional-worker operation. privateRoot must be app-owned and excluded
+     * from OS cloud backup. User-selected bytes/consent never come from JSON. */
+    public static EngineImport engineImport(long host,String descriptor,long total,boolean confirmed,String privateRoot,String resume,long budgetMillis) {
+        long token=beginEngineImport(host,descriptor,total,confirmed,budgetMillis);
+        try {return startEngineImport(host,token,privateRoot,resume);}
+        catch(Throwable error) {releaseEngineJob(host,token);throw engineFailure();}
+    }
     public interface Verification { boolean verify(String challenge); }
     public static native void authenticate(long handle, String scopes, Verification verification);
     /** Trusted provider observation; never populated from JSON or supplied by model code. */

@@ -60,10 +60,10 @@ def main():
     # Fresh classes prevent removed/renamed fixtures surviving from an older run.
     with tempfile.TemporaryDirectory(prefix='jni-',dir=ROOT/'target') as scratch:
         target=Path(scratch)
-        run('jni-compile',[str(jdk/'bin/javac'),'-d',str(target),'android/backend/src/main/java/org/stemnotebook/backend/NativeBridge.java','bridge/tests/java/BoundarySmoke.java','bridge/tests/java/BackupBoundarySmoke.java','bridge/tests/java/EngineBoundarySmoke.java','bridge/tests/java/OpenBoundarySmoke.java','bridge/tests/java/RestoreBoundarySmoke.java'])
+        run('jni-compile',[str(jdk/'bin/javac'),'-d',str(target),'android/backend/src/main/java/org/stemnotebook/backend/NativeBridge.java','bridge/tests/java/BoundarySmoke.java','bridge/tests/java/BackupBoundarySmoke.java','bridge/tests/java/EngineBoundarySmoke.java','bridge/tests/java/EngineImportBoundarySmoke.java','bridge/tests/java/OpenBoundarySmoke.java','bridge/tests/java/RestoreBoundarySmoke.java'])
         smoke=run('jni-smoke',[str(jdk/'bin/java'),'-Xcheck:jni','-Djava.library.path=target/debug','-cp',str(target),'BoundarySmoke'])
         groups=sum(int(n) for n in re.findall(r'^PASS:.*\((\d+)\)$',smoke,re.MULTILINE))
-        assert groups>=34, 'Missing JNI fixture groups'
+        assert groups>=39, 'Missing JNI fixture groups'
         inputs=target/'input.jar'
         with zipfile.ZipFile(inputs,'w') as bundle:
             for path in sorted(target.rglob('*.class')): bundle.write(path,path.relative_to(target))
@@ -78,6 +78,7 @@ def main():
         assert re.search(r'^BackupBoundarySmoke -> (?!BackupBoundarySmoke:)[^\n]+:',mapping.read_text(),re.MULTILINE)
         assert re.search(r'^RestoreBoundarySmoke -> (?!RestoreBoundarySmoke:)[^\n]+:',mapping.read_text(),re.MULTILINE)
         assert re.search(r'^EngineBoundarySmoke -> (?!EngineBoundarySmoke:)[^\n]+:',mapping.read_text(),re.MULTILINE)
+        assert re.search(r'^EngineImportBoundarySmoke -> (?!EngineImportBoundarySmoke:)[^\n]+:',mapping.read_text(),re.MULTILINE)
         optimized=run('jni-shrunk-smoke',[str(jdk/'bin/java'),'-Xcheck:jni','-Djava.library.path=target/debug','-cp',str(shrunk),'BoundarySmoke'])
         optimized_groups=sum(int(n) for n in re.findall(r'^PASS:.*\((\d+)\)$',optimized,re.MULTILINE))
         assert optimized_groups==groups, 'Shrunk JNI fixtures differ'

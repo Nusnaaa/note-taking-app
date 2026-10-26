@@ -1,5 +1,6 @@
 //! Trusted worker-only compiled provider boundary. Never supplied by notebook
 //! JSON. SDK construction, inference and disposal occur outside registry locks.
+mod import;
 use super::{allocate_handle, bounded_string, fail, hosts};
 use jni::{
     objects::{GlobalRef, JByteArray, JClass, JObject, JString, JValue},
@@ -31,18 +32,42 @@ fn controls() -> &'static Mutex<BTreeMap<i64, JobControl>> {
 enum Work {
     Activation(HostEngineActivationPlan, u64),
     Recognition(HostRecognitionWork),
+    ImportPlan(stem_core::host::HostEngineImportPlan),
+    ImportTransfer(stem_core::host::HostEngineImportTransfer),
 }
 struct Entry {
     host: i64,
     control: JobControl,
     work: Option<Work>,
 }
-struct Running(i64);
+struct Running(i64, bool);
 impl Drop for Running {
     fn drop(&mut self) {
-        if let Ok(mut entries) = jobs().lock() {
-            entries.remove(&self.0);
+        if self.1 {
+            if let Ok(mut entries) = jobs().lock() {
+                entries.remove(&self.0);
+            }
         }
+    }
+}
+impl Running {
+    fn restore(mut self, host: i64, work: Work) -> Result<()> {
+        let owners = hosts().lock().map_err(|_| Error::WorkerFailed)?;
+        if !owners.contains_key(&host) {
+            return Err(Error::Cancelled);
+        }
+        let mut entries = jobs().lock().map_err(|_| Error::WorkerFailed)?;
+        let entry = entries
+            .get_mut(&self.0)
+            .filter(|e| e.host == host)
+            .ok_or(Error::Cancelled)?;
+        entry.control.check()?;
+        if entry.work.is_some() {
+            return Err(Error::Conflict);
+        }
+        entry.work = Some(work);
+        self.1 = false;
+        Ok(())
     }
 }
 struct CallbackControl(i64);
@@ -282,7 +307,7 @@ fn take(host: i64, token: i64) -> Option<(Work, JobControl, Running)> {
         return None;
     }
     let work = entry.work.take()?;
-    Some((work, entry.control.clone(), Running(token)))
+    Some((work, entry.control.clone(), Running(token, true)))
 }
 fn release(host: i64, token: i64) {
     let idle = {

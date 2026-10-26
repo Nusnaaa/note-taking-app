@@ -1,0 +1,4 @@
+bridge/tests/java/EngineImportBoundarySmoke.java:35: error: unclosed string literal
+                check(field(staged,"id").equals(version));check(staged.contains("\"state\":\"Staged\"));
+                                                                                ^
+1 error

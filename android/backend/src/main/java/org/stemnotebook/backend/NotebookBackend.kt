@@ -58,7 +58,7 @@ class NotebookBackend internal constructor(context: Context, pdfFactory: (Contex
         try {
             check(directory.isDirectory || directory.mkdirs())
             require(!java.nio.file.Files.isSymbolicLink(directory.toPath()))
-            val loadedEngines = NotebookEngines { handle.join() }
+            val loadedEngines = NotebookEngines(File(directory, "model-resources")) { handle.join() }
             createdEngines = loadedEngines
             engines = loadedEngines
             val loadedBackups = NotebookBackups(File(directory, "backup-staging"), context.noBackupFilesDir, { handle.join() },

@@ -168,9 +168,18 @@ impl HostEngineImportTransfer {
     /// Reader begins at the explicitly resumed durable offset. Its owned resource
     /// and any error payload retire before running admission is released.
     pub fn prepare<R: Read>(
-        mut self,
-        mut reader: R,
+        self,
+        reader: R,
         control: &JobControl,
+    ) -> Result<HostPreparedEngineImport> {
+        self.prepare_with(control, move |_| Ok(reader))
+    }
+    /// Construct the owned input only after admission and pass the exact linked
+    /// host/capture/access control to foreign input callbacks.
+    pub fn prepare_with<R: Read>(
+        mut self,
+        control: &JobControl,
+        factory: impl FnOnce(&JobControl) -> Result<R>,
     ) -> Result<HostPreparedEngineImport> {
         let mut transfer = take_running(&self.slot, |phase| match phase {
             Phase::ImportTransfer(value) => value.take(),
@@ -183,6 +192,7 @@ impl HostEngineImportTransfer {
         };
         let control = control.linked_authority(&self.slot.authority);
         let prepared = worker(move || {
+            let mut reader = factory(&control)?;
             transfer.copy_remaining(&mut reader, &control)?;
             transfer.finish(&control)
         })?;

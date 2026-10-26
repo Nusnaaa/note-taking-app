@@ -33,3 +33,12 @@
     public java.lang.String recognise(java.lang.String, java.lang.String, org.stemnotebook.backend.NativeBridge$EngineControl);
     public void retire();
 }
+
+-keepclassmembers class * implements org.stemnotebook.backend.NativeBridge$EngineInput {
+    public int read(byte[], org.stemnotebook.backend.NativeBridge$EngineControl);
+    public void retire();
+}
+
+-keepclassmembers class * implements org.stemnotebook.backend.NativeBridge$EngineInputFactory {
+    public org.stemnotebook.backend.NativeBridge$EngineInput open(org.stemnotebook.backend.NativeBridge$EngineControl);
+}

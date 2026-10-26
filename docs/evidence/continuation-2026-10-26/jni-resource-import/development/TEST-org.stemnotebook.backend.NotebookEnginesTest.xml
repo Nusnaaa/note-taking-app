@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.NotebookEnginesTest" tests="6" skipped="0" failures="1" errors="0" timestamp="2026-10-26T05:58:51" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="12.964">
+  <properties/>
+  <testcase name="queueBoundsAndQueuedCancellationDoNotConstructAnotherSdk" classname="org.stemnotebook.backend.NotebookEnginesTest" time="11.595"/>
+  <testcase name="resourceInputOpeningRemainsOwnedAcrossControllerAndBackendClose" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.75"/>
+  <testcase name="resourceImportPublishesStableOffsetBeforeOpeningAndClearsVerifiedFactoryBytes" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.201"/>
+  <testcase name="failedProviderIsRedactedRetiredAndDoesNotStrandTheOptionalWorker" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.129"/>
+  <testcase name="workerWorkflowPreservesSourceAndKnownReceiptsAfterLateCancellation" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.18"/>
+  <testcase name="backendCloseKeepsOwnershipThroughBlockedInferenceAndSdkRetirement" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.105">
+    <failure message="java.util.concurrent.ExecutionException: java.lang.NoClassDefFoundError: org/stemnotebook/backend/NotebookEnginesTest$backendCloseKeepsOwnershipThroughBlockedInferenceAndSdkRetirement$1$context$1" type="java.util.concurrent.ExecutionException">java.util.concurrent.ExecutionException: java.lang.NoClassDefFoundError: org/stemnotebook/backend/NotebookEnginesTest$backendCloseKeepsOwnershipThroughBlockedInferenceAndSdkRetirement$1$context$1
+	at java.base/java.util.concurrent.FutureTask.report(FutureTask.java:122)
+	at java.base/java.util.concurrent.FutureTask.get(FutureTask.java:205)
+	at org.stemnotebook.backend.NotebookEnginesTest.observer(NotebookEnginesTest.kt:28)
+	at org.stemnotebook.backend.NotebookEnginesTest.backendCloseKeepsOwnershipThroughBlockedInferenceAndSdkRetirement(NotebookEnginesTest.kt:118)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:56)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.junit.rules.ExternalResource$1.evaluate(ExternalResource.java:54)
+	at org.junit.runners.ParentRunner$3.evaluate(ParentRunner.java:306)
+	at org.robolectric.RobolectricTestRunner$HelperTestRunner$1.evaluate(RobolectricTestRunner.java:502)
+	at org.robolectric.internal.SandboxTestRunner$2.lambda$evaluate$2(SandboxTestRunner.java:285)
+	at org.robolectric.internal.bytecode.Sandbox.lambda$runOnMainThread$0(Sandbox.java:104)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: java.lang.NoClassDefFoundError: org/stemnotebook/backend/NotebookEnginesTest$backendCloseKeepsOwnershipThroughBlockedInferenceAndSdkRetirement$1$context$1
+	at org.stemnotebook.backend.NotebookEnginesTest.backendCloseKeepsOwnershipThroughBlockedInferenceAndSdkRetirement$lambda$30(NotebookEnginesTest.kt:120)
+	at org.stemnotebook.backend.NotebookEnginesTest.observer$lambda$0(NotebookEnginesTest.kt:28)
+	... 4 more
+Caused by: java.lang.ClassNotFoundException: org.stemnotebook.backend.NotebookEnginesTest$backendCloseKeepsOwnershipThroughBlockedInferenceAndSdkRetirement$1$context$1
+	at org.robolectric.internal.bytecode.SandboxClassLoader.getByteCode(SandboxClassLoader.java:177)
+	at org.robolectric.internal.bytecode.SandboxClassLoader.maybeInstrumentClass(SandboxClassLoader.java:150)
+	at org.robolectric.internal.bytecode.SandboxClassLoader.lambda$loadClass$0(SandboxClassLoader.java:136)
+	at org.robolectric.util.PerfStatsCollector.measure(PerfStatsCollector.java:51)
+	at org.robolectric.internal.bytecode.SandboxClassLoader.loadClass(SandboxClassLoader.java:136)
+	at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:526)
+	... 6 more
+</failure>
+  </testcase>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

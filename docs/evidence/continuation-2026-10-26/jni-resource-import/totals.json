@@ -1,0 +1,12 @@
+{
+  "android": {
+    "tests": 19,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "native_selected": 36,
+  "bridge_unit": 2,
+  "jni_import_groups": 5,
+  "jni_optimized_groups": 39
+}
