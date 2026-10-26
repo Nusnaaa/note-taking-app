@@ -186,7 +186,19 @@ impl Store {
         }
         // Exclusive Manager/candidate borrows make publication infallible after
         // this preflight, while failure does not dispose either runtime.
-        let publication = manager.ready_publication(&mut prepared.ready)?;
+        let defaults = self
+            .engine_defaults(access)?
+            .into_iter()
+            .filter_map(|(task, engine)| {
+                (engine == plan.version.descriptor.id
+                    && plan.version.descriptor.family == crate::processing::Family::Recogniser
+                    && plan.version.descriptor.tasks.contains(&task))
+                .then_some(task)
+            })
+            .collect();
+        let publication = manager
+            .ready_publication(&mut prepared.ready)?
+            .with_defaults(defaults)?;
         let mut version = plan.version.clone();
         version.state = Installation::Installed;
         version.installed_ms = Some(now_ms());

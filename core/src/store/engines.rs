@@ -2,8 +2,10 @@
 //! or executable plugins. Activation stages a probe before changing a live adapter.
 use super::*;
 mod activation;
+mod catalogue;
 mod import;
 pub use activation::{EngineActivationPlan, PreparedEngineActivation};
+pub use catalogue::{EngineCatalogue, EngineCatalogueRow};
 pub use import::{EngineImportPlan, EngineImportTransfer, PreparedEngineImport};
 
 use crate::{
@@ -165,17 +167,17 @@ impl Store {
     fn read_engine(db: &Connection, id: Id, access: &Access) -> Result<EngineVersion> {
         Self::require_app(db, access)?;
 
-        let json: String = db
+        let (engine, json): (String, String) = db
             .query_row(
-                "SELECT payload FROM engine_versions WHERE id=?1",
+                "SELECT engine,payload FROM engine_versions WHERE id=?1",
                 [id.to_string()],
-                |r| r.get(0),
+                |r| Ok((r.get(0)?, r.get(1)?)),
             )
             .optional()?
             .ok_or(Error::Unavailable)?;
 
         let version: EngineVersion = serde_json::from_str(&json)?;
-        if version.id != id {
+        if version.id != id || version.descriptor.id != engine {
             return Err(Error::Integrity);
         }
         Ok(version)
@@ -199,8 +201,16 @@ impl Store {
             )
             .optional()?;
 
-        id.map(|id| self.engine_version(Id::parse(&id)?, access))
-            .transpose()
+        let version = id
+            .map(|id| self.engine_version(Id::parse(&id)?, access))
+            .transpose()?;
+        if version
+            .as_ref()
+            .is_some_and(|v| v.descriptor.id != engine || v.state != Installation::Installed)
+        {
+            return Err(Error::Integrity);
+        }
+        Ok(version)
     }
 
     pub fn activate_engine(
@@ -241,6 +251,11 @@ impl Store {
             None
         };
 
+        let defaults = self
+            .engine_defaults(access)?
+            .into_iter()
+            .filter_map(|(task, engine)| (engine == v.descriptor.id).then_some(task))
+            .collect();
         let prepared = Manager::prepare_replacement(
             v.descriptor.clone(),
             adapter,
@@ -270,7 +285,7 @@ impl Store {
 
         // Infallible swap follows successful durable commit. The old adapter remains
         // usable throughout failed verification, probe, or transaction rollback.
-        manager.commit_replacement(prepared);
+        manager.commit_replacement(prepared, defaults);
 
         Ok(())
     }
@@ -366,6 +381,7 @@ impl Store {
             return Err(Error::EngineUnavailable);
         }
 
+        manager.validate_selection(task, engine)?;
         self.write(|db| {
             Self::require_app(db, access)?;
             if Self::setting(db, "generation")? != generation {
@@ -390,11 +406,15 @@ impl Store {
             .prepare("SELECT task,engine FROM engine_defaults ORDER BY task")?;
 
         let mut values = Vec::new();
-
+        let mut seen = std::collections::BTreeSet::new();
         for row in q.query_map([], |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?)))? {
             let (task, engine) = row?;
 
-            values.push((serde_json::from_str(&task)?, engine));
+            let task = serde_json::from_str(&task)?;
+            if engine.is_empty() || engine.len() > 256 || !seen.insert(task) {
+                return Err(Error::Integrity);
+            }
+            values.push((task, engine));
         }
 
         Ok(values)

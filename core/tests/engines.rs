@@ -123,6 +123,7 @@ fn installed_provenance_and_profiles_reopen_without_fabricated_runtime_readiness
     s.activate_engine(v.id, &mut fresh, Box::new(Fake(true)), 100, &a)
         .unwrap();
     assert_eq!(fresh.readiness("synthetic"), Readiness::Ready);
+    assert_eq!(fresh.default_for(Task::Prose), Some("synthetic"));
 }
 
 #[test]
@@ -347,4 +348,138 @@ fn converters_have_durable_staged_lifecycle_and_failed_probe_preserves_previous(
         .text,
         "λ"
     );
+}
+
+#[test]
+fn catalogue_pages_all_versions_without_exposing_resource_paths() {
+    let dir = tempfile::tempdir().unwrap();
+    let a = Access::public();
+    let mut s = Store::memory().unwrap();
+    let mut ids = Vec::new();
+    for version in ["1", "2", "3"] {
+        ids.push(
+            s.stage_engine(descriptor(version), None, dir.path(), 100, true, &a)
+                .unwrap()
+                .id,
+        );
+    }
+    s.activate_engine(ids[1], &mut Manager::new(), Box::new(Fake(true)), 100, &a)
+        .unwrap();
+    ids.sort();
+    let mut cursor = None;
+    let mut observed = Vec::new();
+    let mut active = 0;
+    loop {
+        let page = s.engine_catalogue(cursor, 1, &a).unwrap();
+        assert_eq!(page.versions.len(), 1);
+        let json = serde_json::to_string(&page).unwrap();
+        assert!(!json.contains("local_resource"));
+        assert!(!json.contains(&dir.path().display().to_string()));
+        active += usize::from(page.versions[0].active);
+        observed.push(page.versions[0].id);
+        match page.next {
+            Some(next) => cursor = Some(next),
+            None => break,
+        }
+    }
+    assert_eq!(observed, ids);
+    assert_eq!(active, 1);
+    assert!(matches!(
+        s.engine_catalogue(None, 0, &a),
+        Err(Error::ResourceLimit)
+    ));
+    assert!(matches!(
+        s.engine_catalogue(None, 129, &a),
+        Err(Error::ResourceLimit)
+    ));
+    assert!(s
+        .engine_catalogue(Some(*ids.last().unwrap()), 1, &a)
+        .unwrap()
+        .versions
+        .is_empty());
+}
+
+#[test]
+fn converter_cannot_persist_a_recognition_default() {
+    let dir = tempfile::tempdir().unwrap();
+    let a = Access::public();
+    let mut s = Store::memory().unwrap();
+    let mut m = Manager::new();
+    let mut d = descriptor("1");
+    d.family = Family::Converter;
+    d.input = InputContract::EditableV1;
+    let version = s.stage_engine(d, None, dir.path(), 0, true, &a).unwrap();
+    s.activate_converter(
+        version.id,
+        &mut m,
+        Box::new(stem_core::converters::TextConverter),
+        0,
+        &a,
+    )
+    .unwrap();
+    assert!(s
+        .select_engine(Task::Prose, "synthetic", &mut m, &a)
+        .is_err());
+    assert!(s.engine_defaults(&a).unwrap().is_empty());
+    assert_eq!(m.default_for(Task::Prose), None);
+}
+
+#[test]
+fn replacement_preserves_unsupported_preference_without_runtime_fallback() {
+    let dir = tempfile::tempdir().unwrap();
+    let a = Access::public();
+    let mut s = Store::memory().unwrap();
+    let mut m = Manager::new();
+    let first = s
+        .stage_engine(descriptor("1"), None, dir.path(), 0, true, &a)
+        .unwrap();
+    s.activate_engine(first.id, &mut m, Box::new(Fake(true)), 0, &a)
+        .unwrap();
+    s.select_engine(Task::Prose, "synthetic", &mut m, &a)
+        .unwrap();
+    let mut d = descriptor("2");
+    d.tasks = vec![Task::Maths];
+    let next = s.stage_engine(d, None, dir.path(), 0, true, &a).unwrap();
+    s.activate_engine(next.id, &mut m, Box::new(Fake(true)), 0, &a)
+        .unwrap();
+    assert_eq!(
+        s.engine_defaults(&a).unwrap(),
+        vec![(Task::Prose, "synthetic".into())]
+    );
+    assert_eq!(m.default_for(Task::Prose), None);
+    assert_eq!(m.default_for(Task::Maths), None);
+    s.activate_engine(first.id, &mut m, Box::new(Fake(true)), 0, &a)
+        .unwrap();
+    assert_eq!(m.default_for(Task::Prose), Some("synthetic"));
+}
+
+#[test]
+fn catalogue_and_active_lookup_reject_mismatched_engine_binding() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("library.db");
+    let a = Access::public();
+    let mut s = Store::open(&path).unwrap();
+    let version = s
+        .stage_engine(descriptor("1"), None, dir.path(), 0, true, &a)
+        .unwrap();
+    s.activate_engine(version.id, &mut Manager::new(), Box::new(Fake(true)), 0, &a)
+        .unwrap();
+    let db = rusqlite::Connection::open(path).unwrap();
+    db.execute(
+        "UPDATE engine_versions SET engine='different' WHERE id=?1",
+        [version.id.to_string()],
+    )
+    .unwrap();
+    assert!(matches!(
+        s.engine_catalogue(None, 8, &a),
+        Err(Error::Integrity)
+    ));
+    assert!(matches!(
+        s.engine_version(version.id, &a),
+        Err(Error::Integrity)
+    ));
+    assert!(matches!(
+        s.active_engine("synthetic", &a),
+        Err(Error::Integrity)
+    ));
 }

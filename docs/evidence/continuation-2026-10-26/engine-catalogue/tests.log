@@ -1,0 +1,58 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.19s
+     Running tests/engine_activation_plan.rs (/tmp/stem-activation-target/debug/deps/engine_activation_plan-5b6f40745d609d97)
+
+running 11 tests
+test failed_probe_and_commit_keep_previous_runtime_and_retry_preserves_candidate_holder ... ok
+test resource_rejection_or_cancel_never_invokes_sdk_factory ... ok
+test sdk_factory_receives_verified_snapshot_even_when_resource_path_changes_during_load ... ok
+test typed_factories_reject_the_other_adapter_family_before_construction ... ok
+test cancelled_converter_commit_preserves_staged_state_and_fresh_converter_flow_succeeds ... ok
+test preparation_probes_without_live_manager_borrow_and_commit_publishes_durable_version ... ok
+test factory_panic_and_factory_cancellation_leave_old_runtime_and_metadata_unchanged ... ok
+test changed_resource_and_load_limit_reject_before_replacing_live_engine ... ok
+test converter_factory_uses_the_same_verified_resource_contract ... ok
+test stale_generation_and_foreign_library_cannot_commit_prepared_candidate ... ok
+test corrupt_stored_identity_resource_or_privacy_metadata_never_invokes_factory ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.26s
+
+     Running tests/engines.rs (/tmp/stem-activation-target/debug/deps/engines-a0ca3aba976ce501)
+
+running 11 tests
+test converters_have_durable_staged_lifecycle_and_failed_probe_preserves_previous ... ok
+test converter_cannot_persist_a_recognition_default ... ok
+test replacement_preserves_unsupported_preference_without_runtime_fallback ... ok
+test catalogue_pages_all_versions_without_exposing_resource_paths ... ok
+test staged_probe_or_commit_failure_keeps_previous_verified_engine ... ok
+test resource_installation_requires_consent_digest_and_bounded_streaming ... ok
+test removing_engine_preserves_notebooks_strokes_and_accepted_work ... ok
+test another_connection_changing_state_during_probe_prevents_stale_activation ... ok
+test installed_provenance_and_profiles_reopen_without_fabricated_runtime_readiness ... ok
+test catalogue_and_active_lookup_reject_mismatched_engine_binding ... ok
+test batch_acceptance_is_selected_and_atomic_on_stale_members ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s
+
+     Running tests/host_engine_activation_plan.rs (/tmp/stem-activation-target/debug/deps/host_engine_activation_plan-33d0a7b273c89d82)
+
+running 16 tests
+test busy_manager_rejects_without_writer_wait_and_preserves_candidate_for_retry ... ok
+test dropping_unrun_recognition_after_manager_detach_queues_sdk_retirement_off_caller ... ok
+test relock_cancels_old_metadata_plan_and_locked_app_cannot_reserve_new_plan ... ok
+test queued_publication_does_not_lock_registry_while_writer_authenticates ... ok
+test pen_cancellation_prevents_host_publication_after_preparation ... ok
+test idle_prepared_disposal_is_off_writer_and_holds_owner_until_cleanup ... ok
+test probe_is_off_writer_and_pen_cancellation_never_revives_a_prepared_candidate ... ok
+test host_factory_runs_off_writer_and_remains_owned_until_cancelled_construction_returns ... ok
+test host_publication_installs_runtime_and_durable_metadata_and_rejects_replay ... ok
+test replaced_runtime_cleanup_is_off_writer_and_keeps_library_ownership ... ok
+test host_private_runtime_recognises_into_a_review_without_rewriting_source ... ok
+test metadata_reservation_is_bounded_and_never_probes_or_marks_installed ... ok
+test catalogue_distinguishes_installation_from_reload_and_restores_default ... ok
+test close_waits_for_probe_and_actual_cleanup_before_library_can_reopen ... ok
+test host_close_retires_private_manager_off_writer_before_releasing_library ... ok
+test publication_rejects_foreign_scope_and_stale_generation_without_installing ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.48s
+

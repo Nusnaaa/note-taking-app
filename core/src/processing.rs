@@ -406,8 +406,14 @@ impl Manager {
             .map(|e| e.descriptor.clone())
             .collect()
     }
+    pub fn default_for(&self, task: Task) -> Option<&str> {
+        self.defaults.get(&task).map(String::as_str)
+    }
+    pub(crate) fn validate_selection(&self, task: Task, id: &str) -> Result<()> {
+        self.recogniser_for(task, id).map(|_| ())
+    }
     pub fn select(&mut self, task: Task, id: &str) -> Result<()> {
-        self.recogniser_for(task, id)?;
+        self.validate_selection(task, id)?;
         self.defaults.insert(task, id.into());
         Ok(())
     }
@@ -607,8 +613,13 @@ impl Manager {
             adapter,
         })
     }
-    pub(crate) fn commit_replacement(&mut self, ready: PreparedRecogniser) {
+    pub(crate) fn commit_replacement(&mut self, ready: PreparedRecogniser, defaults: Vec<Task>) {
         let id = ready.descriptor.id.clone();
+        for task in defaults {
+            if ready.descriptor.tasks.contains(&task) {
+                self.defaults.insert(task, id.clone());
+            }
+        }
         self.defaults
             .retain(|task, value| value != &id || ready.descriptor.tasks.contains(task));
         if let Some(previous) = self.entries.insert(

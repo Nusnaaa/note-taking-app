@@ -72,6 +72,7 @@ impl Manager {
         Ok(ReadyPublication {
             manager: self,
             ready,
+            defaults: Vec::new(),
         })
     }
 }
@@ -80,8 +81,22 @@ impl Manager {
 pub(crate) struct ReadyPublication<'a> {
     manager: &'a mut Manager,
     ready: &'a mut ReadyRuntime,
+    defaults: Vec<Task>,
 }
 impl ReadyPublication<'_> {
+    pub(crate) fn with_defaults(mut self, defaults: Vec<Task>) -> Result<Self> {
+        let candidate = self.ready.entry.as_ref().ok_or(Error::Conflict)?;
+        if !defaults.is_empty()
+            && (candidate.descriptor.family != Family::Recogniser
+                || defaults
+                    .iter()
+                    .any(|task| !candidate.descriptor.tasks.contains(task)))
+        {
+            return Err(Error::EngineUnavailable);
+        }
+        self.defaults = defaults;
+        Ok(self)
+    }
     pub(crate) fn commit(self) -> Option<DetachedRuntime> {
         // Construction validated this entry and exclusive borrows prevent removal.
         let candidate = self
@@ -93,6 +108,9 @@ impl ReadyPublication<'_> {
         self.manager
             .defaults
             .retain(|task, value| value != &id || candidate.descriptor.tasks.contains(task));
+        for task in self.defaults {
+            self.manager.defaults.insert(task, id.clone());
+        }
         self.manager
             .entries
             .insert(

@@ -1,0 +1,11 @@
+# ADR 026 — engine catalogue and durable recognition defaults
+
+Status: backend engineering decision; Android/JNI catalogue adoption and installation recovery remain open.
+
+The Store exposes an app-authorised keyset catalogue of installed, staged and removed versions. Pages contain at most 128 rows and 4 MiB of serialized row metadata; these are engineering memory bounds, not measured performance targets. The continuation cursor is the last returned version ID. Resource filesystem paths are omitted. SQL identity, engine identity and installation-state bindings are checked before returning metadata.
+
+The Host combines that metadata with its private shared manager using a nonblocking manager lock. Runtime readiness requires the active installed version's exact descriptor to match a Ready manager entry. Installation metadata alone never enables inference. Readiness is a snapshot, not future admission: capture, cancellation and access controls still apply. Metadata reads and default selection do not call SDK code or load model resources.
+
+Recognition-default selection validates the manager's recogniser family and supported task before committing SQL. This closes a path where a converter advertising a recognition task could persist a default before runtime selection failed. Explicit activation restores supported durable preferences atomically with publication in both the direct Store API and prepared Host path. A replacement dropping task support leaves the saved preference intact but unavailable, with no implicit alternative engine or task selected. Reloading a compatible version restores the preference. Ordinary restart retains provenance and preferences but requires explicit activation to regain runtime readiness.
+
+Synthetic regression coverage exercises pagination, path omission, corruption detection, converter rejection before default persistence, unsupported task replacement, and Host close/reopen/reload. It does not establish real model eligibility, recognition quality, device performance, or complete lifecycle acceptance.

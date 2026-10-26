@@ -256,6 +256,11 @@ fn relock_cancels_old_metadata_plan_and_locked_app_cannot_reserve_new_plan() {
     assert!(plan.prepare_recogniser(adapter, 100, &control()).is_err());
     assert_eq!(calls.load(Ordering::Acquire), 0);
     assert!(matches!(h.engine_activation_plan(id), Err(Error::Denied)));
+    assert!(matches!(h.engine_catalogue(None, 8), Err(Error::Denied)));
+    assert!(matches!(
+        h.select_engine(Task::Prose, "synthetic"),
+        Err(Error::Denied)
+    ));
     h.close().unwrap();
 }
 
@@ -693,4 +698,46 @@ fn dropping_unrun_recognition_after_manager_detach_queues_sdk_retirement_off_cal
     assert!(Host::open(root.path().join("library.db"), 8).is_err());
     release.send(()).unwrap();
     closer.join().unwrap();
+}
+
+#[test]
+fn catalogue_distinguishes_installation_from_reload_and_restores_default() {
+    let (root, h, id) = fixture(8);
+    let page = h.engine_catalogue(None, 8).unwrap();
+    assert_eq!(page.versions.len(), 1);
+    assert!(!page.versions[0].runtime_ready);
+    assert!(page.defaults.is_empty());
+    assert!(h.select_engine(Task::Prose, "synthetic").is_err());
+    let (adapter, _) = model(None, None);
+    let prepared = h
+        .engine_activation_plan(id)
+        .unwrap()
+        .prepare_recogniser(adapter, 100, &control())
+        .unwrap();
+    h.install_prepared_engine(&prepared).unwrap();
+    drop(prepared);
+    h.select_engine(Task::Prose, "synthetic").unwrap();
+    let page = h.engine_catalogue(None, 8).unwrap();
+    assert!(page.versions[0].version.active);
+    assert!(page.versions[0].runtime_ready);
+    assert_eq!(page.defaults.len(), 1);
+    assert!(page.defaults[0].runtime_ready);
+    h.close().unwrap();
+    drop(h);
+    let reopened = Host::open(root.path().join("library.db"), 8).unwrap();
+    let page = reopened.engine_catalogue(None, 8).unwrap();
+    assert!(page.versions[0].version.active);
+    assert!(!page.versions[0].runtime_ready);
+    assert_eq!(page.defaults[0].engine, "synthetic");
+    assert!(!page.defaults[0].runtime_ready);
+    let (adapter, _) = model(None, None);
+    let prepared = reopened
+        .engine_activation_plan(id)
+        .unwrap()
+        .prepare_recogniser(adapter, 100, &control())
+        .unwrap();
+    reopened.install_prepared_engine(&prepared).unwrap();
+    drop(prepared);
+    assert!(reopened.engine_catalogue(None, 8).unwrap().defaults[0].runtime_ready);
+    reopened.close().unwrap();
 }

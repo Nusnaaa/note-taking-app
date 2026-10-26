@@ -29,10 +29,12 @@ use restore::RestoreScope;
 pub use restore::{RestoreReview, RestoreStatus};
 mod deletion;
 use deletion::DeletionState;
+mod engine_catalogue;
 mod mailbox;
 mod ownership;
 mod recognition;
 mod runtime;
+pub use engine_catalogue::{EngineCatalogueSnapshot, EngineDefault, EngineRuntimeRow};
 use recognition::RecognitionScope;
 pub use recognition::{
     HostActivationSource, HostActivationWork, HostCompletedActivation, HostDetachedRuntime,
@@ -452,6 +454,18 @@ impl Response {
 
 enum Message {
     Backup(Box<backup::Request>),
+    EngineCatalogue(
+        Option<Id>,
+        usize,
+        std::sync::Weak<Mutex<crate::processing::Manager>>,
+        mpsc::Sender<Result<EngineCatalogueSnapshot>>,
+    ),
+    SelectEngine(
+        crate::processing::Task,
+        String,
+        std::sync::Weak<Mutex<crate::processing::Manager>>,
+        mpsc::Sender<Result<()>>,
+    ),
     RecognitionSource(Id, Option<Id>, mpsc::Sender<Result<RecognitionSource>>),
     ActivationSource(mpsc::Sender<Result<HostActivationSource>>),
     EngineActivationPlan(Id, mpsc::Sender<Result<HostEngineActivationPlan>>),
@@ -601,6 +615,35 @@ impl Host {
                                         input.complete(envelope.authoring, envelope.bytes, failed);
                                 },
                             );
+                        }
+                        Message::EngineCatalogue(after, limit, manager, reply) => {
+                            let result =
+                                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                                    engine_catalogue::catalogue(
+                                        &mut store, &access, after, limit, manager,
+                                    )
+                                }))
+                                .unwrap_or(Err(Error::WorkerFailed));
+                            let _ =
+                                input.complete(envelope.authoring, envelope.bytes, result.is_err());
+                            let _ = reply.send(result);
+                        }
+                        Message::SelectEngine(task, engine, manager, reply) => {
+                            let result =
+                                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                                    engine_catalogue::with_manager(
+                                        &mut store,
+                                        &access,
+                                        manager,
+                                        |store, manager| {
+                                            store.select_engine(task, &engine, manager, &access)
+                                        },
+                                    )
+                                }))
+                                .unwrap_or(Err(Error::WorkerFailed));
+                            let _ =
+                                input.complete(envelope.authoring, envelope.bytes, result.is_err());
+                            let _ = reply.send(result);
                         }
                         Message::DetachmentSource(reply) => {
                             let result =
@@ -956,6 +999,38 @@ impl Host {
         self.mailbox
             .admit(Message::EngineActivationPlan(version, tx), false, 128)?;
         rx.recv().map_err(|_| Error::WorkerFailed)?
+    }
+    /// Installation metadata and exact current runtime readiness are distinct.
+    pub fn engine_catalogue(
+        &self,
+        after: Option<Id>,
+        limit: usize,
+    ) -> Result<EngineCatalogueSnapshot> {
+        let lease = self.runtime.lease()?;
+        let (tx, rx) = mpsc::channel();
+        self.mailbox.admit(
+            Message::EngineCatalogue(after, limit, Arc::downgrade(lease.manager()), tx),
+            false,
+            128,
+        )?;
+        let result = rx.recv().map_err(|_| Error::WorkerFailed)?;
+        drop(lease);
+        result
+    }
+    pub fn select_engine(&self, task: crate::processing::Task, engine: &str) -> Result<()> {
+        if engine.is_empty() || engine.len() > 256 {
+            return Err(Error::Invalid("engine id"));
+        }
+        let lease = self.runtime.lease()?;
+        let (tx, rx) = mpsc::channel();
+        self.mailbox.admit(
+            Message::SelectEngine(task, engine.into(), Arc::downgrade(lease.manager()), tx),
+            true,
+            engine.len() + 128,
+        )?;
+        let result = rx.recv().map_err(|_| Error::WorkerFailed)?;
+        drop(lease);
+        result
     }
     /// Publish into this host's private shared manager. Preparation remains an
     /// optional-worker operation on a stored, consented activation plan.
