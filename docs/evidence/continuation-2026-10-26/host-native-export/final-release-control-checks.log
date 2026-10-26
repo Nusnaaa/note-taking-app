@@ -1,0 +1,31 @@
+Traceability intact: 94 requirements, 103 inherited clauses, 158 candidates; no candidate PASS inferred.
+Traceability intact: 94 requirements, 103 inherited clauses, 158 candidates; no candidate PASS inferred.
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 41.86s
+     Running tests/host_native_export.rs (/tmp/stem-pen-response-target/debug/deps/host_native_export-c1db5ffdb7046c81)
+
+running 9 tests
+test cancellation_after_encoding_refuses_byte_release_and_retires_snapshot ... ok
+test exercise_native_host_export_keeps_only_selected_members_and_originals ... ok
+test external_close_waits_for_native_export_worker_then_refuses_release ... ok
+test native_export_verification_runs_off_writer_and_close_reentry_does_not_deadlock ... ok
+test native_host_export_roundtrips_observed_ink_with_single_snapshot_admission ... ok
+test panicking_export_verifier_releases_admission_and_leaves_writer_usable ... ok
+test native_host_release_refuses_stale_generation_and_foreign_host ... ok
+test relock_cancel_and_close_retire_native_export_without_delivering_bytes ... ok
+test protected_native_export_requires_fresh_verification_and_plaintext_acknowledgment ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 9.17s
+
+    Checking stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+   Compiling jni-sys v0.3.1
+    Checking jni v0.21.1
+    Checking stem-bridge v0.1.0 (/tmp/stem-engine-catalogue-work/bridge)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 30.57s
+   Compiling jni-sys v0.3.1
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+   Compiling jni v0.21.1
+   Compiling stem-bridge v0.1.0 (/tmp/stem-engine-catalogue-work/bridge)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 42.91s
+0f7e61d8ca93fa1c11761bb0da6b3d52f96322e9b38d4fbca635b5595b72a325  /tmp/stem-pen-response-target/debug/libstem_bridge.so
+0f7e61d8ca93fa1c11761bb0da6b3d52f96322e9b38d4fbca635b5595b72a325  target/debug/libstem_bridge.so

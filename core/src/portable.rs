@@ -1,4 +1,4 @@
-//! Native JSON v9 (with v1-v8 read compatibility) for the implemented core subset.
+//! Native JSON v13 (with v1-v12 read compatibility) for the implemented core subset.
 //! It is NOT yet the complete v0.5.8 interchange contract (see status).
 use crate::{
     crypto, digest,
@@ -8,6 +8,8 @@ use crate::{
     store::{Block, Entity, Exercise, HistoryEntry, Link, Store, WritingMode},
     Error, Id, Result,
 };
+mod export_work;
+pub(crate) use export_work::ExportStamp;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -100,11 +102,12 @@ impl NativeDocument {
     }
     fn encode(&self) -> Result<Vec<u8>> {
         self.validate()?;
-        let payload = serde_json::to_string(self)?;
-        Ok(serde_json::to_vec(&Checked {
+        let payload =
+            String::from_utf8(export_work::encode_json(self)?).map_err(|_| Error::Integrity)?;
+        export_work::encode_json(&Checked {
             sha256: digest(payload.as_bytes()),
             payload,
-        })?)
+        })
     }
     pub fn validate(&self) -> Result<()> {
         if !matches!(self.version, 1..=13) {
@@ -450,7 +453,7 @@ impl Store {
         access: &Access,
     ) -> Result<ExportPlan> {
         let generation = Self::setting(&self.db, "generation")?;
-        if ids.is_empty() {
+        if ids.is_empty() || ids.len() > 10000 {
             return Err(Error::Invalid("export scope"));
         }
         let selected: BTreeSet<_> = ids.iter().copied().collect();
@@ -468,6 +471,7 @@ impl Store {
         let mut rules = Vec::new();
         let mut modes = Vec::new();
         let mut has_ink = false;
+        let mut source_bytes = 0usize;
         for &id in ids {
             let mut e = Self::authorise(&self.db, id, access, false)?;
             scopes.extend(self.protection_scopes(id, None)?);
@@ -539,11 +543,17 @@ impl Store {
             }
             let mut stmt = self
                 .db
-                .prepare("SELECT id FROM blocks WHERE entity=?1 ORDER BY ordinal,id")?;
+                .prepare("SELECT id FROM blocks WHERE entity=?1 ORDER BY ordinal,id LIMIT 10001")?;
             let block_ids = stmt
                 .query_map([id.to_string()], |r| r.get::<_, String>(0))?
                 .collect::<std::result::Result<Vec<_>, _>>()?;
+            if block_ids.len() > 10000 {
+                return Err(Error::ResourceLimit);
+            }
             for bid in block_ids {
+                if blocks.len() >= 10000 {
+                    return Err(Error::ResourceLimit);
+                }
                 let bid = Id::parse(&bid)?;
                 let membership = Self::block_exercise(&self.db, bid)?;
                 if exercise.is_some() && membership != exercise {
@@ -554,6 +564,17 @@ impl Store {
                 has_ink |= !b.source_ids.is_empty();
                 if !include_original_ink && !b.source_ids.is_empty() {
                     return Err(Error::ReviewRequired);
+                }
+                // Bound stored source/history before materialising their snapshots.
+                let bytes: i64 = self.db.query_row(
+                    "SELECT COALESCE((SELECT SUM(length(CAST(payload AS BLOB))) FROM strokes WHERE block=?1),0) + COALESCE((SELECT SUM(length(CAST(payload AS BLOB))) FROM history WHERE block=?1),0) + COALESCE((SELECT length(CAST(payload AS BLOB)) FROM blocks WHERE id=?1),0)",
+                    [bid.to_string()], |r| r.get(0),
+                )?;
+                source_bytes = source_bytes
+                    .checked_add(usize::try_from(bytes).map_err(|_| Error::ResourceLimit)?)
+                    .ok_or(Error::ResourceLimit)?;
+                if source_bytes > export_work::EXPORT_BYTES {
+                    return Err(Error::ResourceLimit);
                 }
                 blocks.push(NativeBlock {
                     strokes: Self::original_strokes(&self.db, &b)?,
@@ -641,47 +662,13 @@ impl Store {
         auth: &mut dyn Authenticator,
         acknowledge_omissions: bool,
     ) -> Result<Exported> {
-        if Self::setting(&self.db, "library_id")? != plan.library
-            || Self::setting(&self.db, "generation")? != plan.generation
-        {
-            return Err(Error::Conflict);
-        }
-        if !plan.omissions.is_empty() && !acknowledge_omissions {
-            return Err(Error::ReviewRequired);
-        }
-        if !plan.scopes.is_empty() && !auth.verify(Id::new(), &plan.scopes) {
-            return Err(Error::Denied);
-        }
-        let plain = zeroize::Zeroizing::new(plan.document.encode()?);
-        let exported = match protection {
-            ExportProtection::Encrypted { password } => {
-                let encrypted = crypto::encrypt(&plain, password)?;
-                Exported {
-                    bytes: encrypted.bytes,
-                    recovery_key: Some(encrypted.recovery_key),
-                }
-            }
-            ExportProtection::Plaintext {
-                acknowledge_protected,
-            } => {
-                if !plan.scopes.is_empty() && !acknowledge_protected {
-                    return Err(Error::ReviewRequired);
-                }
-                Exported {
-                    bytes: plain.to_vec(),
-                    recovery_key: None,
-                }
-            }
-        };
-        // Authentication/encryption may be slow. Recheck after both before releasing
-        // any bytes; a second connection may have changed locks or revoked sources.
-        if Self::setting(&self.db, "library_id")? != plan.library
-            || Self::setting(&self.db, "generation")? != plan.generation
-        {
-            return Err(Error::Conflict);
-        }
+        let stamp = plan.stamp();
+        self.validate_export_stamp(&stamp, None)?;
+        let exported = plan.encode(protection, auth, acknowledge_omissions, None)?;
+        self.validate_export_stamp(&stamp, None)?;
         Ok(exported)
     }
+
     /// Restore to independent IDs by default. Never upsert into an existing object.
     /// Protection stays set; destination platform credentials are established later.
     pub fn import_native(&mut self, bytes: &[u8], access: &Access) -> Result<Vec<Id>> {

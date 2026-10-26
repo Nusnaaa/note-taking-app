@@ -1,0 +1,22 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+warning: unused import: `content::Content`
+  --> core/tests/host_native_export.rs:10:5
+   |
+10 |     content::Content,
+   |     ^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` on by default
+
+warning: `stem-core` (test "host_native_export") generated 1 warning (run `cargo fix --test "host_native_export"` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 36.82s
+     Running tests/host_native_export.rs (/tmp/stem-pen-response-target/debug/deps/host_native_export-c1db5ffdb7046c81)
+
+running 5 tests
+test native_host_export_roundtrips_observed_ink_with_single_snapshot_admission ... ok
+test native_export_verification_runs_off_writer_and_close_reentry_does_not_deadlock ... ok
+test native_host_release_refuses_stale_generation_and_foreign_host ... ok
+test relock_cancel_and_close_retire_native_export_without_delivering_bytes ... ok
+test protected_native_export_requires_fresh_verification_and_plaintext_acknowledgment ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.78s
+

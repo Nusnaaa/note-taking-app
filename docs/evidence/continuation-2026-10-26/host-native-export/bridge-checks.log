@@ -1,0 +1,10 @@
+    Checking stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+    Checking stem-bridge v0.1.0 (/tmp/stem-engine-catalogue-work/bridge)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 27.09s
+   Compiling jni-sys v0.3.1
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+   Compiling jni v0.21.1
+   Compiling stem-bridge v0.1.0 (/tmp/stem-engine-catalogue-work/bridge)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 40.77s
+2fefbb95c1b9c6a4603f4723f0078d78db17ef69f2d5a1f9d4e7fe8b5cbe2dbe  /tmp/stem-pen-response-target/debug/libstem_bridge.so
+2fefbb95c1b9c6a4603f4723f0078d78db17ef69f2d5a1f9d4e7fe8b5cbe2dbe  target/debug/libstem_bridge.so

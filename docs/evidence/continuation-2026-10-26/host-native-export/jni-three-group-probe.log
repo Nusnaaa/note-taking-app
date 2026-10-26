@@ -1,0 +1,3 @@
+PASS: JNI native-copy original ink delivery, explicit source choice, single use, bounded review admission, stale/capture rejection and malformed selection (1)
+PASS: JNI native-copy fresh platform proof, off-writer callback, protected plaintext acknowledgment, encrypted bytes and recovery-key ownership (1)
+PASS: JNI native-copy callback cancellation, admission retirement and relock refusal without output (1)

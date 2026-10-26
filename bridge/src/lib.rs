@@ -2,6 +2,7 @@
 //! refer to a locked registry. Panic containment and bounded requests fail closed.
 mod backup;
 mod engines;
+mod native_export;
 mod restore;
 use jni::{
     objects::{JClass, JString},
@@ -134,6 +135,7 @@ pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_close(
         let host = hosts().lock().ok()?.remove(&handle)?;
         engines::close(handle);
         backup::close(handle);
+        native_export::close(handle);
         restore::close(handle);
         host.close().ok()?;
         Some(())

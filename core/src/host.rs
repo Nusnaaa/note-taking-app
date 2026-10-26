@@ -21,6 +21,11 @@ use std::{
     sync::{mpsc, Arc, Mutex},
     thread,
 };
+mod export;
+use export::ExportScope;
+pub use export::{
+    CompletedNativeExport, NativeExportReview, NativeExportSelection, NativeExportSummary,
+};
 mod backup;
 use backup::{BackupActor, BackupScope};
 pub use backup::{BackupReceipt, BackupReview, BackupStatus, BackupSummary};
@@ -517,6 +522,7 @@ impl Response {
 }
 
 enum Message {
+    NativeExport(Box<export::Request>),
     Backup(Box<backup::Request>),
     EngineCatalogue(
         Option<Id>,
@@ -630,6 +636,7 @@ pub struct Host {
     recognition: Arc<RecognitionScope>,
     runtime: Arc<runtime::RuntimeRegistry>,
     backups: Arc<BackupScope>,
+    exports: Arc<ExportScope>,
     restores: Arc<RestoreScope>,
     worker: Mutex<Option<thread::JoinHandle<Result<()>>>>,
     writer_thread: thread::ThreadId,
@@ -672,6 +679,8 @@ impl Host {
         let input = Arc::clone(&mailbox);
         let recognition = Arc::new(RecognitionScope::new(limits.query_count.min(8)));
         let recognition_scope = Arc::clone(&recognition);
+        let exports = ExportScope::new();
+        let export_scope = Arc::clone(&exports);
         let backups = BackupScope::new(limits.query_bytes);
         let backup_scope = Arc::clone(&backups);
         let restores = RestoreScope::new(limits.query_bytes);
@@ -708,6 +717,18 @@ impl Host {
                         deletion.clear();
                     }
                     match envelope.message {
+                        Message::NativeExport(request) => {
+                            export::handle(
+                                *request,
+                                &store,
+                                &access,
+                                &recognition_scope,
+                                |failed| {
+                                    let _ =
+                                        input.complete(envelope.authoring, envelope.bytes, failed);
+                                },
+                            );
+                        }
                         Message::Backup(request) => {
                             backup_actor.handle(
                                 *request,
@@ -1087,11 +1108,13 @@ impl Host {
                 recognition_scope.close();
                 backup_actor.clear();
                 backup_scope.close();
+                export_scope.close();
                 restore_scope.close();
                 runtime_worker.close();
                 recognition_scope.wait_workers();
                 let runtime_result = runtime_worker.wait();
                 backup_scope.wait();
+                export_scope.wait();
                 restore_scope.wait();
                 input.close();
                 drop(pdf);
@@ -1114,6 +1137,7 @@ impl Host {
             recognition,
             runtime,
             backups,
+            exports,
             restores,
             writer_thread: worker.thread().id(),
             worker: Mutex::new(Some(worker)),
@@ -1125,6 +1149,7 @@ impl Host {
         self.recognition.close();
         self.runtime.close();
         self.backups.close();
+        self.exports.close();
         self.restores.close();
         self.mailbox.close();
         // Check before taking the join mutex: an external closer may already
@@ -1132,6 +1157,7 @@ impl Host {
         if self.writer_thread == thread::current().id()
             || self.runtime.is_current_worker()
             || self.recognition.is_current_worker()
+            || self.exports.is_current_worker()
             || self.backups.is_current_worker()
             || self.restores.is_current_worker()
         {

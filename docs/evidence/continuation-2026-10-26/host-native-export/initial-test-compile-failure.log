@@ -1,0 +1,19 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+warning: unused import: `content::Content`
+  --> core/tests/host_native_export.rs:10:5
+   |
+10 |     content::Content,
+   |     ^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` on by default
+
+error[E0599]: no method named `status` found for struct `Arc<Host>` in the current scope
+   --> core/tests/host_native_export.rs:370:17
+    |
+370 |         if host.status().unwrap().closed {
+    |                 ^^^^^^ method not found in `Arc<Host>`
+
+For more information about this error, try `rustc --explain E0599`.
+warning: `stem-core` (test "host_native_export") generated 1 warning
+error: could not compile `stem-core` (test "host_native_export") due to 1 previous error; 1 warning emitted
+warning: build failed, waiting for other jobs to finish...

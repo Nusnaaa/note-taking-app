@@ -1,0 +1,20 @@
+    Checking stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+   Compiling jni-sys v0.3.1
+    Checking jni v0.21.1
+warning: type `Lease` is more private than the item `host::export::Request::Prepare::lease`
+   --> core/src/host/export.rs:141:9
+    |
+141 |         lease: Arc<Lease>,
+    |         ^^^^^^^^^^^^^^^^^ field `host::export::Request::Prepare::lease` is reachable at visibility `pub(in crate::host)`
+    |
+note: but type `Lease` is only usable at visibility `pub(self)`
+   --> core/src/host/export.rs:80:1
+    |
+ 80 | struct Lease {
+    | ^^^^^^^^^^^^
+    = note: `#[warn(private_interfaces)]` on by default
+
+warning: `stem-core` (lib) generated 1 warning
+warning: `stem-core` (lib test) generated 1 warning (1 duplicate)
+    Checking stem-bridge v0.1.0 (/tmp/stem-engine-catalogue-work/bridge)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 19.72s

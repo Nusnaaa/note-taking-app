@@ -1,0 +1,137 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 56.84s
+     Running unittests src/lib.rs (/tmp/stem-pen-response-target/debug/deps/stem_core-8a459d8a65baac19)
+
+running 46 tests
+test backup::source_asset_validation_tests::source_asset_hash_rejects_text_and_missing_rows ... ok
+test backup::publication_tests::post_link_failure_is_uncertain_and_never_removes_the_new_recovered_copy ... ok
+test backup::streaming::pull::tests::exact_and_next_row_queries_seek_the_rowid_index_instead_of_scanning_a_prefix ... ok
+test backup::source_asset_validation_tests::sqlite_chunk_hash_matches_bytes_at_boundaries_and_detects_late_corruption ... ok
+test backup::validation::tests::checkpoint_checks_busy_readers_and_keeps_sqlite_in_charge_of_stage_io ... ok
+test backup::validation::tests::cancellation_inside_semantic_validation_removes_work_indexes ... ok
+test backup::validation::tests::containment_depth_cycles_and_retired_entities_keep_the_same_rules ... ok
+test backup::validation::tests::embed_work_queries_use_covering_primary_key_without_temporary_sorting ... ok
+test backup::validation::tests::deep_embed_graph_uses_sqlite_stack_and_detects_back_edges ... ok
+test backup::validation::tests::schema_feature_gates_match_aggregate_oracle ... ok
+test backup::validation::tests::source_grant_retirement_is_incremental_and_cancellation_rolls_back ... ok
+test backup::validation::tests::sql_and_aggregate_validators_agree_on_rich_graph_and_corruptions ... ok
+test backup::validation::tests::unreferenced_raw_ink_is_rejected_instead_of_silently_omitted ... ok
+test backup::validation::tests::legacy_restore_worker_cancellation_reaches_semantic_validation ... ok
+test backup::validation::tests::whole_library_images_exceed_aggregate_subset_limit_without_collecting_bytes ... ok
+test export::source_ink::budget_tests::pressure_geometry_budget_rejects_partial_svg_and_preserves_observations ... ok
+test host::deletion::tests::expired_and_capacity_bounded_reviews_never_delete_content ... ok
+test host::ownership::tests::bounded_backup_pulls_leave_exclusive_owner_free_to_commit_authoring ... ok
+test host::ownership::tests::sqlite_managed_ownership_survives_commits_and_failed_duplicate_connections ... ok
+test host::ownership::tests::strict_existing_duplicate_open_keeps_owner_locks_and_committed_edits ... ok
+test host::ownership::tests::strict_existing_open_migrates_a_real_v1_library_but_rejects_bad_identity ... ok
+test host::ownership::tests::strict_existing_open_never_initializes_missing_empty_or_unrelated_files ... ok
+test host::recognition::discard::tests::capture_cannot_retire_a_completing_discard_cell ... ok
+test host::recognition::discard::tests::capture_cannot_retire_an_authorising_discard_cell ... ok
+test host::recognition::reclamation::tests::capture_cannot_retire_a_completing_reclamation_cell ... ok
+test host::recognition::reclamation::tests::capture_cannot_retire_an_authorising_reclamation_cell ... ok
+test host::recognition::removal::tests::busy_private_manager_returns_before_the_manager_guard_is_released ... ok
+test host::recognition::removal::tests::capture_cannot_retire_a_removal_cell_while_the_writer_is_publishing ... ok
+test host::recognition::resource_import::ownership_tests::capture_cannot_retire_the_import_cell_while_sql_publication_is_in_progress ... ok
+test host::recognition::tests::closed_scope_never_issues_a_live_epoch_after_invalidation ... ok
+test host::recognition::tests::expired_processing_authority_cannot_be_refreshed_by_a_later_job_budget ... ok
+test host::recognition::tests::optional_retirement_worker_failure_does_not_disable_authoritative_writing ... ok
+test host::recognition::tests::oversized_processing_frames_fail_without_allocating_an_encoded_copy ... ok
+test host::runtime::tests::close_rejects_new_leases_and_waits_for_actual_last_lease_then_off_lock_sdk_drop ... ok
+test portable::export_work::budget_tests::native_json_budget_bounds_counting_and_retained_encoding_without_partial_output ... ok
+test processing::authority_control_tests::linking_authority_keeps_parent_cancellation_deadline_and_exact_expiry ... ok
+test provisioning::import_control_tests::hash_loop_cancellation_preserves_an_unpublished_resumable_part ... ok
+test provisioning::recovery::tests::scan_rechecks_control_between_entries_without_changing_files ... ok
+test provisioning::resource_lock::tests::coordination_names_and_symlink_or_nonempty_control_files_are_never_adopted_or_removed ... ok
+test provisioning::resource_lock::tests::exclusive_guard_blocks_new_readers_and_pins_the_inode_after_payload_deletion ... ok
+test security::tests::cached_backup_scope_validation_does_not_extend_an_unchanged_grants_expiry ... ok
+test sources::selection_tests::retained_pdf_commit_failure_does_not_publish_asset_or_change_acquisition ... ok
+test sources::selection_tests::selected_revision_transaction_rolls_back_and_preserves_independent_evidence ... ok
+test store::storage_tests::sqlite_full_reports_failure_and_preserves_committed_work ... ok
+test store::table_scene::budget_tests::reserved_envelope_budget_shrinks_fragments_without_skipping_observations ... ok
+test backup::validation::tests::whole_library_stream_restore_exceeds_subset_entity_block_and_exercise_caps has been running for over 60 seconds
+test backup::validation::tests::whole_library_stream_restore_exceeds_subset_entity_block_and_exercise_caps ... ok
+
+test result: ok. 46 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 88.67s
+
+     Running tests/host.rs (/tmp/stem-pen-response-target/debug/deps/host-1cb59b7aef18333e)
+
+running 17 tests
+test active_call_and_shutdown_drain_hold_ownership_until_original_ink_is_committed ... ok
+test asynchronous_writer_retry_tickets_and_lock_scopes_are_enforced ... ok
+test byte_budgets_are_independent_and_rejection_does_not_acknowledge_a_save ... ok
+test concurrent_host_calls_return_distinct_committed_content ... ok
+test failed_host_initialisation_releases_ownership_before_returning ... ok
+test dropped_receipts_still_drain_on_close_and_observers_see_final_closed_state ... ok
+test host_ownership_is_cross_process_and_abrupt_exit_recovers_original_ink ... ok
+test host_exercise_edits_share_identity_with_master_and_layout_undo_survives_restart ... ok
+test host_restores_revision_bound_selection_without_silently_rebinding_after_edit ... ok
+test host_workspace_discovers_last_view_after_reopen_without_serializing_locked_targets ... ok
+test offline_recovery_help_is_readonly_and_available_while_app_locked ... ok
+test library_host_ownership_rejects_duplicate_aliases_without_truncating_and_allows_other_libraries ... ok
+test query_saturation_reserves_edit_admission_and_preserves_edit_undo_order ... ok
+test recovery_identity_is_stable_but_never_grants_content_or_receipt_access ... ok
+test reentrant_close_from_verifier_fails_without_self_join_or_retained_access ... ok
+test threaded_host_commits_reopens_and_rejects_unknown_version_and_fields ... ok
+test verifier_panic_fails_closed_without_killing_the_writer_or_retaining_access ... ok
+
+test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.38s
+
+     Running tests/host_backup.rs (/tmp/stem-pen-response-target/debug/deps/host_backup-c05d4db731ce0c8c)
+
+running 11 tests
+test capture_cancels_running_and_idle_reviews_without_reviving_them_after_pen_up ... ok
+test close_waits_for_actual_sink_retirement_and_preserves_exclusive_library_ownership ... ok
+test blocked_sink_does_not_hold_writer_and_source_edits_invalidate_completion ... ok
+test native_backup_retires_sink_before_receipt_and_restores_exact_original_ink ... ok
+test finished_ciphertext_does_not_release_ownership_while_sink_destruction_is_blocked ... ok
+test native_review_confirmation_fresh_proof_foreign_host_and_closed_host_are_enforced ... ok
+test optional_backup_metadata_budget_failure_keeps_authoring_available ... ok
+test reserved_cleanup_retires_backup_when_ordinary_queries_are_saturated ... ok
+test sink_write_and_destructor_callbacks_cannot_self_join_or_publish_a_success_after_close ... ok
+test verifier_and_sink_panics_do_not_kill_authoring_or_leave_a_backup_reservation ... ok
+test native_host_streams_a_library_above_the_legacy_limit_without_releasing_its_writer_ownership has been running for over 60 seconds
+test native_host_streams_a_library_above_the_legacy_limit_without_releasing_its_writer_ownership ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 95.16s
+
+     Running tests/host_conversion.rs (/tmp/stem-pen-response-target/debug/deps/host_conversion-174bbf2df57fde4d)
+
+running 6 tests
+test capture_relock_and_close_revoke_prepared_and_delivered_conversion ... ok
+test derivative_preserves_lexemes_source_identity_and_runtime_revocation ... ok
+test protection_change_revokes_snapshot_and_refuses_new_source ... ok
+test running_callback_is_off_writer_and_observes_capture_cancellation ... ok
+test typed_table_cell_conversion_uses_its_stored_value_without_requiring_ink ... ok
+test source_admission_is_shared_bounded_and_denied_blocks_stay_denied ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+     Running tests/host_native_export.rs (/tmp/stem-pen-response-target/debug/deps/host_native_export-c1db5ffdb7046c81)
+
+running 7 tests
+test external_close_waits_for_native_export_worker_then_refuses_release ... ok
+test native_export_verification_runs_off_writer_and_close_reentry_does_not_deadlock ... ok
+test native_host_export_roundtrips_observed_ink_with_single_snapshot_admission ... ok
+test panicking_export_verifier_releases_admission_and_leaves_writer_usable ... ok
+test native_host_release_refuses_stale_generation_and_foreign_host ... ok
+test relock_cancel_and_close_retire_native_export_without_delivering_bytes ... ok
+test protected_native_export_requires_fresh_verification_and_plaintext_acknowledgment ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.76s
+
+     Running tests/portable.rs (/tmp/stem-pen-response-target/debug/deps/portable-09189a7e4c5d6f73)
+
+running 10 tests
+test both_protected_export_paths_require_fresh_authentication ... ok
+test concurrent_change_during_export_authentication_invalidates_output ... ok
+test corrupt_native_import_and_interruption_do_not_touch_existing_documents ... ok
+test encrypted_header_payload_truncation_and_weak_credentials_fail_closed ... ok
+test encrypted_native_roundtrip_creates_independent_copy_and_keeps_current_work ... ok
+test export_plan_cannot_survive_later_lock_or_source_change ... ok
+test hostile_cross_kind_identifier_aliases_are_rejected_before_import ... ok
+test hostile_native_relationships_rejected_even_with_recomputed_checksum ... ok
+test raw_ink_requires_deliberate_inclusion_and_subset_export_never_follows_links ... ok
+test encrypted_package_opens_with_password_or_independent_recovery_key ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 16.93s
+

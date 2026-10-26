@@ -1,0 +1,5 @@
+Exception in thread "main" java.lang.IllegalStateException: Native notebook operation failed
+	at org.stemnotebook.backend.NativeBridge.request(Native Method)
+	at NativeExportBoundarySmoke.call(NativeExportBoundarySmoke.java:11)
+	at NativeExportBoundarySmoke.run(NativeExportBoundarySmoke.java:19)
+	at StemNativeExportProbe.main(StemNativeExportProbe.java:2)

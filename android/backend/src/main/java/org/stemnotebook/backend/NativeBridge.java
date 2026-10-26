@@ -296,6 +296,39 @@ public final class NativeBridge {
     public interface PdfGrant { boolean verify(String challenge, String target, String locator, String revision); }
     public static native String preparePdfSelection(long handle, String target, String locator, String revision, PdfGrant proof);
     public static native String finishPdfSelection(long handle, String review, boolean confirmed, PdfGrant proof);
+    /** Deliberate worker-only native subset export. Selection is Entities or Exercise;
+     * source ink requires explicit choice. No bytes are written to a provider here. */
+    public static native NativeExport reviewNativeExport(long handle, String selection, boolean originalInk);
+    private static native NativeExportData runNativeExport(long handle,long token,char[] password,
+            Verification proof,boolean acknowledgeProtected,boolean acknowledgeOmissions,long budgetMillis);
+    private static native void releaseNativeExport(long handle,long token);
+    public static final class NativeExport implements AutoCloseable {
+        private final long host,token;
+        public final String summary;
+        private boolean started,closed;
+        private NativeExport(long host,long token,String summary) {this.host=host;this.token=token;this.summary=summary;}
+        /** Null password deliberately requests plaintext. A non-null password requests encryption.
+         * The caller owns the returned bytes and recovery key and must retire them deliberately. */
+        public NativeExportData finish(char[] password,Verification proof,boolean acknowledgeProtected,boolean acknowledgeOmissions,long budgetMillis) {
+            if(proof==null || budgetMillis<1 || budgetMillis>3600000 || (password!=null && password.length>1024)) throw new IllegalStateException("Native export operation failed");
+            synchronized(this) {if(started || closed) throw new IllegalStateException("Native export operation failed");started=true;}
+            char[] snapshot=password==null?null:password.clone();
+            try {
+                NativeExportData data=runNativeExport(host,token,snapshot,proof,acknowledgeProtected,acknowledgeOmissions,budgetMillis);
+                synchronized(this) {if(closed) {if(data!=null)data.close();throw new IllegalStateException("Native export operation failed");}}
+                return data;
+            }
+            finally {if(snapshot!=null) java.util.Arrays.fill(snapshot,'\0');close();}
+        }
+        @Override public void close() {synchronized(this) {if(closed)return;closed=true;}releaseNativeExport(host,token);}
+    }
+    public static final class NativeExportData implements AutoCloseable {
+        public final byte[] bytes;
+        public final char[] recoveryKey;
+        private NativeExportData(byte[] bytes,char[] recoveryKey) {this.bytes=bytes;this.recoveryKey=recoveryKey;}
+        /** Clears these owned arrays; copies retained by the caller remain their responsibility. */
+        @Override public void close() {java.util.Arrays.fill(bytes,(byte)0);if(recoveryKey!=null)java.util.Arrays.fill(recoveryKey,'\0');}
+    }
     /** Worker-only review of the committed library; private capture journals are
      * outside this dataset. App transport must reconcile those before publication. */
     public static native String backupGeneration(long handle);

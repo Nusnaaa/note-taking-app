@@ -92,6 +92,7 @@ public final class BoundarySmoke {
         EngineDiscardBoundarySmoke.run();
         EngineReclamationBoundarySmoke.run();
         BackupBoundarySmoke.run();
+        NativeExportBoundarySmoke.run();
         OpenBoundarySmoke.main(new String[0]);
         RestoreBoundarySmoke.main(new String[0]);
         System.out.println("PASS: JNI Unicode, platform-verifier callback, relock, restart, malformed input, closed handles, independent registry access fresh source-selection proof and concurrent close drain and recovery identity/generation (10)");
