@@ -1,0 +1,772 @@
+$ /tmp/stem-cargo/bin/cargo test --workspace --locked --offline
+exit_code=0
+
+   Compiling jni-sys v0.4.1
+   Compiling bytes v1.12.1
+   Compiling jni-sys v0.3.1
+   Compiling thiserror v1.0.69
+   Compiling cesu8 v1.1.0
+   Compiling stem-core v0.1.0 (/tmp/stem-resource-factory-work/core)
+   Compiling combine v4.6.9
+   Compiling jni v0.21.1
+   Compiling stem-bridge v0.1.0 (/tmp/stem-resource-factory-work/bridge)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 14s
+     Running unittests src/lib.rs (/tmp/stem-activation-target/debug/deps/stem_bridge-8d048e2479405dce)
+
+running 1 test
+test handle_tests::exhaustion_never_wraps_or_reuses_a_handle ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/tmp/stem-activation-target/debug/deps/stem_core-8a459d8a65baac19)
+
+running 32 tests
+test backup::source_asset_validation_tests::source_asset_hash_rejects_text_and_missing_rows ... ok
+test backup::publication_tests::post_link_failure_is_uncertain_and_never_removes_the_new_recovered_copy ... ok
+test backup::source_asset_validation_tests::sqlite_chunk_hash_matches_bytes_at_boundaries_and_detects_late_corruption ... ok
+test backup::streaming::pull::tests::exact_and_next_row_queries_seek_the_rowid_index_instead_of_scanning_a_prefix ... ok
+test backup::validation::tests::cancellation_inside_semantic_validation_removes_work_indexes ... ok
+test backup::validation::tests::checkpoint_checks_busy_readers_and_keeps_sqlite_in_charge_of_stage_io ... ok
+test backup::validation::tests::containment_depth_cycles_and_retired_entities_keep_the_same_rules ... ok
+test backup::validation::tests::embed_work_queries_use_covering_primary_key_without_temporary_sorting ... ok
+test backup::validation::tests::deep_embed_graph_uses_sqlite_stack_and_detects_back_edges ... ok
+test backup::validation::tests::schema_feature_gates_match_aggregate_oracle ... ok
+test backup::validation::tests::source_grant_retirement_is_incremental_and_cancellation_rolls_back ... ok
+test backup::validation::tests::sql_and_aggregate_validators_agree_on_rich_graph_and_corruptions ... ok
+test backup::validation::tests::unreferenced_raw_ink_is_rejected_instead_of_silently_omitted ... ok
+test backup::validation::tests::legacy_restore_worker_cancellation_reaches_semantic_validation ... ok
+test backup::validation::tests::whole_library_images_exceed_aggregate_subset_limit_without_collecting_bytes ... ok
+test host::deletion::tests::expired_and_capacity_bounded_reviews_never_delete_content ... ok
+test host::ownership::tests::bounded_backup_pulls_leave_exclusive_owner_free_to_commit_authoring ... ok
+test host::ownership::tests::sqlite_managed_ownership_survives_commits_and_failed_duplicate_connections ... ok
+test host::ownership::tests::strict_existing_duplicate_open_keeps_owner_locks_and_committed_edits ... ok
+test host::ownership::tests::strict_existing_open_migrates_a_real_v1_library_but_rejects_bad_identity ... ok
+test host::ownership::tests::strict_existing_open_never_initializes_missing_empty_or_unrelated_files ... ok
+test host::recognition::tests::closed_scope_never_issues_a_live_epoch_after_invalidation ... ok
+test host::recognition::tests::expired_processing_authority_cannot_be_refreshed_by_a_later_job_budget ... ok
+test host::recognition::tests::optional_retirement_worker_failure_does_not_disable_authoritative_writing ... ok
+test host::recognition::tests::oversized_processing_frames_fail_without_allocating_an_encoded_copy ... ok
+test host::runtime::tests::close_rejects_new_leases_and_waits_for_actual_last_lease_then_off_lock_sdk_drop ... ok
+test processing::authority_control_tests::linking_authority_keeps_parent_cancellation_deadline_and_exact_expiry ... ok
+test security::tests::cached_backup_scope_validation_does_not_extend_an_unchanged_grants_expiry ... ok
+test sources::selection_tests::retained_pdf_commit_failure_does_not_publish_asset_or_change_acquisition ... ok
+test sources::selection_tests::selected_revision_transaction_rolls_back_and_preserves_independent_evidence ... ok
+test store::storage_tests::sqlite_full_reports_failure_and_preserves_committed_work ... ok
+test backup::validation::tests::whole_library_stream_restore_exceeds_subset_entity_block_and_exercise_caps has been running for over 60 seconds
+test backup::validation::tests::whole_library_stream_restore_exceeds_subset_entity_block_and_exercise_caps ... ok
+
+test result: ok. 32 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 125.10s
+
+     Running unittests src/bin/notebook_cli.rs (/tmp/stem-activation-target/debug/deps/notebook_cli-44775c21c9815a73)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/recovery_probe.rs (/tmp/stem-activation-target/debug/deps/recovery_probe-fbc0f913037cb809)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/render_probe.rs (/tmp/stem-activation-target/debug/deps/render_probe-0eaec9a3ebca4a7b)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/activation_work.rs (/tmp/stem-activation-target/debug/deps/activation_work-d9115e7c908de3f8)
+
+running 7 tests
+test cancellation_before_probe_or_after_probe_prevents_readiness_and_probe_failures_are_contained ... ok
+test blocked_probe_releases_manager_borrow_and_removal_keeps_adapter_until_completion_retirement ... ok
+test consent_failure_preserves_ready_but_failed_integrity_reverification_retires_old_readiness ... ok
+test converter_probe_and_abandoned_work_never_invent_ready_state ... ok
+test provider_error_payloads_remain_owned_until_completion_retirement_even_after_cancellation ... ok
+test superseded_and_foreign_completions_cannot_enable_an_engine_or_overwrite_new_state ... ok
+test synchronous_compatibility_keeps_original_provider_error_for_the_caller ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/authoring.rs (/tmp/stem-activation-target/debug/deps/authoring-b61d9f8f748ce7f0)
+
+running 6 tests
+test invalid_or_dangling_presets_reject_atomically_without_silent_selection_repair ... ok
+test guide_kinds_are_bounded_escaped_and_excluded_from_export_only_by_explicit_choice ... ok
+test preferences_preserve_stale_selection_and_do_not_consume_document_undo ... ok
+test presets_calibrate_and_reopen_without_moving_view_or_rewriting_observations ... ok
+test schema14_upgrade_keeps_unconfigured_view_payload_exactly_without_inventing_presets_or_guides ... ok
+test native_copy_and_schema15_backup_keep_scoped_presets_and_reject_downgraded_extensions ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 33.60s
+
+     Running tests/backup.rs (/tmp/stem-activation-target/debug/deps/backup-84f7ac3d814cf80c)
+
+running 9 tests
+test backup_plan_cannot_cross_library_or_survive_a_write ... ok
+test backup_requires_deliberate_ink_scope_and_fresh_protected_authentication ... ok
+test external_asset_backup_is_explicit_authorised_and_revocation_safe ... ok
+test malformed_authenticated_backup_is_rejected_before_exposing_restored_store ... ok
+test restore_publication_never_overwrites_live_database_and_reopens ... ok
+test rich_library_restores_objects_views_anchors_proposals_profiles_and_capture_receipts ... ok
+test purge_retires_detailed_undo_payloads_and_backup_rejects_forged_journal_rows ... ok
+test whole_library_backup_retains_trash_history_membership_undo_and_source_metadata ... ok
+test schema8_logical_backup_upgrades_without_inventing_old_undo_actions ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 51.38s
+
+     Running tests/backup_delegation.rs (/tmp/stem-activation-target/debug/deps/backup_delegation-5134cd5242a35c5e)
+
+running 7 tests
+test close_retains_exclusive_ownership_through_actual_authorizer_destruction ... ok
+test approved_scope_remains_usable_for_new_authored_content_without_unlocking_host_reads ... ok
+test delegated_verification_is_off_writer_and_capture_invalidates_pending_review ... ok
+test fresh_interactive_verification_runs_off_writer_and_rechecks_generation ... ok
+test new_protected_scope_requires_new_approval_and_does_not_unlock_ordinary_reads ... ok
+test wrong_library_digest_and_backup_options_cannot_reuse_approval ... ok
+test delegated_encryption_preserves_app_and_note_locks_and_independent_restore ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 9.26s
+
+     Running tests/backup_pull.rs (/tmp/stem-activation-target/debug/deps/backup_pull-73b3b0610f41ab4e)
+
+running 5 tests
+test bounded_pulls_span_large_cells_and_restore_exact_source_with_independent_encryption ... ok
+test current_scope_and_generation_are_checked_on_every_pull_and_failed_cursors_never_revive ... ok
+test a_blocked_ciphertext_sink_holds_no_read_transaction_or_authoring_writer ... ok
+test replacing_or_relocking_a_cached_access_capability_never_reuses_its_old_scope_decision ... ok
+test long_runs_of_live_caches_yield_and_never_export_cache_bytes_when_retained_assets_are_selected ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 10.81s
+
+     Running tests/backup_stream.rs (/tmp/stem-activation-target/debug/deps/backup_stream-54cda4bb691b182d)
+
+running 8 tests
+test cancelled_stream_restore_removes_private_staging_and_does_not_modify_source ... ok
+test authorised_retained_pdf_bytes_are_explicit_while_revoked_relationships_stay_revoked ... ok
+test concurrent_generation_change_prevents_finalising_an_old_read_snapshot ... ok
+test incremental_library_restore_preserves_ink_undo_and_source_relationships_then_publishes_without_overwrite ... ok
+test restore_rejects_shared_or_symlinked_directories_before_creating_private_content ... ok
+test stream_review_requires_ink_consent_fresh_scope_and_current_source_generation_before_any_output ... ok
+test truncation_trailing_data_malformed_tables_and_budget_failures_leave_no_restore_scratch ... ok
+test whole_library_larger_than_legacy_limit_roundtrips_with_incremental_encryption_and_private_sqlite_restore has been running for over 60 seconds
+test whole_library_larger_than_legacy_limit_roundtrips_with_incremental_encryption_and_private_sqlite_restore ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 146.95s
+
+     Running tests/capture.rs (/tmp/stem-activation-target/debug/deps/capture-ceac380fbe32b2fc)
+
+running 8 tests
+test capture_cancels_background_work_without_faking_resource_release ... ok
+test capture_receipt_probe_checks_current_scope_target_and_original_stroke ... ok
+test emergency_reserve_is_written_released_and_never_overwrites_existing_file ... ok
+test full_queue_retains_old_work_and_failed_persistence_can_retry ... ok
+test observed_samples_are_exact_and_invalid_events_leave_capture_recoverable ... ok
+test palm_navigation_and_stylus_cancellation_do_not_commit_accidental_ink ... ok
+test scheduler_leases_work_across_threads_and_unwind ... ok
+test capture_receipt_survives_restart_and_rejects_changed_retry ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+     Running tests/capture_privacy.rs (/tmp/stem-activation-target/debug/deps/capture_privacy-74adfbfbd4ef8a5b)
+
+running 5 tests
+test naming_a_public_destination_does_not_bypass_the_receipts_actual_owner_lock ... ok
+test ordinary_block_reads_reject_a_payload_spliced_into_a_different_public_owner ... ok
+test protected_corrupt_payload_is_not_deserialised_to_answer_a_receipt_query ... ok
+test protected_receipt_denies_matching_changed_payload_and_changed_target_before_comparison ... ok
+test receipt_uses_current_exercise_protection_even_when_original_target_was_master ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s
+
+     Running tests/capture_recovery.rs (/tmp/stem-activation-target/debug/deps/capture_recovery-268616c039514100)
+
+running 3 tests
+test retired_capture_evidence_requires_target_authority_and_cannot_reopen_documents ... ok
+test recovery_authority_preserves_inherited_and_app_locks_across_purge_and_reopen ... ok
+test subtree_purge_preflight_and_commit_failure_do_not_partially_erase_protected_ink ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+     Running tests/converters.rs (/tmp/stem-activation-target/debug/deps/converters-e0d6bc6e65e2095f)
+
+running 4 tests
+test code_plaintext_is_exact_and_markdown_fence_cannot_be_closed_by_content ... ok
+test converter_preserves_deliberately_wrong_math_without_solving ... ok
+test unsupported_maths_is_reported_and_xml_is_escaped ... ok
+test offline_help_covers_recovery_and_unsearchable_ink_without_remote_dependency ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/crypto_stream.rs (/tmp/stem-activation-target/debug/deps/crypto_stream-8951e110ddb5f014)
+
+running 6 tests
+test envelope_and_frames_are_readable_by_rustcrypto_primitives_independent_of_the_stream_reader ... ok
+test authenticated_prefix_requires_explicit_finality_and_plaintext_budget_cannot_be_exceeded ... ok
+test reordered_duplicated_truncated_spliced_or_appended_frames_never_finish_successfully ... ok
+test sink_failure_poisoning_prevents_retry_or_final_recovery_receipt ... ok
+test streaming_password_and_recovery_roundtrip_across_arbitrary_writes_and_flushes ... ok
+test streaming_above_old_64_mib_envelope_limit_uses_only_bounded_io_frames has been running for over 60 seconds
+test streaming_above_old_64_mib_envelope_limit_uses_only_bounded_io_frames ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 97.66s
+
+     Running tests/deletion.rs (/tmp/stem-activation-target/debug/deps/deletion-9df0667d10dbd7f2)
+
+running 4 tests
+test capture_target_manifest_omits_purged_descendants_and_revalidation_checks_fresh_proof ... ok
+test container_retirement_handles_independently_trashed_and_already_purged_descendants ... ok
+test trash_pages_count_only_authorised_entries_and_restore_requires_current_revision ... ok
+test permanent_review_is_kind_generation_confirmation_and_transaction_bound ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests/editing.rs (/tmp/stem-activation-target/debug/deps/editing-d31eebf565b9ded5)
+
+running 7 tests
+test editing_after_undo_discards_redo_branch_but_keeps_source_history ... ok
+test lasso_action_undo_is_atomic_and_stale_or_interrupted_actions_leave_no_history ... ok
+test pruning_without_protected_block_access_keeps_its_undo_history ... ok
+test undo_creation_preserves_original_observations_and_redo_restores_visibility ... ok
+test undo_requires_current_locks_and_cannot_remove_protection ... ok
+test undo_redo_survives_reopen_and_never_rewinds_revisions ... ok
+test whole_backup_restores_undo_and_redo_without_touching_live_library ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.78s
+
+     Running tests/engine_activation_plan.rs (/tmp/stem-activation-target/debug/deps/engine_activation_plan-5b6f40745d609d97)
+
+running 11 tests
+test cancelled_converter_commit_preserves_staged_state_and_fresh_converter_flow_succeeds ... ok
+test changed_resource_and_load_limit_reject_before_replacing_live_engine ... ok
+test converter_factory_uses_the_same_verified_resource_contract ... ok
+test factory_panic_and_factory_cancellation_leave_old_runtime_and_metadata_unchanged ... ok
+test corrupt_stored_identity_resource_or_privacy_metadata_never_invokes_factory ... ok
+test failed_probe_and_commit_keep_previous_runtime_and_retry_preserves_candidate_holder ... ok
+test preparation_probes_without_live_manager_borrow_and_commit_publishes_durable_version ... ok
+test resource_rejection_or_cancel_never_invokes_sdk_factory ... ok
+test sdk_factory_receives_verified_snapshot_even_when_resource_path_changes_during_load ... ok
+test typed_factories_reject_the_other_adapter_family_before_construction ... ok
+test stale_generation_and_foreign_library_cannot_commit_prepared_candidate ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+     Running tests/engines.rs (/tmp/stem-activation-target/debug/deps/engines-a0ca3aba976ce501)
+
+running 7 tests
+test another_connection_changing_state_during_probe_prevents_stale_activation ... ok
+test batch_acceptance_is_selected_and_atomic_on_stale_members ... ok
+test converters_have_durable_staged_lifecycle_and_failed_probe_preserves_previous ... ok
+test removing_engine_preserves_notebooks_strokes_and_accepted_work ... ok
+test installed_provenance_and_profiles_reopen_without_fabricated_runtime_readiness ... ok
+test resource_installation_requires_consent_digest_and_bounded_streaming ... ok
+test staged_probe_or_commit_failure_keeps_previous_verified_engine ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+     Running tests/eraser_batch.rs (/tmp/stem-activation-target/debug/deps/eraser_batch-75ca608d5c6c54ff)
+
+running 4 tests
+test late_stale_denied_cross_master_duplicate_and_failure_never_publish_a_prefix ... ok
+test all_misses_preserve_generation_history_and_each_revision_while_mixed_hits_leave_misses_unchanged ... ok
+test several_blocks_erase_and_restore_as_one_operation_including_shared_exercise_views ... ok
+test pair_budget_is_shared_across_the_compound_operation_not_reset_per_block ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests/eraser_gesture.rs (/tmp/stem-activation-target/debug/deps/eraser_gesture-1ca3067c12961ace)
+
+running 6 tests
+test degenerate_extreme_distance_rejects_instead_of_silently_reporting_a_miss ... ok
+test crossing_segments_and_single_points_erase_one_operation_and_preserve_source_after_reopen ... ok
+test host_command_is_authoring_and_cas_bound ... ok
+test radius_boundary_collinear_disjoint_and_miss_do_not_create_false_hits_or_undo ... ok
+test source_space_and_revision_protection_overflow_and_commit_failure_preserve_visibility ... ok
+test resource_limit_or_later_mixed_space_never_publishes_an_earlier_hit_and_eraser_traces_are_not_targets ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+     Running tests/exercise_migrations.rs (/tmp/stem-activation-target/debug/deps/exercise_migrations-c16506bc14388a86)
+
+running 2 tests
+test failed_v3_migration_rolls_back_all_new_tables_and_version ... ok
+test v2_upgrade_keeps_existing_content_and_enables_exercises ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests/exercises.rs (/tmp/stem-activation-target/debug/deps/exercises-09e20565645f15cb)
+
+running 18 tests
+test duplicate_titles_keep_distinct_identity_and_metadata_failures_share_status ... ok
+test exercise_locks_cover_master_search_history_inference_links_export_and_deletion ... ok
+test current_native_preserves_exercise_identity_relationships_locks_modes_and_heading_rules ... ok
+test extracting_a_protected_heading_does_not_disclose_its_title ... ok
+test existing_membership_survives_heading_confirmation_removal_rename_and_reopen ... ok
+test failed_extraction_and_reassignment_roll_back_every_membership ... ok
+test flat_and_search_views_follow_visibility_and_permissions_without_copying_content ... ok
+test independent_copy_preserves_ink_but_has_separate_ids_edits_modes_and_status ... ok
+test legacy_v1_native_remains_readable_and_malformed_v2_membership_is_rejected ... ok
+test linked_append_is_atomic_and_keeps_master_order_and_shared_save_state ... ok
+test master_trash_restore_and_purge_preserve_then_remove_exercise_state ... ok
+test only_confirmed_matching_headings_extract_previously_unassigned_work ... ok
+test protected_reassignment_carries_lock_even_when_unassigned ... ok
+test reassignment_rejects_stale_review_cross_master_and_aba_history ... ok
+test removing_view_preserves_master_ink_membership_and_protection ... ok
+test reassignment_requires_preview_confirmation_and_undo_preserves_new_content ... ok
+test selected_exercise_export_excludes_unrelated_master_content_and_roundtrips ... ok
+test shared_edits_use_one_revision_and_stale_second_connection_cannot_overwrite ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.36s
+
+     Running tests/export.rs (/tmp/stem-activation-target/debug/deps/export-1662c850f76a1b4b)
+
+running 5 tests
+test converted_only_export_never_reads_or_discloses_original_ink ... ok
+test derivative_scope_and_fresh_auth_cannot_be_bypassed ... ok
+test graph_derivative_preserves_authored_order_and_refuses_concealed_points ... ok
+test pagination_never_bisects_indivisible_work_or_silently_scales ... ok
+test diagram_svg_escapes_labels_and_canvas_scope_rejects_hidden_payload ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/host.rs (/tmp/stem-activation-target/debug/deps/host-1cb59b7aef18333e)
+
+running 17 tests
+test asynchronous_writer_retry_tickets_and_lock_scopes_are_enforced ... ok
+test active_call_and_shutdown_drain_hold_ownership_until_original_ink_is_committed ... ok
+test byte_budgets_are_independent_and_rejection_does_not_acknowledge_a_save ... ok
+test concurrent_host_calls_return_distinct_committed_content ... ok
+test failed_host_initialisation_releases_ownership_before_returning ... ok
+test dropped_receipts_still_drain_on_close_and_observers_see_final_closed_state ... ok
+test host_ownership_is_cross_process_and_abrupt_exit_recovers_original_ink ... ok
+test host_exercise_edits_share_identity_with_master_and_layout_undo_survives_restart ... ok
+test host_restores_revision_bound_selection_without_silently_rebinding_after_edit ... ok
+test host_workspace_discovers_last_view_after_reopen_without_serializing_locked_targets ... ok
+test offline_recovery_help_is_readonly_and_available_while_app_locked ... ok
+test library_host_ownership_rejects_duplicate_aliases_without_truncating_and_allows_other_libraries ... ok
+test query_saturation_reserves_edit_admission_and_preserves_edit_undo_order ... ok
+test recovery_identity_is_stable_but_never_grants_content_or_receipt_access ... ok
+test reentrant_close_from_verifier_fails_without_self_join_or_retained_access ... ok
+test threaded_host_commits_reopens_and_rejects_unknown_version_and_fields ... ok
+test verifier_panic_fails_closed_without_killing_the_writer_or_retaining_access ... ok
+
+test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.40s
+
+     Running tests/host_activation.rs (/tmp/stem-activation-target/debug/deps/host_activation-7804e867d2cd82fa)
+
+running 10 tests
+test close_waits_for_running_probe_then_actual_adapter_destruction_before_reopening_library ... ok
+test detachment_requires_current_host_epoch_and_does_not_remove_ready_engine_after_pen_cancellation ... ok
+test host_and_app_authority_bind_completion_and_locked_app_cannot_reserve_activation ... ok
+test host_detachment_cleanup_can_reenter_shared_manager_after_controller_unlocks ... ok
+test host_owned_detached_runtime_keeps_owner_until_off_writer_cleanup_finishes ... ok
+test idle_adapter_cleanup_is_off_writer_and_full_close_retains_library_ownership_until_it_finishes ... ok
+test optional_capacity_and_pen_priority_never_run_a_cancelled_idle_probe_or_mark_authoring_failed ... ok
+test provider_error_payload_retires_off_writer_after_completion_failure ... ok
+test running_probe_is_cancelled_by_pen_priority_while_authoring_and_raw_source_remain_available ... ok
+test descriptor_frame_rejection_preserves_existing_ready_engine_and_authoring ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.76s
+
+     Running tests/host_backup.rs (/tmp/stem-activation-target/debug/deps/host_backup-c05d4db731ce0c8c)
+
+running 11 tests
+test capture_cancels_running_and_idle_reviews_without_reviving_them_after_pen_up ... ok
+test blocked_sink_does_not_hold_writer_and_source_edits_invalidate_completion ... ok
+test close_waits_for_actual_sink_retirement_and_preserves_exclusive_library_ownership ... ok
+test native_backup_retires_sink_before_receipt_and_restores_exact_original_ink ... ok
+test finished_ciphertext_does_not_release_ownership_while_sink_destruction_is_blocked ... ok
+test native_review_confirmation_fresh_proof_foreign_host_and_closed_host_are_enforced ... ok
+test optional_backup_metadata_budget_failure_keeps_authoring_available ... ok
+test reserved_cleanup_retires_backup_when_ordinary_queries_are_saturated ... ok
+test sink_write_and_destructor_callbacks_cannot_self_join_or_publish_a_success_after_close ... ok
+test verifier_and_sink_panics_do_not_kill_authoring_or_leave_a_backup_reservation ... ok
+test native_host_streams_a_library_above_the_legacy_limit_without_releasing_its_writer_ownership has been running for over 60 seconds
+test native_host_streams_a_library_above_the_legacy_limit_without_releasing_its_writer_ownership ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 106.42s
+
+     Running tests/host_deletion.rs (/tmp/stem-activation-target/debug/deps/host_deletion-101f3e899928b5f3)
+
+running 4 tests
+test held_review_validation_is_non_consuming_generation_bound_and_authorises_capture_targets ... ok
+test host_dependency_review_redacts_private_ids_and_stale_generation_cannot_delete ... ok
+test host_trash_restore_and_reviewed_purge_preserve_then_retire_source_across_reopen ... ok
+test host_reviews_are_local_and_relock_retires_capabilities_without_declassifying_trash ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+     Running tests/host_engine_activation_plan.rs (/tmp/stem-activation-target/debug/deps/host_engine_activation_plan-33d0a7b273c89d82)
+
+running 14 tests
+test busy_manager_rejects_without_writer_wait_and_preserves_candidate_for_retry ... ok
+test close_waits_for_probe_and_actual_cleanup_before_library_can_reopen ... ok
+test host_factory_runs_off_writer_and_remains_owned_until_cancelled_construction_returns ... ok
+test host_close_retires_private_manager_off_writer_before_releasing_library ... ok
+test host_publication_installs_runtime_and_durable_metadata_and_rejects_replay ... ok
+test host_private_runtime_recognises_into_a_review_without_rewriting_source ... ok
+test idle_prepared_disposal_is_off_writer_and_holds_owner_until_cleanup ... ok
+test metadata_reservation_is_bounded_and_never_probes_or_marks_installed ... ok
+test pen_cancellation_prevents_host_publication_after_preparation ... ok
+test probe_is_off_writer_and_pen_cancellation_never_revives_a_prepared_candidate ... ok
+test queued_publication_does_not_lock_registry_while_writer_authenticates ... ok
+test publication_rejects_foreign_scope_and_stale_generation_without_installing ... ok
+test relock_cancels_old_metadata_plan_and_locked_app_cannot_reserve_new_plan ... ok
+test replaced_runtime_cleanup_is_off_writer_and_keeps_library_ownership ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.32s
+
+     Running tests/host_pdf.rs (/tmp/stem-activation-target/debug/deps/host_pdf-b4fdf27cbf5d0978)
+
+running 18 tests
+test changed_revision_can_be_reacquired_from_revoked_state_without_silent_anchor_relocation ... ok
+test bounded_selection_plans_can_be_released_and_cannot_be_supplied_as_json_grants ... ok
+test live_read_lease_survives_pen_and_view_changes_but_not_release_or_restart ... ok
+test new_link_selection_does_not_create_source_until_explicit_acceptance_and_uses_preallocated_identity ... ok
+test ordinary_json_cannot_supply_a_review_plan_or_platform_grant ... ok
+test read_and_revision_tokens_are_bounded_private_and_revision_checked ... ok
+test rejecting_a_prepared_revision_consumes_it_without_changing_the_source ... ok
+test relock_scope_changes_and_failed_authentication_retire_old_capabilities ... ok
+test independent_pdf_retention_survives_source_revoke_but_not_its_own_revoke_or_locks ... ok
+test retained_pdf_lease_shares_capacity_and_preserves_old_revision_under_new_source_edition ... ok
+test retained_pdf_lock_applies_to_metadata_chunks_and_staging_even_with_independent_authority ... ok
+test reviewed_pdf_replacement_updates_lineage_and_retires_the_old_live_read ... ok
+test revocation_and_missing_sources_retire_reads_without_touching_authored_work ... ok
+test selection_requires_fresh_verification_on_acceptance_and_rejection_is_single_use ... ok
+test retained_pdf_streaming_is_explicit_atomic_bounded_and_content_checked ... ok
+test selection_reviews_are_stale_safe_scope_checked_and_cleared_on_relock ... ok
+test staged_retention_cannot_survive_relock_replay_or_wrong_pdf_bytes ... ok
+test trusted_selection_is_reviewed_and_same_revision_regrant_preserves_source_identity ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.73s
+
+     Running tests/host_recognition.rs (/tmp/stem-activation-target/debug/deps/host_recognition-8970191f4059537e)
+
+running 18 tests
+test blocked_inference_never_holds_writer_and_relock_rejects_late_output ... ok
+test batch_acceptance_spanning_documents_records_independent_document_undo ... ok
+test cancelled_stale_unscoped_and_forged_results_cannot_publish ... ok
+test capture_priority_cancels_old_work_and_nested_contacts_never_resume_each_other ... ok
+test capture_priority_reaches_a_running_adapter_and_does_not_wait_for_it_to_save_ink ... ok
+test completed_work_cannot_resurrect_after_relock_reauthentication_or_reopen ... ok
+test excessive_trusted_capture_sessions_disable_optional_work_but_preserve_authoring ... ok
+test host_close_invalidates_prepared_work_while_pending_reviews_remain_explicit ... ok
+test host_manual_recognition_review_correction_and_acceptance_preserve_original_ink ... ok
+test idle_runtime_cleanup_is_off_writer_and_reentrant_close_never_releases_ownership_early ... ok
+test overlapping_region_or_whole_block_selections_leave_every_review_pending ... ok
+test pending_reviews_are_discoverable_after_restart_without_a_loaded_model_and_hide_locked_source ... ok
+test processing_admission_counts_unrun_sources_and_close_retires_them_without_waiting_for_callers ... ok
+test reentrant_close_from_model_callback_cancels_without_self_join ... ok
+test selected_regions_publish_independent_reviews_and_explicit_batch_acceptance_is_atomic ... ok
+test shutdown_keeps_library_ownership_until_blocked_worker_really_retires ... ok
+test source_permissions_are_current_and_review_cannot_bypass_a_block_lock ... ok
+test encoded_source_byte_budget_is_independent_of_job_count_and_does_not_evict_input ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 13.21s
+
+     Running tests/host_restore.rs (/tmp/stem-activation-target/debug/deps/host_restore-b342067e05b35ad1)
+
+running 13 tests
+test close_retains_native_sqlite_ownership_through_read_and_reader_destructor_retirement ... ok
+test capture_cancels_idle_and_running_restore_without_reviving_it_at_pen_up ... ok
+test current_and_legacy_password_and_recovery_roundtrip_exact_original_ink ... ok
+test expired_controls_retire_admitted_readers_without_retaining_a_stage ... ok
+test private_stage_and_plaintext_destination_reject_public_directories_and_symlinks ... ok
+test publication_cannot_replace_existing_live_or_unrelated_files_or_accept_foreign_reviews ... ok
+test publication_requires_confirmation_and_one_fresh_proof_even_when_unprotected ... ok
+test read_and_drop_panics_are_separately_contained_and_authoring_survives ... ok
+test reentrant_close_from_reader_drop_and_verifier_cannot_self_join_or_publish ... ok
+test single_slot_and_retained_closed_review_do_not_strand_host_close ... ok
+test stream_restore_through_host_exceeds_the_legacy_whole_archive_limit has been running for over 60 seconds
+test verifier_is_off_live_writer_and_an_independent_copy_does_not_replace_live_edits has been running for over 60 seconds
+test stream_restore_through_host_exceeds_the_legacy_whole_archive_limit ... ok
+test verifier_is_off_live_writer_and_an_independent_copy_does_not_replace_live_edits ... ok
+test wrong_credentials_malformed_finality_and_budgets_retire_input_and_scratch ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 375.61s
+
+     Running tests/image_crop_export.rs (/tmp/stem-activation-target/debug/deps/image_crop_export-a30a11e474cee022)
+
+running 5 tests
+test crop_emits_only_selected_pixels_and_strips_original_trailing_bytes_without_rewriting_asset ... ok
+test fractional_crop_rounds_inward_and_a_crop_with_no_complete_pixel_requires_review ... ok
+test jpeg_crop_encodes_png_but_nonidentity_exif_orientation_requires_review ... ok
+test two_crops_of_one_asset_have_distinct_outputs_and_explicit_source_ink_is_still_included ... ok
+test malformed_and_oversized_images_fail_without_bypassing_fresh_block_protection ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+     Running tests/interrupted_capture.rs (/tmp/stem-activation-target/debug/deps/interrupted_capture-72ee18fce9a89e0b)
+
+running 6 tests
+test checkpoints_preserve_stable_begin_order_and_interruption_never_invents_samples ... ok
+test legacy_schema9_backup_defaults_to_completed_without_rewriting_source_or_receipt ... ok
+test native_v5_preserves_interruption_provenance_and_legacy_tags_cannot_hide_it ... ok
+test schema9_upgrade_preserves_original_payload_hash_and_capture_receipt_byte_for_byte ... ok
+test unfinished_prefix_cannot_enter_store_queue_or_portable_document_and_sealed_retry_is_exact ... ok
+test encrypted_schema10_retains_interruption_and_old_schema_cannot_claim_it ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 24.16s
+
+     Running tests/layer_capture.rs (/tmp/stem-activation-target/debug/deps/layer_capture-99d1518c5b506811)
+
+running 3 tests
+test layer_capture_checks_owner_protection_and_rolls_back_source_and_destination_on_failure ... ok
+test missing_layer_never_falls_back_and_identical_committed_receipt_does_not_rebind_membership ... ok
+test capture_and_layer_membership_commit_undo_redo_and_reopen_together_without_rewriting_ink ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+     Running tests/layers.rs (/tmp/stem-activation-target/debug/deps/layers-2689388157b94670)
+
+running 8 tests
+test defaults_and_independent_embed_overrides_preserve_source_and_report_missing_layers ... ok
+test layer_undo_redo_and_failure_are_atomic_and_revisions_never_reset_to_zero ... ok
+test legacy_canvas_migrates_to_an_implicit_base_without_rewriting_original_payloads ... ok
+test malformed_membership_aliases_and_fresh_protection_cannot_leak_or_change_layers ... ok
+test native_copy_remaps_layer_and_embed_overrides_and_derivatives_respect_default_visibility ... ok
+test scene_byte_pages_have_explicit_continuations_and_never_load_denied_payloads_into_results ... ok
+test scene_orders_layers_then_z_and_paginates_without_dropping_nested_reference_placeholders ... ok
+test encrypted_backup_preserves_layer_undo_and_rejects_downgraded_current_and_historical_extensions ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 41.44s
+
+     Running tests/objects.rs (/tmp/stem-activation-target/debug/deps/objects-9e63ebed9dbede95)
+
+running 8 tests
+test canvas_embeds_keep_independent_pinned_cameras_and_reject_cycles ... ok
+test grouped_transform_is_atomic_and_never_changes_original_points ... ok
+test invalid_objects_reject_duplicate_ids_ragged_cells_and_nonfinite_axes ... ok
+test images_cannot_bypass_locks_even_after_replacing_visible_content ... ok
+test protected_canvas_cannot_leak_through_embed_or_group ... ok
+test native_v3_roundtrip_preserves_assets_layout_groups_and_embeds_with_new_ids ... ok
+test table_cell_edit_preserves_identity_neighbours_and_source_ink ... ok
+test view_settings_and_protected_placeholders_reopen_without_secret_text ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
+     Running tests/organisation.rs (/tmp/stem-activation-target/debug/deps/organisation-de4a0176b81ed9d7)
+
+running 9 tests
+test chronology_filters_by_actual_creation_without_journals ... ok
+test app_lock_and_inherited_protection_do_not_grant_via_link_or_move ... ok
+test delete_review_is_invalidated_by_new_dependency ... ok
+test locked_dependencies_disclose_presence_without_name_or_id ... ok
+test module_moves_check_descendants_cycles_and_depth_atomically ... ok
+test stale_edit_and_interrupted_move_do_not_change_saved_state ... ok
+test trash_dependency_review_restore_and_permanent_broken_link ... ok
+test unfiled_move_and_reopen_preserve_identity_creation_and_backlinks ... ok
+test complete_parent_matrix_and_no_phantom_containers ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.36s
+
+     Running tests/pdf_revisions.rs (/tmp/stem-activation-target/debug/deps/pdf_revisions-f40e29868a6b6fe4)
+
+running 3 tests
+test revoked_source_requires_new_grant_and_exact_revision ... ok
+test revision_change_is_atomic_stale_safe_and_cannot_change_locked_annotations ... ok
+test source_revision_review_preserves_work_and_requires_anchor_reconnection ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/portable.rs (/tmp/stem-activation-target/debug/deps/portable-09189a7e4c5d6f73)
+
+running 10 tests
+test both_protected_export_paths_require_fresh_authentication ... ok
+test corrupt_native_import_and_interruption_do_not_touch_existing_documents ... ok
+test concurrent_change_during_export_authentication_invalidates_output ... ok
+test encrypted_header_payload_truncation_and_weak_credentials_fail_closed ... ok
+test encrypted_native_roundtrip_creates_independent_copy_and_keeps_current_work ... ok
+test export_plan_cannot_survive_later_lock_or_source_change ... ok
+test hostile_cross_kind_identifier_aliases_are_rejected_before_import ... ok
+test hostile_native_relationships_rejected_even_with_recomputed_checksum ... ok
+test raw_ink_requires_deliberate_inclusion_and_subset_export_never_follows_links ... ok
+test encrypted_package_opens_with_password_or_independent_recovery_key ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 18.96s
+
+     Running tests/positions.rs (/tmp/stem-activation-target/debug/deps/positions-e9abf30088cf6a38)
+
+running 10 tests
+test exercise_membership_and_current_block_protection_gate_bookmark_metadata_and_replacement ... ok
+test observed_ink_region_bookmarks_copy_global_ids_and_old_format_tags_cannot_hide_them ... ok
+test rich_labels_and_multiblock_ranges_preserve_content_and_reject_foreign_owners ... ok
+test schema10_upgrade_keeps_legacy_view_payload_byte_for_byte_and_absent_bookmark_is_not_invented ... ok
+test structured_math_and_component_offsets_validate_without_interpreting_or_repairing_content ... ok
+test unicode_selection_reopens_and_changed_content_requires_explicit_fresh_bookmark ... ok
+test view_discovery_reopens_saved_positions_and_filters_fresh_block_protection ... ok
+test view_discovery_separates_master_and_exercise_and_rechecks_app_lock ... ok
+test view_restore_and_discovery_reject_misbound_persistent_identity ... ok
+test encrypted_backup_retains_stale_bookmarks_and_schema10_defaults_without_rewriting_views ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 33.44s
+
+     Running tests/pressure_response.rs (/tmp/stem-activation-target/debug/deps/pressure_response-d671bfbc86e415de)
+
+running 8 tests
+test absent_zero_outside_domain_and_interior_pressure_have_explicit_derived_widths ... ok
+test eraser_source_unit_underflow_is_rejected_without_changing_preferences ... ok
+test invalid_responses_and_effective_widths_fail_without_installing_them ... ok
+test legacy_layout_stream_reads_schema15_without_inventing_pressure_settings ... ok
+test original_svg_uses_recorded_response_and_reports_missing_sensor_values_without_rewriting_ink ... ok
+test pressure_and_eraser_preferences_persist_and_new_fields_cannot_claim_an_old_native_version ... ok
+test response_is_snapshotted_per_contact_and_raw_samples_are_never_rewritten ... ok
+test aggregate_and_stream_backups_keep_exact_pressure_metadata_and_reject_schema_downgrade ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 29.05s
+
+     Running tests/processing_work.rs (/tmp/stem-activation-target/debug/deps/processing_work-0922126a6c9bfdf6)
+
+running 4 tests
+test converter_work_is_owned_cancelled_by_retirement_and_contains_format_panics ... ok
+test prepared_work_freezes_engine_choice_and_keeps_explicit_proposal_acceptance ... ok
+test running_work_observes_removal_and_pins_resources_until_actual_worker_retirement ... ok
+test removal_failed_reverification_and_manager_drop_invalidate_prepared_work ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests/provisioning.rs (/tmp/stem-activation-target/debug/deps/provisioning-28285a43f5048abb)
+
+running 6 tests
+test active_resource_lease_prevents_deletion_until_worker_releases_it ... ok
+test cloned_worker_reservations_survive_thread_transfer_until_the_last_handle_retires ... ok
+test incomplete_hash_mismatch_and_no_consent_do_not_activate_resources ... ok
+test local_install_resume_retry_and_integrity_precede_publication ... ok
+test worker_file_clone_keeps_resource_reserved_after_owner_is_dropped ... ok
+test resume_discards_only_unacknowledged_tail_after_simulated_interruption ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/ready_runtime.rs (/tmp/stem-activation-target/debug/deps/ready_runtime-033e4b1b972a74eb)
+
+running 5 tests
+test candidate_probe_can_reenter_existing_registry_before_publication ... ok
+test failed_candidate_keeps_old_engine_and_unready_transfer_has_no_effect ... ok
+test extraction_freezes_source_work_and_abandoned_holder_disposes_candidate ... ok
+test family_mismatch_preserves_both_holders_and_unsupported_tasks_have_no_fallback ... ok
+test replacement_invalidates_old_work_but_keeps_it_pinned_and_preserves_compatible_default ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests/recognition.rs (/tmp/stem-activation-target/debug/deps/recognition-b8a86db938efe55f)
+
+running 13 tests
+test failed_resource_reverification_clears_previous_readiness ... ok
+test incompatible_raster_egress_and_unreviewed_licence_are_rejected ... ok
+test cancel_timeout_and_worker_panic_discard_results ... ok
+test locked_ink_and_proposals_cannot_be_sent_or_reviewed_without_access ... ok
+test panicking_model_probe_becomes_failed_readiness_without_disabling_notes ... ok
+test model_switch_and_remove_leave_accepted_content_and_raw_strokes ... ok
+test readiness_requires_consent_integrity_and_actual_probe ... ok
+test rejection_and_failed_atomic_accept_leave_ink_untouched ... ok
+test proposal_review_acceptance_and_source_survive_reopen ... ok
+test stale_inference_and_stale_proposal_cannot_overwrite_corrections ... ok
+test stored_proposal_cannot_rebind_protected_output_to_a_public_block ... ok
+test stored_proposal_identity_mismatch_cannot_acknowledge_a_correction ... ok
+test stored_proposal_protection_precedes_malformed_payload_parsing ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.20s
+
+     Running tests/recovery.rs (/tmp/stem-activation-target/debug/deps/recovery-18560bd0a5112177)
+
+running 4 tests
+test failed_migration_rolls_back_and_newer_schema_is_not_downgraded ... ok
+test process_exit_before_and_after_commit_preserves_correct_durable_boundary ... ok
+test two_connections_cannot_silently_overwrite_same_revision ... ok
+test v1_to_current_migration_preserves_entities_and_is_repeatable ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+     Running tests/regions.rs (/tmp/stem-activation-target/debug/deps/regions-877ecba2bb77be6d)
+
+running 4 tests
+test invalid_partition_and_overlapping_split_are_atomic ... ok
+test region_exports_remap_ids_and_keep_accepted_text ... ok
+test regions_split_merge_without_replacing_observations_and_undo_restores_partition ... ok
+test selected_region_receives_only_selected_vector_strokes_and_commits_only_it ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
+     Running tests/render.rs (/tmp/stem-activation-target/debug/deps/render-aa1f1b70ca39de81)
+
+running 3 tests
+test invalid_font_missing_glyph_and_impossible_page_fail_without_partial_output ... ok
+test protected_pdf_requires_fresh_auth_and_stale_plan_cannot_disclose_new_state ... ok
+test unicode_maths_and_paginated_text_produce_real_pdf_with_embedded_fonts ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.55s
+
+     Running tests/runtime_detachment.rs (/tmp/stem-activation-target/debug/deps/runtime_detachment-d3d3e02d45b1b3a2)
+
+running 5 tests
+test converter_work_pins_detached_runtime_and_synchronous_remove_still_disposes_idle_adapters ... ok
+test detached_cleanup_can_reenter_the_manager_after_lock_release ... ok
+test detach_disables_selection_without_destroying_adapter_and_old_inference_cannot_run ... ok
+test dropping_detached_holder_is_not_a_false_acknowledgement_of_running_worker_resource_retirement ... ok
+test reused_identifier_does_not_accept_old_activation_or_restore_removed_default ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/sources.rs (/tmp/stem-activation-target/debug/deps/sources-b170cb8921a5b963)
+
+running 4 tests
+test link_default_managed_copy_requires_consent_and_matching_bytes ... ok
+test q383_revocation_removes_caches_preserves_authored_work_and_independent_snapshot ... ok
+test missing_pdf_view_reopens_and_relink_never_matches_by_filename ... ok
+test source_link_never_bypasses_note_lock_or_creates_network_action ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests/stroke_style.rs (/tmp/stem-activation-target/debug/deps/stroke_style-768890ef87655b57)
+
+running 5 tests
+test legacy_source_payload_hash_and_receipt_are_not_rewritten_by_schema13_upgrade ... ok
+test original_svg_preserves_rgba_width_and_single_sample_dots_and_reports_unknown_appearance ... ok
+test source_style_and_receipt_survive_edits_reopen_native_copy_and_legacy_format_validation ... ok
+test style_is_snapshotted_on_begin_and_configuration_changes_do_not_rebind_active_ink ... ok
+test encrypted_style_backup_retains_exact_metadata_and_cannot_be_disguised_as_schema12 ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 23.40s
+
+     Running tests/workspace.rs (/tmp/stem-activation-target/debug/deps/workspace-d5297098cac56777)
+
+running 7 tests
+test fresh_protection_redacts_targets_and_keep_can_resize_only_existing_private_slots ... ok
+test independent_views_pdf_position_tool_and_active_pane_reopen_without_touching_observations ... ok
+test native_copy_preserves_selected_views_without_activating_a_workspace_in_the_destination ... ok
+test optimistic_layout_checks_and_rollback_preserve_the_previous_workspace ... ok
+test schema11_upgrade_creates_an_empty_workspace_without_rewriting_saved_view_payloads ... ok
+test trash_restore_and_purge_preserve_slots_but_retire_private_target_references_atomically ... ok
+test encrypted_workspace_restore_revokes_pdf_readiness_and_rejects_malformed_or_downgraded_rows ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 42.46s
+
+     Running tests/writing.rs (/tmp/stem-activation-target/debug/deps/writing-fceaf0b9d7b08a7f)
+
+running 11 tests
+test bad_samples_duplicate_ids_and_unordered_strokes_are_rejected ... ok
+test active_use_retirement_keeps_checkpoint_and_originals ... ok
+test exact_code_and_incorrect_math_survive_edits_and_restore_as_new_revision ... ok
+test math_subtree_edit_preserves_incomplete_fence_and_neighbours ... ok
+test interrupted_capture_rolls_back_block_strokes_and_document_revision ... ok
+test mode_defaults_and_inheritance_do_not_convert_existing_ink ... ok
+test restore_never_removes_newer_content_lock ... ok
+test search_matches_literal_accepted_content_never_raw_or_locked_data ... ok
+test stale_edits_and_view_toggles_never_mutate_source ... ok
+test source_ink_is_lossless_after_reopen_transform_erase_and_history_retirement ... ok
+test unauthorised_history_retirement_skips_locked_content ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+   Doc-tests stem_bridge
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests stem_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

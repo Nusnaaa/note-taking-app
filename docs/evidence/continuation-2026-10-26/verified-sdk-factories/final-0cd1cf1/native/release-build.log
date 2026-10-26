@@ -1,0 +1,6 @@
+$ /tmp/stem-cargo/bin/cargo build --workspace --release --locked --offline
+exit_code=0
+
+   Compiling stem-core v0.1.0 (/tmp/stem-resource-factory-work/core)
+   Compiling stem-bridge v0.1.0 (/tmp/stem-resource-factory-work/bridge)
+    Finished `release` profile [optimized] target(s) in 3m 40s
