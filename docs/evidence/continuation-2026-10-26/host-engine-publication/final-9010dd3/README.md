@@ -1,4 +1,6 @@
-Host publication validation
-===========================
+Host publication complete validation
+====================================
 
-Android exact d9d2e68 (implementation 1bfdc28): all ARM64/JNI/shrinking/Gradle checks passed, with 351 tests, zero failures/errors/skips. Complete native validation of identical implementation source 9010dd3 is still running; no full-native completion is claimed yet. XML, lint and task outputs retained. These are desktop/JVM/API-35 simulated checks, not device or real-model evidence. All eight backend gaps remain open.
+Native exact9010dd3 and Android exactd9d2e68 (same implementation1bfdc28): identical hashes for 311 tracked source files. Native format, Clippy, all401 tests (zero failed/ignored), release build and traceability passed. Android ARM64/JNI/shrinking/Gradle packaging/lint and351 tests passed with zero failures/errors/skips. Native debug/test debug were disabled and RUST_TEST_THREADS=2; these are test scheduling/build choices, not SLOs or an explanation for retained E01/E02 watchdog failures. Logs, reports and Android XML/lint retained.
+
+This predates private-manager and verified-factory work; no newer-source full acceptance is inferred. These desktop/JVM/simulated checks do not establish device or real-model behaviour. All eight backend gaps remain open.
