@@ -16,7 +16,10 @@ use std::{
     thread::{self, ThreadId},
 };
 mod activation;
-pub use activation::{HostActivationSource, HostActivationWork, HostCompletedActivation};
+pub use activation::{
+    HostActivationSource, HostActivationWork, HostCompletedActivation, HostDetachedRuntime,
+    HostDetachmentSource,
+};
 const MAX_FRAME: usize = 8 * 1024 * 1024;
 const MAX_SOURCE_BYTES: usize = 32 * 1024 * 1024;
 pub(super) fn charge(value: &impl Serialize) -> Result<usize> {
@@ -84,6 +87,10 @@ enum Phase {
     Source(Option<InkSnapshot>),
     Prepared(Option<Box<RecognitionWork>>),
     ActivationInput,
+    DetachmentInput,
+    RuntimeDetached {
+        _runtime: Box<crate::processing::DetachedRuntime>,
+    },
     ActivationPrepared(Option<Box<crate::processing::ActivationWork>>),
     ActivationResult(Option<Box<crate::processing::CompletedActivation>>),
     Running,
@@ -564,6 +571,7 @@ mod tests {
             .unwrap();
         assert!(scope.source(&store, &access, block.id, None).is_err());
         assert!(scope.activation_source(&store, &access).is_err());
+        assert!(scope.detachment_source(&store, &access).is_err());
         assert_eq!(scope.status().reserved, 0);
         assert!(!scope.status().closed);
         assert!(store

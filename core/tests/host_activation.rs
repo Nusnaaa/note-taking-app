@@ -468,3 +468,143 @@ fn descriptor_frame_rejection_preserves_existing_ready_engine_and_authoring() {
     );
     h.close().unwrap();
 }
+
+#[test]
+fn detachment_requires_current_host_epoch_and_does_not_remove_ready_engine_after_pen_cancellation()
+{
+    let (_root, h, n, _, _) = fixture(8);
+    let (mut m, _, _) = model(None, None, None);
+    m.activate_local("synthetic", None, true).unwrap();
+    let source = h.detachment_source().unwrap();
+    let pen = Id::new();
+    h.set_capture_priority(pen, true).unwrap();
+    assert!(source.detach(&mut m, "synthetic").is_err());
+    assert_eq!(m.readiness("synthetic"), Readiness::Ready);
+    h.set_capture_priority(pen, false).unwrap();
+    wait_for(|| h.recognition_status().reserved == 0);
+    let detached = h
+        .detachment_source()
+        .unwrap()
+        .detach(&mut m, "synthetic")
+        .unwrap();
+    assert_eq!(detached.descriptor().id, "synthetic");
+    assert_eq!(m.readiness("synthetic"), Readiness::Missing);
+    drop(detached);
+    wait_for(|| h.recognition_status().reserved == 0);
+    call(
+        &h,
+        Command::Append {
+            entity: n,
+            content: Content::Text("saved after detachment".into()),
+        },
+    );
+    h.close().unwrap();
+}
+#[test]
+fn host_owned_detached_runtime_keeps_owner_until_off_writer_cleanup_finishes() {
+    let (root, h, n, b, raw) = fixture(8);
+    let (g, entered, release) = gate();
+    let (mut m, _, retired) = model(None, Some(g), None);
+    m.activate_local("synthetic", None, true).unwrap();
+    let detached = h
+        .detachment_source()
+        .unwrap()
+        .detach(&mut m, "synthetic")
+        .unwrap();
+    assert_eq!(m.readiness("synthetic"), Readiness::Missing);
+    assert!(entered.try_recv().is_err());
+    let caller = thread::current().id();
+    drop(detached);
+    assert_ne!(
+        entered.recv_timeout(Duration::from_secs(10)).unwrap(),
+        caller
+    );
+    assert!(!retired.load(Ordering::Acquire));
+    assert_eq!(h.recognition_status().reserved, 1);
+    call(
+        &h,
+        Command::Append {
+            entity: n,
+            content: Content::Text("writer remains free".into()),
+        },
+    );
+    let closing = Arc::clone(&h);
+    let (tx, rx) = mpsc::channel();
+    let closer = thread::spawn(move || tx.send(closing.close()).unwrap());
+    wait_for(|| h.recognition_status().closed);
+    assert!(rx.try_recv().is_err());
+    assert!(matches!(
+        Host::open(root.path().join("library.db"), 8),
+        Err(Error::Unavailable)
+    ));
+    release.send(()).unwrap();
+    rx.recv_timeout(Duration::from_secs(10)).unwrap().unwrap();
+    closer.join().unwrap();
+    assert!(retired.load(Ordering::Acquire));
+    let reopened = Host::open(root.path().join("library.db"), 8).unwrap();
+    assert_eq!(
+        call(&reopened, Command::SourceInk { block: b }),
+        serde_json::to_value(vec![raw]).unwrap()
+    );
+    reopened.close().unwrap();
+}
+struct ReentrantDetached {
+    manager: std::sync::Weak<Mutex<Manager>>,
+    finished: mpsc::Sender<ThreadId>,
+}
+impl Drop for ReentrantDetached {
+    fn drop(&mut self) {
+        assert!(self
+            .manager
+            .upgrade()
+            .unwrap()
+            .lock()
+            .unwrap()
+            .descriptors()
+            .is_empty());
+        self.finished.send(thread::current().id()).unwrap();
+    }
+}
+impl Recogniser for ReentrantDetached {
+    fn probe(&self) -> Result<()> {
+        Ok(())
+    }
+    fn recognise(&self, _: &InkSnapshot, _: Task, _: &JobControl) -> Result<RecognitionOutput> {
+        Err(Error::EngineUnavailable)
+    }
+}
+#[test]
+fn host_detachment_cleanup_can_reenter_shared_manager_after_controller_unlocks() {
+    let (_root, h, _, _, _) = fixture(8);
+    let manager = Arc::new(Mutex::new(Manager::new()));
+    let (tx, rx) = mpsc::channel();
+    manager
+        .lock()
+        .unwrap()
+        .register_recogniser(
+            descriptor(),
+            Box::new(ReentrantDetached {
+                manager: Arc::downgrade(&manager),
+                finished: tx,
+            }),
+        )
+        .unwrap();
+    manager
+        .lock()
+        .unwrap()
+        .activate_local("synthetic", None, true)
+        .unwrap();
+    let detached = {
+        let mut locked = manager.lock().unwrap();
+        h.detachment_source()
+            .unwrap()
+            .detach(&mut locked, "synthetic")
+            .unwrap()
+    };
+    assert!(rx.try_recv().is_err());
+    let caller = thread::current().id();
+    drop(detached);
+    assert_ne!(rx.recv_timeout(Duration::from_secs(10)).unwrap(), caller);
+    wait_for(|| h.recognition_status().reserved == 0);
+    h.close().unwrap();
+}

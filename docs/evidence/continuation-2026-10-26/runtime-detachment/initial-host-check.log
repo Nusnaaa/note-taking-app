@@ -1,0 +1,20 @@
+    Checking stem-core v0.1.0 (/tmp/stem-runtime-retirement-work/core)
+warning: field `0` is never read
+  --> core/src/host/recognition.rs:91:21
+   |
+91 |     RuntimeDetached(Option<Box<crate::processing::DetachedRuntime>>),
+   |     --------------- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |     |
+   |     field in this variant
+   |
+   = note: `#[warn(dead_code)]` on by default
+help: consider changing the field to be of unit type to suppress this warning while preserving the field numbering, or remove the field
+   |
+91 -     RuntimeDetached(Option<Box<crate::processing::DetachedRuntime>>),
+91 +     RuntimeDetached(()),
+   |
+
+warning: `stem-core` (lib test) generated 1 warning
+warning: `stem-core` (lib) generated 1 warning (1 duplicate)
+    Checking stem-bridge v0.1.0 (/tmp/stem-runtime-retirement-work/bridge)
+    Finished `dev` profile [unoptimized] target(s) in 17.58s

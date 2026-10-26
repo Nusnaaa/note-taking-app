@@ -1,0 +1,4 @@
+    Blocking waiting for file lock on build directory
+    Checking stem-core v0.1.0 (/tmp/stem-runtime-retirement-work/core)
+    Checking stem-bridge v0.1.0 (/tmp/stem-runtime-retirement-work/bridge)
+    Finished `dev` profile [unoptimized] target(s) in 1m 08s

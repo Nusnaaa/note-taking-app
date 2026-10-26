@@ -34,8 +34,8 @@ mod ownership;
 mod recognition;
 use recognition::RecognitionScope;
 pub use recognition::{
-    HostActivationSource, HostActivationWork, HostCompletedActivation, HostRecognitionWork,
-    RecognitionSource, RecognitionStatus,
+    HostActivationSource, HostActivationWork, HostCompletedActivation, HostDetachedRuntime,
+    HostDetachmentSource, HostRecognitionWork, RecognitionSource, RecognitionStatus,
 };
 mod pdf;
 use crate::sources::PdfSelectionTarget;
@@ -451,6 +451,7 @@ enum Message {
     Backup(Box<backup::Request>),
     RecognitionSource(Id, Option<Id>, mpsc::Sender<Result<RecognitionSource>>),
     ActivationSource(mpsc::Sender<Result<HostActivationSource>>),
+    DetachmentSource(mpsc::Sender<Result<HostDetachmentSource>>),
     PublishRecognition(
         Box<CompletedRecognition>,
         mpsc::Sender<Result<crate::store::Proposal>>,
@@ -577,6 +578,16 @@ impl Host {
                                         input.complete(envelope.authoring, envelope.bytes, failed);
                                 },
                             );
+                        }
+                        Message::DetachmentSource(reply) => {
+                            let result =
+                                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                                    recognition_scope.detachment_source(&store, &access)
+                                }))
+                                .unwrap_or(Err(Error::WorkerFailed));
+                            let _ =
+                                input.complete(envelope.authoring, envelope.bytes, result.is_err());
+                            let _ = reply.send(result);
                         }
                         Message::ActivationSource(reply) => {
                             let result =
@@ -779,6 +790,13 @@ impl Host {
     }
     pub fn recognition_status(&self) -> RecognitionStatus {
         self.recognition.status()
+    }
+    /// Reserve a current app-authorised runtime detachment capability.
+    pub fn detachment_source(&self) -> Result<HostDetachmentSource> {
+        let (tx, rx) = mpsc::channel();
+        self.mailbox
+            .admit(Message::DetachmentSource(tx), false, 128)?;
+        rx.recv().map_err(|_| Error::WorkerFailed)?
     }
     /// Reserve optional lifecycle work without sending callbacks to the writer.
     pub fn activation_source(&self) -> Result<HostActivationSource> {

@@ -4,6 +4,8 @@ use crate::{content::Content, digest, store::InkSnapshot, Error, Result};
 use serde::{Deserialize, Serialize};
 mod activation;
 pub use activation::{ActivationWork, CompletedActivation};
+mod retirement;
+pub use retirement::DetachedRuntime;
 use std::{
     collections::BTreeMap,
     sync::{
@@ -411,12 +413,10 @@ impl Manager {
         }
         Ok(e)
     }
+    /// Synchronous compatibility API. Callback transports should detach under
+    /// their manager lock and dispose of the returned holder after unlocking.
     pub fn remove(&mut self, id: &str) -> Result<()> {
-        self.entries
-            .remove(id)
-            .ok_or(Error::EngineUnavailable)?
-            .retire();
-        self.defaults.retain(|_, v| v != id);
+        drop(self.detach(id)?);
         Ok(())
     }
     /// Pin a ready version without borrowing the manager throughout inference.

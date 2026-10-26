@@ -74,11 +74,12 @@ fn finish_running(slot: &Arc<Slot>, phase: Phase, running: &mut Running) -> Resu
     Ok(())
 }
 impl RecognitionScope {
-    pub(in crate::host) fn activation_source(
+    fn lifecycle_slot(
         self: &Arc<Self>,
         store: &Store,
         access: &Access,
-    ) -> Result<HostActivationSource> {
+        input: LifecycleInput,
+    ) -> Result<Arc<Slot>> {
         Store::require_app(&store.db, access)?;
         {
             let state = self.state();
@@ -101,6 +102,10 @@ impl RecognitionScope {
             return Err(Error::ResourceLimit);
         }
         let ticket = Id::new();
+        let phase = match input {
+            LifecycleInput::Activation => Phase::ActivationInput,
+            LifecycleInput::Detachment => Phase::DetachmentInput,
+        };
         let slot = Arc::new(Slot {
             authority: WorkAuthority {
                 owner: self.owner,
@@ -108,7 +113,7 @@ impl RecognitionScope {
                 valid: Arc::clone(&state.valid),
                 until: access.expires_at(),
             },
-            phase: Mutex::new(Phase::ActivationInput),
+            phase: Mutex::new(phase),
             lease: SlotLease {
                 scope: Arc::clone(self),
                 ticket,
@@ -124,8 +129,25 @@ impl RecognitionScope {
                 retire_pending: false,
             },
         );
+        Ok(slot)
+    }
+    pub(in crate::host) fn activation_source(
+        self: &Arc<Self>,
+        store: &Store,
+        access: &Access,
+    ) -> Result<HostActivationSource> {
         Ok(HostActivationSource {
-            slot,
+            slot: self.lifecycle_slot(store, access, LifecycleInput::Activation)?,
+            transferred: false,
+        })
+    }
+    pub(in crate::host) fn detachment_source(
+        self: &Arc<Self>,
+        store: &Store,
+        access: &Access,
+    ) -> Result<HostDetachmentSource> {
+        Ok(HostDetachmentSource {
+            slot: self.lifecycle_slot(store, access, LifecycleInput::Detachment)?,
             transferred: false,
         })
     }
@@ -258,5 +280,86 @@ impl HostActivationWork {
 impl HostCompletedActivation {
     pub fn ticket(&self) -> Id {
         self.slot.authority.ticket
+    }
+}
+
+enum LifecycleInput {
+    Activation,
+    Detachment,
+}
+pub struct HostDetachmentSource {
+    slot: Arc<Slot>,
+    transferred: bool,
+}
+pub struct HostDetachedRuntime {
+    slot: Arc<Slot>,
+    descriptor: crate::processing::Descriptor,
+}
+impl Drop for HostDetachmentSource {
+    fn drop(&mut self) {
+        if !self.transferred {
+            self.slot.cancel_idle();
+        }
+    }
+}
+impl Drop for HostDetachedRuntime {
+    fn drop(&mut self) {
+        self.slot.cancel_idle();
+    }
+}
+impl HostDetachmentSource {
+    pub fn ticket(&self) -> Id {
+        self.slot.authority.ticket
+    }
+    /// Logically disable a runtime while the current app/capture epoch is held.
+    /// Provider disposal stays owned by the returned private holder and scope.
+    pub fn detach(mut self, manager: &mut Manager, id: &str) -> Result<HostDetachedRuntime> {
+        self.slot.authority.check()?;
+        let metadata = manager.descriptor(id).ok_or(Error::EngineUnavailable)?;
+        let bytes = charge(metadata)?;
+        let descriptor = metadata.clone();
+        {
+            let mut state = self.slot.lease.scope.state();
+            self.slot.authority.check()?;
+            if state.closed {
+                return Err(Error::Cancelled);
+            }
+            let old = state
+                .entries
+                .get(&self.ticket())
+                .ok_or(Error::Cancelled)?
+                .bytes;
+            let used: usize = state.entries.values().map(|entry| entry.bytes).sum();
+            if bytes > MAX_SOURCE_BYTES.saturating_sub(used.saturating_sub(old)) {
+                return Err(Error::ResourceLimit);
+            }
+            let mut phase = self.slot.phase.lock().map_err(|_| Error::WorkerFailed)?;
+            if !matches!(*phase, Phase::DetachmentInput) {
+                return Err(Error::Cancelled);
+            }
+            // No provider callback/destructor occurs inside Manager::detach.
+            let entry = state
+                .entries
+                .get_mut(&self.ticket())
+                .ok_or(Error::Cancelled)?;
+            let detached = manager.detach(id)?;
+            entry.bytes = bytes;
+            *phase = Phase::RuntimeDetached {
+                _runtime: Box::new(detached),
+            };
+        }
+        self.transferred = true;
+        Ok(HostDetachedRuntime {
+            slot: Arc::clone(&self.slot),
+            descriptor,
+        })
+    }
+}
+impl HostDetachedRuntime {
+    pub fn ticket(&self) -> Id {
+        self.slot.authority.ticket
+    }
+    pub fn descriptor(&self) -> &crate::processing::Descriptor {
+        &self.descriptor
     }
 }
