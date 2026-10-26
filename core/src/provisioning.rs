@@ -499,6 +499,11 @@ mod import_control_tests {
             Err(Error::Cancelled)
         ));
         assert!(!root.path().join(format!("{id}.resource")).exists());
+        assert!(matches!(
+            Transfer::resume(root.path(), id),
+            Err(Error::ResourceLimit)
+        ));
+        drop(transfer); // Cancellation does not transfer exclusive ownership.
         let mut resumed = Transfer::resume(root.path(), id).unwrap();
         assert_eq!(resumed.committed_bytes(), bytes.len() as u64);
         assert_eq!(std::fs::read(resumed.finish().unwrap()).unwrap(), bytes);
