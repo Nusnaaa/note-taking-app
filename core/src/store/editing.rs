@@ -154,7 +154,14 @@ impl Store {
                         let current=Self::read_block(db,id,access)?;
                         if current.entity!=entity {return Err(Error::Integrity)}
                         if let Some(expected)=expected {
-                            if comparable(serde_json::to_value(&current)?)!=comparable(payload(expected)?) {return Err(Error::Conflict)}
+                            let expected_block: Block = serde_json::from_value(payload(expected)?)?;
+                            if !current.source_ids.starts_with(&expected_block.source_ids) { return Err(Error::Conflict); }
+                            let mut compared = current.clone();
+                            // Undo retains observations appended by the operation. Redo
+                            // compares presentation against its old state, without
+                            // demanding deletion of that append-only source suffix.
+                            compared.source_ids = expected_block.source_ids.clone();
+                            if comparable(serde_json::to_value(&compared)?)!=comparable(serde_json::to_value(&expected_block)?) {return Err(Error::Conflict)}
                         } else if current.visible { return Err(Error::Conflict) }
                         let mut desired: Block=if let Some(target)=target {serde_json::from_value(payload(target)?)?} else {let mut b=current.clone(); b.visible=false; b};
                         if desired.entity!=entity || desired.id!=id {return Err(Error::Integrity)}

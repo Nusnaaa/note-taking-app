@@ -1,0 +1,42 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 36.66s
+     Running tests/host_conversion.rs (/tmp/stem-pen-response-target/debug/deps/host_conversion-174bbf2df57fde4d)
+
+running 5 tests
+test derivative_preserves_lexemes_source_identity_and_runtime_revocation ... ok
+test capture_relock_and_close_revoke_prepared_and_delivered_conversion ... ok
+test running_callback_is_off_writer_and_observes_capture_cancellation ... ok
+test protection_change_revokes_snapshot_and_refuses_new_source ... ok
+test source_admission_is_shared_bounded_and_denied_blocks_stay_denied ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+     Running tests/objects.rs (/tmp/stem-pen-response-target/debug/deps/objects-9e63ebed9dbede95)
+
+running 8 tests
+test canvas_embeds_keep_independent_pinned_cameras_and_reject_cycles ... ok
+test grouped_transform_is_atomic_and_never_changes_original_points ... ok
+test invalid_objects_reject_duplicate_ids_ragged_cells_and_nonfinite_axes ... ok
+test images_cannot_bypass_locks_even_after_replacing_visible_content ... ok
+test native_v3_roundtrip_preserves_assets_layout_groups_and_embeds_with_new_ids ... FAILED
+test protected_canvas_cannot_leak_through_embed_or_group ... ok
+test table_cell_edit_preserves_identity_neighbours_and_source_ink ... ok
+test view_settings_and_protected_placeholders_reopen_without_secret_text ... ok
+
+failures:
+
+---- native_v3_roundtrip_preserves_assets_layout_groups_and_embeds_with_new_ids stdout ----
+
+thread 'native_v3_roundtrip_preserves_assets_layout_groups_and_embeds_with_new_ids' panicked at core/tests/objects.rs:303:5:
+assertion `left == right` failed
+  left: 11
+ right: 10
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    native_v3_roundtrip_preserves_assets_layout_groups_and_embeds_with_new_ids
+
+test result: FAILED. 7 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+error: test failed, to rerun pass `-p stem-core --test objects`

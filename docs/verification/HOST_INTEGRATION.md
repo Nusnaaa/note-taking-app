@@ -1678,3 +1678,28 @@ Binding/manifest checks precede resumed truncation. Bound consent is recorded in
 `NativeBridge.engineImport` returns a single-use EngineImport with stable version/committedBytes before input opens. Its copy factory opens inside native running admission and receives exact linked EngineControl; the returned EngineInput reads bounded buffers and retires its actual handles before metadata publication. Buffer references retained by an input/factory see cleared arrays after callback completion. Native close waits for admitted opening/read/cleanup; ordinary JSON has no input/path/SDK capability.
 
 `NotebookEngines.importResource` owns the private no-backup model depot, reports Transfer before input opens, and supports explicit resume IDs. EngineModelSource.fromPicker observes a content/read selection; actual opening happens on the optional worker, uses r mode and seeks from the durable offset. It does not persist a URI grant automatically. Failure may leave resumable files, and fresh source selection may be required after restart/revocation. Catalogue/discovery/default/uninstall/discard and actual-model/device acceptance remain unfinished.
+
+### Native structured table-cell ink
+
+`CaptureCell {ticket, block, revision, cell, strokes}` appends ordered observed
+strokes to one existing structured table cell. The cell ID is also the logical
+region ID. The receipt binds exact target, expected block revision and stroke
+payload; an exact retry acknowledges the existing capture. Fresh table-block,
+exercise and owner authority apply, and any failed commit preserves both source
+rows and the previous editable table. Source coordinates are retained unchanged;
+the caller supplies the explicit target rather than asking the core to detect a
+drawn grid. New ink awaits review while the prior editable cell value is retained.
+
+`recognition_source(block, Some(cell))` and the shared-runtime preparation route
+produce a scoped source containing only that cell's visible ordered strokes.
+Ordinary whole-table recognition is refused. Publish a pending proposal and use
+explicit acceptance/correction as usual; only that cell changes. Newer block
+revisions require a new proposal. Cell-value content conversion also accepts a
+cell ID, including typed cells without ink, and returns a derivative without
+editing the table. Both operations retain source revision and adapter provenance.
+
+Native subset v11/library schema19 fence this semantic extension. Cell, region,
+stroke and saved cell-cursor identities remap together in independent copies;
+original observations remain independently retained through undo. Android's
+sealed capture journal/outbox cell-target adoption and physical cell layout are
+separate integration work; generic JSON availability is not proof of them.

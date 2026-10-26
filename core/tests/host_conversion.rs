@@ -246,3 +246,43 @@ fn protection_change_revokes_snapshot_and_refuses_new_source() {
     ));
     host.close().unwrap();
 }
+
+#[test]
+fn typed_table_cell_conversion_uses_its_stored_value_without_requiring_ink() {
+    use stem_core::objects::{Cell, CellValue, Table};
+    let (_root, host, note, _) = fixture();
+    let cell = Id::new();
+    let block = Id::parse(
+        call(
+            &host,
+            Command::Append {
+                entity: note,
+                content: Content::Table(Table {
+                    rows: vec![vec![Cell {
+                        id: cell,
+                        value: CellValue::Numeric("001".into()),
+                    }]],
+                    header_rows: 0,
+                }),
+            },
+        )["id"]
+            .as_str()
+            .unwrap(),
+    )
+    .unwrap();
+    let manager = manager(Box::new(TextConverter));
+    let completed = host
+        .conversion_source(block, Some(cell))
+        .unwrap()
+        .prepare(&manager, "converter", Format::PlainText)
+        .unwrap()
+        .run(&control())
+        .unwrap();
+    assert_eq!(completed.source(), (block, Some(cell), 0));
+    assert_eq!(completed.output().unwrap().text, "001");
+    assert!(matches!(
+        host.conversion_source(block, Some(Id::new())),
+        Err(Error::Unavailable)
+    ));
+    host.close().unwrap();
+}

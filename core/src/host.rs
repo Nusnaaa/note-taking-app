@@ -150,6 +150,13 @@ pub enum Command {
         target: WritingTarget,
         content: Content,
     },
+    CaptureCell {
+        ticket: Id,
+        block: Id,
+        revision: u64,
+        cell: Id,
+        strokes: Vec<Stroke>,
+    },
     CaptureTo {
         ticket: Id,
         target: WritingTarget,
@@ -1871,6 +1878,15 @@ fn execute(
             Command::Append { entity, content } => {
                 serde_json::to_value(s.append_content(entity, content, a)?)?
             }
+            Command::CaptureCell {
+                ticket,
+                block,
+                revision,
+                cell,
+                strokes,
+            } => serde_json::to_value(
+                s.append_cell_capture(ticket, block, revision, cell, strokes, a)?,
+            )?,
             Command::Capture {
                 ticket,
                 entity,

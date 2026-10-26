@@ -263,15 +263,22 @@ impl Store {
         value: CellValue,
         access: &Access,
     ) -> Result<Block> {
-        let b = self.block(block, access)?;
-
-        let Content::Table(mut table) = b.content else {
-            return Err(Error::Invalid("table block"));
-        };
-
-        table.edit(cell, value)?;
-
-        self.edit_content(block, revision, Content::Table(table), access)
+        self.edit_block(block, revision, access, |block| {
+            let Content::Table(table) = &mut block.content else {
+                return Err(Error::Invalid("table block"));
+            };
+            let content = match &value {
+                CellValue::Text(text) => Content::Text(text.clone()),
+                CellValue::Numeric(text) => Content::Numeric(text.clone()),
+                CellValue::Maths(node) => Content::Maths(node.clone()),
+            };
+            table.edit(cell, value)?;
+            if let Some(region) = block.regions.iter_mut().find(|region| region.id == cell) {
+                region.content = Some(content);
+            }
+            block.manually_corrected = true;
+            Ok(())
+        })
     }
 
     pub fn edit_diagram_part(

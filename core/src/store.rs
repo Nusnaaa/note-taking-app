@@ -13,6 +13,7 @@ mod organisation;
 mod positions;
 mod proposals;
 mod regions;
+mod table_ink;
 mod workspace;
 mod writing;
 
@@ -101,6 +102,7 @@ const V7: &str = include_str!("../migrations/007.sql");
 const V15: &str = include_str!("../migrations/015.sql");
 const V16: &str = include_str!("../migrations/016.sql");
 const V18: &str = include_str!("../migrations/018.sql");
+const V19: &str = include_str!("../migrations/019.sql");
 const V17: &str = include_str!("../migrations/017.sql");
 const V14: &str = include_str!("../migrations/014.sql");
 const V13: &str = include_str!("../migrations/013.sql");
@@ -124,7 +126,7 @@ impl Store {
                 PRAGMA trusted_schema=OFF;",
         )?;
         let version: i64 = db.pragma_query_value(None, "user_version", |r| r.get(0))?;
-        if !(0..=18).contains(&version) {
+        if !(0..=19).contains(&version) {
             return Err(Error::Unsupported);
         }
         let tx = db.transaction_with_behavior(TransactionBehavior::Immediate)?;
@@ -181,6 +183,9 @@ impl Store {
         }
         if version < 18 {
             tx.execute_batch(V18)?;
+        }
+        if version < 19 {
+            tx.execute_batch(V19)?;
         }
         tx.commit()?;
         Ok(Self {

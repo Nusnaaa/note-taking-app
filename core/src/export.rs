@@ -285,7 +285,7 @@ impl Store {
                 continue;
             }
 
-            for region in &b.regions {
+            for region in b.regions.iter().filter(|_| !b.has_table_ink()) {
                 if let Some(content) = &region.content {
                     let converted = TextConverter.convert(content, Format::Markdown, &control)?;
                     markdown += &converted.text;
@@ -299,6 +299,10 @@ impl Store {
                 }
 
                 Content::Table(t) => {
+                    if b.regions.iter().any(|region| region.content.is_none()) {
+                        warnings.push("Unconverted table-cell handwriting omitted from converted text; existing editable cell values are retained.".into());
+                    }
+
                     let text = t
                         .rows
                         .iter()
@@ -516,7 +520,9 @@ impl Store {
                 continue;
             }
             render_contents.push(block.content.clone());
-            render_contents.extend(block.regions.iter().filter_map(|r| r.content.clone()));
+            if !block.has_table_ink() {
+                render_contents.extend(block.regions.iter().filter_map(|r| r.content.clone()));
+            }
         }
         let bundle = ExportBundle {
             markdown,

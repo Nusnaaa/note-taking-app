@@ -267,7 +267,8 @@ impl Store {
 
             b.display = Display::Editable;
 
-            b.manually_corrected = p.correction.is_some();
+            b.manually_corrected =
+                p.correction.is_some() || (p.region.is_some() && b.manually_corrected);
 
             b.revision += 1;
 
@@ -350,7 +351,8 @@ impl Store {
                 Self::apply_region_content(block, p.region, content.clone())?;
                 block.display = Display::Editable;
                 if p.region.is_none() {
-                    block.manually_corrected = p.correction.is_some();
+                    block.manually_corrected =
+                        p.correction.is_some() || (p.region.is_some() && block.manually_corrected);
                 } else {
                     block.manually_corrected |= p.correction.is_some();
                 }

@@ -107,7 +107,18 @@ impl NativeDocument {
         })?)
     }
     pub fn validate(&self) -> Result<()> {
-        if !matches!(self.version, 1..=10) {
+        if !matches!(self.version, 1..=11) {
+            return Err(Error::Unsupported);
+        }
+        if self.version < 11
+            && self.blocks.iter().any(|block| {
+                block.current.has_table_ink()
+                    || block
+                        .history
+                        .iter()
+                        .any(|history| history.block.has_table_ink())
+            })
+        {
             return Err(Error::Unsupported);
         }
         if self.version < 4
@@ -571,7 +582,7 @@ impl Store {
             omissions.push("App workspace and pane activation are library-local and are not included in native copies; selected saved views remain included.".into());
         }
         let mut document = NativeDocument {
-            version: 10,
+            version: 11,
             created_ms: now_ms(),
             entities,
             blocks,
@@ -683,6 +694,11 @@ impl Store {
                 for region in &block.regions {
                     ids.entry(region.id).or_default();
                 }
+                if let crate::content::Content::Table(table) = &block.content {
+                    for cell in table.rows.iter().flatten() {
+                        ids.entry(cell.id).or_default();
+                    }
+                }
             }
             for s in &b.strokes {
                 ids.insert(s.id, Id::new());
@@ -700,6 +716,11 @@ impl Store {
             }
         }
         let remap_block = |b: &mut Block| {
+            if let crate::content::Content::Table(table) = &mut b.content {
+                for cell in table.rows.iter_mut().flatten() {
+                    cell.id = ids[&cell.id];
+                }
+            }
             b.id = ids[&b.id];
             b.entity = ids[&b.entity];
             b.source_ids = b.source_ids.iter().map(|i| ids[i]).collect();

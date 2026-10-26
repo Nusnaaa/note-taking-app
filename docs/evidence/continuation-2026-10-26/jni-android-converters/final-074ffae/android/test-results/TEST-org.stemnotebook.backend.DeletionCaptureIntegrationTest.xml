@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.DeletionCaptureIntegrationTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-26T17:31:36" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="0.747">
+  <properties/>
+  <testcase name="cleanupFailureReportsCommittedDeletionWithoutFalselyAcknowledgingDraftRemoval" classname="org.stemnotebook.backend.DeletionCaptureIntegrationTest" time="0.208"/>
+  <testcase name="reviewedSubtreeDiscardsOnlySealedCopiesAndRetainsActiveUnrelatedAndUnknownRecovery" classname="org.stemnotebook.backend.DeletionCaptureIntegrationTest" time="0.208"/>
+  <testcase name="changedActivePrefixInvalidatesDraftReviewWithoutTrashingOrDiscarding" classname="org.stemnotebook.backend.DeletionCaptureIntegrationTest" time="0.189"/>
+  <testcase name="keepAndRelockRechecksPreserveExactPrivateDraftBytes" classname="org.stemnotebook.backend.DeletionCaptureIntegrationTest" time="0.142"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

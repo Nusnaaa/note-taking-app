@@ -435,3 +435,18 @@ provider, catalogue/JNI, pool/runtime and ownership regressions with lint. These
 are host correctness checks, not actual Keystore/Binder/provider/device/timing/
 physical interruption acceptance or completed protected/independent-root
 scheduling. See [the workflow contract](../formats/SCHEDULED_BACKUPS.md).
+
+## Structured table-cell ink
+
+`table_cell_ink` covers explicit ticket/revision/cell-bound capture and exact retry,
+selected ordered digital-ink recognition, cell-only acceptance, stale neighbouring
+proposals, manual corrections, cross-batch session order, unknown/colliding targets,
+fresh protection and injected rollback. Undo/Redo retains appended observations;
+independent native copy remaps cell/region/stroke identities together. Both encrypted
+backup formats preserve cell targets, and current/history/Undo-only bindings cannot
+hide beneath an old format tag. Derivative text occurs once per accepted cell,
+with an explicit warning for omitted unconverted cell handwriting. A native Host
+fixture uses CaptureCell and the scoped proposal path; it is not Android capture
+journal, physical grid hit-testing, recognition quality or whole-requirement proof.
+Existing authoring, region, migration, pressure, object, engine-history, recovery,
+workspace and editing suites exercise the schema19/native11 compatibility changes.

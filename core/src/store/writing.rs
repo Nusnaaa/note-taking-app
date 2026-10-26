@@ -43,6 +43,21 @@ pub struct Block {
     pub regions: Vec<Region>,
 }
 impl Block {
+    pub(crate) fn cell_content_matches(
+        value: &crate::objects::CellValue,
+        content: &Content,
+    ) -> bool {
+        use crate::objects::CellValue;
+        match (value, content) {
+            (CellValue::Text(a), Content::Text(b))
+            | (CellValue::Numeric(a), Content::Numeric(b)) => a == b,
+            (CellValue::Maths(a), Content::Maths(b)) => a == b,
+            _ => false,
+        }
+    }
+    pub(crate) fn has_table_ink(&self) -> bool {
+        matches!(self.content, Content::Table(_)) && !self.regions.is_empty()
+    }
     pub fn validate(&self) -> Result<()> {
         self.content.validate()?;
         if self.regions.len() > 4096 {
@@ -71,6 +86,23 @@ impl Block {
                     return Err(Error::Invalid("region modality"));
                 }
                 content.validate()?;
+            }
+        }
+        if let Content::Table(table) = &self.content {
+            for region in &self.regions {
+                let cell = table
+                    .rows
+                    .iter()
+                    .flatten()
+                    .find(|cell| cell.id == region.id)
+                    .ok_or(Error::Invalid("table ink cell"))?;
+                if region
+                    .content
+                    .as_ref()
+                    .is_some_and(|content| !Self::cell_content_matches(&cell.value, content))
+                {
+                    return Err(Error::Invalid("table cell representation"));
+                }
             }
         }
         self.transform.validate()?;
@@ -708,6 +740,12 @@ impl Store {
         })
     }
     pub fn ink_snapshot(&self, id: Id, access: &Access) -> Result<InkSnapshot> {
+        if matches!(
+            Self::read_block(&self.db, id, access)?.content,
+            Content::Table(_)
+        ) {
+            return Err(Error::ReviewRequired);
+        }
         Self::make_snapshot(&self.db, id, access)
     }
     pub fn history(&self, id: Id, access: &Access) -> Result<Vec<HistoryEntry>> {

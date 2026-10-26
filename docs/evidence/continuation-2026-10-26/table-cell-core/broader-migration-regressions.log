@@ -1,0 +1,207 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 12.40s
+     Running tests/authoring.rs (/tmp/stem-pen-response-target/debug/deps/authoring-b61d9f8f748ce7f0)
+
+running 6 tests
+test invalid_or_dangling_presets_reject_atomically_without_silent_selection_repair ... ok
+test guide_kinds_are_bounded_escaped_and_excluded_from_export_only_by_explicit_choice ... ok
+test preferences_preserve_stale_selection_and_do_not_consume_document_undo ... ok
+test presets_calibrate_and_reopen_without_moving_view_or_rewriting_observations ... ok
+test schema14_upgrade_keeps_unconfigured_view_payload_exactly_without_inventing_presets_or_guides ... ok
+test native_copy_and_schema15_backup_keep_scoped_presets_and_reject_downgraded_extensions ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 30.80s
+
+     Running tests/editing.rs (/tmp/stem-pen-response-target/debug/deps/editing-d31eebf565b9ded5)
+
+running 7 tests
+test editing_after_undo_discards_redo_branch_but_keeps_source_history ... ok
+test lasso_action_undo_is_atomic_and_stale_or_interrupted_actions_leave_no_history ... ok
+test pruning_without_protected_block_access_keeps_its_undo_history ... ok
+test undo_creation_preserves_original_observations_and_redo_restores_visibility ... ok
+test undo_requires_current_locks_and_cannot_remove_protection ... ok
+test undo_redo_survives_reopen_and_never_rewinds_revisions ... ok
+test whole_backup_restores_undo_and_redo_without_touching_live_library ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.55s
+
+     Running tests/engine_discard.rs (/tmp/stem-pen-response-target/debug/deps/engine_discard-8de16e058c2a97fd)
+
+running 9 tests
+test authorisation_permit_cannot_be_rebound_to_a_different_preparation_of_the_same_record ... ok
+test cancellation_after_authorisation_preserves_files_and_retry_survives_reopen ... ok
+test cancelled_and_foreign_authorisation_never_delete_and_retry_can_finish_after_lost_completion ... ok
+test discard_records_original_consent_before_delete_and_preserves_notebook_content ... ok
+test discard_rejects_legacy_foreign_and_pending_version_cannot_publish_again ... ok
+test publication_and_sql_failure_prevent_deletion_and_keep_history_atomic ... ok
+test resource_actions_require_fresh_app_access_and_page_without_paths ... ok
+test symlink_payload_refuses_the_entire_discard_before_any_file_is_deleted ... ok
+test schema16_migrates_without_changing_notebooks_and_both_backups_preserve_action_history ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 28.16s
+
+     Running tests/engine_reclamation.rs (/tmp/stem-pen-response-target/debug/deps/engine_reclamation-7c9d9efae0b3ce38)
+
+running 11 tests
+test foreign_ledger_and_fresh_app_access_cannot_be_overridden_by_review_flags ... ok
+test explicit_symlink_review_unlinks_only_the_known_link_and_preserves_its_target ... ok
+test installed_or_staged_versions_refuse_reclamation_and_review_flags_never_bypass_a_live_sdk_pin ... ok
+test legacy_binding_is_reviewed_without_inventing_original_consent ... ok
+test persisted_uncertain_retirement_requires_explicit_review_and_is_never_silently_reset ... ok
+test lost_completion_is_explicitly_retried_with_an_additional_durable_review ... ok
+test review_directory_replacement_and_file_changes_require_fresh_review ... ok
+test reviewed_consent_is_durable_before_known_files_are_removed_and_ink_is_independent ... ok
+test real_schema17_layout_migrates_and_legacy_backup_tag_cannot_smuggle_reclamations ... ok
+test sql_failure_and_cancellation_do_not_delete_files_and_preparation_keys_cannot_be_rebound ... ok
+test schema18_classic_and_stream_backups_preserve_decisions_without_paths_or_deletion_authority ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 29.12s
+
+     Running tests/exercise_migrations.rs (/tmp/stem-pen-response-target/debug/deps/exercise_migrations-c16506bc14388a86)
+
+running 2 tests
+test failed_v3_migration_rolls_back_all_new_tables_and_version ... ok
+test v2_upgrade_keeps_existing_content_and_enables_exercises ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
+     Running tests/host_conversion.rs (/tmp/stem-pen-response-target/debug/deps/host_conversion-174bbf2df57fde4d)
+
+running 5 tests
+test derivative_preserves_lexemes_source_identity_and_runtime_revocation ... ok
+test capture_relock_and_close_revoke_prepared_and_delivered_conversion ... ok
+test protection_change_revokes_snapshot_and_refuses_new_source ... ok
+test running_callback_is_off_writer_and_observes_capture_cancellation ... ok
+test source_admission_is_shared_bounded_and_denied_blocks_stay_denied ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+     Running tests/interrupted_capture.rs (/tmp/stem-pen-response-target/debug/deps/interrupted_capture-72ee18fce9a89e0b)
+
+running 6 tests
+test checkpoints_preserve_stable_begin_order_and_interruption_never_invents_samples ... ok
+test legacy_schema9_backup_defaults_to_completed_without_rewriting_source_or_receipt ... ok
+test native_v5_preserves_interruption_provenance_and_legacy_tags_cannot_hide_it ... ok
+test schema9_upgrade_preserves_original_payload_hash_and_capture_receipt_byte_for_byte ... ok
+test unfinished_prefix_cannot_enter_store_queue_or_portable_document_and_sealed_retry_is_exact ... ok
+test encrypted_schema10_retains_interruption_and_old_schema_cannot_claim_it ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 20.60s
+
+     Running tests/layers.rs (/tmp/stem-pen-response-target/debug/deps/layers-2689388157b94670)
+
+running 8 tests
+test defaults_and_independent_embed_overrides_preserve_source_and_report_missing_layers ... ok
+test layer_undo_redo_and_failure_are_atomic_and_revisions_never_reset_to_zero ... ok
+test legacy_canvas_migrates_to_an_implicit_base_without_rewriting_original_payloads ... ok
+test malformed_membership_aliases_and_fresh_protection_cannot_leak_or_change_layers ... ok
+test native_copy_remaps_layer_and_embed_overrides_and_derivatives_respect_default_visibility ... ok
+test scene_byte_pages_have_explicit_continuations_and_never_load_denied_payloads_into_results ... ok
+test scene_orders_layers_then_z_and_paginates_without_dropping_nested_reference_placeholders ... ok
+test encrypted_backup_preserves_layer_undo_and_rejects_downgraded_current_and_historical_extensions ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 37.52s
+
+     Running tests/objects.rs (/tmp/stem-pen-response-target/debug/deps/objects-9e63ebed9dbede95)
+
+running 8 tests
+test canvas_embeds_keep_independent_pinned_cameras_and_reject_cycles ... ok
+test grouped_transform_is_atomic_and_never_changes_original_points ... ok
+test invalid_objects_reject_duplicate_ids_ragged_cells_and_nonfinite_axes ... ok
+test images_cannot_bypass_locks_even_after_replacing_visible_content ... ok
+test protected_canvas_cannot_leak_through_embed_or_group ... ok
+test native_v3_roundtrip_preserves_assets_layout_groups_and_embeds_with_new_ids ... ok
+test table_cell_edit_preserves_identity_neighbours_and_source_ink ... ok
+test view_settings_and_protected_placeholders_reopen_without_secret_text ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+     Running tests/positions.rs (/tmp/stem-pen-response-target/debug/deps/positions-e9abf30088cf6a38)
+
+running 10 tests
+test exercise_membership_and_current_block_protection_gate_bookmark_metadata_and_replacement ... ok
+test observed_ink_region_bookmarks_copy_global_ids_and_old_format_tags_cannot_hide_them ... ok
+test rich_labels_and_multiblock_ranges_preserve_content_and_reject_foreign_owners ... ok
+test schema10_upgrade_keeps_legacy_view_payload_byte_for_byte_and_absent_bookmark_is_not_invented ... ok
+test structured_math_and_component_offsets_validate_without_interpreting_or_repairing_content ... ok
+test unicode_selection_reopens_and_changed_content_requires_explicit_fresh_bookmark ... ok
+test view_discovery_reopens_saved_positions_and_filters_fresh_block_protection ... ok
+test view_discovery_separates_master_and_exercise_and_rechecks_app_lock ... ok
+test view_restore_and_discovery_reject_misbound_persistent_identity ... ok
+test encrypted_backup_retains_stale_bookmarks_and_schema10_defaults_without_rewriting_views ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 28.19s
+
+     Running tests/pressure_response.rs (/tmp/stem-pen-response-target/debug/deps/pressure_response-d671bfbc86e415de)
+
+running 8 tests
+test absent_zero_outside_domain_and_interior_pressure_have_explicit_derived_widths ... ok
+test eraser_source_unit_underflow_is_rejected_without_changing_preferences ... ok
+test invalid_responses_and_effective_widths_fail_without_installing_them ... ok
+test legacy_layout_stream_reads_schema15_without_inventing_pressure_settings ... ok
+test original_svg_uses_recorded_response_and_reports_missing_sensor_values_without_rewriting_ink ... ok
+test pressure_and_eraser_preferences_persist_and_new_fields_cannot_claim_an_old_native_version ... ok
+test response_is_snapshotted_per_contact_and_raw_samples_are_never_rewritten ... ok
+test aggregate_and_stream_backups_keep_exact_pressure_metadata_and_reject_schema_downgrade ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 23.78s
+
+     Running tests/recovery.rs (/tmp/stem-pen-response-target/debug/deps/recovery-18560bd0a5112177)
+
+running 4 tests
+test failed_migration_rolls_back_and_newer_schema_is_not_downgraded ... ok
+test process_exit_before_and_after_commit_preserves_correct_durable_boundary ... ok
+test two_connections_cannot_silently_overwrite_same_revision ... ok
+test v1_to_current_migration_preserves_entities_and_is_repeatable ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
+     Running tests/regions.rs (/tmp/stem-pen-response-target/debug/deps/regions-877ecba2bb77be6d)
+
+running 4 tests
+test invalid_partition_and_overlapping_split_are_atomic ... ok
+test region_exports_remap_ids_and_keep_accepted_text ... ok
+test regions_split_merge_without_replacing_observations_and_undo_restores_partition ... ok
+test selected_region_receives_only_selected_vector_strokes_and_commits_only_it ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+     Running tests/stroke_style.rs (/tmp/stem-pen-response-target/debug/deps/stroke_style-768890ef87655b57)
+
+running 5 tests
+test legacy_source_payload_hash_and_receipt_are_not_rewritten_by_schema13_upgrade ... ok
+test original_svg_preserves_rgba_width_and_single_sample_dots_and_reports_unknown_appearance ... ok
+test source_style_and_receipt_survive_edits_reopen_native_copy_and_legacy_format_validation ... ok
+test style_is_snapshotted_on_begin_and_configuration_changes_do_not_rebind_active_ink ... ok
+test encrypted_style_backup_retains_exact_metadata_and_cannot_be_disguised_as_schema12 ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 20.45s
+
+     Running tests/table_cell_ink.rs (/tmp/stem-pen-response-target/debug/deps/table_cell_ink-06a46d5cce999031)
+
+running 9 tests
+test capture_is_idempotent_scoped_atomic_and_undo_preserves_observations ... ok
+test derivative_exports_cell_text_once_and_discloses_unconverted_ink_omission ... ok
+test duplicate_cell_targets_across_tables_and_fresh_protection_fail_closed ... ok
+test independent_cell_review_updates_only_chosen_cell_and_stale_proposals_fail ... ok
+test invalid_target_identity_and_injected_commit_failure_leave_source_unchanged ... ok
+test manual_cell_correction_is_independent_and_new_ink_never_rewrites_it ... ok
+test native_copy_preserves_cell_binding_with_independent_ids_and_refuses_legacy_tag ... ok
+test classic_backup_preserves_cells_ink_and_rejects_legacy_tags_even_after_undo ... ok
+test streaming_backup_preserves_cell_targets_and_blocks_legacy_schema_smuggling ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 20.32s
+
+     Running tests/workspace.rs (/tmp/stem-pen-response-target/debug/deps/workspace-d5297098cac56777)
+
+running 7 tests
+test fresh_protection_redacts_targets_and_keep_can_resize_only_existing_private_slots ... ok
+test independent_views_pdf_position_tool_and_active_pane_reopen_without_touching_observations ... ok
+test native_copy_preserves_selected_views_without_activating_a_workspace_in_the_destination ... ok
+test optimistic_layout_checks_and_rollback_preserve_the_previous_workspace ... ok
+test schema11_upgrade_creates_an_empty_workspace_without_rewriting_saved_view_payloads ... ok
+test trash_restore_and_purge_preserve_slots_but_retire_private_target_references_atomically ... ok
+test encrypted_workspace_restore_revokes_pdf_readiness_and_rejects_malformed_or_downgraded_rows ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 35.02s
+

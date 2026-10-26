@@ -216,8 +216,13 @@ impl CaretPoint {
         if let CaretTarget::Ink { stroke, .. } = &mut self.target {
             *stroke = ids[stroke];
         }
-        // Maths/cell/part/series identifiers are local to copied content, whose
-        // immutable structure retains them. Block/region/source IDs are global.
+        if let CaretTarget::Cell { cell, .. } = &mut self.target {
+            if let Some(copied) = ids.get(cell) {
+                *cell = *copied;
+            }
+        }
+        // Cell targets follow copied table IDs. Maths/part/series identifiers
+        // remain local to copied content; stale targets remain explicitly stale.
     }
 }
 impl SelectionBookmark {

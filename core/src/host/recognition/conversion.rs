@@ -78,14 +78,29 @@ impl RecognitionScope {
         }
         let stored = store.block(block, access)?;
         let content = if let Some(region) = region {
-            stored
-                .regions
-                .iter()
-                .find(|r| r.id == region)
-                .ok_or(Error::Invalid("conversion region"))?
-                .content
-                .clone()
-                .ok_or(Error::Unsupported)?
+            if let Content::Table(table) = &stored.content {
+                match &table
+                    .rows
+                    .iter()
+                    .flatten()
+                    .find(|cell| cell.id == region)
+                    .ok_or(Error::Unavailable)?
+                    .value
+                {
+                    crate::objects::CellValue::Text(text) => Content::Text(text.clone()),
+                    crate::objects::CellValue::Numeric(text) => Content::Numeric(text.clone()),
+                    crate::objects::CellValue::Maths(node) => Content::Maths(node.clone()),
+                }
+            } else {
+                stored
+                    .regions
+                    .iter()
+                    .find(|r| r.id == region)
+                    .ok_or(Error::Invalid("conversion region"))?
+                    .content
+                    .clone()
+                    .ok_or(Error::Unsupported)?
+            }
         } else {
             stored.content
         };

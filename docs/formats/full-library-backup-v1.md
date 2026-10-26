@@ -1,8 +1,8 @@
 # Whole-library backup v1
 
-Current writer: schema 18. The schema-8 description below is historical; later
+Current writer: schema 19. The schema-8 description below is historical; later
 sections describe supported migrations, streaming and semantic-validation changes.
-See the schema-18 reclamation extension below for the latest feature boundary.
+See the schema-19 table-cell extension below for the latest feature boundary.
 
 This is a logical snapshot of the implemented schema, independent of native subset
 v3. It covers current stored state, not unimplemented application features. The only
@@ -147,3 +147,14 @@ The writer appends `engine_reclamations(id, version, payload)` at table index 32
 Current JSON writes schema 18 and reads known schemas 9..18; source schemas below 18 must omit this table and receive it empty. Streaming writes 18 and reads 15..18. Old streams omit index 32 (and sources below 17 also omit index 31). The existing footer remains magic plus row count; synthetic old-layout fixtures remove the appropriate empty segments before changing their tag. Notebook subset v10 remains unchanged.
 
 Pending records explicitly describe uncertain outcomes and do not schedule cleanup. Restored history retains original library provenance and has no deletion authority in the new library. Legacy/unknown import consent remains unknown; explicit current review is recorded without inventing an earlier timestamp. Reviewed symlinks are removed as links only. Completed means known names at the reviewed location were removed and the directory was synced, not measured freed device blocks. See [ADR 034](../decisions/ADR-034-reviewed-installed-resource-reclamation.md).
+
+## Schema 19 — table-cell region semantics
+
+Schema 19 retains the physical tables/column widths of schema 18 but explicitly
+supports cell-ID ink regions in structured table blocks. SQLite migration 019 is
+a version fence only. JSON writes 19 and reads 9..19; streaming writes 19 and reads
+15..19 with unchanged segment indices. Source schema19 uses native subset v11
+semantic validation. Older tags reject table-cell regions in current content,
+retained history and Undo before/after block payloads. Both formats preserve raw
+observations independently of undo; runtime/file capabilities remain excluded.
+See [native-subset-v11.md](native-subset-v11.md).

@@ -128,6 +128,14 @@ impl Store {
         region: Option<Id>,
         access: &Access,
     ) -> Result<InkSnapshot> {
+        if region.is_none()
+            && matches!(
+                Self::read_block(db, block, access)?.content,
+                Content::Table(_)
+            )
+        {
+            return Err(Error::ReviewRequired);
+        }
         let mut snapshot = Self::make_snapshot(db, block, access)?;
         if let Some(id) = region {
             let b = Self::read_block(db, block, access)?;
@@ -151,6 +159,15 @@ impl Store {
         content: Content,
     ) -> Result<()> {
         if let Some(id) = region {
+            if let Content::Table(table) = &mut block.content {
+                let value = match &content {
+                    Content::Text(text) => crate::objects::CellValue::Text(text.clone()),
+                    Content::Numeric(text) => crate::objects::CellValue::Numeric(text.clone()),
+                    Content::Maths(node) => crate::objects::CellValue::Maths(node.clone()),
+                    _ => return Err(Error::Unsupported),
+                };
+                table.edit(id, value)?;
+            }
             block
                 .regions
                 .iter_mut()

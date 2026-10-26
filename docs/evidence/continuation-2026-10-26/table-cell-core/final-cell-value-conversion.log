@@ -1,0 +1,14 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.71s
+     Running tests/host_conversion.rs (/tmp/stem-pen-response-target/debug/deps/host_conversion-174bbf2df57fde4d)
+
+running 6 tests
+test derivative_preserves_lexemes_source_identity_and_runtime_revocation ... ok
+test capture_relock_and_close_revoke_prepared_and_delivered_conversion ... ok
+test protection_change_revokes_snapshot_and_refuses_new_source ... ok
+test running_callback_is_off_writer_and_observes_capture_cancellation ... ok
+test source_admission_is_shared_bounded_and_denied_blocks_stay_denied ... ok
+test typed_table_cell_conversion_uses_its_stored_value_without_requiring_ink ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+

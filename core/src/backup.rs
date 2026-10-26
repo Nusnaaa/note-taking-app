@@ -196,7 +196,7 @@ impl Store {
 
         let mut snapshot = Snapshot {
             format: "STEM-LIBRARY-1".into(),
-            schema: 18,
+            schema: 19,
             tables: BTreeMap::new(),
             omissions: vec![],
         };
@@ -395,7 +395,7 @@ impl Store {
             snapshot.schema = 9;
         }
 
-        if snapshot.format != "STEM-LIBRARY-1" || !matches!(snapshot.schema, 9..=18) {
+        if snapshot.format != "STEM-LIBRARY-1" || !matches!(snapshot.schema, 9..=19) {
             return Err(Error::Unsupported);
         }
 
@@ -505,7 +505,9 @@ impl Store {
         tx.commit()?;
 
         destination.validate_backup_state_controlled(
-            if source_schema >= 16 {
+            if source_schema >= 19 {
+                11
+            } else if source_schema >= 16 {
                 10
             } else if source_schema >= 15 {
                 9
@@ -689,6 +691,33 @@ impl Store {
         control: Option<&crate::processing::JobControl>,
     ) -> Result<()> {
         self.validate_edit_journal(control)?;
+        if native_version < 11 {
+            let mut query = self.db.prepare(
+                "SELECT before_row,after_row FROM edit_changes WHERE table_name='blocks'",
+            )?;
+            for row in query.query_map([], |row| {
+                Ok((
+                    row.get::<_, Option<String>>(0)?,
+                    row.get::<_, Option<String>>(1)?,
+                ))
+            })? {
+                if let Some(control) = control {
+                    control.check()?;
+                }
+                let (before, after) = row?;
+                for encoded in [before, after].into_iter().flatten() {
+                    let fields: Vec<serde_json::Value> = serde_json::from_str(&encoded)?;
+                    let payload = fields
+                        .last()
+                        .and_then(serde_json::Value::as_str)
+                        .ok_or(Error::Integrity)?;
+                    if serde_json::from_str::<Block>(payload)?.has_table_ink() {
+                        return Err(Error::Unsupported);
+                    }
+                }
+            }
+        }
+
         if native_version < 8 {
             let mut q = self
                 .db
