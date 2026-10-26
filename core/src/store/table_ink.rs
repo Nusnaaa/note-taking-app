@@ -200,37 +200,33 @@ impl Store {
         if !block.visible {
             return Err(Error::Unavailable);
         }
+        block.validate()?;
+        let _ = layout;
         let mut scene = Vec::new();
-        for stroke in Self::original_strokes(&self.db, &block)? {
-            if !block.visible_strokes.contains(&stroke.id) {
+        let mut bytes = 1024usize;
+        const LIMIT: usize = 8 * 1024 * 1024;
+        for id in &block.source_ids {
+            if !block.visible_strokes.contains(id) {
                 continue;
             }
-            if stroke.coordinate_space != layout.coordinate_space {
-                return Err(Error::Invalid("table ink coordinate space"));
+            let encoded: usize = self.db.query_row(
+                "SELECT length(CAST(payload AS BLOB)) FROM strokes WHERE id=?1 AND block=?2",
+                rusqlite::params![id.to_string(), block.id.to_string()],
+                |r| r.get(0),
+            )?;
+            if encoded > LIMIT - bytes {
+                return Err(Error::ResourceLimit);
             }
-            let shift = layout.stroke_transform(table, stroke.id)?;
-            let mut transform = block.transform;
-            transform.tx += transform.a * shift.tx + transform.c * shift.ty;
-            transform.ty += transform.b * shift.tx + transform.d * shift.ty;
-            transform.validate()?;
-            if stroke.points.iter().any(|p| {
-                !(transform.a * p.x + transform.c * p.y + transform.tx).is_finite()
-                    || !(transform.b * p.x + transform.d * p.y + transform.ty).is_finite()
-            }) {
-                return Err(Error::Invalid("table ink scene coordinates"));
+            let placement =
+                Self::place_table_stroke(&block, Self::scene_stroke(&self.db, block.id, *id)?)?;
+            let encoded = serde_json::to_vec(&placement)?.len() + 2;
+            if encoded > LIMIT - bytes {
+                return Err(Error::ResourceLimit);
             }
-            let cell = layout
-                .ink_origins
-                .iter()
-                .find(|ink| ink.stroke == stroke.id)
-                .ok_or(Error::Integrity)?
-                .cell;
-            scene.push(CellInkPlacement {
-                cell,
-                stroke,
-                source_to_surface: transform,
-            });
+            bytes += encoded;
+            scene.push(placement);
         }
+        Self::authorise_block_metadata(&self.db, block.id, access)?;
         Ok(scene)
     }
 }

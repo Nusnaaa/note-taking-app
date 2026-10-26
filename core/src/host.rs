@@ -239,6 +239,17 @@ pub enum Command {
         bounds: Rect,
         z: i32,
     },
+    TableInkScenePage {
+        block: Id,
+        revision: u64,
+        cursor: Option<crate::store::TableInkCursor>,
+        max_points: u32,
+    },
+    CopyTable {
+        block: Id,
+        revision: u64,
+        target: WritingTarget,
+    },
     TransferCell {
         source: crate::store::CellTarget,
         target: crate::store::CellTarget,
@@ -1503,6 +1514,7 @@ impl Host {
                 | Command::CanvasLayers { .. }
                 | Command::CanvasScene { .. }
                 | Command::TableInkScene { .. }
+                | Command::TableInkScenePage { .. }
                 | Command::Embed { .. }
                 | Command::Views { .. }
                 | Command::View { .. }
@@ -1795,6 +1807,19 @@ fn execute(
                 bounds,
                 z,
             } => serde_json::to_value(s.set_layout(block, expected, bounds, z, a)?)?,
+            Command::TableInkScenePage {
+                block,
+                revision,
+                cursor,
+                max_points,
+            } => serde_json::to_value(
+                s.table_ink_scene_page(block, revision, cursor, max_points, a)?,
+            )?,
+            Command::CopyTable {
+                block,
+                revision,
+                target,
+            } => serde_json::to_value(s.copy_table(block, revision, target, a)?)?,
             Command::TransferCell {
                 source,
                 target,

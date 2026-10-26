@@ -1296,6 +1296,54 @@ fn host_table_structure_command_runs_through_the_writer() {
     };
     assert_eq!(copied.rows[0][1].value, CellValue::Text("retained".into()));
     assert!(!host.request(&transfer).unwrap().ok);
+    let call = |command| {
+        let response = host
+            .request(
+                &serde_json::to_string(&Request {
+                    version: 1,
+                    command,
+                })
+                .unwrap(),
+            )
+            .unwrap();
+        assert!(response.ok, "{:?}", response.error);
+        response.data.unwrap()
+    };
+    let independent: Block = serde_json::from_value(call(Command::CopyTable {
+        block: result[0].id,
+        revision: result[0].revision,
+        target: stem_core::store::WritingTarget::Entity(note),
+    }))
+    .unwrap();
+    assert_ne!(independent.id, result[0].id);
+    let laid_out: Block = serde_json::from_value(call(Command::SetTableLayout {
+        block: independent.id,
+        revision: independent.revision,
+        layout: cell_layout(),
+    }))
+    .unwrap();
+    let Content::Table(table) = &laid_out.content else {
+        panic!()
+    };
+    let captured: Block = serde_json::from_value(call(Command::CaptureCell {
+        entity: Some(note),
+        ticket: Id::new(),
+        block: laid_out.id,
+        revision: laid_out.revision,
+        cell: table.rows[0][0].id,
+        strokes: vec![stroke(0)],
+    }))
+    .unwrap();
+    let page: stem_core::store::TableInkScenePage =
+        serde_json::from_value(call(Command::TableInkScenePage {
+            block: captured.id,
+            revision: captured.revision,
+            cursor: None,
+            max_points: 1,
+        }))
+        .unwrap();
+    assert_eq!(page.fragments[0].points.len(), 1);
+    assert!(page.next.is_some());
 }
 
 fn cell_layout() -> stem_core::objects::TableLayout {
@@ -2907,4 +2955,492 @@ fn retired_peers_cannot_rebind_to_reused_operation_ids_after_logical_restore() {
     ));
     assert!(again.entity(target.entity, &access).is_err());
     assert_eq!(again.source_ink(source.id, &access).unwrap().len(), 1);
+}
+
+#[test]
+fn whole_table_copy_retains_geometry_hidden_observations_and_independent_undo() {
+    use stem_core::{ink::Transform, objects::Rect, store::WritingTarget};
+    let (mut store, access, note, source, first, second) = fixture();
+    let Content::Table(mut content) = source.content else {
+        panic!()
+    };
+    content.header_rows = 1;
+    content.layout = Some(cell_layout());
+    let source = store
+        .append_content(note, Content::Table(content), &access)
+        .unwrap();
+    let source = capture(&mut store, &access, &source, first, 0);
+    let source = capture(&mut store, &access, &source, second, 0);
+    let source = store
+        .erase_strokes(
+            source.id,
+            source.revision,
+            &[source.visible_strokes[1]],
+            &access,
+        )
+        .unwrap();
+    let transform = Transform {
+        a: 2.,
+        d: 2.,
+        tx: 10.,
+        ty: 20.,
+        ..Transform::default()
+    };
+    let source = store
+        .transform_block(source.id, source.revision, transform, &access)
+        .unwrap();
+    let bounds = Rect {
+        x: 10.,
+        y: 20.,
+        width: 160.,
+        height: 40.,
+    };
+    store
+        .set_layout(source.id, None, bounds, 7, &access)
+        .unwrap();
+    let originals = store.source_ink(source.id, &access).unwrap();
+    let copied = store
+        .copy_table(
+            source.id,
+            source.revision,
+            WritingTarget::Entity(note),
+            &access,
+        )
+        .unwrap();
+    assert_ne!(copied.id, source.id);
+    assert_eq!(copied.transform, transform);
+    assert_eq!(copied.display, source.display);
+    assert_eq!(copied.visible_strokes.len(), 1);
+    assert_eq!(copied.source_ids.len(), 2);
+    let Content::Table(table) = &copied.content else {
+        panic!()
+    };
+    assert_eq!(table.header_rows, 1);
+    assert_ne!(table.rows[0][0].id, first);
+    assert_ne!(table.rows[0][1].id, second);
+    assert_eq!(table.rows[0][1].value, CellValue::Numeric("001".into()));
+    assert_eq!(
+        store.layout(copied.id, &access).unwrap().unwrap().bounds,
+        bounds
+    );
+    assert_eq!(store.layout(copied.id, &access).unwrap().unwrap().z, 7);
+    for (mut independent, original) in store
+        .source_ink(copied.id, &access)
+        .unwrap()
+        .into_iter()
+        .zip(&originals)
+    {
+        assert_ne!(independent.id, original.id);
+        independent.id = original.id;
+        assert_eq!(&independent, original);
+    }
+    assert_eq!(
+        store.table_ink_scene(copied.id, &access).unwrap()[0].source_to_surface,
+        transform
+    );
+    assert_eq!(store.block(source.id, &access).unwrap(), source);
+    store.undo(note, &access).unwrap();
+    assert!(!store.block(copied.id, &access).unwrap().visible);
+    assert!(store.layout(copied.id, &access).unwrap().is_none());
+    assert_eq!(store.source_ink(copied.id, &access).unwrap().len(), 2);
+    store.redo(note, &access).unwrap();
+    assert_eq!(store.table_ink_scene(copied.id, &access).unwrap().len(), 1);
+    assert_eq!(
+        store.layout(copied.id, &access).unwrap().unwrap().bounds,
+        bounds
+    );
+}
+#[test]
+fn whole_table_copy_target_membership_and_custom_layer_are_in_the_same_undo() {
+    use stem_core::store::{CanvasLayer, CanvasLayers, LayerRef, WritingTarget};
+    let (mut store, access, note, source, _, _) = fixture();
+    let exercise = store
+        .create_exercise(note, "copied exercise", &[], &access)
+        .unwrap();
+    let copied = store
+        .copy_table(
+            source.id,
+            source.revision,
+            WritingTarget::Exercise(exercise.id),
+            &access,
+        )
+        .unwrap();
+    assert_eq!(
+        store.exercise_blocks(exercise.id, 0, 10, &access).unwrap()[0].id,
+        copied.id
+    );
+    store.undo(note, &access).unwrap();
+    assert!(store
+        .exercise_blocks(exercise.id, 0, 10, &access)
+        .unwrap()
+        .iter()
+        .all(|block| !block.visible));
+    store.redo(note, &access).unwrap();
+    assert_eq!(
+        store.exercise_blocks(exercise.id, 0, 10, &access).unwrap()[0].id,
+        copied.id
+    );
+    let canvas = store
+        .create(Kind::Canvas, None, "copy canvas", &access)
+        .unwrap();
+    let layer = Id::new();
+    store
+        .set_canvas_layers(
+            CanvasLayers {
+                canvas: canvas.id,
+                revision: 0,
+                base_visible: false,
+                layers: vec![CanvasLayer {
+                    id: layer,
+                    name: "tables".into(),
+                    visible: true,
+                    blocks: vec![],
+                }],
+            },
+            0,
+            &access,
+        )
+        .unwrap();
+    let copied = store
+        .copy_table(
+            source.id,
+            source.revision,
+            WritingTarget::CanvasLayer {
+                canvas: canvas.id,
+                layer: LayerRef::Custom(layer),
+            },
+            &access,
+        )
+        .unwrap();
+    assert_eq!(
+        store.canvas_layers(canvas.id, &access).unwrap().layers[0].blocks,
+        vec![copied.id]
+    );
+    store.undo(canvas.id, &access).unwrap();
+    assert!(store.canvas_layers(canvas.id, &access).unwrap().layers[0]
+        .blocks
+        .is_empty());
+    assert!(!store.block(copied.id, &access).unwrap().visible);
+    store.redo(canvas.id, &access).unwrap();
+    assert_eq!(
+        store.canvas_layers(canvas.id, &access).unwrap().layers[0].blocks,
+        vec![copied.id]
+    );
+}
+#[test]
+fn whole_table_copy_refuses_stale_or_denied_source_and_rolls_back_failed_creation() {
+    use stem_core::{security::Scope, store::WritingTarget};
+    let (mut store, access, _, source, first, _) = fixture();
+    let source = store
+        .set_table_layout(source.id, 0, cell_layout(), &access)
+        .unwrap();
+    let source = capture(&mut store, &access, &source, first, 0);
+    let target = store
+        .create(Kind::Note, None, "copy destination", &access)
+        .unwrap();
+    store.inject_failure(FailurePoint::BeforeCommit);
+    assert!(matches!(
+        store.copy_table(
+            source.id,
+            source.revision,
+            WritingTarget::Entity(target.id),
+            &access
+        ),
+        Err(Error::Interrupted)
+    ));
+    assert!(store.blocks(target.id, 0, 10, &access).unwrap().is_empty());
+    assert_eq!(store.block(source.id, &access).unwrap(), source);
+    assert!(matches!(
+        store.copy_table(
+            source.id,
+            source.revision - 1,
+            WritingTarget::Entity(target.id),
+            &access
+        ),
+        Err(Error::Conflict)
+    ));
+    let scoped = common::access([Scope::Block(source.id)]);
+    let locked = store
+        .set_block_lock(source.id, source.revision, true, &scoped)
+        .unwrap();
+    assert!(matches!(
+        store.copy_table(
+            source.id,
+            locked.revision,
+            WritingTarget::Entity(target.id),
+            &access
+        ),
+        Err(Error::Denied)
+    ));
+    let copied = store
+        .copy_table(
+            source.id,
+            locked.revision,
+            WritingTarget::Entity(target.id),
+            &scoped,
+        )
+        .unwrap();
+    assert!(copied.locked);
+    assert!(matches!(
+        store.block(copied.id, &scoped),
+        Err(Error::Denied)
+    ));
+    let copied_scope = common::access([Scope::Block(copied.id)]);
+    assert!(store.block(copied.id, &copied_scope).unwrap().locked);
+}
+
+#[test]
+fn paged_table_vectors_reconstruct_exact_contacts_with_continuity_and_composed_transforms() {
+    use stem_core::ink::{Interruption, StrokeEnd, StrokeStyle, Transform};
+    let (mut store, access, _, block, first, second) = fixture();
+    let block = store
+        .set_table_layout(block.id, 0, cell_layout(), &access)
+        .unwrap();
+    let mut contact = stroke(0);
+    let point = contact.points[0].clone();
+    contact.points = (0..11)
+        .map(|i| {
+            let mut p = point.clone();
+            p.x = i as f64;
+            p.time_us = i * 10;
+            p.pressure = if i % 2 == 0 { None } else { Some(0.) };
+            p
+        })
+        .collect();
+    contact.end = StrokeEnd::Interrupted(Interruption::Recovery);
+    contact.style = Some(StrokeStyle {
+        colour_rgba: [12, 34, 56, 78],
+        width: 2.,
+        pressure_response: None,
+    });
+    let block = store
+        .append_cell_capture(
+            Id::new(),
+            block.id,
+            block.revision,
+            first,
+            vec![contact.clone()],
+            &access,
+        )
+        .unwrap();
+    let block = capture(&mut store, &access, &block, second, 0);
+    let block = store
+        .erase_strokes(
+            block.id,
+            block.revision,
+            &[block.visible_strokes[1]],
+            &access,
+        )
+        .unwrap();
+    let block = capture(&mut store, &access, &block, first, 0);
+    let transform = Transform {
+        a: 0.,
+        b: 1.,
+        c: -1.,
+        d: 0.,
+        tx: 10.,
+        ty: 20.,
+    };
+    let block = store
+        .transform_block(block.id, block.revision, transform, &access)
+        .unwrap();
+    let originals = store.source_ink(block.id, &access).unwrap();
+    let mut rebuilt = std::collections::BTreeMap::<Id, Vec<stem_core::ink::Point>>::new();
+    let mut cursor = None;
+    let mut pages = 0;
+    loop {
+        let page = store
+            .table_ink_scene_page(block.id, block.revision, cursor, 3, &access)
+            .unwrap();
+        assert!(serde_json::to_vec(&page).unwrap().len() < 8 * 1024 * 1024);
+        assert!(page.fragments.iter().map(|f| f.points.len()).sum::<usize>() <= 3);
+        for fragment in page.fragments {
+            let original = originals
+                .iter()
+                .find(|s| s.id == fragment.source_id)
+                .unwrap();
+            assert_eq!(fragment.source_end, original.end);
+            assert_eq!(fragment.style, original.style);
+            assert_eq!(fragment.source_to_surface, transform);
+            assert_eq!(fragment.capture_session, original.capture_session);
+            assert_eq!(fragment.source_points as usize, original.points.len());
+            let points = rebuilt.entry(fragment.source_id).or_default();
+            assert_eq!(fragment.point_offset as usize, points.len());
+            assert_eq!(fragment.preceding, points.last().cloned());
+            points.extend(fragment.points);
+        }
+        pages += 1;
+        assert!(pages < 20);
+        match page.next {
+            Some(next) => {
+                assert_ne!(Some(next), cursor);
+                cursor = Some(next);
+            }
+            None => break,
+        }
+    }
+    assert_eq!(rebuilt.len(), 2);
+    assert_eq!(rebuilt[&contact.id], contact.points);
+    assert_eq!(rebuilt[&originals[2].id], originals[2].points);
+    assert_eq!(store.source_ink(block.id, &access).unwrap(), originals);
+    assert_eq!(store.block(block.id, &access).unwrap(), block);
+}
+#[test]
+fn table_scene_cursor_rechecks_revision_protection_and_point_bounds() {
+    use stem_core::{security::Scope, store::TableInkCursor};
+    let (mut store, access, _, block, first, _) = fixture();
+    let block = store
+        .set_table_layout(block.id, 0, cell_layout(), &access)
+        .unwrap();
+    let block = capture(&mut store, &access, &block, first, 0);
+    let page = store
+        .table_ink_scene_page(block.id, block.revision, None, 1, &access)
+        .unwrap();
+    let next = page.next.unwrap();
+    assert!(store
+        .table_ink_scene_page(block.id, block.revision, None, 0, &access)
+        .is_err());
+    assert!(store
+        .table_ink_scene_page(
+            block.id,
+            block.revision,
+            Some(TableInkCursor {
+                source_index: 0,
+                point_offset: 2
+            }),
+            1,
+            &access
+        )
+        .is_err());
+    assert!(store
+        .table_ink_scene_page(
+            block.id,
+            block.revision,
+            Some(TableInkCursor {
+                source_index: 999,
+                point_offset: 0
+            }),
+            1,
+            &access
+        )
+        .is_err());
+    let changed = store
+        .edit_cell(
+            block.id,
+            block.revision,
+            first,
+            CellValue::Text("changed".into()),
+            &access,
+        )
+        .unwrap();
+    assert!(matches!(
+        store.table_ink_scene_page(block.id, block.revision, Some(next), 1, &access),
+        Err(Error::Conflict)
+    ));
+    let scoped = common::access([Scope::Block(block.id)]);
+    let locked = store
+        .set_block_lock(block.id, changed.revision, true, &scoped)
+        .unwrap();
+    assert!(matches!(
+        store.table_ink_scene_page(block.id, locked.revision, Some(next), 1, &access),
+        Err(Error::Denied)
+    ));
+}
+#[test]
+fn large_contact_has_bounded_point_pages_instead_of_an_unbounded_legacy_scene() {
+    let (mut store, access, _, block, first, _) = fixture();
+    let block = store
+        .set_table_layout(block.id, 0, cell_layout(), &access)
+        .unwrap();
+    let mut contact = stroke(0);
+    let point = contact.points[0].clone();
+    contact.points = (0..50_000)
+        .map(|i| {
+            let mut p = point.clone();
+            p.x = i as f64 + 0.123456789012345;
+            p.y = -0.123456789012345;
+            p.time_us = i * 10;
+            p.pressure = Some(0.123456789012345);
+            p.tilt_rad = Some(0.234567890123456);
+            p.orientation_rad = Some(0.345678901234567);
+            p.buttons = Some(u32::MAX);
+            p
+        })
+        .collect();
+    assert!(serde_json::to_vec(&contact).unwrap().len() > 8 * 1024 * 1024);
+    let block = store
+        .append_cell_capture(
+            Id::new(),
+            block.id,
+            block.revision,
+            first,
+            vec![contact.clone()],
+            &access,
+        )
+        .unwrap();
+    assert!(matches!(
+        store.table_ink_scene(block.id, &access),
+        Err(Error::ResourceLimit)
+    ));
+    let page = store
+        .table_ink_scene_page(block.id, block.revision, None, 2, &access)
+        .unwrap();
+    assert_eq!(page.fragments[0].points, contact.points[..2]);
+    assert_eq!(page.fragments[0].source_points, 50_000);
+    assert!(page.next.is_some());
+    assert!(serde_json::to_vec(&page).unwrap().len() < 8 * 1024 * 1024);
+}
+#[test]
+fn locked_whole_table_copy_can_join_a_custom_layer_without_granting_a_new_scope() {
+    use stem_core::{
+        security::Scope,
+        store::{CanvasLayer, CanvasLayers, LayerRef, WritingTarget},
+    };
+    let (mut store, access, _, source, _, _) = fixture();
+    let original_scope = common::access([Scope::Block(source.id)]);
+    let source = store
+        .set_block_lock(source.id, source.revision, true, &original_scope)
+        .unwrap();
+    let canvas = store
+        .create(Kind::Canvas, None, "protected copy", &access)
+        .unwrap();
+    let layer = Id::new();
+    store
+        .set_canvas_layers(
+            CanvasLayers {
+                canvas: canvas.id,
+                revision: 0,
+                base_visible: true,
+                layers: vec![CanvasLayer {
+                    id: layer,
+                    name: "copy".into(),
+                    visible: true,
+                    blocks: vec![],
+                }],
+            },
+            0,
+            &access,
+        )
+        .unwrap();
+    let copied = store
+        .copy_table(
+            source.id,
+            source.revision,
+            WritingTarget::CanvasLayer {
+                canvas: canvas.id,
+                layer: LayerRef::Custom(layer),
+            },
+            &original_scope,
+        )
+        .unwrap();
+    assert!(copied.locked);
+    assert!(matches!(
+        store.block(copied.id, &original_scope),
+        Err(Error::Denied)
+    ));
+    let scope = common::access([Scope::Block(copied.id)]);
+    assert_eq!(
+        store.canvas_layers(canvas.id, &scope).unwrap().layers[0].blocks,
+        vec![copied.id]
+    );
 }

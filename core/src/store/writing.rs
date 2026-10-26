@@ -404,6 +404,62 @@ impl Store {
             access,
         )
     }
+    /// Shared insertion/placement contract for observed capture and independent
+    /// technical-object copies. The caller owns the transaction and Undo entry.
+    pub(crate) fn insert_block_at_target(
+        db: &Connection,
+        target: WritingTarget,
+        b: &Block,
+        access: &Access,
+    ) -> Result<()> {
+        let entity = b.entity;
+        b.validate()?;
+        if Self::writing_owner(db, target, access)? != entity {
+            return Err(Error::Conflict);
+        }
+        let e = Self::authorise(db, entity, access, false)?;
+        if !e.kind.is_surface() {
+            return Err(Error::Invalid("writing destination"));
+        }
+        Self::validate_asset_references(db, entity, &b.content)?;
+        let mut ordinal: i64 = db.query_row(
+            "SELECT COALESCE(MAX(ordinal),-1)+1 FROM blocks WHERE entity=?1",
+            [entity.to_string()],
+            |r| r.get(0),
+        )?;
+        if let WritingTarget::Exercise(exercise) = target {
+            let last: Option<i64> = db.query_row(
+                "SELECT MAX(b.ordinal) FROM blocks b JOIN exercise_members m ON m.block=b.id \
+                WHERE m.exercise=?1",
+                [exercise.to_string()],
+                |r| r.get(0),
+            )?;
+            if let Some(last) = last {
+                ordinal = last + 1;
+                db.execute(
+                    "UPDATE blocks SET ordinal=ordinal+1 WHERE entity=?1 AND ordinal>=?2",
+                    rusqlite::params![entity.to_string(), ordinal],
+                )?;
+            }
+        }
+        db.execute(
+            "INSERT INTO blocks VALUES(?1,?2,?3,?4)",
+            rusqlite::params![
+                b.id.to_string(),
+                entity.to_string(),
+                ordinal,
+                serde_json::to_string(&b)?
+            ],
+        )?;
+        if let WritingTarget::Exercise(exercise) = target {
+            Self::set_membership(db, b.id, Some(exercise))?;
+        }
+        if let WritingTarget::CanvasLayer { canvas, layer } = target {
+            Self::attach_new_block_to_layer(db, canvas, layer, b.id, access)?;
+        }
+        Ok(())
+    }
+
     fn append_block(
         &mut self,
         target: WritingTarget,
@@ -464,46 +520,7 @@ impl Store {
             if Self::writing_owner(db, target, access)? != entity {
                 return Err(Error::Conflict);
             }
-            let e = Self::authorise(db, entity, access, false)?;
-            if !e.kind.is_surface() {
-                return Err(Error::Invalid("writing destination"));
-            }
-            Self::validate_asset_references(db, entity, &b.content)?;
-            let mut ordinal: i64 = db.query_row(
-                "SELECT COALESCE(MAX(ordinal),-1)+1 FROM blocks WHERE entity=?1",
-                [entity.to_string()],
-                |r| r.get(0),
-            )?;
-            if let WritingTarget::Exercise(exercise) = target {
-                let last: Option<i64> = db.query_row(
-                    "SELECT MAX(b.ordinal) FROM blocks b JOIN exercise_members m ON m.block=b.id \
-                WHERE m.exercise=?1",
-                    [exercise.to_string()],
-                    |r| r.get(0),
-                )?;
-                if let Some(last) = last {
-                    ordinal = last + 1;
-                    db.execute(
-                        "UPDATE blocks SET ordinal=ordinal+1 WHERE entity=?1 AND ordinal>=?2",
-                        rusqlite::params![entity.to_string(), ordinal],
-                    )?;
-                }
-            }
-            db.execute(
-                "INSERT INTO blocks VALUES(?1,?2,?3,?4)",
-                rusqlite::params![
-                    b.id.to_string(),
-                    entity.to_string(),
-                    ordinal,
-                    serde_json::to_string(&b)?
-                ],
-            )?;
-            if let WritingTarget::Exercise(exercise) = target {
-                Self::set_membership(db, b.id, Some(exercise))?;
-            }
-            if let WritingTarget::CanvasLayer { canvas, layer } = target {
-                Self::attach_new_block_to_layer(db, canvas, layer, b.id, access)?;
-            }
+            Self::insert_block_at_target(db, target, &b, access)?;
             for s in &strokes {
                 let payload = serde_json::to_string(s)?;
                 db.execute(
