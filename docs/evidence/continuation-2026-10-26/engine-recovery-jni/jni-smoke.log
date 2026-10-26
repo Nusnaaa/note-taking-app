@@ -1,0 +1,10 @@
+PASS: consented resource import, stable identity, callback reentry, exact binary handoff, source-buffer and factory-array clearing (1)
+PASS: read-only recovery preserves unacknowledged tails, redacts legacy/corrupt metadata, pages and obeys single-use/cancel/capture authority (1)
+PASS: failed input preserves acknowledged offset, foreign resume cannot truncate, exact resumed bytes stage under the same identity (1)
+PASS: native capture authority reaches a blocked Java model-input callback and prevents publication (1)
+
+thread '<unnamed>' panicked at bridge/src/engines/import.rs:75:13:
+engine input retirement failed
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+PASS: input count violations and retirement errors are contained without private diagnostics or repeated cleanup (1)
+PASS: native close owns blocked input opening and actual cleanup until safe library reopen (1)

@@ -85,6 +85,28 @@ public final class NativeBridge {
         try { return new EngineJob(host,token,false); }
         catch(Throwable failure) { releaseEngineJob(host,token); throw failure; }
     }
+    private static native long beginEngineRecovery(long host, long budgetMillis);
+    private static native String runEngineRecovery(long host, long token, String privateRoot, String after, int limit);
+    /** Single-use read-only scan, cancelled through the same native scope as imports. */
+    public static final class EngineRecovery implements AutoCloseable {
+        private final long host, token;
+        private boolean started, closed;
+        private EngineRecovery(long host,long token) { this.host=host;this.token=token; }
+        public String scan(String privateRoot,String after,int limit) {
+            synchronized(this) { if(started || closed) throw engineFailure(); started=true; }
+            try { return runEngineRecovery(host,token,privateRoot,after,limit); }
+            finally { close(); }
+        }
+        @Override public void close() {
+            synchronized(this) { if(closed) return;closed=true; }
+            releaseEngineJob(host,token);
+        }
+    }
+    public static EngineRecovery engineRecovery(long host,long budgetMillis) {
+        long token=beginEngineRecovery(host,budgetMillis);
+        try { return new EngineRecovery(host,token); }
+        catch(Throwable error) { releaseEngineJob(host,token);throw error; }
+    }
     private static native long beginEngineImport(long host, String descriptor, long total, boolean confirmed, long budgetMillis);
     private static native EngineImport startEngineImport(long host, long token, String privateRoot, String resume);
     private static native String copyEngineImport(long host, long token, EngineInputFactory input);

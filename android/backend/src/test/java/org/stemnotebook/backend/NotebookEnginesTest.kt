@@ -184,6 +184,56 @@ class NotebookEnginesTest {
             assertEquals(NotebookEngines.FailureReason.Closed,failure {engines.stageResourceFree(descriptor(),true)}.reason)
         } finally {release.countDown();releaseRetire.countDown();backend.closeFullyAsync().get(20,TimeUnit.SECONDS)}
     }
+    @Test fun recoveryOwnerUsesTheJniParentLoader() {
+        assertSame(NativeBridge::class.java.classLoader,NativeBridge.EngineRecovery::class.java.classLoader)
+    }
+    @Test fun recoveryIsReadOnlyRedactedLibraryBoundAndSurvivesReopen() {
+        val path=temporary.newFolder().resolve("library.db").absolutePath
+        val models=temporary.newFolder("recovery-depot")
+        var host=NativeBridge.open(path);var engines=NotebookEngines(models) {host}
+        val bytes=ByteArray(70001) {(it*71+137).toByte()}
+        val sha=java.security.MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") {"%02x".format(it.toInt() and 255)}
+        val manifest=JSONObject(descriptor()).put("resource_sha256",sha).toString()
+        val receipt=AtomicReference<NotebookEngines.Transfer>();val retired=AtomicInteger()
+        try {
+            failure {engines.recover(limit=0)}
+            val pending=engines.importResource(manifest,bytes.size.toLong(),true,null,30000,{receipt.set(it)}) { _,_ ->
+                object:NativeBridge.EngineInput {
+                    var read=false
+                    override fun read(buffer:ByteArray,control:NativeBridge.EngineControl):Int {
+                        control.check();if(read)throw IllegalArgumentException("private interrupted source");read=true
+                        bytes.copyInto(buffer,0,0,buffer.size);return buffer.size
+                    }
+                    override fun retire(){assertEquals(1,retired.incrementAndGet())}
+                }
+            }
+            observer {failure {pending.await()}}
+            assertEquals(1,retired.get())
+            val id=receipt.get().version;val part=File(models,"$id.part");part.appendBytes(byteArrayOf(1,2,3))
+            val before=part.readBytes()
+            val first=observer {engines.recover().await()}.entries.single()
+            assertEquals(id,first.id);assertEquals(65536L,first.committedBytes)
+            assertEquals(NotebookEngines.RecoveryState.Interrupted,first.state);assertNotNull(first.consentMillis)
+            assertFalse(first.descriptorJson!!.contains(models.absolutePath));assertArrayEquals(before,part.readBytes())
+            val foreign=NativeBridge.open(temporary.newFolder().resolve("foreign.db").absolutePath)
+            val other=NotebookEngines(models) {foreign}
+            try {assertTrue(observer {other.recover().await()}.entries.isEmpty())}
+            finally {other.close();NativeBridge.close(foreign);observer {other.awaitClosed()}}
+            val legacy=UUID.randomUUID();val corrupt=UUID.randomUUID()
+            val ledger=JSONObject(File(models,"$id.install.json").readText()).put("id",legacy.toString());ledger.remove("binding")
+            File(models,"$legacy.install.json").writeText(ledger.toString());File(models,"$corrupt.install.json").writeText("private invalid metadata")
+            var after:UUID?=null;val entries=mutableListOf<NotebookEngines.RecoveryEntry>()
+            do {val page=observer {engines.recover(after,1).await()};entries.addAll(page.entries);after=page.next} while(after!=null)
+            assertEquals(setOf(id,legacy,corrupt),entries.map {it.id}.toSet())
+            assertEquals(NotebookEngines.RecoveryState.ReviewRequired,entries.single {it.id==legacy}.state)
+            assertEquals(NotebookEngines.RecoveryState.Invalid,entries.single {it.id==corrupt}.state)
+            entries.filter {it.id!=id}.forEach {assertNull(it.descriptorJson);assertNull(it.committedBytes);assertNull(it.consentMillis)}
+            engines.close();NativeBridge.close(host);observer {engines.awaitClosed()}
+            host=NativeBridge.open(path);engines=NotebookEngines(models) {host}
+            assertEquals(3,observer {engines.recover().await()}.entries.size)
+            assertArrayEquals(before,part.readBytes());assertTrue(observer {engines.catalogue().await()}.versions.isEmpty())
+        } finally {engines.close();NativeBridge.close(host);observer {engines.awaitClosed()}}
+    }
     @Test fun resourceImportPublishesStableOffsetBeforeOpeningAndClearsVerifiedFactoryBytes() {
         val host=NativeBridge.open(temporary.newFolder().resolve("library.db").absolutePath)
         val models=temporary.newFolder("model-depot")

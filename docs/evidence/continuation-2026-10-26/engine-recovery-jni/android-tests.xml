@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.NotebookEnginesTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-26T08:09:13" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="10.307">
+  <properties/>
+  <testcase name="queueBoundsAndQueuedCancellationDoNotConstructAnotherSdk" classname="org.stemnotebook.backend.NotebookEnginesTest" time="8.732"/>
+  <testcase name="resourceInputOpeningRemainsOwnedAcrossControllerAndBackendClose" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.531"/>
+  <testcase name="resourceImportPublishesStableOffsetBeforeOpeningAndClearsVerifiedFactoryBytes" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.21"/>
+  <testcase name="recoveryIsReadOnlyRedactedLibraryBoundAndSurvivesReopen" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.228"/>
+  <testcase name="failedProviderIsRedactedRetiredAndDoesNotStrandTheOptionalWorker" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.11"/>
+  <testcase name="workerWorkflowPreservesSourceAndKnownReceiptsAfterLateCancellation" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.126"/>
+  <testcase name="recoveryOwnerUsesTheJniParentLoader" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.035"/>
+  <testcase name="catalogueTracksPagingDefaultAndExplicitReload" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.169"/>
+  <testcase name="backendCloseKeepsOwnershipThroughBlockedInferenceAndSdkRetirement" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.163"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

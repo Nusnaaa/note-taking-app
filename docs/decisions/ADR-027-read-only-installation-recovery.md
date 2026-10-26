@@ -1,6 +1,6 @@
 # ADR 027 — read-only installation recovery
 
-Status: native Store/Host recovery discovery; JNI/Android recovery adoption, explicit discard and uninstall integration remain open.
+Status: native Store/Host and JNI/Android recovery discovery; explicit discard and uninstall integration remain open.
 
 A current app-authorised recovery plan captures library identity and access expiry without opening the model depot on the writer. Its worker scans canonical UUID `.install.json` names, retaining the smallest limit+1 eligible IDs in bounded memory rather than sorting the directory. Pages allow 1–128 entries and at most 4 MiB of serialized entry metadata; internal candidate metadata is bounded by 129 records of at most 64 KiB each. Directory scanning remains proportional to directory size and checks cancellation per entry and around bounded file reads. These are engineering bounds, not timing or device-memory guarantees.
 
@@ -9,3 +9,8 @@ Discovery never calls Transfer.resume: resume intentionally truncates an unackno
 Bound records expose descriptor provenance, recorded consent timestamp, declared total and durable committed offset without managed filesystem paths. Interrupted means a structurally usable ledger/part pair, not verified model bytes. RecordedComplete means the ledger records completion and the resource has the declared size; current hashes and runtime readiness are not inferred. Explicit resume/finish rechecks resource integrity, and separate fenced staging/activation is still required.
 
 The Host reserves this work in the existing bounded optional lifecycle. The caller's running scope holds library ownership through actual directory/file access, links job control to capture/current access/deadline authority, and rechecks that authority before returning metadata. No scope/phase mutex stays held across filesystem work. This does not provide hostile-process isolation or close the remaining model-lifecycle acceptance gap.
+
+
+JNI/Android adoption uses a single-use EngineRecovery owner in the existing native job registry. Admission captures the Host recovery capability before any depot I/O; running the job scans on the caller's optional worker with the exact linked JobControl. Closing the Java owner or cancelling a NotebookEngines Pending cancels that native job. Bounded root/cursor/limit inputs and fixed sanitized failures apply. Partial allocations and invalid/replayed scans release their tokens without model loading or mutation.
+
+NotebookEngines.recover uses the backend's configured private no-backup model root and existing bounded worker. It returns immutable typed recovery entries and a continuation cursor; missing configured storage fails explicitly. Metadata uncertainty is not marked as a mutation attempt for a read-only scan. The new pure Java owner stays in the JNI parent loader under Robolectric, like the existing import/activation owners. Production device execution and explicit recovery UI remain separate from these backend APIs.

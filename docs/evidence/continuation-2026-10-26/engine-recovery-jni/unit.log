@@ -1,0 +1,10 @@
+   Compiling stem-bridge v0.1.0 (/tmp/stem-engine-catalogue-jni-work/bridge)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.83s
+     Running unittests src/lib.rs (/tmp/stem-pen-response-target/debug/deps/stem_bridge-8a8ae9df0e79b094)
+
+running 2 tests
+test handle_tests::exhaustion_never_wraps_or_reuses_a_handle ... ok
+test engines::tests::closing_registry_scan_cannot_be_followed_by_late_job_admission ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+

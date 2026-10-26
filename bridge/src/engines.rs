@@ -1,6 +1,7 @@
 //! Trusted worker-only compiled provider boundary. Never supplied by notebook
 //! JSON. SDK construction, inference and disposal occur outside registry locks.
 mod import;
+mod recovery;
 use super::{allocate_handle, bounded_string, fail, hosts};
 use jni::{
     objects::{GlobalRef, JByteArray, JClass, JObject, JString, JValue},
@@ -32,6 +33,7 @@ fn controls() -> &'static Mutex<BTreeMap<i64, JobControl>> {
 enum Work {
     Activation(HostEngineActivationPlan, u64),
     Recognition(HostRecognitionWork),
+    Recovery(stem_core::host::HostEngineRecoveryPlan),
     ImportPlan(stem_core::host::HostEngineImportPlan),
     ImportTransfer(stem_core::host::HostEngineImportTransfer),
 }

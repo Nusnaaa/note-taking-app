@@ -27,6 +27,10 @@ class NotebookEngines internal constructor(private val modelRoot: File? = null, 
     data class Version(val id: UUID, val engine: String, val version: String, val descriptorJson: String,
                        val installation: Installation, val bytes: Long, val installedMillis: Long?,
                        val active: Boolean, val runtimeReady: Boolean)
+    enum class RecoveryState { Interrupted, RecordedComplete, ReviewRequired, Invalid }
+    data class RecoveryEntry(val id: UUID, val state: RecoveryState, val descriptorJson: String?,
+                             val totalBytes: Long?, val committedBytes: Long?, val consentMillis: Long?)
+    data class RecoveryPage(val entries: List<RecoveryEntry>, val next: UUID?)
     data class Selected(val task: Task, val engine: String)
     data class Default(val task: Task, val engine: String, val runtimeReady: Boolean)
     data class Catalogue(val versions: List<Version>, val next: UUID?, val defaults: List<Default>)
@@ -118,6 +122,32 @@ class NotebookEngines internal constructor(private val modelRoot: File? = null, 
             }
         }
         return Pending(operation.result, operation::cancel, ::observerOnly)
+    }
+    /** Read-only private-depot discovery. RecordedComplete is not current hash
+     * verification or runtime readiness; resume/finish and activation are separate. */
+    fun recover(after: UUID? = null, limit: Int = 32, budgetMillis: Long = 30000): Pending<RecoveryPage> {
+        budget(budgetMillis)
+        if (limit !in 1..128) throw Failure(FailureReason.InvalidInput)
+        val root = modelRoot ?: throw Failure(FailureReason.Unavailable)
+        return submit { operation ->
+            val host = nativeHandle(); operation.check()
+            val job = NativeBridge.engineRecovery(host,budgetMillis)
+            try {
+                operation.attach(job)
+                val page = JSONObject(job.scan(root.absolutePath,after?.toString(),limit))
+                val rows = page.getJSONArray("entries")
+                val entries = ArrayList<RecoveryEntry>()
+                for (index in 0 until rows.length()) {
+                    val row = rows.getJSONObject(index)
+                    entries.add(RecoveryEntry(UUID.fromString(row.getString("id")),RecoveryState.valueOf(row.getString("state")),
+                        if(row.isNull("descriptor")) null else row.getJSONObject("descriptor").toString(),
+                        if(row.isNull("total")) null else row.getLong("total"),
+                        if(row.isNull("committed")) null else row.getLong("committed"),
+                        if(row.isNull("consent_ms")) null else row.getLong("consent_ms")))
+                }
+                RecoveryPage(Collections.unmodifiableList(entries),if(page.isNull("next")) null else UUID.fromString(page.getString("next")))
+            } finally { operation.detach(job);job.close() }
+        }
     }
     /** Bounded metadata snapshot through current native access. No model load. */
     fun catalogue(after: UUID? = null, limit: Int = 32): Pending<Catalogue> {

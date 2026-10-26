@@ -36,7 +36,7 @@ try:
         reasons.append("ANDROID_RUN_INCOMPLETE_OR_UNCOMMITTED")
     if platform.get("source_sha256") != evidence["source_sha256"]:
         reasons.append("ANDROID_SOURCE_REVISION_MISMATCH")
-    if platform.get("jni_shrink_policy") != "PASS" or platform.get("consumer_rules_policy") != "PASS" or platform.get("jni_smoke_groups", 0) < 39 or platform.get("jni_shrunk_smoke_groups") != platform.get("jni_smoke_groups") or not platform.get("release_aar_sha256"):
+    if platform.get("jni_shrink_policy") != "PASS" or platform.get("consumer_rules_policy") != "PASS" or platform.get("jni_smoke_groups", 0) < 40 or platform.get("jni_shrunk_smoke_groups") != platform.get("jni_smoke_groups") or not platform.get("release_aar_sha256"):
         reasons.append("JNI_RELEASE_PACKAGING_INCOMPLETE")
     totals = platform.get("android_tests", {})
     if totals.get("tests", 0) < 10 or any(totals.get(k, 0) for k in ("failures", "errors", "skipped")) or not platform.get("packaged_arm64_library_bytes"):

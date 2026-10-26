@@ -56,8 +56,37 @@ public final class EngineImportBoundarySmoke {
             try(var job=NativeBridge.engineImport(host,manifest,bytes.length,true,models.toString(),null,30000)) {partial=job.version;rejected(() -> job.copy(c -> interrupted));}
             check(interrupted.retired.get()==1);Path part=models.resolve(partial+".part");long committed=Files.size(part);check(committed==65536);
             Files.write(part,new byte[]{1,2,3},StandardOpenOption.APPEND);long tail=Files.size(part);
+            String legacy=UUID.randomUUID().toString(), corrupt=UUID.randomUUID().toString();
+            String oldLedger=Files.readString(models.resolve(partial+".install.json"))
+                .replace("\"id\":\""+partial+"\"","\"id\":\""+legacy+"\"")
+                .replaceAll(",\"binding\":\\{[^}]*\\}","");
+            Files.writeString(models.resolve(legacy+".install.json"),oldLedger);
+            Files.writeString(models.resolve(corrupt+".install.json"),"private invalid ledger");
+            try(var recovery=NativeBridge.engineRecovery(host,30000)) {
+                String page=recovery.scan(models.toString(),null,128);
+                check(page.contains(partial) && page.contains("\"committed\":65536") && page.contains("RecordedComplete"));
+                check(page.contains("ReviewRequired") && page.contains("Invalid") && !page.contains("private invalid") && !page.contains(models.toString()));
+                rejected(() -> recovery.scan(models.toString(),null,128));
+            }
+            check(Files.size(part)==tail);
+            try(var recovery=NativeBridge.engineRecovery(host,30000)) {
+                String page=recovery.scan(models.toString(),null,1);String cursor=field(page,"next");
+                try(var next=NativeBridge.engineRecovery(host,30000)) {check(!next.scan(models.toString(),cursor,1).contains("\"id\":\""+cursor+"\""));}
+            }
+            var cancelledRecovery=NativeBridge.engineRecovery(host,30000);cancelledRecovery.close();
+            rejected(() -> cancelledRecovery.scan(models.toString(),null,1));
+            try(var recovery=NativeBridge.engineRecovery(host,30000)) {rejected(() -> recovery.scan(models.toString(),"bad",1));}
+            try(var recovery=NativeBridge.engineRecovery(host,30000)) {rejected(() -> recovery.scan(models.toString(),null,129));}
+            try(var recovery=NativeBridge.engineRecovery(host,30000)) {
+                String pen=UUID.randomUUID().toString();NativeBridge.setCapturePriority(host,pen,true);NativeBridge.setCapturePriority(host,pen,false);
+                rejected(() -> recovery.scan(models.toString(),null,1));
+            }
+            System.out.println("PASS: read-only recovery preserves unacknowledged tails, redacts legacy/corrupt metadata, pages and obeys single-use/cancel/capture authority (1)");
             long foreign=NativeBridge.open(root.resolve("foreign.db").toString());
-            try {rejected(() -> NativeBridge.engineImport(foreign,manifest,bytes.length,true,models.toString(),partial,30000));check(Files.size(part)==tail);}
+            try {
+                try(var recovery=NativeBridge.engineRecovery(foreign,30000)) {check(!recovery.scan(models.toString(),null,128).contains(partial));}
+                rejected(() -> NativeBridge.engineImport(foreign,manifest,bytes.length,true,models.toString(),partial,30000));check(Files.size(part)==tail);
+            }
             finally {NativeBridge.close(foreign);}
             try(var resumed=NativeBridge.engineImport(host,manifest,bytes.length,true,models.toString(),partial,30000)) {
                 check(resumed.version.equals(partial) && resumed.committedBytes==committed);check(Files.size(part)==committed);
