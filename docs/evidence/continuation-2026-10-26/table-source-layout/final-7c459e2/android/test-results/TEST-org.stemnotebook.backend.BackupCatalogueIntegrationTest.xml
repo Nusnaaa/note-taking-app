@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.BackupCatalogueIntegrationTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-26T19:55:42" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="21.729">
+  <properties/>
+  <testcase name="actualPublicationIsRecordedWithoutChangingSourceAndSurvivesBackendRestart" classname="org.stemnotebook.backend.BackupCatalogueIntegrationTest" time="5.015"/>
+  <testcase name="unresolvedAuthoringFailureCannotClaimCompleteCurrentCoverage" classname="org.stemnotebook.backend.BackupCatalogueIntegrationTest" time="4.312"/>
+  <testcase name="publicationAndCatalogueFailureAreAcknowledgedSeparately" classname="org.stemnotebook.backend.BackupCatalogueIntegrationTest" time="4.237"/>
+  <testcase name="pendingCaptureEvidenceAndAppLockCannotProduceAFalseCurrentBackupStatus" classname="org.stemnotebook.backend.BackupCatalogueIntegrationTest" time="4.176"/>
+  <testcase name="fullCloseOwnsAnEnteredCatalogueCommitUntilItsActualRetirement" classname="org.stemnotebook.backend.BackupCatalogueIntegrationTest" time="3.989"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

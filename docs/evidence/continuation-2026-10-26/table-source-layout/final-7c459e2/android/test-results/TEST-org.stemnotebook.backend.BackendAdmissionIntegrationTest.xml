@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.BackendAdmissionIntegrationTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-10-26T19:55:29" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="10.69">
+  <properties/>
+  <testcase name="realTrashRestoreAndPermanentDeletionPreserveThenRetireObservedInk" classname="org.stemnotebook.backend.BackendAdmissionIntegrationTest" time="8.753"/>
+  <testcase name="proposalDiscoveryChecksCurrentBlockProtectionBeforeReturningEvenAnEmptyPage" classname="org.stemnotebook.backend.BackendAdmissionIntegrationTest" time="0.124"/>
+  <testcase name="captureAndRelockKeepFifoAndQueuedReadChecksCurrentAuthority" classname="org.stemnotebook.backend.BackendAdmissionIntegrationTest" time="0.104"/>
+  <testcase name="optedInFingerContactsPersistAsFingerAcrossReopenAndSettingsChange" classname="org.stemnotebook.backend.BackendAdmissionIntegrationTest" time="0.159"/>
+  <testcase name="savedPresetsCalibrateFutureContactsAndGuidesRespectExportChoiceAcrossReopen" classname="org.stemnotebook.backend.BackendAdmissionIntegrationTest" time="0.169"/>
+  <testcase name="observedContactsHoldNativePriorityIndependentlyUntilTheirCheckpointsRetire" classname="org.stemnotebook.backend.BackendAdmissionIntegrationTest" time="0.147"/>
+  <testcase name="oldPenUpAcknowledgementCannotResumeRecognitionDuringANewerContact" classname="org.stemnotebook.backend.BackendAdmissionIntegrationTest" time="0.157"/>
+  <testcase name="authoringRejectionRetainsCallerFrameForExactRetryAfterCapacityRecovers" classname="org.stemnotebook.backend.BackendAdmissionIntegrationTest" time="0.157"/>
+  <testcase name="cancellingPenUpObservationKeepsPriorityUntilTheAdmittedCheckpointActuallyRuns" classname="org.stemnotebook.backend.BackendAdmissionIntegrationTest" time="0.114"/>
+  <testcase name="fullReadLaneStillAdmitsObservedInkAndQueuedReadsSeeItsCommit" classname="org.stemnotebook.backend.BackendAdmissionIntegrationTest" time="0.135"/>
+  <testcase name="queuedInputBytesExhaustBeforeCountAndCannotBorrowCaptureCapacity" classname="org.stemnotebook.backend.BackendAdmissionIntegrationTest" time="0.242"/>
+  <testcase name="protectedCaptureRetriesReturnIdenticalErrorsBeforeComparingObservedInk" classname="org.stemnotebook.backend.BackendAdmissionIntegrationTest" time="0.111"/>
+  <testcase name="independentEmbedLayersCrossActualJniWithoutChangingCanvasDefaults" classname="org.stemnotebook.backend.BackendAdmissionIntegrationTest" time="0.122"/>
+  <testcase name="savedUnicodeSelectionRestoresOnlyAtItsOriginalRevision" classname="org.stemnotebook.backend.BackendAdmissionIntegrationTest" time="0.088"/>
+  <testcase name="workspaceFindsSavedPaneAndToolAfterFullBackendReopen" classname="org.stemnotebook.backend.BackendAdmissionIntegrationTest" time="0.102"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

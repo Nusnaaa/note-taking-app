@@ -47,3 +47,14 @@ impl Authenticator for TestAuth {
 pub fn access(scopes: impl IntoIterator<Item = Scope>) -> Access {
     Access::authenticate(&mut TestAuth(true), scopes.into_iter().collect()).unwrap()
 }
+
+/// Older physical fixtures predate schema22. Never discard live linked history
+/// to fabricate a legacy fixture: only the empty extension can be removed.
+pub fn remove_linked_history_extension(db: &rusqlite::Connection) {
+    let count: i64 = db
+        .query_row("SELECT count(*) FROM edit_links", [], |r| r.get(0))
+        .unwrap();
+    assert_eq!(count, 0);
+    db.execute_batch("DROP TRIGGER edit_link_retire; DROP TABLE edit_links;")
+        .unwrap();
+}

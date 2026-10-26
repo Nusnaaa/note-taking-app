@@ -1,6 +1,6 @@
 # ADR 044 — explicit table-cell cut and copy
 
-Status: cell transfer implementation/component verification in progress. Cross-master cut, complete selection/scene integration and backend acceptance remain open.
+Status: cell transfer implementation; ADR045 adds linked cross-master cut. Complete selection/scene integration and backend acceptance remain open.
 
 Cell targets carry block, expected block revision and table-local cell ID. Transfer explicitly chooses Copy or Move. A destination is an existing cell: its grid identity and dimensions remain stable, while the source authored value replaces the destination value exactly. Move clears the source value to empty text; it does not insert numeric zero or repair notation. Destination values and replaced ink remain recoverable through the existing transaction/history/Undo machinery.
 
@@ -8,6 +8,6 @@ Within a table, moving ink rebinds the source region and its per-stroke origins 
 
 Between tables, vectors receive independent destination source identities while retaining recorded capture provenance. Both layouts must explicitly declare the same source-coordinate space when cell ink is present. Cell-local offsets carry to the destination, rather than guessing an inter-device scale or copying only text. Legacy unplaced cell ink requires explicit layout adoption before transfer. Typed cells without ink need no layout.
 
-Copy can cross master surfaces: only the destination changes and its local Undo records the edit. Move is currently supported within a master surface, including across tables as a single compound Undo operation. Cross-master Move refuses rather than committing a copy and a separate deletion with unrelated Undo; linked multi-document history remains required. Both source and destination use fresh access and revision checks inside the transaction. A failed candidate or commit leaves both active cell states unchanged.
+Copy can cross master surfaces: only the destination changes and its local Undo records the edit. Move is currently supported within a master surface, including across tables as a single compound Undo operation. The initial cross-master Move refusal is superseded by ADR045, which adds paired journal entries and atomic linked Undo/Redo. Both source and destination use fresh access and revision checks inside the transaction. A failed candidate or commit leaves both active cell states unchanged.
 
-No new persisted field or interpretation is introduced: region/cell/source/origin states already belong to native13/schema21. No format bump is needed for the authoring command. Complete pen/lasso selection, whole-table copy workflows, cross-master cut, bounded scene integration, export fidelity and final backend acceptance remain open. No production Android H.I. or device calibration is introduced.
+No new persisted field or interpretation is introduced: region/cell/source/origin states already belong to native13/schema21. No format bump is needed for the authoring command. Complete pen/lasso selection, whole-table copy workflows, linked-history acceptance, bounded scene integration, export fidelity and final backend acceptance remain open. No production Android H.I. or device calibration is introduced.

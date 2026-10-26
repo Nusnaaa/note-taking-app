@@ -511,7 +511,7 @@ fn schema18_classic_and_stream_backups_preserve_decisions_without_paths_or_delet
     let plain = crypto::decrypt(&backup.bytes, Credential::Password(password)).unwrap();
     assert!(!String::from_utf8_lossy(&plain).contains(root.path().to_str().unwrap()));
     let mut json: serde_json::Value = serde_json::from_slice(&plain).unwrap();
-    assert_eq!(json["schema"], 21);
+    assert_eq!(json["schema"], 22);
     let restored = Store::restore_backup_password(&backup.bytes, password).unwrap();
     assert_eq!(restored.engine_reclamation(action, &a).unwrap(), expected);
     assert!(restored
@@ -567,11 +567,12 @@ fn real_schema17_layout_migrates_and_legacy_backup_tag_cannot_smuggle_reclamatio
             .unwrap(),
         0
     );
+    common::remove_linked_history_extension(&db);
     db.execute_batch("DROP TABLE engine_reclamations; PRAGMA user_version=17;")
         .unwrap();
     drop(db);
     let s = Store::open(&path).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 21);
+    assert_eq!(s.schema_version().unwrap(), 22);
     assert_eq!(s.entity(note.id, &a).unwrap().title, "schema17 source");
     let password = "Explicit schema17 compatibility backup passphrase";
     let options = BackupOptions {

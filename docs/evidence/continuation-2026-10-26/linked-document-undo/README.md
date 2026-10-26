@@ -1,0 +1,22 @@
+# Linked-document Undo component checks
+
+Executed in `/tmp/stem-engine-catalogue-work` with PATH=/tmp/stem-cargo/bin:$PATH, CARGO_HOME=/tmp/stem-cargo, RUSTUP_HOME=/tmp/stem-rustup, CARGO_TARGET_DIR=/tmp/stem-pen-response-target, CARGO_INCREMENTAL=0, CARGO_BUILD_JOBS=2 and RUST_TEST_THREADS=2 for tests.
+
+- `cargo test -p stem-core --test table_cell_ink --test editing --test deletion --test recovery --test authoring --test positions --test layers --test workspace --test interrupted_capture --test stroke_style --test engine_discard --test engine_reclamation` passed 128 cases in 12 suites, 0 failed/ignored.
+- Three additional cases exercise a schema21 physical fixture preserving source/receipt bytes and prior Undo, an explicit schema21 stream table sequence, and a late block-lock denial rolling back the first participant's replay. `cargo test -p stem-core --test table_cell_ink` then passed all 54 table cases, 0 failed/ignored. Production Rust code was unchanged between those successful runs: 131 distinct passing cases across the selected suites before the final retirement-sentinel change.
+- `cargo clippy --workspace --all-targets -- -D warnings` passed.
+- `cargo fmt --all -- --check`, source/doc `git diff --check`, and `python3 tools/traceability.py --check` passed. All 94 requirements/103 inherited clauses/158 candidates remain retained; no candidate acceptance is inferred.
+
+Cases cover reciprocal cut Undo/Redo from either document, fresh owner/block protection, newer peer history, commit-failure rollback, redo-branch retirement, authorised expiry with a locked peer, permanent purge barriers, source retention, active/retired encrypted restore and malformed/downgraded link refusal. Schema21 migration and stream fixtures are constructed representations, not provenance claims about historical application binaries.
+
+Initial failures are retained: the schema19 fixture still contained the new empty table while claiming old DDL; two older stream-header tests received a generic integrity error when the appended link-table marker was present. Legacy physical fixtures now remove only an asserted-empty schema22 extension, and stream readers explicitly refuse that marker under older headers. Initial unused Move import warning was removed before denied-warning lint. The initial three-suite run ended with three failures; its other passes are not presented as a full pass.
+
+SQLite/library backup schema22 adds private link metadata and retirement triggers; native subset stays v13 because it does not export device-private Undo journals. ADR045 records semantics and privacy/retirement rules. Independent-copy source data and original observations remain separate from journal lifetime. Full selection/whole-table workflows, scene/export/resource integration and backend acceptance remain open. All eight gaps remain open.
+
+Completed full native546/Android380 matching395-file evidence for earlier source7c459e2 is archived under table-source-layout/final-7c459e2. It predates these changes and is not final-source acceptance for linked history. Synthetic contract tests do not establish device performance or real recogniser quality.
+
+Final retirement review found that logical restore may reuse a deleted AUTOINCREMENT operation ID. Retired links now clear their peer to zero; the marker cannot attach to a later unrelated operation. A regression deliberately purges the higher-ID participant, restores, verifies actual reuse of that ID, edits/undoes/redoes and restores again. The current `cargo test -p stem-core --test table_cell_ink` passed all 55 cases, 0 failed/ignored. The earlier 77 other regression cases predate this final sentinel change and are not presented as full final-source acceptance. `jni/` is likewise the successful pre-sentinel boundary run; final boundary results are separate.
+
+Final `cargo clippy --workspace --all-targets -- -D warnings` and `cargo build -p stem-bridge --locked --offline` passed. The fresh shared library was copied to the JNI runtime path; both hashes match, and no binary is committed.
+
+Final `python3 tools/validate_jni.py --output docs/evidence/continuation-2026-10-26/linked-document-undo/jni-final --r8 /tmp/stem-android-sdk/build-tools/35.0.0/lib/d8.jar` terminated exit0. All ten checks passed; all52 aggregate desktop JNI groups passed before/after fresh R8 classfile optimization. All 400 current source-file hashes exactly match its source map. This is a dirty component snapshot based on79ea59c, not clean full-source, ART/device or Android-lifecycle acceptance.

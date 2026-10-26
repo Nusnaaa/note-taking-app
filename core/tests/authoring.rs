@@ -291,7 +291,7 @@ fn native_copy_and_schema15_backup_keep_scoped_presets_and_reject_downgraded_ext
     )
     .unwrap();
     let mut snapshot: serde_json::Value = serde_json::from_slice(&opened).unwrap();
-    assert_eq!(snapshot["schema"], 21);
+    assert_eq!(snapshot["schema"], 22);
     snapshot["tables"]
         .as_object_mut()
         .unwrap()
@@ -365,10 +365,11 @@ fn schema14_upgrade_keeps_unconfigured_view_payload_exactly_without_inventing_pr
     );
     db.execute_batch("DROP TABLE engine_reclamations; DROP TABLE engine_resource_actions;")
         .unwrap();
+    common::remove_linked_history_extension(&db);
     db.pragma_update(None, "user_version", 14).unwrap();
     drop(db);
     let s = Store::open(&path).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 21);
+    assert_eq!(s.schema_version().unwrap(), 22);
     assert_eq!(s.view(v.id, &a).unwrap(), v);
     drop(s);
     let db = rusqlite::Connection::open(&path).unwrap();

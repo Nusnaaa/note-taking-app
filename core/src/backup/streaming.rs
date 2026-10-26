@@ -239,7 +239,7 @@ impl Store {
             let mut schema = [0; 4];
             input.read_exact(&mut schema)?;
             let source_schema = u32::from_be_bytes(schema);
-            if &magic != BODY || !matches!(source_schema, 15..=21) {
+            if &magic != BODY || !matches!(source_schema, 15..=22) {
                 return Err(Error::Unsupported);
             }
             let mut omissions = [0; 4];
@@ -258,6 +258,7 @@ impl Store {
             for (index, &(table, width)) in TABLES.iter().enumerate().filter(|(_, (table, _))| {
                 (source_schema >= 17 || *table != "engine_resource_actions")
                     && (source_schema >= 18 || *table != "engine_reclamations")
+                    && (source_schema >= 22 || *table != "edit_links")
             }) {
                 control.check()?;
                 let mut marker = [0; 2];
@@ -306,6 +307,11 @@ impl Store {
                 }
             }
             input.read_exact(&mut magic)?;
+            if source_schema < 22
+                && u16::from_be_bytes([magic[0], magic[1]]) as usize == TABLES.len() - 1
+            {
+                return Err(Error::Unsupported);
+            }
             if &magic != END || read_u64(&mut input)? != count {
                 return Err(Error::Integrity);
             }

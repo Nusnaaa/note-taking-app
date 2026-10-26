@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.BackupJobSchedulerTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-26T19:56:10" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="0.557">
+  <properties/>
+  <testcase name="productionAdapterRegistersAndCancelsIndependentRootWithoutAffectingPrimary" classname="org.stemnotebook.backend.BackupJobSchedulerTest" time="0.171"/>
+  <testcase name="invalidPolicyCannotEnterOsRegistration" classname="org.stemnotebook.backend.BackupJobSchedulerTest" time="0.033"/>
+  <testcase name="knownOsRejectionDoesNotBecomeRegistered" classname="org.stemnotebook.backend.BackupJobSchedulerTest" time="0.042"/>
+  <testcase name="registrationContainsOnlyVersionAndOpaqueReferencesAndUsesPlatformPeriod" classname="org.stemnotebook.backend.BackupJobSchedulerTest" time="0.058"/>
+  <testcase name="retiringDisabledRegistrationCancelsOnlyItsOwnedSlotAndReusesCapacity" classname="org.stemnotebook.backend.BackupJobSchedulerTest" time="0.059"/>
+  <testcase name="retiringCannotCancelAForeignOccupantOrAnEnabledPolicy" classname="org.stemnotebook.backend.BackupJobSchedulerTest" time="0.05"/>
+  <testcase name="unownedOrMalformedJobIsNeverOverwrittenOrCancelled" classname="org.stemnotebook.backend.BackupJobSchedulerTest" time="0.057"/>
+  <testcase name="cancelledOnlyWhenObservedOwnedTokenStillMatches" classname="org.stemnotebook.backend.BackupJobSchedulerTest" time="0.056"/>
+  <testcase name="tokenDecoderRejectsExtraSecretFieldsForeignIdsAndMalformedUuids" classname="org.stemnotebook.backend.BackupJobSchedulerTest" time="0.029"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

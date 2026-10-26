@@ -196,10 +196,11 @@ fn legacy_source_payload_hash_and_receipt_are_not_rewritten_by_schema13_upgrade(
     );
     db.execute_batch("DROP TABLE engine_reclamations; DROP TABLE engine_resource_actions;")
         .unwrap();
+    common::remove_linked_history_extension(&db);
     db.pragma_update(None, "user_version", 12).unwrap();
     drop(db);
     let mut s = Store::open(&path).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 21);
+    assert_eq!(s.schema_version().unwrap(), 22);
     s.append_capture(
         ticket,
         WritingTarget::Entity(n.id),

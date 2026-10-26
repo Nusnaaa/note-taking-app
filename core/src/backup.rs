@@ -74,6 +74,7 @@ const TABLES: &[(&str, usize)] = &[
     ("canvas_layers", 2),
     ("engine_resource_actions", 3),
     ("engine_reclamations", 3),
+    ("edit_links", 3),
 ];
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -196,7 +197,7 @@ impl Store {
 
         let mut snapshot = Snapshot {
             format: "STEM-LIBRARY-1".into(),
-            schema: 21,
+            schema: 22,
             tables: BTreeMap::new(),
             omissions: vec![],
         };
@@ -395,10 +396,20 @@ impl Store {
             snapshot.schema = 9;
         }
 
-        if snapshot.format != "STEM-LIBRARY-1" || !matches!(snapshot.schema, 9..=21) {
+        if snapshot.format != "STEM-LIBRARY-1" || !matches!(snapshot.schema, 9..=22) {
             return Err(Error::Unsupported);
         }
 
+        if source_schema < 22 {
+            if snapshot
+                .tables
+                .get("edit_links")
+                .is_some_and(|rows| !rows.is_empty())
+            {
+                return Err(Error::Unsupported);
+            }
+            snapshot.tables.insert("edit_links".into(), vec![]);
+        }
         if source_schema < 18 {
             if snapshot.tables.contains_key("engine_reclamations") {
                 return Err(Error::Integrity);

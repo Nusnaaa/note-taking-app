@@ -413,7 +413,7 @@ fn legacy_layout_stream_reads_schema15_without_inventing_pressure_settings() {
         restored.store().source_ink(block.id, &a).unwrap(),
         vec![original]
     );
-    assert_eq!(restored.store().schema_version().unwrap(), 21);
+    assert_eq!(restored.store().schema_version().unwrap(), 22);
 }
 
 #[test]

@@ -66,18 +66,16 @@ impl Store {
         if source.block == target.block && source.cell == target.cell {
             return Err(Error::Invalid("identical cell targets"));
         }
-        // A cross-master cut needs a linked multi-document Undo operation.
-        // Copy only edits the destination and has its ordinary local Undo.
-        if mode == CellTransferMode::Move && source_block.entity != target_block.entity {
-            return Err(Error::Invalid("cell move master surface"));
-        }
-        self.write_for(target_block.entity, |db| {
+        let source_owner = source_block.entity;
+        let target_owner = target_block.entity;
+        let linked = mode == CellTransferMode::Move && source_owner != target_owner;
+        let action = |db: &Connection| -> Result<Vec<Block>> {
             let mut from = Self::read_block(db, source.block, access)?;
             let mut to = Self::read_block(db, target.block, access)?;
             if from.revision != source.revision
                 || to.revision != target.revision
-                || from.entity != source_block.entity
-                || to.entity != target_block.entity
+                || from.entity != source_owner
+                || to.entity != target_owner
             {
                 return Err(Error::Conflict);
             }
@@ -195,10 +193,48 @@ impl Store {
             to.revision = to.revision.checked_add(1).ok_or(Error::ResourceLimit)?;
             if !same && mode == CellTransferMode::Move {
                 from.revision = from.revision.checked_add(1).ok_or(Error::ResourceLimit)?;
-                Self::persist_block(db, &from)?;
+                if !linked {
+                    Self::persist_block(db, &from)?;
+                }
             }
-            Self::persist_block(db, &to)?;
+            if linked {
+                let (_, first) = Self::journal_for_operation(db, source_owner, |db| {
+                    Self::persist_block(db, &from)
+                })?;
+                let (_, second) = Self::journal_for_operation(db, target_owner, |db| {
+                    Self::persist_block(db, &to)
+                })?;
+                db.execute(
+                    "INSERT INTO edit_links(operation,peer) VALUES(?1,?2),(?2,?1)",
+                    rusqlite::params![first, second],
+                )?;
+            } else {
+                Self::persist_block(db, &to)?;
+            }
             Ok(if same { vec![to] } else { vec![from, to] })
-        })
+        };
+        self.document_save_states
+            .insert(target_owner, SaveState::Saving);
+        if linked {
+            self.document_save_states
+                .insert(source_owner, SaveState::Saving);
+        }
+        let result = self.write(|db| {
+            if linked {
+                action(db)
+            } else {
+                Self::journal_for(db, target_owner, action)
+            }
+        });
+        let state = if result.is_ok() {
+            SaveState::SavedLocally
+        } else {
+            SaveState::NeedsAttention
+        };
+        self.document_save_states.insert(target_owner, state);
+        if linked {
+            self.document_save_states.insert(source_owner, state);
+        }
+        result
     }
 }

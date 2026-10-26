@@ -4,6 +4,7 @@
 mod authoring;
 mod capture_recovery;
 mod editing;
+mod editing_links;
 mod engines;
 mod exercises;
 mod layers;
@@ -108,6 +109,7 @@ const V18: &str = include_str!("../migrations/018.sql");
 const V19: &str = include_str!("../migrations/019.sql");
 const V20: &str = include_str!("../migrations/020.sql");
 const V21: &str = include_str!("../migrations/021.sql");
+const V22: &str = include_str!("../migrations/022.sql");
 const V17: &str = include_str!("../migrations/017.sql");
 const V14: &str = include_str!("../migrations/014.sql");
 const V13: &str = include_str!("../migrations/013.sql");
@@ -131,7 +133,7 @@ impl Store {
                 PRAGMA trusted_schema=OFF;",
         )?;
         let version: i64 = db.pragma_query_value(None, "user_version", |r| r.get(0))?;
-        if !(0..=21).contains(&version) {
+        if !(0..=22).contains(&version) {
             return Err(Error::Unsupported);
         }
         let tx = db.transaction_with_behavior(TransactionBehavior::Immediate)?;
@@ -198,6 +200,9 @@ impl Store {
         if version < 21 {
             tx.execute_batch(V21)?;
         }
+        if version < 22 {
+            tx.execute_batch(V22)?;
+        }
         tx.commit()?;
         Ok(Self {
             db,
@@ -246,6 +251,13 @@ impl Store {
         entity: Id,
         f: impl FnOnce(&Connection) -> Result<T>,
     ) -> Result<T> {
+        Self::journal_for_operation(db, entity, f).map(|(value, _)| value)
+    }
+    pub(crate) fn journal_for_operation<T>(
+        db: &Connection,
+        entity: Id,
+        f: impl FnOnce(&Connection) -> Result<T>,
+    ) -> Result<(T, i64)> {
         db.execute("INSERT INTO edit_operations(entity,active_ms) VALUES(?1,CAST((SELECT value FROM settings WHERE key='active_ms') AS INTEGER))", [entity.to_string()])?;
         let operation = db.last_insert_rowid();
         db.execute(
@@ -268,7 +280,7 @@ impl Store {
         } else {
             db.execute("DELETE FROM edit_operations WHERE id=?1", [operation])?;
         }
-        Ok(value)
+        Ok((value, operation))
     }
     pub(crate) fn write_for<T>(
         &mut self,

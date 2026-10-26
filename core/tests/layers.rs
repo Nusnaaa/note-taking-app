@@ -416,10 +416,11 @@ fn legacy_canvas_migrates_to_an_implicit_base_without_rewriting_original_payload
     );
     db.execute_batch("DROP TABLE engine_reclamations; DROP TABLE engine_resource_actions;")
         .unwrap();
+    common::remove_linked_history_extension(&db);
     db.pragma_update(None, "user_version", 13).unwrap();
     drop(db);
     let s = Store::open(&path).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 21);
+    assert_eq!(s.schema_version().unwrap(), 22);
     assert_eq!(s.canvas_layers(c.id, &a).unwrap().revision, 0);
     assert_eq!(
         ids(s.canvas_scene(c.id, None, 0, 10, &a).unwrap()),

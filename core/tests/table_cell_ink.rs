@@ -273,14 +273,14 @@ fn classic_backup_preserves_cells_ink_and_rejects_legacy_tags_even_after_undo() 
         )
         .unwrap();
     let restored = Store::restore_backup_password(&backup.bytes, password).unwrap();
-    assert_eq!(restored.schema_version().unwrap(), 21);
+    assert_eq!(restored.schema_version().unwrap(), 22);
     assert_eq!(
         restored.source_ink(block.id, &access).unwrap(),
         store.source_ink(block.id, &access).unwrap()
     );
     let plain = crypto::decrypt(&backup.bytes, crypto::Credential::Password(password)).unwrap();
     let mut json: serde_json::Value = serde_json::from_slice(&plain).unwrap();
-    assert_eq!(json["schema"], 21);
+    assert_eq!(json["schema"], 22);
     json["schema"] = 19.into();
     let disguised = crypto::encrypt(&serde_json::to_vec(&json).unwrap(), password).unwrap();
     assert!(matches!(
@@ -926,10 +926,11 @@ fn schema19_legacy_shape_preserves_pending_review_and_raw_receipt_during_migrati
         )
         .unwrap();
     assert!(!old_block.contains("\"cell\":"));
+    common::remove_linked_history_extension(&db);
     db.pragma_update(None, "user_version", 19).unwrap();
     drop(db);
     let mut migrated = Store::open(&path).unwrap();
-    assert_eq!(migrated.schema_version().unwrap(), 21);
+    assert_eq!(migrated.schema_version().unwrap(), 22);
     let db = rusqlite::Connection::open(&path).unwrap();
     assert_eq!(
         db.query_row(
@@ -1577,14 +1578,14 @@ fn layout_classic_backup_preserves_origins_and_refuses_schema20_history() {
         )
         .unwrap();
     let restored = Store::restore_backup_password(&backup.bytes, password).unwrap();
-    assert_eq!(restored.schema_version().unwrap(), 21);
+    assert_eq!(restored.schema_version().unwrap(), 22);
     assert_eq!(
         restored.source_ink(block.id, &access).unwrap(),
         store.source_ink(block.id, &access).unwrap()
     );
     let plain = crypto::decrypt(&backup.bytes, crypto::Credential::Password(password)).unwrap();
     let mut json: serde_json::Value = serde_json::from_slice(&plain).unwrap();
-    assert_eq!(json["schema"], 21);
+    assert_eq!(json["schema"], 22);
     json["schema"] = 20.into();
     let disguised = crypto::encrypt(&serde_json::to_vec(&json).unwrap(), password).unwrap();
     assert!(matches!(
@@ -1932,7 +1933,7 @@ fn cell_transfer_rechecks_revisions_and_scope() {
 
 #[test]
 fn cross_master_cell_copy_is_destination_undoable_and_foreign_space_needs_explicit_mapping() {
-    use stem_core::store::CellTransferMode::{Copy, Move};
+    use stem_core::store::CellTransferMode::Copy;
     let (mut store, access, _, source, first, second) = fixture();
     let source = store
         .set_table_layout(source.id, 0, cell_layout(), &access)
@@ -1992,15 +1993,6 @@ fn cross_master_cell_copy_is_destination_undoable_and_foreign_space_needs_explic
     assert_eq!(store.block(source.id, &access).unwrap(), source);
     let scene = store.table_ink_scene(compatible.id, &access).unwrap();
     assert_eq!(scene[0].source_to_surface.tx, 40.);
-    assert!(matches!(
-        store.transfer_cell(
-            cell_target(&source, first),
-            cell_target(&result[1], second),
-            Move,
-            &access
-        ),
-        Err(Error::Invalid("cell move master surface"))
-    ));
     store.undo(note.id, &access).unwrap();
     assert!(store
         .table_ink_scene(compatible.id, &access)
@@ -2207,4 +2199,712 @@ fn corrupted_cell_origins_refuse_transfer_without_panicking_or_inserting_source_
         .query_row("SELECT count(*) FROM strokes", [], |r| r.get(0))
         .unwrap();
     assert_eq!(count, 1);
+}
+
+fn linked_cell_fixture() -> (Store, Access, Block, Block, Id, Id) {
+    let (mut store, access, _, source, first, second) = fixture();
+    let source = store
+        .set_table_layout(source.id, 0, cell_layout(), &access)
+        .unwrap();
+    let source = capture(&mut store, &access, &source, first, 0);
+    let note = store
+        .create(Kind::Note, None, "linked destination", &access)
+        .unwrap();
+    let Content::Table(mut content) = source.content.clone() else {
+        panic!()
+    };
+    content.layout.as_mut().unwrap().ink_origins.clear();
+    let target = store
+        .append_content(note.id, Content::Table(content), &access)
+        .unwrap();
+    (store, access, source, target, first, second)
+}
+#[test]
+fn cross_master_cut_undo_and_redo_from_either_document_replay_both_atomically() {
+    use stem_core::store::CellTransferMode::Move;
+    let (mut store, access, source, target, first, second) = linked_cell_fixture();
+    store
+        .transfer_cell(
+            cell_target(&source, first),
+            cell_target(&target, second),
+            Move,
+            &access,
+        )
+        .unwrap();
+    assert!(store
+        .table_ink_scene(source.id, &access)
+        .unwrap()
+        .is_empty());
+    assert_eq!(store.table_ink_scene(target.id, &access).unwrap().len(), 1);
+    store.undo(target.entity, &access).unwrap();
+    assert_eq!(
+        store.block(source.id, &access).unwrap().content,
+        source.content
+    );
+    assert_eq!(
+        store.block(target.id, &access).unwrap().content,
+        target.content
+    );
+    assert_eq!(store.table_ink_scene(source.id, &access).unwrap().len(), 1);
+    assert!(store
+        .table_ink_scene(target.id, &access)
+        .unwrap()
+        .is_empty());
+    store.redo(source.entity, &access).unwrap();
+    assert!(store
+        .table_ink_scene(source.id, &access)
+        .unwrap()
+        .is_empty());
+    assert_eq!(store.table_ink_scene(target.id, &access).unwrap().len(), 1);
+    store.undo(source.entity, &access).unwrap();
+    store.redo(target.entity, &access).unwrap();
+    assert_eq!(store.source_ink(source.id, &access).unwrap().len(), 1);
+    assert_eq!(store.source_ink(target.id, &access).unwrap().len(), 1);
+}
+#[test]
+fn linked_cut_refuses_out_of_order_undo_and_late_peer_lock_without_partial_replay() {
+    use stem_core::{security::Scope, store::CellTransferMode::Move};
+    let (mut store, access, source, target, first, second) = linked_cell_fixture();
+    let result = store
+        .transfer_cell(
+            cell_target(&source, first),
+            cell_target(&target, second),
+            Move,
+            &access,
+        )
+        .unwrap();
+    let target = store
+        .edit_cell(
+            target.id,
+            result[1].revision,
+            second,
+            CellValue::Text("newer".into()),
+            &access,
+        )
+        .unwrap();
+    assert!(matches!(
+        store.undo(source.entity, &access),
+        Err(Error::Conflict)
+    ));
+    assert_eq!(store.block(source.id, &access).unwrap(), result[0]);
+    assert_eq!(store.block(target.id, &access).unwrap(), target);
+    store.undo(target.entity, &access).unwrap();
+    let scoped = common::access([Scope::Entity(target.entity)]);
+    let entity = store.entity(target.entity, &access).unwrap();
+    store
+        .set_lock(entity.id, entity.revision, true, &scoped)
+        .unwrap();
+    let before = store.block(source.id, &access).unwrap();
+    assert!(matches!(
+        store.undo(source.entity, &access),
+        Err(Error::Denied)
+    ));
+    assert_eq!(store.block(source.id, &access).unwrap(), before);
+    store.undo(source.entity, &scoped).unwrap();
+    assert_eq!(
+        store.block(source.id, &access).unwrap().content,
+        source.content
+    );
+}
+#[test]
+fn branching_after_linked_undo_retires_the_other_redo_without_replaying_half_a_cut() {
+    use stem_core::store::CellTransferMode::Move;
+    let (mut store, access, source, target, first, second) = linked_cell_fixture();
+    store
+        .transfer_cell(
+            cell_target(&source, first),
+            cell_target(&target, second),
+            Move,
+            &access,
+        )
+        .unwrap();
+    store.undo(source.entity, &access).unwrap();
+    let current = store.block(source.id, &access).unwrap();
+    store
+        .edit_cell(
+            source.id,
+            current.revision,
+            first,
+            CellValue::Text("new branch".into()),
+            &access,
+        )
+        .unwrap();
+    assert!(matches!(
+        store.redo(target.entity, &access),
+        Err(Error::Unavailable)
+    ));
+    assert_eq!(
+        store.edit_history_depth(target.entity, &access).unwrap().1,
+        0
+    );
+    assert_eq!(
+        store.block(target.id, &access).unwrap().content,
+        target.content
+    );
+    assert!(store
+        .table_ink_scene(target.id, &access)
+        .unwrap()
+        .is_empty());
+}
+#[test]
+fn linked_cut_commit_failure_rolls_back_both_journals_and_both_cell_states() {
+    use stem_core::store::CellTransferMode::Move;
+    let (mut store, access, source, target, first, second) = linked_cell_fixture();
+    let source_depth = store.edit_history_depth(source.entity, &access).unwrap();
+    let target_depth = store.edit_history_depth(target.entity, &access).unwrap();
+    store.inject_failure(FailurePoint::BeforeCommit);
+    assert!(matches!(
+        store.transfer_cell(
+            cell_target(&source, first),
+            cell_target(&target, second),
+            Move,
+            &access
+        ),
+        Err(Error::Interrupted)
+    ));
+    assert_eq!(store.block(source.id, &access).unwrap(), source);
+    assert_eq!(store.block(target.id, &access).unwrap(), target);
+    assert_eq!(
+        store.edit_history_depth(source.entity, &access).unwrap(),
+        source_depth
+    );
+    assert_eq!(
+        store.edit_history_depth(target.entity, &access).unwrap(),
+        target_depth
+    );
+    assert!(store.source_ink(target.id, &access).unwrap().is_empty());
+}
+#[test]
+fn purging_one_cut_participant_retires_the_peer_undo_without_touching_its_ink() {
+    use stem_core::store::CellTransferMode::Move;
+    let (mut store, access, source, target, first, second) = linked_cell_fixture();
+    store
+        .transfer_cell(
+            cell_target(&source, first),
+            cell_target(&target, second),
+            Move,
+            &access,
+        )
+        .unwrap();
+    let before = store.block(target.id, &access).unwrap();
+    let review = store.review_deletion(source.entity, &access).unwrap();
+    store.trash(review, true, &access).unwrap();
+    let review = store.review_purge(source.entity, &access).unwrap();
+    store.purge_reviewed(review, true, &access).unwrap();
+    assert!(matches!(
+        store.undo(target.entity, &access),
+        Err(Error::Unavailable)
+    ));
+    assert_eq!(
+        store.edit_history_depth(target.entity, &access).unwrap().0,
+        0
+    );
+    assert_eq!(store.block(target.id, &access).unwrap(), before);
+    assert_eq!(store.source_ink(target.id, &access).unwrap().len(), 1);
+}
+
+#[test]
+fn linked_history_classic_backup_replays_both_documents_and_rejects_downgrade_or_broken_pairs() {
+    use stem_core::{backup::BackupOptions, crypto, store::CellTransferMode::Move};
+    let (mut store, access, source, target, first, second) = linked_cell_fixture();
+    store
+        .transfer_cell(
+            cell_target(&source, first),
+            cell_target(&target, second),
+            Move,
+            &access,
+        )
+        .unwrap();
+    let password = "Synthetic linked Undo backup passphrase";
+    let backup = store
+        .finish_backup(
+            store
+                .prepare_backup(
+                    BackupOptions {
+                        include_original_ink: true,
+                        include_authorised_source_assets: false,
+                    },
+                    &access,
+                )
+                .unwrap(),
+            password,
+            &mut TestAuth(true),
+            true,
+        )
+        .unwrap();
+    let mut restored = Store::restore_backup_password(&backup.bytes, password).unwrap();
+    restored.undo(target.entity, &access).unwrap();
+    assert_eq!(
+        restored.block(source.id, &access).unwrap().content,
+        source.content
+    );
+    assert_eq!(
+        restored.block(target.id, &access).unwrap().content,
+        target.content
+    );
+    restored.redo(source.entity, &access).unwrap();
+    assert_eq!(
+        restored.table_ink_scene(target.id, &access).unwrap().len(),
+        1
+    );
+    let plain = crypto::decrypt(&backup.bytes, crypto::Credential::Password(password)).unwrap();
+    let original: serde_json::Value = serde_json::from_slice(&plain).unwrap();
+    assert_eq!(original["schema"], 22);
+    let mut old = original.clone();
+    old["schema"] = 21.into();
+    let encrypted = crypto::encrypt(&serde_json::to_vec(&old).unwrap(), password).unwrap();
+    assert!(matches!(
+        Store::restore_backup_password(&encrypted.bytes, password),
+        Err(Error::Unsupported)
+    ));
+    let mut broken = original.clone();
+    broken["tables"]["edit_links"][0][1]["value"] = i64::MAX.into();
+    let encrypted = crypto::encrypt(&serde_json::to_vec(&broken).unwrap(), password).unwrap();
+    assert!(matches!(
+        Store::restore_backup_password(&encrypted.bytes, password),
+        Err(Error::Integrity)
+    ));
+    let mut broken = original;
+    broken["tables"]["edit_links"][0][2]["value"] = 1.into();
+    let encrypted = crypto::encrypt(&serde_json::to_vec(&broken).unwrap(), password).unwrap();
+    assert!(matches!(
+        Store::restore_backup_password(&encrypted.bytes, password),
+        Err(Error::Integrity)
+    ));
+}
+#[test]
+fn linked_history_stream_restore_replays_both_and_refuses_a_schema21_header() {
+    use std::io::{Read, Write};
+    use stem_core::{backup::BackupOptions, crypto, store::CellTransferMode::Move};
+    let (mut store, access, source, target, first, second) = linked_cell_fixture();
+    store
+        .transfer_cell(
+            cell_target(&source, first),
+            cell_target(&target, second),
+            Move,
+            &access,
+        )
+        .unwrap();
+    let password = "Synthetic linked streaming Undo passphrase";
+    let control = JobControl::new(Duration::from_secs(180)).unwrap();
+    let (backup, _) = store
+        .finish_stream_backup(
+            store
+                .prepare_stream_backup(
+                    BackupOptions {
+                        include_original_ink: true,
+                        include_authorised_source_assets: false,
+                    },
+                    &access,
+                )
+                .unwrap(),
+            password,
+            &mut TestAuth(true),
+            true,
+            Vec::new(),
+            &control,
+        )
+        .unwrap();
+    let root = tempfile::tempdir().unwrap();
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(root.path(), std::fs::Permissions::from_mode(0o700)).unwrap();
+    }
+    let mut restored = Store::restore_stream_backup(
+        backup.as_slice(),
+        crypto::Credential::Password(password),
+        16 * 1024 * 1024,
+        root.path(),
+        &control,
+    )
+    .unwrap();
+    restored.store_mut().undo(source.entity, &access).unwrap();
+    assert_eq!(
+        restored.store().block(target.id, &access).unwrap().content,
+        target.content
+    );
+    restored.store_mut().redo(target.entity, &access).unwrap();
+    assert_eq!(
+        restored
+            .store()
+            .table_ink_scene(target.id, &access)
+            .unwrap()
+            .len(),
+        1
+    );
+    let mut reader = crypto::stream::DecryptStream::new(
+        backup.as_slice(),
+        crypto::Credential::Password(password),
+        16 * 1024 * 1024,
+    )
+    .unwrap();
+    let mut plain = Vec::new();
+    reader.read_to_end(&mut plain).unwrap();
+    reader.finish().unwrap();
+    plain[8..12].copy_from_slice(&21u32.to_be_bytes());
+    let mut writer = crypto::stream::EncryptStream::new(Vec::new(), password).unwrap();
+    writer.write_all(&plain).unwrap();
+    let disguised = writer.finish().unwrap();
+    assert!(matches!(
+        Store::restore_stream_backup(
+            disguised.0.as_slice(),
+            crypto::Credential::Password(password),
+            16 * 1024 * 1024,
+            root.path(),
+            &control
+        ),
+        Err(Error::Unsupported)
+    ));
+}
+#[test]
+fn pruning_one_authorised_participant_keeps_a_locked_peer_as_a_nonreplayable_barrier() {
+    use stem_core::{security::Scope, store::CellTransferMode::Move};
+    let (mut store, access, source, target, first, second) = linked_cell_fixture();
+    store
+        .transfer_cell(
+            cell_target(&source, first),
+            cell_target(&target, second),
+            Move,
+            &access,
+        )
+        .unwrap();
+    let scoped = common::access([Scope::Entity(target.entity)]);
+    let entity = store.entity(target.entity, &access).unwrap();
+    store
+        .set_lock(entity.id, entity.revision, true, &scoped)
+        .unwrap();
+    let before = store.block(target.id, &scoped).unwrap();
+    store
+        .record_active_use(Duration::from_secs(73 * 3600), &access)
+        .unwrap();
+    store.prune_history(&access).unwrap();
+    assert!(matches!(
+        store.undo(target.entity, &scoped),
+        Err(Error::Unavailable)
+    ));
+    assert_eq!(
+        store.edit_history_depth(target.entity, &scoped).unwrap().0,
+        0
+    );
+    assert_eq!(store.block(target.id, &scoped).unwrap(), before);
+    assert_eq!(store.source_ink(source.id, &access).unwrap().len(), 1);
+    assert_eq!(store.source_ink(target.id, &scoped).unwrap().len(), 1);
+}
+#[test]
+fn retired_link_barriers_survive_encrypted_backup_without_resurrecting_redo() {
+    use stem_core::{backup::BackupOptions, store::CellTransferMode::Move};
+    let (mut store, access, source, target, first, second) = linked_cell_fixture();
+    store
+        .transfer_cell(
+            cell_target(&source, first),
+            cell_target(&target, second),
+            Move,
+            &access,
+        )
+        .unwrap();
+    store.undo(source.entity, &access).unwrap();
+    let current = store.block(source.id, &access).unwrap();
+    store
+        .edit_cell(
+            source.id,
+            current.revision,
+            first,
+            CellValue::Text("fork".into()),
+            &access,
+        )
+        .unwrap();
+    let password = "Synthetic retired linked Undo passphrase";
+    let backup = store
+        .finish_backup(
+            store
+                .prepare_backup(
+                    BackupOptions {
+                        include_original_ink: true,
+                        include_authorised_source_assets: false,
+                    },
+                    &access,
+                )
+                .unwrap(),
+            password,
+            &mut TestAuth(true),
+            true,
+        )
+        .unwrap();
+    let mut restored = Store::restore_backup_password(&backup.bytes, password).unwrap();
+    assert!(matches!(
+        restored.redo(target.entity, &access),
+        Err(Error::Unavailable)
+    ));
+    assert_eq!(
+        restored.block(target.id, &access).unwrap().content,
+        target.content
+    );
+    assert_eq!(
+        restored
+            .edit_history_depth(target.entity, &access)
+            .unwrap()
+            .1,
+        0
+    );
+}
+
+#[test]
+fn schema21_physical_fixture_migrates_without_rewriting_ink_receipts_or_existing_undo() {
+    let root = tempfile::tempdir().unwrap();
+    let path = root.path().join("schema21.db");
+    let access = Access::public();
+    let mut store = Store::open(&path).unwrap();
+    let note = store.create(Kind::Note, None, "schema21", &access).unwrap();
+    let first = Id::new();
+    let second = Id::new();
+    let block = store
+        .append_content(
+            note.id,
+            Content::Table(Table {
+                rows: vec![vec![
+                    Cell {
+                        id: first,
+                        value: CellValue::Text("original".into()),
+                    },
+                    Cell {
+                        id: second,
+                        value: CellValue::Numeric("001".into()),
+                    },
+                ]],
+                header_rows: 0,
+                layout: Some(cell_layout()),
+            }),
+            &access,
+        )
+        .unwrap();
+    let ticket = Id::new();
+    let ink = vec![stroke(0)];
+    store
+        .append_cell_capture(
+            ticket,
+            block.id,
+            block.revision,
+            first,
+            ink.clone(),
+            &access,
+        )
+        .unwrap();
+    drop(store);
+    let db = rusqlite::Connection::open(&path).unwrap();
+    let payload: String = db
+        .query_row(
+            "SELECT payload FROM blocks WHERE id=?1",
+            [block.id.to_string()],
+            |r| r.get(0),
+        )
+        .unwrap();
+    let receipt: String = db
+        .query_row(
+            "SELECT fingerprint FROM capture_receipts WHERE ticket=?1",
+            [ticket.to_string()],
+            |r| r.get(0),
+        )
+        .unwrap();
+    common::remove_linked_history_extension(&db);
+    db.pragma_update(None, "user_version", 21).unwrap();
+    drop(db);
+    let mut store = Store::open(&path).unwrap();
+    assert_eq!(store.schema_version().unwrap(), 22);
+    let db = rusqlite::Connection::open(&path).unwrap();
+    assert_eq!(
+        db.query_row(
+            "SELECT payload FROM blocks WHERE id=?1",
+            [block.id.to_string()],
+            |r| r.get::<_, String>(0)
+        )
+        .unwrap(),
+        payload
+    );
+    assert_eq!(
+        db.query_row(
+            "SELECT fingerprint FROM capture_receipts WHERE ticket=?1",
+            [ticket.to_string()],
+            |r| r.get::<_, String>(0)
+        )
+        .unwrap(),
+        receipt
+    );
+    store.undo(note.id, &access).unwrap();
+    assert!(store.table_ink_scene(block.id, &access).unwrap().is_empty());
+    store.redo(note.id, &access).unwrap();
+    assert_eq!(store.table_ink_scene(block.id, &access).unwrap().len(), 1);
+    store
+        .append_cell_capture(
+            ticket,
+            block.id,
+            block.revision,
+            first,
+            ink.clone(),
+            &access,
+        )
+        .unwrap();
+    assert_eq!(store.source_ink(block.id, &access).unwrap(), ink);
+}
+#[test]
+fn schema21_stream_shape_without_new_table_remains_readable() {
+    use std::io::{Read, Write};
+    use stem_core::{backup::BackupOptions, crypto};
+    let (store, access, _, block, _, _) = fixture();
+    let password = "Synthetic legacy21 stream compatibility passphrase";
+    let control = JobControl::new(Duration::from_secs(180)).unwrap();
+    let (backup, _) = store
+        .finish_stream_backup(
+            store
+                .prepare_stream_backup(
+                    BackupOptions {
+                        include_original_ink: true,
+                        include_authorised_source_assets: false,
+                    },
+                    &access,
+                )
+                .unwrap(),
+            password,
+            &mut TestAuth(true),
+            true,
+            Vec::new(),
+            &control,
+        )
+        .unwrap();
+    let mut reader = crypto::stream::DecryptStream::new(
+        backup.as_slice(),
+        crypto::Credential::Password(password),
+        16 * 1024 * 1024,
+    )
+    .unwrap();
+    let mut plain = Vec::new();
+    reader.read_to_end(&mut plain).unwrap();
+    reader.finish().unwrap();
+    assert_eq!(&plain[plain.len() - 16..plain.len() - 8], b"STEMEND2");
+    let at = plain.len() - 19;
+    assert_eq!(&plain[at..at + 3], &[0, 33, 0]);
+    plain.drain(at..at + 3);
+    plain[8..12].copy_from_slice(&21u32.to_be_bytes());
+    let mut writer = crypto::stream::EncryptStream::new(Vec::new(), password).unwrap();
+    writer.write_all(&plain).unwrap();
+    let legacy = writer.finish().unwrap();
+    let root = tempfile::tempdir().unwrap();
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(root.path(), std::fs::Permissions::from_mode(0o700)).unwrap();
+    }
+    let restored = Store::restore_stream_backup(
+        legacy.0.as_slice(),
+        crypto::Credential::Password(password),
+        16 * 1024 * 1024,
+        root.path(),
+        &control,
+    )
+    .unwrap();
+    assert_eq!(
+        restored.store().block(block.id, &access).unwrap().content,
+        block.content
+    );
+}
+
+#[test]
+fn a_late_peer_block_lock_rolls_back_the_first_document_replay() {
+    use stem_core::{security::Scope, store::CellTransferMode::Move};
+    let (mut store, access, source, target, first, second) = linked_cell_fixture();
+    let result = store
+        .transfer_cell(
+            cell_target(&source, first),
+            cell_target(&target, second),
+            Move,
+            &access,
+        )
+        .unwrap();
+    let scoped = common::access([Scope::Block(target.id)]);
+    store
+        .set_block_lock(target.id, result[1].revision, true, &scoped)
+        .unwrap();
+    // Undo of the lock entry preserves the fresh lock, as ordinary Undo must.
+    store.undo(target.entity, &scoped).unwrap();
+    let before_source = store.block(source.id, &access).unwrap();
+    let before_target = store.block(target.id, &scoped).unwrap();
+    assert!(before_target.locked);
+    assert!(matches!(
+        store.undo(source.entity, &access),
+        Err(Error::Denied)
+    ));
+    assert_eq!(store.block(source.id, &access).unwrap(), before_source);
+    assert_eq!(store.block(target.id, &scoped).unwrap(), before_target);
+    store.undo(source.entity, &scoped).unwrap();
+    assert_eq!(
+        store.block(source.id, &access).unwrap().content,
+        source.content
+    );
+    assert!(store.block(target.id, &scoped).unwrap().locked);
+}
+
+#[test]
+fn retired_peers_cannot_rebind_to_reused_operation_ids_after_logical_restore() {
+    use stem_core::{backup::BackupOptions, store::CellTransferMode::Move};
+    let (mut store, access, source, target, first, second) = linked_cell_fixture();
+    store
+        .transfer_cell(
+            cell_target(&source, first),
+            cell_target(&target, second),
+            Move,
+            &access,
+        )
+        .unwrap();
+    let deleted_peer = store.undo(target.entity, &access).unwrap();
+    store.redo(source.entity, &access).unwrap();
+    let review = store.review_deletion(target.entity, &access).unwrap();
+    store.trash(review, true, &access).unwrap();
+    let review = store.review_purge(target.entity, &access).unwrap();
+    store.purge_reviewed(review, true, &access).unwrap();
+    let password = "Synthetic retired operation identity reuse passphrase";
+    let options = BackupOptions {
+        include_original_ink: true,
+        include_authorised_source_assets: false,
+    };
+    let backup = store
+        .finish_backup(
+            store.prepare_backup(options, &access).unwrap(),
+            password,
+            &mut TestAuth(true),
+            true,
+        )
+        .unwrap();
+    let mut restored = Store::restore_backup_password(&backup.bytes, password).unwrap();
+    let current = restored.block(source.id, &access).unwrap();
+    restored
+        .edit_cell(
+            source.id,
+            current.revision,
+            first,
+            CellValue::Text("new edit after restore".into()),
+            &access,
+        )
+        .unwrap();
+    let new_operation = restored.undo(source.entity, &access).unwrap();
+    assert_eq!(
+        new_operation, deleted_peer,
+        "fixture must actually reuse the deleted high-water ID"
+    );
+    restored.redo(source.entity, &access).unwrap();
+    let backup = restored
+        .finish_backup(
+            restored.prepare_backup(options, &access).unwrap(),
+            password,
+            &mut TestAuth(true),
+            true,
+        )
+        .unwrap();
+    let mut again = Store::restore_backup_password(&backup.bytes, password).unwrap();
+    again.undo(source.entity, &access).unwrap();
+    assert!(matches!(
+        again.undo(source.entity, &access),
+        Err(Error::Unavailable)
+    ));
+    assert!(again.entity(target.entity, &access).is_err());
+    assert_eq!(again.source_ink(source.id, &access).unwrap().len(), 1);
 }

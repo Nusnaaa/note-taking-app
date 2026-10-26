@@ -1,0 +1,12 @@
+    Checking stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+    Checking stem-bridge v0.1.0 (/tmp/stem-engine-catalogue-work/bridge)
+warning: unused import: `Move`
+    --> core/tests/table_cell_ink.rs:1935:52
+     |
+1935 |     use stem_core::store::CellTransferMode::{Copy, Move};
+     |                                                    ^^^^
+     |
+     = note: `#[warn(unused_imports)]` on by default
+
+warning: `stem-core` (test "table_cell_ink") generated 1 warning (run `cargo fix --test "table_cell_ink"` to apply 1 suggestion)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 16.59s

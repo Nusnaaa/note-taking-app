@@ -401,11 +401,12 @@ fn schema16_migrates_without_changing_notebooks_and_both_backups_preserve_action
             .unwrap(),
         0
     );
+    common::remove_linked_history_extension(&db);
     db.execute_batch("DROP TABLE engine_reclamations; DROP TABLE engine_resource_actions; PRAGMA user_version=16;")
         .unwrap();
     drop(db);
     let mut s = Store::open(&path).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 21);
+    assert_eq!(s.schema_version().unwrap(), 22);
     assert_eq!(
         s.entity(note.id, &a).unwrap().title,
         "retained schema16 note"
