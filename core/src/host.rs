@@ -36,8 +36,9 @@ mod runtime;
 use recognition::RecognitionScope;
 pub use recognition::{
     HostActivationSource, HostActivationWork, HostCompletedActivation, HostDetachedRuntime,
-    HostDetachmentSource, HostEngineActivationPlan, HostPreparedEngineActivation,
-    HostRecognitionWork, RecognitionSource, RecognitionStatus,
+    HostDetachmentSource, HostEngineActivationPlan, HostEngineImportPlan, HostEngineImportTransfer,
+    HostPreparedEngineActivation, HostPreparedEngineImport, HostRecognitionWork, RecognitionSource,
+    RecognitionStatus,
 };
 mod pdf;
 use crate::sources::PdfSelectionTarget;
@@ -454,6 +455,16 @@ enum Message {
     RecognitionSource(Id, Option<Id>, mpsc::Sender<Result<RecognitionSource>>),
     ActivationSource(mpsc::Sender<Result<HostActivationSource>>),
     EngineActivationPlan(Id, mpsc::Sender<Result<HostEngineActivationPlan>>),
+    EngineImportPlan(
+        Box<crate::processing::Descriptor>,
+        u64,
+        bool,
+        mpsc::Sender<Result<HostEngineImportPlan>>,
+    ),
+    CommitEngineImport(
+        recognition::ImportPublication,
+        mpsc::Sender<Result<crate::store::EngineVersion>>,
+    ),
     StageResourceFreeEngine(
         Box<crate::processing::Descriptor>,
         bool,
@@ -625,6 +636,36 @@ impl Host {
                                         0,
                                         consented,
                                         &access,
+                                    )
+                                }))
+                                .unwrap_or(Err(Error::WorkerFailed));
+                            let _ =
+                                input.complete(envelope.authoring, envelope.bytes, result.is_err());
+                            let _ = reply.send(result);
+                        }
+                        Message::EngineImportPlan(descriptor, total, consented, reply) => {
+                            let result =
+                                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                                    recognition_scope.engine_import_plan(
+                                        &store,
+                                        &access,
+                                        *descriptor,
+                                        total,
+                                        consented,
+                                    )
+                                }))
+                                .unwrap_or(Err(Error::WorkerFailed));
+                            let _ =
+                                input.complete(envelope.authoring, envelope.bytes, result.is_err());
+                            let _ = reply.send(result);
+                        }
+                        Message::CommitEngineImport(publication, reply) => {
+                            let result =
+                                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                                    recognition_scope.commit_engine_import(
+                                        &mut store,
+                                        &access,
+                                        publication,
                                     )
                                 }))
                                 .unwrap_or(Err(Error::WorkerFailed));
@@ -875,6 +916,37 @@ impl Host {
             Message::StageResourceFreeEngine(Box::new(descriptor), consented, tx),
             true,
             bytes + 128,
+        )?;
+        rx.recv().map_err(|_| Error::WorkerFailed)?
+    }
+    /// Reserve metadata only. Private resource I/O happens on the optional worker.
+    pub fn engine_import_plan(
+        &self,
+        descriptor: crate::processing::Descriptor,
+        total: u64,
+        consented: bool,
+    ) -> Result<HostEngineImportPlan> {
+        let bytes = serde_json::to_vec(&descriptor)?.len();
+        if bytes > 60 * 1024 {
+            return Err(Error::ResourceLimit);
+        }
+        let (tx, rx) = mpsc::channel();
+        self.mailbox.admit(
+            Message::EngineImportPlan(Box::new(descriptor), total, consented, tx),
+            false,
+            bytes + 128,
+        )?;
+        rx.recv().map_err(|_| Error::WorkerFailed)?
+    }
+    pub fn commit_engine_import(
+        &self,
+        prepared: &HostPreparedEngineImport,
+    ) -> Result<crate::store::EngineVersion> {
+        let (tx, rx) = mpsc::channel();
+        self.mailbox.admit(
+            Message::CommitEngineImport(prepared.publication(), tx),
+            true,
+            128,
         )?;
         rx.recv().map_err(|_| Error::WorkerFailed)?
     }

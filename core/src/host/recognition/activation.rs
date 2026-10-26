@@ -83,6 +83,7 @@ impl RecognitionScope {
         Store::require_app(&store.db, access)?;
         let bytes = match &input {
             LifecycleInput::StoredPlan(plan) => charge(plan.version())?,
+            LifecycleInput::ImportPlan(plan) => charge(plan.descriptor())?,
             _ => 128,
         };
         {
@@ -111,6 +112,7 @@ impl RecognitionScope {
             LifecycleInput::Activation => Phase::ActivationInput,
             LifecycleInput::Detachment => Phase::DetachmentInput,
             LifecycleInput::StoredPlan(plan) => Phase::StoredPlan(Some(plan)),
+            LifecycleInput::ImportPlan(plan) => Phase::ImportPlan(Some(plan)),
         };
         let slot = Arc::new(Slot {
             authority: WorkAuthority {
@@ -293,6 +295,7 @@ pub(super) enum LifecycleInput {
     Activation,
     Detachment,
     StoredPlan(Box<crate::store::EngineActivationPlan>),
+    ImportPlan(Box<crate::store::EngineImportPlan>),
 }
 pub struct HostDetachmentSource {
     slot: Arc<Slot>,

@@ -1,0 +1,16 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-import-work/core)
+error[E0599]: no method named `generation` found for struct `stem_core::store::Store` in the current scope
+  --> core/tests/engine_import_plan.rs:87:24
+   |
+87 |     let generation = s.generation().unwrap();
+   |                        ^^^^^^^^^^ method not found in `stem_core::store::Store`
+
+error[E0599]: no method named `generation` found for struct `stem_core::store::Store` in the current scope
+  --> core/tests/engine_import_plan.rs:89:18
+   |
+89 |     assert_eq!(s.generation().unwrap(), generation);
+   |                  ^^^^^^^^^^ method not found in `stem_core::store::Store`
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `stem-core` (test "engine_import_plan") due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...

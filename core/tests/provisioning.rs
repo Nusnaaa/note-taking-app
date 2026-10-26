@@ -137,3 +137,40 @@ fn cloned_worker_reservations_survive_thread_transfer_until_the_last_handle_reti
     pool.remove(&path).unwrap();
     assert!(!path.exists());
 }
+
+#[test]
+fn legacy_bounded_manifest_above_new_begin_budget_remains_resumable() {
+    let root = tempfile::tempdir().unwrap();
+    let bytes = b"legacy bounded manifest fixture";
+    let transfer =
+        Transfer::begin(root.path(), descriptor(bytes), bytes.len() as u64, true).unwrap();
+    let id = transfer.id();
+    drop(transfer);
+    let path = root.path().join(format!("{id}.install.json"));
+    let mut state: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+    state["descriptor"]["personal_use_evidence"] = serde_json::Value::String("x".repeat(62000));
+    let encoded = serde_json::to_vec(&state).unwrap();
+    assert!(encoded.len() < 65536);
+    std::fs::write(path, encoded).unwrap();
+    let mut resumed = Transfer::resume(root.path(), id).unwrap();
+    resumed.append(0, bytes).unwrap();
+    assert_eq!(std::fs::read(resumed.finish().unwrap()).unwrap(), bytes);
+}
+
+#[cfg(unix)]
+#[test]
+fn completed_transfer_rejects_a_symlink_target_without_adopting_external_bytes() {
+    let root = tempfile::tempdir().unwrap();
+    let models = root.path().join("models");
+    let bytes = b"same hash still requires an owned regular target";
+    let mut transfer =
+        Transfer::begin(&models, descriptor(bytes), bytes.len() as u64, true).unwrap();
+    let id = transfer.id();
+    transfer.append(0, bytes).unwrap();
+    let outside = root.path().join("external.resource");
+    std::fs::write(&outside, bytes).unwrap();
+    std::os::unix::fs::symlink(&outside, models.join(format!("{id}.resource"))).unwrap();
+    assert!(matches!(transfer.finish(), Err(Error::Integrity)));
+    assert_eq!(std::fs::read(outside).unwrap(), bytes);
+}

@@ -16,6 +16,11 @@ use std::{
     thread::{self, ThreadId},
 };
 mod activation;
+pub(super) mod resource_import;
+pub(super) use resource_import::ImportPublication;
+pub use resource_import::{
+    HostEngineImportPlan, HostEngineImportTransfer, HostPreparedEngineImport,
+};
 pub(super) mod stored_activation;
 pub use activation::{
     HostActivationSource, HostActivationWork, HostCompletedActivation, HostDetachedRuntime,
@@ -91,6 +96,9 @@ enum Phase {
     Prepared(Option<Box<RecognitionWork>>),
     ActivationInput,
     StoredPlan(Option<Box<crate::store::EngineActivationPlan>>),
+    ImportPlan(Option<Box<crate::store::EngineImportPlan>>),
+    ImportTransfer(Option<Box<crate::store::EngineImportTransfer>>),
+    ImportPrepared(Option<Box<crate::store::PreparedEngineImport>>),
     StoredPrepared(Arc<stored_activation::StoredCandidate>),
     StoredPublishing(Arc<stored_activation::StoredCandidate>),
     StoredPublished {

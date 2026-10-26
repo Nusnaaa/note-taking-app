@@ -22,17 +22,22 @@ struct State {
     total: u64,
     committed: u64,
     complete: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    binding: Option<TransferBinding>,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct TransferBinding {
+    library: String,
+    consent_ms: i64,
 }
 pub struct Transfer {
     root: PathBuf,
     state: State,
 }
 impl Transfer {
-    pub fn begin(root: &Path, descriptor: Descriptor, total: u64, consented: bool) -> Result<Self> {
-        if !consented {
-            return Err(Error::Denied);
-        }
-        Manager::validate(&descriptor)?;
+    fn validate_logical_manifest(descriptor: &Descriptor, total: u64) -> Result<()> {
+        Manager::validate(descriptor)?;
         let hash = descriptor
             .resource_sha256
             .as_deref()
@@ -44,6 +49,49 @@ impl Transfer {
         {
             return Err(Error::Invalid("resource manifest"));
         }
+        Ok(())
+    }
+    pub(crate) fn validate_manifest(descriptor: &Descriptor, total: u64) -> Result<()> {
+        Self::validate_logical_manifest(descriptor, total)?;
+        if serde_json::to_vec(descriptor)?.len() > 60 * 1024 {
+            return Err(Error::ResourceLimit);
+        }
+        Ok(())
+    }
+    pub fn begin(root: &Path, descriptor: Descriptor, total: u64, consented: bool) -> Result<Self> {
+        Self::begin_inner(root, descriptor, total, consented, None)
+    }
+    pub(crate) fn begin_bound(
+        root: &Path,
+        descriptor: Descriptor,
+        total: u64,
+        library: String,
+    ) -> Result<Self> {
+        if library.is_empty() || library.len() > 256 {
+            return Err(Error::Integrity);
+        }
+        Self::begin_inner(
+            root,
+            descriptor,
+            total,
+            true,
+            Some(TransferBinding {
+                library,
+                consent_ms: crate::now_ms(),
+            }),
+        )
+    }
+    fn begin_inner(
+        root: &Path,
+        descriptor: Descriptor,
+        total: u64,
+        consented: bool,
+        binding: Option<TransferBinding>,
+    ) -> Result<Self> {
+        if !consented {
+            return Err(Error::Denied);
+        }
+        Self::validate_manifest(&descriptor, total)?;
         std::fs::create_dir_all(root)?;
         let transfer = Self {
             root: root.canonicalize()?,
@@ -53,6 +101,7 @@ impl Transfer {
                 total,
                 committed: 0,
                 complete: false,
+                binding,
             },
         };
         std::fs::OpenOptions::new()
@@ -64,6 +113,22 @@ impl Transfer {
         Ok(transfer)
     }
     pub fn resume(root: &Path, id: Id) -> Result<Self> {
+        Self::resume_inner(root, id, None)
+    }
+    pub(crate) fn resume_bound(
+        root: &Path,
+        id: Id,
+        library: &str,
+        descriptor: &Descriptor,
+        total: u64,
+    ) -> Result<Self> {
+        Self::resume_inner(root, id, Some((library, descriptor, total)))
+    }
+    fn resume_inner(
+        root: &Path,
+        id: Id,
+        expected: Option<(&str, &Descriptor, u64)>,
+    ) -> Result<Self> {
         let root = root.canonicalize()?;
         let meta = root.join(format!("{id}.install.json"));
         if std::fs::symlink_metadata(&meta)?.file_type().is_symlink()
@@ -72,10 +137,19 @@ impl Transfer {
             return Err(Error::Integrity);
         }
         let state: State = serde_json::from_slice(&std::fs::read(meta)?)?;
-        Manager::validate(&state.descriptor)?;
-        if state.id != id || state.committed > state.total || state.total > 16 * 1024 * 1024 * 1024
+        Self::validate_logical_manifest(&state.descriptor, state.total)?;
+        if state.id != id
+            || state.committed > state.total
+            || (state.complete && state.committed != state.total)
         {
             return Err(Error::Integrity);
+        }
+        if let Some((library, descriptor, total)) = expected {
+            let binding = state.binding.as_ref().ok_or(Error::ReviewRequired)?;
+            if binding.library != library || &state.descriptor != descriptor || state.total != total
+            {
+                return Err(Error::Conflict);
+            }
         }
         let transfer = Self { root, state };
         let path = transfer.part();
@@ -97,6 +171,12 @@ impl Transfer {
     pub fn id(&self) -> Id {
         self.state.id
     }
+    pub(crate) fn total_bytes(&self) -> u64 {
+        self.state.total
+    }
+    pub(crate) fn consent_ms(&self) -> Option<i64> {
+        self.state.binding.as_ref().map(|b| b.consent_ms)
+    }
     pub fn committed_bytes(&self) -> u64 {
         self.state.committed
     }
@@ -108,11 +188,15 @@ impl Transfer {
             .root
             .join(format!("{}.{}.tmp", self.state.id, Id::new()));
         let result = (|| -> Result<()> {
+            let encoded = serde_json::to_vec(&self.state)?;
+            if encoded.len() > 65536 {
+                return Err(Error::ResourceLimit);
+            }
             let mut file = std::fs::OpenOptions::new()
                 .write(true)
                 .create_new(true)
                 .open(&temp)?;
-            file.write_all(&serde_json::to_vec(&self.state)?)?;
+            file.write_all(&encoded)?;
             file.sync_all()?;
             std::fs::rename(
                 &temp,
@@ -162,14 +246,27 @@ impl Transfer {
         Ok(end)
     }
     pub fn finish(&mut self) -> Result<PathBuf> {
+        self.finish_checked(|| Ok(()))
+    }
+    pub(crate) fn finish_checked(
+        &mut self,
+        mut check: impl FnMut() -> Result<()>,
+    ) -> Result<PathBuf> {
+        check()?;
         if self.state.committed != self.state.total {
             return Err(Error::Conflict);
+        }
+        let metadata = std::fs::symlink_metadata(self.part())?;
+        if !metadata.file_type().is_file() || metadata.len() != self.state.total {
+            return Err(Error::Integrity);
         }
         let mut file = std::fs::File::open(self.part())?;
         let mut hash = Sha256::new();
         let mut buffer = [0u8; 65536];
         loop {
+            check()?;
             let size = file.read(&mut buffer)?;
+            check()?;
             if size == 0 {
                 break;
             }
@@ -181,15 +278,22 @@ impl Transfer {
             return Err(Error::Integrity);
         }
         let target = self.root.join(format!("{}.resource", self.state.id));
+        check()?;
         if !target.exists() {
             std::fs::hard_link(self.part(), &target)?;
             std::fs::File::open(&self.root)?.sync_all()?;
         }
         // An interrupted finish may leave target; it must still match the source hash.
+        let metadata = std::fs::symlink_metadata(&target)?;
+        if !metadata.file_type().is_file() || metadata.len() != self.state.total {
+            return Err(Error::Integrity);
+        }
         let mut published = std::fs::File::open(&target)?;
         let mut h = Sha256::new();
         loop {
+            check()?;
             let n = published.read(&mut buffer)?;
+            check()?;
             if n == 0 {
                 break;
             }
@@ -200,8 +304,10 @@ impl Transfer {
         {
             return Err(Error::Integrity);
         }
+        check()?;
         self.state.complete = true;
         self.persist()?;
+        check()?;
         Ok(target)
     }
     pub fn cancel(self) -> Result<()> {
@@ -316,4 +422,49 @@ impl Drop for ResourceReservation {
 /// Content-addressed comparison helper for host-side receipts; no content in logs.
 pub fn resource_digest(bytes: &[u8]) -> String {
     digest(bytes)
+}
+
+#[cfg(test)]
+mod import_control_tests {
+    use super::*;
+    #[test]
+    fn hash_loop_cancellation_preserves_an_unpublished_resumable_part() {
+        let root = tempfile::tempdir().unwrap();
+        let bytes = b"controlled hash loop fixture";
+        let descriptor = Descriptor {
+            id: "hash-control".into(),
+            version: "1".into(),
+            adapter_version: "1".into(),
+            family: crate::processing::Family::Recogniser,
+            input: crate::processing::InputContract::OrderedStrokesV1,
+            tasks: vec![crate::processing::Task::Prose],
+            internals: crate::processing::Internals::StrokeOnlyVerified,
+            offline: true,
+            content_egress: false,
+            personal_use_evidence: Some("app-owned hash cancellation fixture".into()),
+            redistributable_resources: false,
+            resource_sha256: Some(resource_digest(bytes)),
+            runtime_contract: "stem-processing-v1".into(),
+        };
+        let mut transfer =
+            Transfer::begin(root.path(), descriptor, bytes.len() as u64, true).unwrap();
+        let id = transfer.id();
+        transfer.append(0, bytes).unwrap();
+        let mut checks = 0;
+        assert!(matches!(
+            transfer.finish_checked(|| {
+                checks += 1;
+                if checks == 3 {
+                    Err(Error::Cancelled)
+                } else {
+                    Ok(())
+                }
+            }),
+            Err(Error::Cancelled)
+        ));
+        assert!(!root.path().join(format!("{id}.resource")).exists());
+        let mut resumed = Transfer::resume(root.path(), id).unwrap();
+        assert_eq!(resumed.committed_bytes(), bytes.len() as u64);
+        assert_eq!(std::fs::read(resumed.finish().unwrap()).unwrap(), bytes);
+    }
 }

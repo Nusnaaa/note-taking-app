@@ -2,7 +2,9 @@
 //! or executable plugins. Activation stages a probe before changing a live adapter.
 use super::*;
 mod activation;
+mod import;
 pub use activation::{EngineActivationPlan, PreparedEngineActivation};
+pub use import::{EngineImportPlan, EngineImportTransfer, PreparedEngineImport};
 
 use crate::{
     digest, now_ms,
