@@ -318,12 +318,8 @@ impl Manager {
         }
         Ok(())
     }
-    pub fn register_recogniser(
-        &mut self,
-        descriptor: Descriptor,
-        adapter: Box<dyn Recogniser>,
-    ) -> Result<()> {
-        Self::validate(&descriptor)?;
+    pub(crate) fn validate_recogniser(descriptor: &Descriptor) -> Result<()> {
+        Self::validate(descriptor)?;
         if descriptor.family != Family::Recogniser
             || descriptor.input != InputContract::OrderedStrokesV1
             || descriptor.tasks.is_empty()
@@ -331,6 +327,21 @@ impl Manager {
         {
             return Err(Error::EngineUnavailable);
         }
+        Ok(())
+    }
+    pub(crate) fn validate_converter(descriptor: &Descriptor) -> Result<()> {
+        Self::validate(descriptor)?;
+        if descriptor.family != Family::Converter || descriptor.input != InputContract::EditableV1 {
+            return Err(Error::EngineUnavailable);
+        }
+        Ok(())
+    }
+    pub fn register_recogniser(
+        &mut self,
+        descriptor: Descriptor,
+        adapter: Box<dyn Recogniser>,
+    ) -> Result<()> {
+        Self::validate_recogniser(&descriptor)?;
         if self.entries.contains_key(&descriptor.id) {
             return Err(Error::Conflict);
         }
@@ -349,10 +360,7 @@ impl Manager {
         descriptor: Descriptor,
         adapter: Box<dyn Converter>,
     ) -> Result<()> {
-        Self::validate(&descriptor)?;
-        if descriptor.family != Family::Converter || descriptor.input != InputContract::EditableV1 {
-            return Err(Error::EngineUnavailable);
-        }
+        Self::validate_converter(&descriptor)?;
         if self.entries.contains_key(&descriptor.id) {
             return Err(Error::Conflict);
         }

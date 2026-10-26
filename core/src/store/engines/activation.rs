@@ -54,6 +54,8 @@ impl EngineActivationPlan {
                 return Err(Error::Integrity);
             }
             Ok(Some(bytes))
+        } else if self.version.descriptor.resource_sha256.is_some() {
+            Err(Error::Integrity)
         } else {
             Ok(None)
         }
@@ -84,7 +86,29 @@ impl EngineActivationPlan {
         max_load_bytes: u64,
         control: &JobControl,
     ) -> Result<PreparedEngineActivation> {
+        self.prepare_recogniser_with(max_load_bytes, control, |_, _, _| Ok(adapter))
+    }
+    /// Construct the SDK from the exact bounded, hash-verified resource snapshot.
+    /// The bytes are temporary and zero-cleared after preparation; an SDK must
+    /// finish loading or retain its own protected copy before returning.
+    pub fn prepare_recogniser_with(
+        self,
+        max_load_bytes: u64,
+        control: &JobControl,
+        factory: impl FnOnce(&Descriptor, Option<&[u8]>, &JobControl) -> Result<Box<dyn Recogniser>>,
+    ) -> Result<PreparedEngineActivation> {
+        Manager::validate_recogniser(&self.version.descriptor)?;
         let resource = self.resource(max_load_bytes, control)?;
+        self.check(control)?;
+        let adapter = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            factory(
+                &self.version.descriptor,
+                resource.as_ref().map(|r| r.as_slice()),
+                control,
+            )
+        }))
+        .map_err(|_| Error::WorkerFailed)??;
+        self.check(control)?;
         let mut candidate = Manager::new();
         candidate.register_recogniser(self.version.descriptor.clone(), adapter)?;
         self.finish(candidate, resource, control)
@@ -95,7 +119,26 @@ impl EngineActivationPlan {
         max_load_bytes: u64,
         control: &JobControl,
     ) -> Result<PreparedEngineActivation> {
+        self.prepare_converter_with(max_load_bytes, control, |_, _, _| Ok(adapter))
+    }
+    pub fn prepare_converter_with(
+        self,
+        max_load_bytes: u64,
+        control: &JobControl,
+        factory: impl FnOnce(&Descriptor, Option<&[u8]>, &JobControl) -> Result<Box<dyn Converter>>,
+    ) -> Result<PreparedEngineActivation> {
+        Manager::validate_converter(&self.version.descriptor)?;
         let resource = self.resource(max_load_bytes, control)?;
+        self.check(control)?;
+        let adapter = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            factory(
+                &self.version.descriptor,
+                resource.as_ref().map(|r| r.as_slice()),
+                control,
+            )
+        }))
+        .map_err(|_| Error::WorkerFailed)??;
+        self.check(control)?;
         let mut candidate = Manager::new();
         candidate.register_converter(self.version.descriptor.clone(), adapter)?;
         self.finish(candidate, resource, control)

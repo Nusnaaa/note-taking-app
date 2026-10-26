@@ -100,6 +100,36 @@ impl HostEngineActivationPlan {
             plan.prepare_recogniser(adapter, max_load_bytes, control)
         })
     }
+    /// Construct an adapter only after the resource snapshot is verified. The
+    /// factory receives no Store, live Manager or resource pathname capability.
+    pub fn prepare_recogniser_with(
+        self,
+        max_load_bytes: u64,
+        control: &JobControl,
+        factory: impl FnOnce(
+            &crate::processing::Descriptor,
+            Option<&[u8]>,
+            &JobControl,
+        ) -> Result<Box<dyn Recogniser>>,
+    ) -> Result<HostPreparedEngineActivation> {
+        self.prepare(control, move |plan, control| {
+            plan.prepare_recogniser_with(max_load_bytes, control, factory)
+        })
+    }
+    pub fn prepare_converter_with(
+        self,
+        max_load_bytes: u64,
+        control: &JobControl,
+        factory: impl FnOnce(
+            &crate::processing::Descriptor,
+            Option<&[u8]>,
+            &JobControl,
+        ) -> Result<Box<dyn Converter>>,
+    ) -> Result<HostPreparedEngineActivation> {
+        self.prepare(control, move |plan, control| {
+            plan.prepare_converter_with(max_load_bytes, control, factory)
+        })
+    }
     pub fn prepare_converter(
         self,
         adapter: Box<dyn Converter>,

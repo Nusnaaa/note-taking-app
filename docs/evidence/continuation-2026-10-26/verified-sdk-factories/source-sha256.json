@@ -1,0 +1,8 @@
+{
+  "core/src/host/recognition/stored_activation.rs": "4ed0a737b0dd725fbed2cd209cfd48ab64611539b5b2c3097d9c1baaf0c245cc",
+  "core/src/processing.rs": "2aec9dce509038040aa326a78335473c71da96174ae53db720dcd49342ad34b8",
+  "core/src/store/engines.rs": "dca761f32888c73951576aff1d5cc32036a1dd3a32ee28ce112d5bb1a9be4fa7",
+  "core/src/store/engines/activation.rs": "821cb2381ae7331260fed492fc8544a7653e2d2d648ef039865fecd21867dfb6",
+  "core/tests/engine_activation_plan.rs": "7300950debe326984b8bd6dab96209a6eb148be1d6fa963fe3dc5d16bc3dece2",
+  "core/tests/host_engine_activation_plan.rs": "277fa1226cb66303961fa303483bcdb66e8106d1495c333b7980d21d20caa4e7"
+}

@@ -172,7 +172,11 @@ impl Store {
             .optional()?
             .ok_or(Error::Unavailable)?;
 
-        Ok(serde_json::from_str(&json)?)
+        let version: EngineVersion = serde_json::from_str(&json)?;
+        if version.id != id {
+            return Err(Error::Integrity);
+        }
+        Ok(version)
     }
 
     pub fn engine_version(&self, id: Id, access: &Access) -> Result<EngineVersion> {

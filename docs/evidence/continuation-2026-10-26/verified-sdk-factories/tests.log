@@ -1,0 +1,196 @@
+    Blocking waiting for file lock on build directory
+   Compiling cfg-if v1.0.5
+   Compiling libc v0.2.191
+   Compiling typenum v1.20.1
+   Compiling generic-array v0.14.7
+   Compiling getrandom v0.2.17
+   Compiling rand_core v0.6.4
+   Compiling bytemuck v1.25.2
+   Compiling simd-adler32 v0.3.10
+   Compiling crypto-common v0.1.7
+   Compiling arrayvec v0.7.8
+   Compiling adler2 v2.0.1
+   Compiling bitflags v2.13.2
+   Compiling smallvec v1.16.3
+   Compiling log v0.4.34
+   Compiling crc32fast v1.5.3
+   Compiling miniz_oxide v0.9.1
+   Compiling subtle v2.6.1
+   Compiling zerocopy v0.8.63
+   Compiling flate2 v1.1.10
+   Compiling libm v0.2.16
+   Compiling core_maths v0.1.1
+   Compiling miniz_oxide v0.8.9
+   Compiling fdeflate v0.3.7
+   Compiling once_cell v1.21.4
+   Compiling float-cmp v0.9.0
+   Compiling strict-num v0.1.1
+   Compiling ttf-parser v0.25.1
+   Compiling font-types v0.11.3
+   Compiling cpufeatures v0.2.17
+   Compiling roxmltree v0.20.0
+   Compiling color_quant v1.1.0
+   Compiling arrayref v0.3.9
+   Compiling weezl v0.1.12
+   Compiling tiny-skia-path v0.11.4
+   Compiling fontconfig-parser v0.5.8
+   Compiling read-fonts v0.39.2
+   Compiling slotmap v1.1.1
+   Compiling kurbo v0.11.3
+   Compiling polycool v0.4.0
+   Compiling block-buffer v0.10.4
+   Compiling memmap2 v0.9.12
+   Compiling bitflags v1.3.2
+   Compiling byteorder-lite v0.1.0
+   Compiling unicode-bidi-mirroring v0.4.0
+   Compiling unicode-script v0.5.8
+   Compiling equivalent v1.0.3
+   Compiling siphasher v1.0.4
+   Compiling tinyvec v1.13.3
+   Compiling hashbrown v0.17.1
+   Compiling unicode-properties v0.1.4
+   Compiling unicode-ccc v0.4.0
+   Compiling rustybuzz v0.20.1
+   Compiling indexmap v2.14.2
+   Compiling fontdb v0.23.0
+   Compiling svgtypes v0.15.3
+   Compiling png v0.17.16
+   Compiling digest v0.10.7
+   Compiling kurbo v0.13.1
+   Compiling num-traits v0.2.19
+   Compiling ahash v0.8.12
+   Compiling serde_core v1.0.229
+   Compiling simplecss v0.2.2
+   Compiling inout v0.1.4
+   Compiling pico-args v0.5.0
+   Compiling xmlwriter v0.1.0
+   Compiling pxfm v0.1.30
+   Compiling memchr v2.8.3
+   Compiling zune-core v0.4.12
+   Compiling zune-core v0.5.3
+   Compiling itoa v1.0.18
+   Compiling base64 v0.22.1
+   Compiling quick-error v2.0.1
+   Compiling imagesize v0.13.0
+   Compiling unicode-vo v0.1.0
+   Compiling zeroize v1.9.1
+   Compiling unicode-bidi v0.3.18
+   Compiling data-url v0.3.2
+   Compiling usvg v0.45.1
+   Compiling cipher v0.4.4
+   Compiling image-webp v0.2.4
+   Compiling zune-jpeg v0.5.15
+   Compiling moxcms v0.8.1
+   Compiling zune-jpeg v0.4.21
+   Compiling hashbrown v0.14.5
+   Compiling write-fonts v0.48.1
+   Compiling tiny-skia v0.11.4
+   Compiling getrandom v0.4.3
+   Compiling skrifa v0.42.1
+   Compiling gif v0.14.2
+   Compiling gif v0.13.3
+   Compiling ppv-lite86 v0.2.21
+   Compiling png v0.18.1
+   Compiling universal-hash v0.5.1
+   Compiling rgb v0.8.53
+   Compiling base64ct v1.8.3
+   Compiling rustc-hash v2.1.3
+   Compiling opaque-debug v0.3.1
+   Compiling ryu v1.0.23
+   Compiling pdf-writer v0.12.1
+   Compiling poly1305 v0.8.0
+   Compiling subsetter v0.2.6
+   Compiling password-hash v0.5.0
+   Compiling image v0.25.10
+   Compiling resvg v0.45.1
+   Compiling rand_chacha v0.3.1
+   Compiling libsqlite3-sys v0.30.1
+   Compiling hashlink v0.9.1
+   Compiling chacha20 v0.9.1
+   Compiling zmij v1.0.23
+   Compiling blake2 v0.10.6
+   Compiling aead v0.5.2
+   Compiling fallible-iterator v0.3.0
+   Compiling fallible-streaming-iterator v0.1.9
+   Compiling rusqlite v0.32.1
+   Compiling thiserror v2.0.21
+   Compiling serde v1.0.229
+   Compiling chacha20poly1305 v0.10.1
+   Compiling argon2 v0.5.3
+   Compiling serde_json v1.0.154
+   Compiling svg2pdf v0.13.0
+   Compiling rand v0.8.8
+   Compiling uuid v1.28.0
+   Compiling sha2 v0.10.9
+   Compiling stem-core v0.1.0 (/tmp/stem-resource-factory-work/core)
+   Compiling linux-raw-sys v0.12.1
+   Compiling rustix v1.1.5
+   Compiling fastrand v2.5.0
+   Compiling tempfile v3.27.0
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2m 38s
+     Running tests/activation_work.rs (/tmp/stem-activation-target/debug/deps/activation_work-d9115e7c908de3f8)
+
+running 7 tests
+test cancellation_before_probe_or_after_probe_prevents_readiness_and_probe_failures_are_contained ... ok
+test blocked_probe_releases_manager_borrow_and_removal_keeps_adapter_until_completion_retirement ... ok
+test consent_failure_preserves_ready_but_failed_integrity_reverification_retires_old_readiness ... ok
+test synchronous_compatibility_keeps_original_provider_error_for_the_caller ... ok
+test converter_probe_and_abandoned_work_never_invent_ready_state ... ok
+test provider_error_payloads_remain_owned_until_completion_retirement_even_after_cancellation ... ok
+test superseded_and_foreign_completions_cannot_enable_an_engine_or_overwrite_new_state ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/engine_activation_plan.rs (/tmp/stem-activation-target/debug/deps/engine_activation_plan-5b6f40745d609d97)
+
+running 11 tests
+test typed_factories_reject_the_other_adapter_family_before_construction ... ok
+test factory_panic_and_factory_cancellation_leave_old_runtime_and_metadata_unchanged ... ok
+test converter_factory_uses_the_same_verified_resource_contract ... ok
+test cancelled_converter_commit_preserves_staged_state_and_fresh_converter_flow_succeeds ... ok
+test preparation_probes_without_live_manager_borrow_and_commit_publishes_durable_version ... ok
+test sdk_factory_receives_verified_snapshot_even_when_resource_path_changes_during_load ... ok
+test changed_resource_and_load_limit_reject_before_replacing_live_engine ... ok
+test resource_rejection_or_cancel_never_invokes_sdk_factory ... ok
+test failed_probe_and_commit_keep_previous_runtime_and_retry_preserves_candidate_holder ... ok
+test corrupt_stored_identity_resource_or_privacy_metadata_never_invokes_factory ... ok
+test stale_generation_and_foreign_library_cannot_commit_prepared_candidate ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.19s
+
+     Running tests/host_activation.rs (/tmp/stem-activation-target/debug/deps/host_activation-7804e867d2cd82fa)
+
+running 10 tests
+test host_detachment_cleanup_can_reenter_shared_manager_after_controller_unlocks ... ok
+test provider_error_payload_retires_off_writer_after_completion_failure ... ok
+test detachment_requires_current_host_epoch_and_does_not_remove_ready_engine_after_pen_cancellation ... ok
+test running_probe_is_cancelled_by_pen_priority_while_authoring_and_raw_source_remain_available ... ok
+test optional_capacity_and_pen_priority_never_run_a_cancelled_idle_probe_or_mark_authoring_failed ... ok
+test host_owned_detached_runtime_keeps_owner_until_off_writer_cleanup_finishes ... ok
+test close_waits_for_running_probe_then_actual_adapter_destruction_before_reopening_library ... ok
+test idle_adapter_cleanup_is_off_writer_and_full_close_retains_library_ownership_until_it_finishes ... ok
+test host_and_app_authority_bind_completion_and_locked_app_cannot_reserve_activation ... ok
+test descriptor_frame_rejection_preserves_existing_ready_engine_and_authoring ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.31s
+
+     Running tests/host_engine_activation_plan.rs (/tmp/stem-activation-target/debug/deps/host_engine_activation_plan-33d0a7b273c89d82)
+
+running 14 tests
+test host_factory_runs_off_writer_and_remains_owned_until_cancelled_construction_returns ... ok
+test probe_is_off_writer_and_pen_cancellation_never_revives_a_prepared_candidate ... ok
+test close_waits_for_probe_and_actual_cleanup_before_library_can_reopen ... ok
+test queued_publication_does_not_lock_registry_while_writer_authenticates ... ok
+test pen_cancellation_prevents_host_publication_after_preparation ... ok
+test idle_prepared_disposal_is_off_writer_and_holds_owner_until_cleanup ... ok
+test busy_manager_rejects_without_writer_wait_and_preserves_candidate_for_retry ... ok
+test relock_cancels_old_metadata_plan_and_locked_app_cannot_reserve_new_plan ... ok
+test host_publication_installs_runtime_and_durable_metadata_and_rejects_replay ... ok
+test host_close_retires_private_manager_off_writer_before_releasing_library ... ok
+test metadata_reservation_is_bounded_and_never_probes_or_marks_installed ... ok
+test replaced_runtime_cleanup_is_off_writer_and_keeps_library_ownership ... ok
+test host_private_runtime_recognises_into_a_review_without_rewriting_source ... ok
+test publication_rejects_foreign_scope_and_stale_generation_without_installing ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.34s
+

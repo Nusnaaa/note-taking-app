@@ -629,3 +629,35 @@ fn host_close_retires_private_manager_off_writer_before_releasing_library() {
         .close()
         .unwrap();
 }
+
+#[test]
+fn host_factory_runs_off_writer_and_remains_owned_until_cancelled_construction_returns() {
+    let (root, h, id) = fixture(8);
+    let plan = h.engine_activation_plan(id).unwrap();
+    let (loading, entered, release) = gate();
+    let (adapter, calls) = model(None, None);
+    let worker = thread::spawn(move || {
+        plan.prepare_recogniser_with(100, &control(), move |descriptor, resource, c| {
+            assert_eq!(descriptor.id, "synthetic");
+            assert!(resource.is_none());
+            c.check()?;
+            loading.wait();
+            Ok(adapter)
+        })
+    });
+    entered.recv_timeout(Duration::from_secs(10)).unwrap();
+    call(
+        &h,
+        Command::Help {
+            topic: stem_core::help::Topic::Recognition,
+        },
+    );
+    let h2 = Arc::clone(&h);
+    let closer = thread::spawn(move || h2.close());
+    wait_for(|| h.recognition_status().closed);
+    assert!(Host::open(root.path().join("library.db"), 8).is_err());
+    release.send(()).unwrap();
+    assert!(matches!(worker.join().unwrap(), Err(Error::Cancelled)));
+    assert_eq!(calls.load(Ordering::Acquire), 0);
+    closer.join().unwrap().unwrap();
+}
