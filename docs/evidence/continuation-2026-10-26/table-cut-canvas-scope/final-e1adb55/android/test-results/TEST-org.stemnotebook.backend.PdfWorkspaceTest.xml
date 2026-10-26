@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.PdfWorkspaceTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-26T21:52:31" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="1.354">
+  <properties/>
+  <testcase name="retentionRevocationDuringFinalValidationCannotPublishPixels" classname="org.stemnotebook.backend.PdfWorkspaceTest" time="0.104"/>
+  <testcase name="lowSpaceStopsDisposablePdfCopyWithoutModifyingSourceOrNotes" classname="org.stemnotebook.backend.PdfWorkspaceTest" time="0.072"/>
+  <testcase name="managedCopyRendersInChunksWithoutOpeningProviderAndSurvivesMissingSource" classname="org.stemnotebook.backend.PdfWorkspaceTest" time="0.364"/>
+  <testcase name="revocationDuringFinalNativeValidationCannotPublishLatePixels" classname="org.stemnotebook.backend.PdfWorkspaceTest" time="0.082"/>
+  <testcase name="oldUnclaimedReceiptCannotRetireTheNewerFrame" classname="org.stemnotebook.backend.PdfWorkspaceTest" time="0.097"/>
+  <testcase name="malformedOrCorruptedRetainedChunksNeverReachParser" classname="org.stemnotebook.backend.PdfWorkspaceTest" time="0.232"/>
+  <testcase name="providerPermissionLossBeforePublicationDiscardsAlreadyParsedPixels" classname="org.stemnotebook.backend.PdfWorkspaceTest" time="0.081"/>
+  <testcase name="changedProviderRevisionNeverReachesParserAndLeavesNoReadCache" classname="org.stemnotebook.backend.PdfWorkspaceTest" time="0.069"/>
+  <testcase name="actualJniPipelinePreservesInkAndRetiresPreviewBeforeRelockOrRevocation" classname="org.stemnotebook.backend.PdfWorkspaceTest" time="0.123"/>
+  <testcase name="independentHistoricalPdfSurvivesSourceRevocationAndRetiresOnRetentionRevocation" classname="org.stemnotebook.backend.PdfWorkspaceTest" time="0.1"/>
+  <testcase name="frameDrawingChecksMonotonicNativeValidityDeadline" classname="org.stemnotebook.backend.PdfWorkspaceTest" time="0.03"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
