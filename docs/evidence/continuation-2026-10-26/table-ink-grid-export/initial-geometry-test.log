@@ -1,0 +1,9 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 40.64s
+     Running tests/table_cell_ink.rs (/tmp/stem-pen-response-target/debug/deps/table_cell_ink-06a46d5cce999031)
+
+running 1 test
+test table_geometry_export_preserves_raw_asset_and_reflows_only_the_separate_grid_scene ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 77 filtered out; finished in 0.04s
+

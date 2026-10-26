@@ -2,6 +2,7 @@
 //! strokes are never obtained unless the reviewed choice explicitly includes them.
 mod image_crop;
 mod source_ink;
+mod table_ink;
 use crate::{
     content::Content,
     converters::TextConverter,
@@ -305,8 +306,15 @@ impl Store {
                 }
 
                 Content::Table(t) => {
+                    if t.layout.is_some() && include_original_ink {
+                        let name = format!("table-ink-{}.svg", b.id);
+                        assets.insert(name.clone(), self.table_ink_svg(b, access)?.into_bytes());
+                        markdown += &format!("![Table ink and grid in current geometry]({name})\n");
+                        warnings.push("Table ink/grid SVG uses current cell placement and block transform; editable cell values remain in the text derivative. It does not render a saved view, embeddings or physical screen units.".into());
+                        included |= !b.visible_strokes.is_empty();
+                    }
                     if t.layout.is_some() {
-                        warnings.push("Table cell dimensions and ink reflow are omitted from the text derivative; optional original-ink assets retain recorded source coordinates.".into());
+                        warnings.push("Table cell dimensions are omitted from the text derivative; explicit ink export also provides a current ink/grid SVG and separate original-coordinate assets.".into());
                     }
                     if b.regions.iter().any(|region| region.content.is_none()) {
                         warnings.push("Unconverted table-cell handwriting omitted from converted text; existing editable cell values are retained.".into());

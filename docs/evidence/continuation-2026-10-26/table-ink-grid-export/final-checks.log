@@ -1,0 +1,21 @@
+Traceability intact: 94 requirements, 103 inherited clauses, 158 candidates; no candidate PASS inferred.
+Traceability intact: 94 requirements, 103 inherited clauses, 158 candidates; no candidate PASS inferred.
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 29.71s
+     Running unittests src/lib.rs (/tmp/stem-pen-response-target/debug/deps/stem_core-8a459d8a65baac19)
+
+running 1 test
+test export::source_ink::budget_tests::pressure_geometry_budget_rejects_partial_svg_and_preserves_observations ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 44 filtered out; finished in 0.00s
+
+    Checking stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+    Checking stem-bridge v0.1.0 (/tmp/stem-engine-catalogue-work/bridge)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 25.34s
+   Compiling jni-sys v0.3.1
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+   Compiling jni v0.21.1
+   Compiling stem-bridge v0.1.0 (/tmp/stem-engine-catalogue-work/bridge)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 36.99s
+e5959ce71ce2f7c45486fed6c7ef809ce937681ba3113cf3122eb8a4a4eaa980  /tmp/stem-pen-response-target/debug/libstem_bridge.so
+e5959ce71ce2f7c45486fed6c7ef809ce937681ba3113cf3122eb8a4a4eaa980  target/debug/libstem_bridge.so

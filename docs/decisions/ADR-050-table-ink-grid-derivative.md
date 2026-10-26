@@ -1,0 +1,9 @@
+# ADR 050 — current table ink/grid derivative alongside original-coordinate assets
+
+Status: implemented; component verification recorded separately. Full table/view export acceptance remains open.
+
+An explicitly ink-inclusive derivative of a table with recorded layout now supplies a separate `table-ink-<block>.svg`. It draws the current grid dimensions and each visible original stroke using the same cell-placement and block affine transforms as the table scene. It preserves style, alpha, pressure-response geometry and observed stroke order. A single-point contact remains a dot. Ink overflowing a cell contributes to the outer bounds rather than being concealed by a cell clip. Eraser observations retain the existing explicit source-path semantics, not replayed destructive edits.
+
+The existing `original-<block>.svg` remains a separate original-coordinate asset. The new SVG is labelled as current ink/grid geometry, with editable cell values retained in the text derivative. It does not claim converted cell typesetting, saved-view camera/embed rendering, screen calibration or complete scene/PDF fidelity. Converted-only export does not enter this source-reading route. Layout-less legacy tables retain the previous derivative contract; no origins or physical units are guessed.
+
+Grid and ink SVG output share an 8 MiB per-asset limit, following the existing scene response bound. Appends and pressure geometry are checked incrementally; the shared pressure helper also bounds an individual original-coordinate pressure SVG at 8 MiB; oversized output fails explicitly without returning a truncated derivative. Source observations remain unchanged. Saved generation, fresh authority and explicit confirmation remain required by the existing derivative plan/finish boundary. No schema or native-document version changes are needed.

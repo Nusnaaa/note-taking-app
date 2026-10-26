@@ -2,6 +2,16 @@
 //! source fingerprints are never modified; no pressure samples are fabricated.
 use crate::{ink::Stroke, objects::Rect, Error, Result};
 pub(super) fn pressure_svg(stroke: &Stroke) -> Result<Option<(String, Rect)>> {
+    pressure_svg_budget(stroke, 8 * 1024 * 1024)
+}
+fn push(svg: &mut String, value: &str, limit: usize) -> Result<()> {
+    if value.len() > limit.saturating_sub(svg.len()) {
+        return Err(Error::ResourceLimit);
+    }
+    svg.push_str(value);
+    Ok(())
+}
+pub(super) fn pressure_svg_budget(stroke: &Stroke, limit: usize) -> Result<Option<(String, Rect)>> {
     let Some(style) = stroke.style.filter(|s| s.pressure_response.is_some()) else {
         return Ok(None);
     };
@@ -26,7 +36,11 @@ pub(super) fn pressure_svg(stroke: &Stroke) -> Result<Option<(String, Rect)>> {
         right = right.max(p.x + radius);
         top = top.min(p.y - radius);
         bottom = bottom.max(p.y + radius);
-        svg += &format!("<circle cx=\"{}\" cy=\"{}\" r=\"{radius}\"/>", p.x, p.y);
+        push(
+            &mut svg,
+            &format!("<circle cx=\"{}\" cy=\"{}\" r=\"{radius}\"/>", p.x, p.y),
+            limit,
+        )?;
     }
     for pair in stroke.points.windows(2) {
         let (a, b) = (&pair[0], &pair[1]);
@@ -53,16 +67,20 @@ pub(super) fn pressure_svg(stroke: &Stroke) -> Result<Option<(String, Rect)>> {
         {
             return Err(Error::Invalid("pressure geometry"));
         }
-        svg += &format!(
-            "<polygon points=\"{}\"/>",
-            vertices
-                .iter()
-                .map(|(x, y)| format!("{x},{y}"))
-                .collect::<Vec<_>>()
-                .join(" ")
-        );
+        push(
+            &mut svg,
+            &format!(
+                "<polygon points=\"{}\"/>",
+                vertices
+                    .iter()
+                    .map(|(x, y)| format!("{x},{y}"))
+                    .collect::<Vec<_>>()
+                    .join(" ")
+            ),
+            limit,
+        )?;
     }
-    svg += "</g>";
+    push(&mut svg, "</g>", limit)?;
     let bounds = Rect {
         x: left,
         y: top,
@@ -71,4 +89,66 @@ pub(super) fn pressure_svg(stroke: &Stroke) -> Result<Option<(String, Rect)>> {
     };
     bounds.validate()?;
     Ok(Some((svg, bounds)))
+}
+
+#[cfg(test)]
+mod budget_tests {
+    use super::*;
+    use crate::{
+        ink::{Point, PressureResponse, StrokeStyle, Tool},
+        Id,
+    };
+    #[test]
+    fn pressure_geometry_budget_rejects_partial_svg_and_preserves_observations() {
+        let point = Point {
+            x: 1.,
+            y: 2.,
+            time_us: 1,
+            pressure: Some(0.),
+            tilt_rad: None,
+            orientation_rad: None,
+            buttons: None,
+        };
+        let stroke = Stroke {
+            id: Id::new(),
+            capture_session: Id::new(),
+            sequence: 0,
+            pointer_id: 1,
+            coordinate_space: "synthetic-budget".into(),
+            tool: Tool::Pen,
+            end: Default::default(),
+            style: Some(StrokeStyle {
+                colour_rgba: [0, 0, 0, 255],
+                width: 2.,
+                pressure_response: Some(PressureResponse {
+                    input_min: 0.,
+                    input_max: 1.,
+                    minimum_factor: 0.5,
+                    maximum_factor: 1.,
+                    exponent: 1.,
+                }),
+            }),
+            points: vec![
+                point.clone(),
+                Point {
+                    x: 3.,
+                    time_us: 2,
+                    ..point
+                },
+            ],
+        };
+        let original = serde_json::to_vec(&stroke).unwrap();
+        let (svg, bounds) = pressure_svg(&stroke).unwrap().unwrap();
+        assert!(svg.contains("<circle"));
+        assert!(svg.contains("<polygon"));
+        assert!(matches!(
+            pressure_svg_budget(&stroke, svg.len() - 1),
+            Err(Error::ResourceLimit)
+        ));
+        assert_eq!(
+            pressure_svg_budget(&stroke, svg.len()).unwrap(),
+            Some((svg, bounds))
+        );
+        assert_eq!(serde_json::to_vec(&stroke).unwrap(), original);
+    }
 }

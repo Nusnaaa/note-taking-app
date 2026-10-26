@@ -4534,3 +4534,196 @@ fn view_and_exercise_payloads_are_not_decoded_before_sql_owner_and_exercise_auth
         .unwrap();
     assert!(matches!(store.view(view.id, &access), Err(Error::Denied)));
 }
+
+#[test]
+fn table_geometry_export_preserves_raw_asset_and_reflows_only_the_separate_grid_scene() {
+    use stem_core::{export::Selection, ink::Transform, objects::TableEdit};
+    let (mut store, access, _, block, _, second) = fixture();
+    let block = store
+        .set_table_layout(block.id, block.revision, cell_layout(), &access)
+        .unwrap();
+    let mut original = stroke(0);
+    original.points[0].x = 145.; // Deliberately outside the grid: no concealment by cell clipping.
+    original.points[1].x = 146.;
+    let captured = store
+        .append_cell_capture(
+            Id::new(),
+            block.id,
+            block.revision,
+            second,
+            vec![original.clone()],
+            &access,
+        )
+        .unwrap();
+    let moved = store
+        .edit_table(
+            block.id,
+            captured.revision,
+            TableEdit::InsertSizedColumn {
+                index: 0,
+                width: 10.,
+            },
+            &access,
+        )
+        .unwrap();
+    store
+        .transform_selection(
+            &[(block.id, moved.revision)],
+            Transform {
+                a: 0.,
+                b: 2.,
+                c: -2.,
+                d: 0.,
+                tx: 100.,
+                ty: 200.,
+            },
+            &access,
+        )
+        .unwrap();
+    let export = |include| {
+        store
+            .finish_derivative(
+                store
+                    .prepare_derivative(Selection::Blocks(vec![block.id]), include, &access)
+                    .unwrap(),
+                &mut TestAuth(true),
+                true,
+            )
+            .unwrap()
+    };
+    let converted = export(false);
+    assert!(converted.assets.is_empty());
+    assert!(!converted.includes_original_ink);
+    let bundle = export(true);
+    let scene =
+        String::from_utf8(bundle.assets[&format!("table-ink-{}.svg", block.id)].clone()).unwrap();
+    let raw =
+        String::from_utf8(bundle.assets[&format!("original-{}.svg", block.id)].clone()).unwrap();
+    assert!(scene.contains("matrix(0 2 -2 0 100 200)"));
+    assert!(scene.contains("matrix(0 2 -2 0 100 220)"));
+    assert!(scene.contains("145,"));
+    assert!(!raw.contains("matrix("));
+    assert!(raw.contains("145,"));
+    assert!(scene.contains("width=\"10\""));
+    // All transformed source extents lie within the viewBox (including overflow ink).
+    let bounds: Vec<f64> = scene
+        .split("viewBox=\"")
+        .nth(1)
+        .unwrap()
+        .split('"')
+        .next()
+        .unwrap()
+        .split_whitespace()
+        .map(|s| s.parse().unwrap())
+        .collect();
+    assert!(bounds[1] + bounds[3] >= 512.);
+    assert!(bundle.markdown.contains("001"));
+    assert_eq!(store.source_ink(block.id, &access).unwrap(), vec![original]);
+}
+
+#[test]
+fn table_geometry_derivative_reads_originals_only_after_explicit_ink_choice() {
+    use stem_core::export::Selection;
+    let temp = tempfile::tempdir().unwrap();
+    let path = temp.path().join("table-export.db");
+    let mut store = Store::open(&path).unwrap();
+    let access = Access::public();
+    let note = store
+        .create(Kind::Note, None, "derivative consent", &access)
+        .unwrap();
+    let (_, _, _, template, _, _) = fixture();
+    let block = store
+        .append_content(note.id, template.content, &access)
+        .unwrap();
+    let block = store
+        .set_table_layout(block.id, block.revision, cell_layout(), &access)
+        .unwrap();
+    let Content::Table(table) = &block.content else {
+        panic!()
+    };
+    let block = capture(&mut store, &access, &block, table.rows[0][0].id, 0);
+    rusqlite::Connection::open(&path)
+        .unwrap()
+        .execute(
+            "UPDATE strokes SET digest='corrupt' WHERE block=?1",
+            [block.id.to_string()],
+        )
+        .unwrap();
+    let converted = store
+        .prepare_derivative(Selection::Blocks(vec![block.id]), false, &access)
+        .unwrap();
+    let bundle = store
+        .finish_derivative(converted, &mut TestAuth(true), true)
+        .unwrap();
+    assert!(bundle.assets.is_empty());
+    assert!(!bundle.includes_original_ink);
+    assert!(matches!(
+        store.prepare_derivative(Selection::Blocks(vec![block.id]), true, &access),
+        Err(Error::Integrity)
+    ));
+}
+
+#[test]
+fn table_geometry_asset_preserves_pressure_style_and_rechecks_confirmation_and_generation() {
+    use stem_core::{
+        export::Selection,
+        ink::{PressureResponse, StrokeStyle},
+    };
+    let (mut store, access, note, block, first, _) = fixture();
+    let block = store
+        .set_table_layout(block.id, block.revision, cell_layout(), &access)
+        .unwrap();
+    let mut original = stroke(0);
+    original.points.truncate(1);
+    original.points[0].pressure = Some(0.);
+    original.style = Some(StrokeStyle {
+        colour_rgba: [32, 64, 128, 128],
+        width: 8.,
+        pressure_response: Some(PressureResponse {
+            input_min: 0.,
+            input_max: 1.,
+            minimum_factor: 0.25,
+            maximum_factor: 1.,
+            exponent: 1.,
+        }),
+    });
+    let block = store
+        .append_cell_capture(
+            Id::new(),
+            block.id,
+            block.revision,
+            first,
+            vec![original.clone()],
+            &access,
+        )
+        .unwrap();
+    let plan = store
+        .prepare_derivative(Selection::Blocks(vec![block.id]), true, &access)
+        .unwrap();
+    assert!(matches!(
+        store.finish_derivative(plan, &mut TestAuth(true), false),
+        Err(Error::ReviewRequired)
+    ));
+    let plan = store
+        .prepare_derivative(Selection::Blocks(vec![block.id]), true, &access)
+        .unwrap();
+    let bundle = store
+        .finish_derivative(plan, &mut TestAuth(true), true)
+        .unwrap();
+    let svg =
+        String::from_utf8(bundle.assets[&format!("table-ink-{}.svg", block.id)].clone()).unwrap();
+    assert!(svg.contains("#204080"));
+    assert!(svg.contains("r=\"1\""));
+    assert!(svg.contains("0.5019607843137255"));
+    let plan = store
+        .prepare_derivative(Selection::Blocks(vec![block.id]), true, &access)
+        .unwrap();
+    store
+        .append_content(note, Content::Text("new authoring".into()), &access)
+        .unwrap();
+    assert!(matches!(
+        store.finish_derivative(plan, &mut TestAuth(true), true),
+        Err(Error::Conflict)
+    ));
+    assert_eq!(store.source_ink(block.id, &access).unwrap(), vec![original]);
+}
