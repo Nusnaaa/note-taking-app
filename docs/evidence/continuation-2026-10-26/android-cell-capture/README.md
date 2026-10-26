@@ -1,0 +1,7 @@
+# Android durable table-cell capture verification
+
+Final Android component run: 49 tests, no failures/errors/skips, plus lintDebug. This includes four actual desktop JNI/API35 cell cases, private-journal recovery/process-exit/legacy-format checks, and existing capture regressions. One case commits 261 contacts then exactly retries its retained first binding; another rejects stale confirmation before accepting a fresh explicit target. Final XML/logs use the rebuilt native library, whose Cargo/runtime hashes match.
+
+All ten JNI validator checks pass: 52 aggregate groups before/after fresh R8 optimisation. Workspace all-target Clippy passes with warnings denied. Native owner-binding tests: 13 passed. Corrected exact scale fixture: 1 passed. These are scoped runs, not a complete native backend pass. The staged source map has 387 non-evidence files; the JNI map differs only in later compatibility narrative in ADR040 and backend-gaps.json, with unchanged implementation.
+
+Initial misplaced-test compilation failure, synthetic-v3-layout failure and earlier overlapping 49/4 runs are retained separately. The full b5132f3 native failure and its completed Android counterpart are archived under table-cell-core; the native failure was an accidentally expanded fixture loop and must not be relabelled PASS. Full clean-source validation remains required. Valid legacy repeated local cell IDs still need decoupled global region identity; all backend gaps remain OPEN. No production H.I., actual device quality, proprietary resources or binaries are included.

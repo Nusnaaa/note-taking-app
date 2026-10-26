@@ -1,0 +1,21 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 40.57s
+     Running tests/table_cell_ink.rs (/tmp/stem-pen-response-target/debug/deps/table_cell_ink-06a46d5cce999031)
+
+running 13 tests
+test capture_is_idempotent_scoped_atomic_and_undo_preserves_observations ... ok
+test accepting_another_cell_retains_existing_manual_correction_and_marker ... ok
+test derivative_exports_cell_text_once_and_discloses_unconverted_ink_omission ... ok
+test duplicate_cell_targets_across_tables_and_fresh_protection_fail_closed ... ok
+test host_capture_and_scoped_cell_proposal_preserve_neighbouring_values ... ok
+test incremental_capture_preserves_session_order_and_acknowledges_exact_replay ... ok
+test independent_cell_review_updates_only_chosen_cell_and_stale_proposals_fail ... ok
+test independent_table_copy_remaps_saved_cell_cursor_with_its_target ... ok
+test invalid_target_identity_and_injected_commit_failure_leave_source_unchanged ... ok
+test manual_cell_correction_is_independent_and_new_ink_never_rewrites_it ... ok
+test native_copy_preserves_cell_binding_with_independent_ids_and_refuses_legacy_tag ... ok
+test classic_backup_preserves_cells_ink_and_rejects_legacy_tags_even_after_undo ... ok
+test streaming_backup_preserves_cell_targets_and_blocks_legacy_schema_smuggling ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 37.08s
+

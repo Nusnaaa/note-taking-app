@@ -1703,3 +1703,23 @@ stroke and saved cell-cursor identities remap together in independent copies;
 original observations remain independently retained through undo. Android's
 sealed capture journal/outbox cell-target adoption and physical cell layout are
 separate integration work; generic JSON availability is not proof of them.
+
+
+### Android cell capture and reviewed recovery
+
+`openCaptureSession(entity, space, ..., cell = CaptureCell(block, cell, revision))`
+selects an existing structured cell. Layer and cell routing are mutually exclusive.
+Keep each returned Submission through acknowledgement and use `session.retry(value)`
+for the same immutable frame; its private binding retains the original target even
+after later contacts commit. The writer advances only on an exact next-revision
+native acknowledgement. Checkpointed is not a SQLite commit. Stale/denied writes
+remain in the private journal, and target metadata never changes through ordinary
+prefix extension. No missing-cell fallback creates another block.
+
+`CaptureRecoveryReview.cell` and `cellAvailable` describe a cell destination without
+conflating it with `layerAvailable`. Use `reviewCaptureCellRetarget` followed by
+`confirmCaptureCellRetarget(..., true)` for a sealed, uncommitted same-entity source.
+The source checksum, original receipt/conflicting outbox and fresh destination
+block/cell/revision are rechecked at confirmation. A stale review changes neither
+routing nor notebook content. A successful private route checkpoint still needs its
+separate committed receipt; source points/style/identity remain unchanged.

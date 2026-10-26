@@ -22,7 +22,7 @@ class ActiveCaptureJournalTest {
         val journal = ActiveCaptureJournal(root, legacyLibrary); val before = journal.read(ticket); assertNull(before.stroke.style)
         assertEquals((-0.0).toRawBits(), before.stroke.points.single().x.toRawBits()); assertEquals(0.0, before.stroke.points.single().pressure!!, 0.0)
         journal.recoverActive(); assertNull(journal.read(ticket).stroke.style); assertEquals(before.stroke.points, journal.read(ticket).stroke.points)
-        assertEquals("STEMAC05", String(file.readBytes().copyOfRange(0, 8), Charsets.US_ASCII))
+        assertEquals("STEMAC06", String(file.readBytes().copyOfRange(0, 8), Charsets.US_ASCII))
         assertEquals(0, journal.drain { error("Recovered prefix requires review") })
     }
     @Test fun versionFiveRetainsChosenResponseAndExactAbsentZeroObservationsAcrossRecovery() {
@@ -107,7 +107,10 @@ class ActiveCaptureJournalTest {
         ActiveCaptureJournal(root, library).checkpoint(entity, "fixed-space", 0, source, layer = CaptureLayer.Base)
         // v3 and v4 pen/eraser payloads share the same one-byte tool representation.
         val file = root.listFiles()!!.single(); val bytes = file.readBytes(); bytes[7] = '3'.code.toByte()
-        val payload = bytes.copyOfRange(0, bytes.size - 32)
+        val current = bytes.copyOfRange(0, bytes.size - 32)
+        assertEquals(0, current[104].toInt()); assertEquals(1, current[105].toInt()); assertEquals(0, current[106].toInt())
+        // v6 appends a cell-presence byte after the layer; v3 has no such field.
+        val payload = current.copyOfRange(0, 106) + current.copyOfRange(107, current.size)
         file.writeBytes(payload + java.security.MessageDigest.getInstance("SHA-256").digest(payload))
         val reopened = ActiveCaptureJournal(root, library); val before = reopened.read(ticket)
         assertFalse(before.stroke.explicitFinger); assertEquals(source, before.stroke); assertEquals(CaptureLayer.Base, before.layer)
@@ -201,15 +204,44 @@ class ActiveCaptureJournalTest {
         val classes = listOf(ActiveCaptureJournal::class.java, CaptureJournalCrashProbe::class.java, kotlin.Unit::class.java).map { File(checkNotNull(checkNotNull(it.protectionDomain).codeSource).location.toURI()).absolutePath }.distinct().joinToString(File.pathSeparator)
         for (phase in listOf("after-file-sync", "after-rename", "after-directory-sync")) {
             val root = temporary.newFolder(); val source = stroke(); val ticket = UUID.fromString(source.id)
-            ActiveCaptureJournal(root, library).checkpoint(entity, "fixed-space", 0, source)
+            val cell = CaptureCell(UUID.randomUUID(), UUID.randomUUID(), 7)
+            ActiveCaptureJournal(root, library).checkpoint(entity, "fixed-space", 0, source, cell = cell)
             val child = ProcessBuilder(File(System.getProperty("java.home"), "bin/java").absolutePath, "-cp", classes, CaptureJournalCrashProbe::class.java.name, root.absolutePath, library.toString(), ticket.toString(), phase).redirectErrorStream(true).start()
             try { assertTrue(child.waitFor(10, TimeUnit.SECONDS)); val output = child.inputStream.bufferedReader().readText(); assertEquals(output, 81, child.exitValue()) } finally { child.destroyForcibly() }
             val recovered = ActiveCaptureJournal(root, library); recovered.recoverActive(); val entry = recovered.read(ticket)
+            assertEquals(cell, entry.cell)
             assertEquals(2, entry.stroke.points.size); assertEquals(StrokeEnd.Interrupted(StrokeInterruption.Recovery), entry.stroke.end)
             assertEquals(source.points[0], entry.stroke.points[0]); assertEquals(11L, entry.stroke.points[1].timeUs)
             assertEquals(0, recovered.drain { error("Recovered prefix requires review") })
         }
     }
+    @Test fun cellTargetSurvivesRecoveryAndOnlyExplicitRetargetCanChangeIt() {
+        val root=temporary.newFolder(); val source=stroke(); val ticket=UUID.fromString(source.id)
+        val cell=CaptureCell(UUID.randomUUID(),UUID.randomUUID(),7)
+        val journal=ActiveCaptureJournal(root,library);journal.checkpoint(entity,"fixed-space",0,source,cell=cell)
+        assertThrows(IllegalArgumentException::class.java) { journal.checkpoint(entity,"fixed-space",1,source,cell=cell.copy(revision=8)) }
+        assertThrows(IllegalArgumentException::class.java) { journal.checkpoint(entity,"fixed-space",1,source,layer=CaptureLayer.Base,cell=cell) }
+        val reopened=ActiveCaptureJournal(root,library);reopened.recoverActive();val entry=reopened.read(ticket)
+        assertEquals(cell,entry.cell);assertEquals(source.points,entry.stroke.points)
+        val next=cell.copy(revision=8);reopened.retargetCell(ticket,reopened.checksum(ticket),next)
+        reopened.approve(ticket,reopened.checksum(ticket));assertEquals(1,reopened.drain { assertEquals(next,it.cell);assertEquals(source.points,it.stroke.points);true })
+    }
+
+    @Test fun versionFiveRecordDecodesResponseWithoutInventingCellBinding() {
+        val root=temporary.newFolder();val source=stroke().copy(style=StrokeStyle(12,34,56,255,2.0,PressureResponse(0.0,1.0,0.5,1.5,1.0)))
+        ActiveCaptureJournal(root,library).checkpoint(entity,"fixed-space",0,source)
+        val file=root.listFiles()!!.single();val encoded=file.readBytes();val payload=encoded.copyOfRange(0,encoded.size-32)
+        val input=java.io.DataInputStream(java.io.ByteArrayInputStream(payload));assertEquals(104,input.skipBytes(104))
+        assertTrue(input.readBoolean());assertEquals(12,input.skipBytes(12));assertTrue(input.readBoolean());assertEquals(40,input.skipBytes(40))
+        assertEquals(0,input.readUnsignedByte());val offset=payload.size-input.available();assertEquals(0,input.readUnsignedByte())
+        val legacy=payload.copyOfRange(0,offset)+payload.copyOfRange(offset+1,payload.size)
+        "STEMAC05".toByteArray(Charsets.US_ASCII).copyInto(legacy)
+        file.writeBytes(legacy+java.security.MessageDigest.getInstance("SHA-256").digest(legacy))
+        val reopened=ActiveCaptureJournal(root,library);val actual=reopened.read(UUID.fromString(source.id))
+        assertNull(actual.cell);assertEquals(source.style,actual.stroke.style);assertEquals(source.points,actual.stroke.points)
+        reopened.recoverActive();assertEquals("STEMAC06",String(file.readBytes().copyOfRange(0,8),Charsets.US_ASCII))
+    }
+
 }
 
 class CaptureJournalCrashProbe {
@@ -217,8 +249,10 @@ class CaptureJournalCrashProbe {
         @JvmStatic fun main(args: Array<String>) {
             val journal = ActiveCaptureJournal(File(args[0]), UUID.fromString(args[1]), fault = { phase -> if (phase == args[3]) Runtime.getRuntime().halt(81) })
             val entry = journal.read(UUID.fromString(args[2])); val next = entry.stroke.copy(points = entry.stroke.points + entry.stroke.points.last().copy(timeUs = entry.stroke.points.last().timeUs + 1))
-            journal.checkpoint(entry.entity, entry.space, entry.revision + 1, next)
+            journal.checkpoint(entry.entity, entry.space, entry.revision + 1, next, layer = entry.layer, cell = entry.cell)
             error("Crash boundary was not reached")
         }
     }
+
+
 }

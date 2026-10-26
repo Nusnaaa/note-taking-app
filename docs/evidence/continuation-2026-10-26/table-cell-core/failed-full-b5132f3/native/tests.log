@@ -1,0 +1,79 @@
+$ /tmp/stem-cargo/bin/cargo test --workspace --locked --offline
+exit_code=101
+
+   Compiling stem-core v0.1.0 (/home/linus/Projects/software/note-taking-app/repo/core)
+   Compiling stem-bridge v0.1.0 (/home/linus/Projects/software/note-taking-app/repo/bridge)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2m 04s
+     Running unittests src/lib.rs (/tmp/stem-activation-target/debug/deps/stem_bridge-8d048e2479405dce)
+
+running 2 tests
+test handle_tests::exhaustion_never_wraps_or_reuses_a_handle ... ok
+test engines::tests::closing_registry_scan_cannot_be_followed_by_late_job_admission ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running unittests src/lib.rs (/tmp/stem-activation-target/debug/deps/stem_core-8a459d8a65baac19)
+
+running 43 tests
+test backup::source_asset_validation_tests::source_asset_hash_rejects_text_and_missing_rows ... ok
+test backup::publication_tests::post_link_failure_is_uncertain_and_never_removes_the_new_recovered_copy ... ok
+test backup::streaming::pull::tests::exact_and_next_row_queries_seek_the_rowid_index_instead_of_scanning_a_prefix ... ok
+test backup::source_asset_validation_tests::sqlite_chunk_hash_matches_bytes_at_boundaries_and_detects_late_corruption ... ok
+test backup::validation::tests::checkpoint_checks_busy_readers_and_keeps_sqlite_in_charge_of_stage_io ... ok
+test backup::validation::tests::cancellation_inside_semantic_validation_removes_work_indexes ... ok
+test backup::validation::tests::containment_depth_cycles_and_retired_entities_keep_the_same_rules ... ok
+test backup::validation::tests::embed_work_queries_use_covering_primary_key_without_temporary_sorting ... ok
+test backup::validation::tests::deep_embed_graph_uses_sqlite_stack_and_detects_back_edges ... ok
+test backup::validation::tests::schema_feature_gates_match_aggregate_oracle ... ok
+test backup::validation::tests::source_grant_retirement_is_incremental_and_cancellation_rolls_back ... ok
+test backup::validation::tests::sql_and_aggregate_validators_agree_on_rich_graph_and_corruptions ... ok
+test backup::validation::tests::unreferenced_raw_ink_is_rejected_instead_of_silently_omitted ... ok
+test backup::validation::tests::legacy_restore_worker_cancellation_reaches_semantic_validation ... ok
+test backup::validation::tests::whole_library_images_exceed_aggregate_subset_limit_without_collecting_bytes ... ok
+test host::deletion::tests::expired_and_capacity_bounded_reviews_never_delete_content ... ok
+test host::ownership::tests::bounded_backup_pulls_leave_exclusive_owner_free_to_commit_authoring ... ok
+test host::ownership::tests::sqlite_managed_ownership_survives_commits_and_failed_duplicate_connections ... ok
+test host::ownership::tests::strict_existing_duplicate_open_keeps_owner_locks_and_committed_edits ... ok
+test host::ownership::tests::strict_existing_open_migrates_a_real_v1_library_but_rejects_bad_identity ... ok
+test host::ownership::tests::strict_existing_open_never_initializes_missing_empty_or_unrelated_files ... ok
+test host::recognition::discard::tests::capture_cannot_retire_a_completing_discard_cell ... ok
+test host::recognition::discard::tests::capture_cannot_retire_an_authorising_discard_cell ... ok
+test host::recognition::reclamation::tests::capture_cannot_retire_a_completing_reclamation_cell ... ok
+test host::recognition::reclamation::tests::capture_cannot_retire_an_authorising_reclamation_cell ... ok
+test host::recognition::removal::tests::busy_private_manager_returns_before_the_manager_guard_is_released ... ok
+test host::recognition::removal::tests::capture_cannot_retire_a_removal_cell_while_the_writer_is_publishing ... ok
+test host::recognition::resource_import::ownership_tests::capture_cannot_retire_the_import_cell_while_sql_publication_is_in_progress ... ok
+test host::recognition::tests::closed_scope_never_issues_a_live_epoch_after_invalidation ... ok
+test host::recognition::tests::expired_processing_authority_cannot_be_refreshed_by_a_later_job_budget ... ok
+test host::recognition::tests::optional_retirement_worker_failure_does_not_disable_authoritative_writing ... ok
+test host::recognition::tests::oversized_processing_frames_fail_without_allocating_an_encoded_copy ... ok
+test host::runtime::tests::close_rejects_new_leases_and_waits_for_actual_last_lease_then_off_lock_sdk_drop ... ok
+test processing::authority_control_tests::linking_authority_keeps_parent_cancellation_deadline_and_exact_expiry ... ok
+test provisioning::import_control_tests::hash_loop_cancellation_preserves_an_unpublished_resumable_part ... ok
+test provisioning::recovery::tests::scan_rechecks_control_between_entries_without_changing_files ... ok
+test provisioning::resource_lock::tests::coordination_names_and_symlink_or_nonempty_control_files_are_never_adopted_or_removed ... ok
+test provisioning::resource_lock::tests::exclusive_guard_blocks_new_readers_and_pins_the_inode_after_payload_deletion ... ok
+test security::tests::cached_backup_scope_validation_does_not_extend_an_unchanged_grants_expiry ... ok
+test sources::selection_tests::retained_pdf_commit_failure_does_not_publish_asset_or_change_acquisition ... ok
+test sources::selection_tests::selected_revision_transaction_rolls_back_and_preserves_independent_evidence ... ok
+test store::storage_tests::sqlite_full_reports_failure_and_preserves_committed_work ... ok
+test backup::validation::tests::whole_library_stream_restore_exceeds_subset_entity_block_and_exercise_caps has been running for over 60 seconds
+test backup::validation::tests::whole_library_stream_restore_exceeds_subset_entity_block_and_exercise_caps ... FAILED
+
+failures:
+
+---- backup::validation::tests::whole_library_stream_restore_exceeds_subset_entity_block_and_exercise_caps stdout ----
+
+thread 'backup::validation::tests::whole_library_stream_restore_exceeds_subset_entity_block_and_exercise_caps' panicked at core/src/backup/validation.rs:1237:13:
+assertion `left == right` failed: blocks
+  left: 110001
+ right: 100001
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    backup::validation::tests::whole_library_stream_restore_exceeds_subset_entity_block_and_exercise_caps
+
+test result: FAILED. 42 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 117.07s
+
+error: test failed, to rerun pass `-p stem-core --lib`

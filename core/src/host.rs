@@ -151,6 +151,8 @@ pub enum Command {
         content: Content,
     },
     CaptureCell {
+        #[serde(default)]
+        entity: Option<Id>,
         ticket: Id,
         block: Id,
         revision: u64,
@@ -1879,14 +1881,17 @@ fn execute(
                 serde_json::to_value(s.append_content(entity, content, a)?)?
             }
             Command::CaptureCell {
+                entity,
                 ticket,
                 block,
                 revision,
                 cell,
                 strokes,
-            } => serde_json::to_value(
-                s.append_cell_capture(ticket, block, revision, cell, strokes, a)?,
-            )?,
+            } => serde_json::to_value(if let Some(entity) = entity {
+                s.append_cell_capture_for(entity, ticket, block, revision, cell, strokes, a)?
+            } else {
+                s.append_cell_capture(ticket, block, revision, cell, strokes, a)?
+            })?,
             Command::Capture {
                 ticket,
                 entity,

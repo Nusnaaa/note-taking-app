@@ -16,6 +16,32 @@ impl Store {
         strokes: Vec<Stroke>,
         access: &Access,
     ) -> Result<Block> {
+        self.append_cell_capture_bound(None, ticket, block, revision, cell, strokes, access)
+    }
+    #[allow(clippy::too_many_arguments)]
+    pub fn append_cell_capture_for(
+        &mut self,
+        entity: Id,
+        ticket: Id,
+        block: Id,
+        revision: u64,
+        cell: Id,
+        strokes: Vec<Stroke>,
+        access: &Access,
+    ) -> Result<Block> {
+        self.append_cell_capture_bound(Some(entity), ticket, block, revision, cell, strokes, access)
+    }
+    #[allow(clippy::too_many_arguments)]
+    fn append_cell_capture_bound(
+        &mut self,
+        entity: Option<Id>,
+        ticket: Id,
+        block: Id,
+        revision: u64,
+        cell: Id,
+        strokes: Vec<Stroke>,
+        access: &Access,
+    ) -> Result<Block> {
         if strokes.is_empty() || strokes.len() > 1000 {
             return Err(Error::Invalid("cell capture batch"));
         }
@@ -35,6 +61,7 @@ impl Store {
         let fingerprint = digest(&serde_json::to_vec(&(block, revision, cell, &strokes))?);
         self.write_for(owner, |db| {
             let mut current = Self::read_block(db, block, access)?;
+            if entity.is_some_and(|entity| current.entity != entity) { return Err(Error::Conflict); }
             let old: Option<(String, String)> = db
                 .query_row(
                     "SELECT block,fingerprint FROM capture_receipts WHERE ticket=?1",

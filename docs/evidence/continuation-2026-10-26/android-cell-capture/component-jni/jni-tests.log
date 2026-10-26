@@ -1,0 +1,19 @@
+$ /tmp/stem-cargo/bin/cargo test -p stem-bridge --locked --offline
+exit_code=0
+
+   Compiling stem-bridge v0.1.0 (/tmp/stem-engine-catalogue-work/bridge)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.92s
+     Running unittests src/lib.rs (/tmp/stem-pen-response-target/debug/deps/stem_bridge-8a8ae9df0e79b094)
+
+running 2 tests
+test handle_tests::exhaustion_never_wraps_or_reuses_a_handle ... ok
+test engines::tests::closing_registry_scan_cannot_be_followed_by_late_job_admission ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+   Doc-tests stem_bridge
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -6,16 +6,29 @@ import java.util.concurrent.CompletableFuture
 
 /** Owns input identity and stale-frame admission. Rejection returns the caller's
  * immutable observations; checkpointed is distinct from a SQLite commit. */
-class JournaledCaptureSession internal constructor(internal val backend: NotebookBackend, internal val entity: UUID, internal val space: String, style: StrokeStyle? = null, val layer: CaptureLayer? = null, fingerInk: Boolean = false) {
+class JournaledCaptureSession internal constructor(internal val backend: NotebookBackend, internal val entity: UUID, internal val space: String, style: StrokeStyle? = null, val layer: CaptureLayer? = null, fingerInk: Boolean = false, val cell: CaptureCell? = null) {
     val id: UUID = UUID.randomUUID()
     private val motion = MotionCapture(InkAccumulator(sessionId = id), fingerInk).apply { setStyle(style) }
     private var revision = 0L
     private var closed = false
     internal var latestSequence = -1L // writer-executor access only
+    internal var nextCell: CaptureCell? = cell // writer executor only
+    internal class CellBinding(val session: UUID, val ticket: UUID) { var target: CaptureCell? = null }
+    private val bindingLock = Any()
+    private val cellBindings = mutableMapOf<UUID, java.lang.ref.WeakReference<CellBinding>>()
+    internal fun cellBinding(ticket: UUID): CellBinding = synchronized(bindingLock) {
+        cellBindings.entries.removeAll { it.value.get() == null }
+        cellBindings[ticket]?.get() ?: run {
+            check(cellBindings.size < 256)
+            CellBinding(id, ticket).also { cellBindings[ticket] = java.lang.ref.WeakReference(it) }
+        }
+    }
+    internal fun retireCellBinding(ticket: UUID) { synchronized(bindingLock) { cellBindings.remove(ticket) } }
     internal val seen = mutableMapOf<UUID, Long>() // bounded by journal admission
     private var interrupted = emptyList<CapturedStroke>()
     data class Receipt(val ticket: UUID, val revision: Long, val checkpointed: Boolean, val committed: Boolean, val discarded: Boolean = false)
     data class Submission(val stroke: CapturedStroke, val revision: Long, private val completion: CompletableFuture<Receipt>, val cancelled: Boolean = false) {
+        internal var cellBinding: CellBinding? = null
         // Cancelling observation never retires an admitted write or its priority.
         val receipt: CompletableFuture<Receipt> = completion.thenApply { it }
         internal val retirement: CompletableFuture<Receipt> get() = completion
@@ -35,10 +48,14 @@ class JournaledCaptureSession internal constructor(internal val backend: Noteboo
         return result
     }
     /** Retry the same immutable frame after queue/storage failure. */
-    @Synchronized fun retry(value: Submission): Submission { require(!closed || (!value.cancelled && value.stroke.end != StrokeEnd.InProgress)); return submit(value.stroke, value.revision, value.cancelled) }
-    private fun submit(stroke: CapturedStroke, version: Long, cancelled: Boolean): Submission {
-        val future = try { backend.checkpointCapture(this, stroke, version, cancelled) } catch (error: Exception) { CompletableFuture<Receipt>().apply { completeExceptionally(error) } }
-        return Submission(stroke, version, future, cancelled)
+    @Synchronized fun retry(value: Submission): Submission { require(!closed || (!value.cancelled && value.stroke.end != StrokeEnd.InProgress)); return submit(value.stroke, value.revision, value.cancelled, value.cellBinding) }
+    private fun submit(stroke: CapturedStroke, version: Long, cancelled: Boolean, existing: CellBinding? = null): Submission {
+        var binding = existing
+        val future = try {
+            if (cell != null && binding == null) binding = cellBinding(UUID.fromString(stroke.id))
+            backend.checkpointCapture(this, stroke, version, cancelled, binding)
+        } catch (error: Exception) { CompletableFuture<Receipt>().apply { completeExceptionally(error) } }
+        return Submission(stroke, version, future, cancelled).also { it.cellBinding = binding }
     }
     /** Lifecycle interruption preserves observed prefixes. Completion may still be
      * pending in recovery storage; callers inspect each returned receipt. */

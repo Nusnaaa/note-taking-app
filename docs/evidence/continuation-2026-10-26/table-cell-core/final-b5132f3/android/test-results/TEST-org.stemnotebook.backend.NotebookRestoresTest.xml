@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.NotebookRestoresTest" tests="18" skipped="0" failures="0" errors="0" timestamp="2026-10-26T18:01:15" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="134.818">
+  <properties/>
+  <testcase name="protectedScopesStayLockedInAnIndependentRecoveryKeyCopy" classname="org.stemnotebook.backend.NotebookRestoresTest" time="4.219"/>
+  <testcase name="missingUncertainCopyCannotActivateAnEmptyLibrary" classname="org.stemnotebook.backend.NotebookRestoresTest" time="8.259"/>
+  <testcase name="sourceGrantRevokedDuringFreshVerificationCannotPublishTheStagedCopy" classname="org.stemnotebook.backend.NotebookRestoresTest" time="8.451"/>
+  <testcase name="blockedInputRetirementKeepsNativeClosePendingUntilTheDescriptorActuallyRetires" classname="org.stemnotebook.backend.NotebookRestoresTest" time="8.444"/>
+  <testcase name="cancelledBlockedReadKeepsAdmissionAndOriginalAuthoringAvailableUntilRetirement" classname="org.stemnotebook.backend.NotebookRestoresTest" time="8.367"/>
+  <testcase name="recoveredLibrarySharesForegroundLeasesAndNeverCreatesAMissingCopy" classname="org.stemnotebook.backend.NotebookRestoresTest" time="8.299"/>
+  <testcase name="publicationEntryPreservesAnOutcomeDespiteCancellationAndBackendClose" classname="org.stemnotebook.backend.NotebookRestoresTest" time="8.51"/>
+  <testcase name="idleStageCleanupRunsOffWriterAndRetainsOwnershipUntilActualRetirement" classname="org.stemnotebook.backend.NotebookRestoresTest" time="8.392"/>
+  <testcase name="ambiguousPostPublicationFailureKeepsTheRecoveredCopyAndReceipt" classname="org.stemnotebook.backend.NotebookRestoresTest" time="8.296"/>
+  <testcase name="postNativePrepareStillOwnsTheLibraryBeforeReviewDelivery" classname="org.stemnotebook.backend.NotebookRestoresTest" time="8.458"/>
+  <testcase name="expiredProviderOpenRequestsCancellationButRetainsItsInputUntilItActuallyReturns" classname="org.stemnotebook.backend.NotebookRestoresTest" time="5.218"/>
+  <testcase name="unknownStageBytesAndInvalidCatalogueRecordsArePreservedAndReported" classname="org.stemnotebook.backend.NotebookRestoresTest" time="4.195"/>
+  <testcase name="preNativeProviderOpenAndCancellationListenerKeepFullOwnershipThroughClose" classname="org.stemnotebook.backend.NotebookRestoresTest" time="4.372"/>
+  <testcase name="recoveredCopyPreservesInkAndDraftsAndOpensOnlyByExplicitActionAcrossRestart" classname="org.stemnotebook.backend.NotebookRestoresTest" time="8.293"/>
+  <testcase name="sourceGrantRevocationBeforePublicationConsumesTheReviewWithoutPublishing" classname="org.stemnotebook.backend.NotebookRestoresTest" time="8.194"/>
+  <testcase name="quotaAndMalformedCredentialsRetireInputWithoutChangingTheLiveLibrary" classname="org.stemnotebook.backend.NotebookRestoresTest" time="4.126"/>
+  <testcase name="failedInputRetirementAndRevokedGrantSuppressStageExposure" classname="org.stemnotebook.backend.NotebookRestoresTest" time="12.375"/>
+  <testcase name="relockInvalidatesIdleReviewAndDisposesItsPrivateStageOffWriter" classname="org.stemnotebook.backend.NotebookRestoresTest" time="8.35"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1148,7 +1148,7 @@ mod tests {
             let mut blocks = tx
                 .prepare("INSERT INTO blocks VALUES(?1,?2,?3,?4)")
                 .unwrap();
-            for ordinal in 1..=110_000 {
+            for ordinal in 1..=100_000 {
                 let mut b = template.clone();
                 b.id = Id::new();
                 blocks

@@ -512,6 +512,7 @@ fn host_capture_and_scoped_cell_proposal_preserve_neighbouring_values() {
     call(
         &host,
         Command::CaptureCell {
+            entity: Some(note),
             ticket: Id::new(),
             block,
             revision: 0,
