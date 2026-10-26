@@ -453,6 +453,7 @@ enum Message {
     RecognitionSource(Id, Option<Id>, mpsc::Sender<Result<RecognitionSource>>),
     ActivationSource(mpsc::Sender<Result<HostActivationSource>>),
     EngineActivationPlan(Id, mpsc::Sender<Result<HostEngineActivationPlan>>),
+    PublishEngine(recognition::EnginePublication, mpsc::Sender<Result<()>>),
     DetachmentSource(mpsc::Sender<Result<HostDetachmentSource>>),
     PublishRecognition(
         Box<CompletedRecognition>,
@@ -585,6 +586,20 @@ impl Host {
                             let result =
                                 std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                                     recognition_scope.detachment_source(&store, &access)
+                                }))
+                                .unwrap_or(Err(Error::WorkerFailed));
+                            let _ =
+                                input.complete(envelope.authoring, envelope.bytes, result.is_err());
+                            let _ = reply.send(result);
+                        }
+                        Message::PublishEngine(publication, reply) => {
+                            let result =
+                                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                                    recognition_scope.publish_engine(
+                                        &mut store,
+                                        &access,
+                                        publication,
+                                    )
                                 }))
                                 .unwrap_or(Err(Error::WorkerFailed));
                             let _ =
@@ -816,6 +831,25 @@ impl Host {
         self.mailbox
             .admit(Message::EngineActivationPlan(version, tx), false, 128)?;
         rx.recv().map_err(|_| Error::WorkerFailed)?
+    }
+    /// Publish a prepared engine on the writer. Call from an optional controller
+    /// worker, without holding the shared Manager mutex. A busy Manager rejects
+    /// immediately and preserves the candidate for retry.
+    pub fn commit_engine_activation(
+        &self,
+        manager: &Arc<Mutex<crate::processing::Manager>>,
+        prepared: &HostPreparedEngineActivation,
+    ) -> Result<()> {
+        let lease = Arc::clone(manager);
+        let (tx, rx) = mpsc::channel();
+        self.mailbox.admit(
+            Message::PublishEngine(prepared.publication(&lease), tx),
+            false,
+            128,
+        )?;
+        let result = rx.recv().map_err(|_| Error::WorkerFailed)?;
+        drop(lease);
+        result
     }
     /// Reserve optional lifecycle work without sending callbacks to the writer.
     pub fn activation_source(&self) -> Result<HostActivationSource> {

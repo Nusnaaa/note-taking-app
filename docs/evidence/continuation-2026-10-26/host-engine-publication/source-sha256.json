@@ -1,0 +1,6 @@
+{
+  "core/src/host.rs": "8d7bc2787bdb8040dc911de9812c7c7a7fb6723d256d894bbd939e52b65299ea",
+  "core/src/host/recognition.rs": "543cf702cbffcbcc6f488cc58ddd512060fc420a5d1a33a70d5fff8d577a4bb5",
+  "core/src/host/recognition/stored_activation.rs": "5b015858900d3ee4fa56ac00e156e33b05e6e149573c13f83915b9e164eec6e1",
+  "core/tests/host_engine_activation_plan.rs": "482e98aa74bc7852971f8720c302b4561268090ba4e0e4a8200ce0ad69cfba3f"
+}

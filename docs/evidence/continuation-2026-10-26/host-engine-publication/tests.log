@@ -1,0 +1,81 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-host-engine-plan-work/core)
+    Finished `test` profile [unoptimized] target(s) in 1.49s
+     Running tests/engine_activation_plan.rs (/tmp/stem-host-engine-plan-target/debug/deps/engine_activation_plan-3e33c26f8572595f)
+
+running 5 tests
+test preparation_probes_without_live_manager_borrow_and_commit_publishes_durable_version ... ok
+test failed_probe_and_commit_keep_previous_runtime_and_retry_preserves_candidate_holder ... ok
+test cancelled_converter_commit_preserves_staged_state_and_fresh_converter_flow_succeeds ... ok
+test changed_resource_and_load_limit_reject_before_replacing_live_engine ... ok
+test stale_generation_and_foreign_library_cannot_commit_prepared_candidate ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+     Running tests/host_activation.rs (/tmp/stem-host-engine-plan-target/debug/deps/host_activation-9f0ed26c09b4145e)
+
+running 10 tests
+test host_detachment_cleanup_can_reenter_shared_manager_after_controller_unlocks ... ok
+test optional_capacity_and_pen_priority_never_run_a_cancelled_idle_probe_or_mark_authoring_failed ... ok
+test detachment_requires_current_host_epoch_and_does_not_remove_ready_engine_after_pen_cancellation ... ok
+test provider_error_payload_retires_off_writer_after_completion_failure ... ok
+test running_probe_is_cancelled_by_pen_priority_while_authoring_and_raw_source_remain_available ... ok
+test close_waits_for_running_probe_then_actual_adapter_destruction_before_reopening_library ... ok
+test host_owned_detached_runtime_keeps_owner_until_off_writer_cleanup_finishes ... ok
+test idle_adapter_cleanup_is_off_writer_and_full_close_retains_library_ownership_until_it_finishes ... ok
+test host_and_app_authority_bind_completion_and_locked_app_cannot_reserve_activation ... ok
+test descriptor_frame_rejection_preserves_existing_ready_engine_and_authoring ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.73s
+
+     Running tests/host_engine_activation_plan.rs (/tmp/stem-host-engine-plan-target/debug/deps/host_engine_activation_plan-d3ad8418b447fc95)
+
+running 11 tests
+test queued_publication_does_not_lock_registry_while_writer_authenticates ... ok
+test pen_cancellation_prevents_host_publication_after_preparation ... ok
+test idle_prepared_disposal_is_off_writer_and_holds_owner_until_cleanup ... ok
+test relock_cancels_old_metadata_plan_and_locked_app_cannot_reserve_new_plan ... ok
+test busy_manager_rejects_without_writer_wait_and_preserves_candidate_for_retry ... ok
+test probe_is_off_writer_and_pen_cancellation_never_revives_a_prepared_candidate ... ok
+test host_publication_installs_runtime_and_durable_metadata_and_rejects_replay ... ok
+test metadata_reservation_is_bounded_and_never_probes_or_marks_installed ... ok
+test replaced_runtime_cleanup_is_off_writer_and_keeps_library_ownership ... ok
+test close_waits_for_probe_and_actual_cleanup_before_library_can_reopen ... ok
+test publication_rejects_foreign_scope_and_stale_generation_without_installing ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.28s
+
+     Running tests/host_recognition.rs (/tmp/stem-host-engine-plan-target/debug/deps/host_recognition-3ceb64efdd121fe8)
+
+running 18 tests
+test completed_work_cannot_resurrect_after_relock_reauthentication_or_reopen ... ok
+test capture_priority_cancels_old_work_and_nested_contacts_never_resume_each_other ... ok
+test excessive_trusted_capture_sessions_disable_optional_work_but_preserve_authoring ... ok
+test host_close_invalidates_prepared_work_while_pending_reviews_remain_explicit ... ok
+test reentrant_close_from_model_callback_cancels_without_self_join ... ok
+test idle_runtime_cleanup_is_off_writer_and_reentrant_close_never_releases_ownership_early ... ok
+test capture_priority_reaches_a_running_adapter_and_does_not_wait_for_it_to_save_ink ... ok
+test blocked_inference_never_holds_writer_and_relock_rejects_late_output ... ok
+test processing_admission_counts_unrun_sources_and_close_retires_them_without_waiting_for_callers ... ok
+test batch_acceptance_spanning_documents_records_independent_document_undo ... ok
+test overlapping_region_or_whole_block_selections_leave_every_review_pending ... ok
+test pending_reviews_are_discoverable_after_restart_without_a_loaded_model_and_hide_locked_source ... ok
+test host_manual_recognition_review_correction_and_acceptance_preserve_original_ink ... ok
+test selected_regions_publish_independent_reviews_and_explicit_batch_acceptance_is_atomic ... ok
+test cancelled_stale_unscoped_and_forged_results_cannot_publish ... ok
+test source_permissions_are_current_and_review_cannot_bypass_a_block_lock ... ok
+test shutdown_keeps_library_ownership_until_blocked_worker_really_retires ... ok
+test encoded_source_byte_budget_is_independent_of_job_count_and_does_not_evict_input ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 11.44s
+
+     Running tests/runtime_detachment.rs (/tmp/stem-host-engine-plan-target/debug/deps/runtime_detachment-7f4e43fd8bcea61e)
+
+running 5 tests
+test converter_work_pins_detached_runtime_and_synchronous_remove_still_disposes_idle_adapters ... ok
+test detached_cleanup_can_reenter_the_manager_after_lock_release ... ok
+test dropping_detached_holder_is_not_a_false_acknowledgement_of_running_worker_resource_retirement ... ok
+test reused_identifier_does_not_accept_old_activation_or_restore_removed_default ... ok
+test detach_disables_selection_without_destroying_adapter_and_old_inference_cannot_run ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+

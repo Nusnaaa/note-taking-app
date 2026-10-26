@@ -21,6 +21,7 @@ pub use activation::{
     HostActivationSource, HostActivationWork, HostCompletedActivation, HostDetachedRuntime,
     HostDetachmentSource,
 };
+pub(super) use stored_activation::EnginePublication;
 pub use stored_activation::{HostEngineActivationPlan, HostPreparedEngineActivation};
 const MAX_FRAME: usize = 8 * 1024 * 1024;
 const MAX_SOURCE_BYTES: usize = 32 * 1024 * 1024;
@@ -90,8 +91,10 @@ enum Phase {
     Prepared(Option<Box<RecognitionWork>>),
     ActivationInput,
     StoredPlan(Option<Box<crate::store::EngineActivationPlan>>),
-    StoredPrepared {
-        _prepared: Box<crate::store::PreparedEngineActivation>,
+    StoredPrepared(Arc<stored_activation::StoredCandidate>),
+    StoredPublishing(Arc<stored_activation::StoredCandidate>),
+    StoredPublished {
+        _candidate: Arc<stored_activation::StoredCandidate>,
     },
     DetachmentInput,
     RuntimeDetached {
@@ -127,7 +130,10 @@ impl Slot {
     fn cancel_idle(&self) {
         let old = {
             let mut phase = self.phase.lock().unwrap_or_else(|p| p.into_inner());
-            if matches!(*phase, Phase::Running | Phase::Finished) {
+            if matches!(
+                *phase,
+                Phase::Running | Phase::StoredPublishing(_) | Phase::Finished
+            ) {
                 return;
             }
             std::mem::replace(&mut *phase, Phase::Finished)

@@ -258,3 +258,212 @@ fn relock_cancels_old_metadata_plan_and_locked_app_cannot_reserve_new_plan() {
     assert!(matches!(h.engine_activation_plan(id), Err(Error::Denied)));
     h.close().unwrap();
 }
+
+fn prepared(h: &Host, id: Id) -> stem_core::host::HostPreparedEngineActivation {
+    let (adapter, _) = model(None, None);
+    h.engine_activation_plan(id)
+        .unwrap()
+        .prepare_recogniser(adapter, 100, &control())
+        .unwrap()
+}
+#[test]
+fn host_publication_installs_runtime_and_durable_metadata_and_rejects_replay() {
+    let (root, h, id) = fixture(8);
+    let ready = prepared(&h, id);
+    let manager = Arc::new(Mutex::new(Manager::new()));
+    h.commit_engine_activation(&manager, &ready).unwrap();
+    assert_eq!(
+        manager
+            .lock()
+            .unwrap()
+            .descriptor("synthetic")
+            .unwrap()
+            .version,
+        "1"
+    );
+    assert!(matches!(
+        h.commit_engine_activation(&manager, &ready),
+        Err(Error::Conflict)
+    ));
+    drop(ready);
+    wait_for(|| h.recognition_status().reserved == 0);
+    h.close().unwrap();
+    let store = Store::open(root.path().join("library.db")).unwrap();
+    assert_eq!(
+        store.engine_version(id, &Access::public()).unwrap().state,
+        Installation::Installed
+    );
+}
+#[test]
+fn busy_manager_rejects_without_writer_wait_and_preserves_candidate_for_retry() {
+    let (_root, h, id) = fixture(8);
+    let ready = prepared(&h, id);
+    let manager = Arc::new(Mutex::new(Manager::new()));
+    let held = manager.lock().unwrap();
+    assert!(matches!(
+        h.commit_engine_activation(&manager, &ready),
+        Err(Error::ResourceLimit)
+    ));
+    // This request completes while the controller still holds the Manager lock.
+    call(
+        &h,
+        Command::Help {
+            topic: stem_core::help::Topic::Recognition,
+        },
+    );
+    drop(held);
+    h.commit_engine_activation(&manager, &ready).unwrap();
+    drop(ready);
+    h.close().unwrap();
+}
+#[test]
+fn publication_rejects_foreign_scope_and_stale_generation_without_installing() {
+    let (root, h, id) = fixture(8);
+    let (_other_root, other, _) = fixture(8);
+    let ready = prepared(&h, id);
+    let manager = Arc::new(Mutex::new(Manager::new()));
+    assert!(matches!(
+        other.commit_engine_activation(&manager, &ready),
+        Err(Error::Denied)
+    ));
+    call(
+        &h,
+        Command::Create {
+            kind: Kind::Note,
+            parent: None,
+            title: "generation changes".into(),
+        },
+    );
+    assert!(matches!(
+        h.commit_engine_activation(&manager, &ready),
+        Err(Error::Conflict)
+    ));
+    assert!(manager.lock().unwrap().descriptor("synthetic").is_none());
+    drop(ready);
+    h.close().unwrap();
+    other.close().unwrap();
+    let store = Store::open(root.path().join("library.db")).unwrap();
+    assert_eq!(
+        store.engine_version(id, &Access::public()).unwrap().state,
+        Installation::Staged
+    );
+}
+#[test]
+fn pen_cancellation_prevents_host_publication_after_preparation() {
+    let (_root, h, id) = fixture(8);
+    let ready = prepared(&h, id);
+    let manager = Arc::new(Mutex::new(Manager::new()));
+    let pen = Id::new();
+    h.set_capture_priority(pen, true).unwrap();
+    h.set_capture_priority(pen, false).unwrap();
+    assert!(matches!(
+        h.commit_engine_activation(&manager, &ready),
+        Err(Error::Cancelled)
+    ));
+    assert!(manager.lock().unwrap().descriptor("synthetic").is_none());
+    drop(ready);
+    h.close().unwrap();
+}
+
+#[test]
+fn replaced_runtime_cleanup_is_off_writer_and_keeps_library_ownership() {
+    let (root, h, id) = fixture(8);
+    let manager = Arc::new(Mutex::new(Manager::new()));
+    let (cleanup, entered, release) = gate();
+    let (old, _) = model(None, Some(cleanup));
+    {
+        let mut m = manager.lock().unwrap();
+        let mut d = descriptor();
+        d.version = "old".into();
+        m.register_recogniser(d, old).unwrap();
+        m.activate_local("synthetic", None, true).unwrap();
+    }
+    let ready = prepared(&h, id);
+    h.commit_engine_activation(&manager, &ready).unwrap();
+    assert_eq!(
+        manager
+            .lock()
+            .unwrap()
+            .descriptor("synthetic")
+            .unwrap()
+            .version,
+        "1"
+    );
+    drop(ready);
+    let retirement_thread = entered.recv_timeout(Duration::from_secs(10)).unwrap();
+    assert_ne!(retirement_thread, thread::current().id());
+    // The writer and Manager are available while the old SDK destructor blocks.
+    call(
+        &h,
+        Command::Help {
+            topic: stem_core::help::Topic::Recognition,
+        },
+    );
+    assert!(manager.try_lock().is_ok());
+    let h2 = Arc::clone(&h);
+    let closer = thread::spawn(move || h2.close().unwrap());
+    assert!(Host::open(root.path().join("library.db"), 8).is_err());
+    release.send(()).unwrap();
+    closer.join().unwrap();
+    Host::open(root.path().join("library.db"), 8)
+        .unwrap()
+        .close()
+        .unwrap();
+}
+
+struct RegistryAuth {
+    gate: Gate,
+    manager: Arc<Mutex<Manager>>,
+}
+impl stem_core::security::Authenticator for RegistryAuth {
+    fn verify(&mut self, _: Id, _: &std::collections::BTreeSet<Scope>) -> bool {
+        self.gate.wait();
+        // The writer's verifier may inspect the registry. The queued publisher
+        // must hold a strong lease, never the Manager mutex while awaiting RPC.
+        assert!(self.manager.try_lock().is_ok());
+        true
+    }
+}
+#[test]
+fn queued_publication_does_not_lock_registry_while_writer_authenticates() {
+    let (_root, h, id) = fixture(8);
+    let ready = prepared(&h, id);
+    let manager = Arc::new(Mutex::new(Manager::new()));
+    let (gate, entered, release) = gate();
+    let auth = RegistryAuth {
+        gate,
+        manager: Arc::clone(&manager),
+    };
+    let h_auth = Arc::clone(&h);
+    let auth_thread = thread::spawn(move || {
+        h_auth.authenticate([Scope::App].into_iter().collect(), Box::new(auth))
+    });
+    entered.recv_timeout(Duration::from_secs(10)).unwrap();
+    let publisher_host = Arc::clone(&h);
+    let publisher_manager = Arc::clone(&manager);
+    let mut status = h.subscribe_status();
+    let publisher = thread::spawn(move || {
+        let result = publisher_host.commit_engine_activation(&publisher_manager, &ready);
+        drop(ready);
+        result
+    });
+    // Observe admission while the verifier still occupies the writer.
+    loop {
+        if status
+            .next_timeout(Duration::from_secs(10))
+            .unwrap()
+            .expect("publication admission")
+            .pending_queries
+            > 0
+        {
+            break;
+        }
+    }
+    release.send(()).unwrap();
+    auth_thread.join().unwrap().unwrap();
+    // Authentication invalidates the old optional authority, so publication may
+    // be cancelled. In either case it must return without a registry deadlock.
+    let result = publisher.join().unwrap();
+    assert!(result.is_ok() || matches!(result, Err(Error::Cancelled)));
+    h.close().unwrap();
+}
