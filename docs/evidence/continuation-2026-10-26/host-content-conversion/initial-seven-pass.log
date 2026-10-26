@@ -1,0 +1,21 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 56.65s
+     Running tests/host_conversion.rs (/tmp/stem-pen-response-target/debug/deps/host_conversion-174bbf2df57fde4d)
+
+running 3 tests
+test derivative_preserves_lexemes_source_identity_and_runtime_revocation ... ok
+test capture_relock_and_close_revoke_prepared_and_delivered_conversion ... ok
+test running_callback_is_off_writer_and_observes_capture_cancellation ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
+     Running tests/processing_work.rs (/tmp/stem-pen-response-target/debug/deps/processing_work-0922126a6c9bfdf6)
+
+running 4 tests
+test converter_work_is_owned_cancelled_by_retirement_and_contains_format_panics ... ok
+test prepared_work_freezes_engine_choice_and_keeps_explicit_proposal_acceptance ... ok
+test running_work_observes_removal_and_pins_resources_until_actual_worker_retirement ... ok
+test removal_failed_reverification_and_manager_drop_invalidate_prepared_work ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+

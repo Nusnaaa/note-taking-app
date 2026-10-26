@@ -253,6 +253,7 @@ pub struct RecognitionWork {
     validity: Arc<AtomicBool>,
 }
 pub struct ConversionWork {
+    authority: Option<WorkAuthority>,
     content: Content,
     target: Format,
     descriptor: Descriptor,
@@ -485,6 +486,7 @@ impl Manager {
             return Err(Error::EngineUnavailable);
         };
         Ok(ConversionWork {
+            authority: None,
             content,
             target,
             descriptor: entry.descriptor.clone(),
@@ -567,11 +569,29 @@ impl RecognitionWork {
     }
 }
 impl ConversionWork {
+    pub(crate) fn delivery_control(&self, control: &JobControl) -> JobControl {
+        let control = control.linked(Arc::clone(&self.validity));
+        match &self.authority {
+            Some(authority) => control.linked_authority(authority),
+            None => control,
+        }
+    }
+    pub fn target(&self) -> Format {
+        self.target.clone()
+    }
+    pub(crate) fn bind_authority(mut self, authority: WorkAuthority) -> Self {
+        self.authority = Some(authority);
+        self
+    }
     pub fn descriptor(&self) -> &Descriptor {
         &self.descriptor
     }
     pub fn run(self, control: &JobControl) -> Result<Converted> {
-        let control = control.linked(Arc::clone(&self.validity));
+        let mut control = control.linked(Arc::clone(&self.validity));
+        if let Some(authority) = &self.authority {
+            authority.check()?;
+            control = control.linked_authority(authority);
+        }
         control.check()?;
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             if !self.adapter.formats().contains(&self.target) {

@@ -37,13 +37,14 @@ mod runtime;
 pub use engine_catalogue::{EngineCatalogueSnapshot, EngineDefault, EngineRuntimeRow};
 use recognition::RecognitionScope;
 pub use recognition::{
-    HostActivationSource, HostActivationWork, HostCompletedActivation, HostDetachedRuntime,
-    HostDetachmentSource, HostDiscardedEngineImport, HostEngineActivationPlan,
-    HostEngineDiscardPlan, HostEngineImportPlan, HostEngineImportTransfer,
-    HostEngineReclamationPlan, HostEngineRecoveryPlan, HostEngineRemovalPlan,
-    HostPreparedEngineActivation, HostPreparedEngineDiscard, HostPreparedEngineImport,
-    HostPreparedEngineReclamation, HostReclaimedEngineResource, HostRecognitionWork,
-    HostReviewedEngineReclamation, RecognitionSource, RecognitionStatus,
+    ConversionSource, HostActivationSource, HostActivationWork, HostCompletedActivation,
+    HostCompletedConversion, HostConversionWork, HostDetachedRuntime, HostDetachmentSource,
+    HostDiscardedEngineImport, HostEngineActivationPlan, HostEngineDiscardPlan,
+    HostEngineImportPlan, HostEngineImportTransfer, HostEngineReclamationPlan,
+    HostEngineRecoveryPlan, HostEngineRemovalPlan, HostPreparedEngineActivation,
+    HostPreparedEngineDiscard, HostPreparedEngineImport, HostPreparedEngineReclamation,
+    HostReclaimedEngineResource, HostRecognitionWork, HostReviewedEngineReclamation,
+    RecognitionSource, RecognitionStatus,
 };
 mod pdf;
 use crate::sources::PdfSelectionTarget;
@@ -469,6 +470,7 @@ enum Message {
         std::sync::Weak<Mutex<crate::processing::Manager>>,
         mpsc::Sender<Result<()>>,
     ),
+    ConversionSource(Id, Option<Id>, mpsc::Sender<Result<ConversionSource>>),
     RecognitionSource(Id, Option<Id>, mpsc::Sender<Result<RecognitionSource>>),
     ActivationSource(mpsc::Sender<Result<HostActivationSource>>),
     EngineActivationPlan(Id, mpsc::Sender<Result<HostEngineActivationPlan>>),
@@ -882,6 +884,17 @@ impl Host {
                             let result =
                                 std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                                     recognition_scope.activation_source(&store, &access)
+                                }))
+                                .unwrap_or(Err(Error::WorkerFailed));
+                            let _ =
+                                input.complete(envelope.authoring, envelope.bytes, result.is_err());
+                            let _ = reply.send(result);
+                        }
+                        Message::ConversionSource(block, region, reply) => {
+                            let result =
+                                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                                    recognition_scope
+                                        .conversion_source(&store, &access, block, region)
                                 }))
                                 .unwrap_or(Err(Error::WorkerFailed));
                             let _ =
@@ -1387,6 +1400,14 @@ impl Host {
         completed: &HostCompletedActivation,
     ) -> Result<()> {
         self.recognition.complete_activation(manager, completed)
+    }
+    /// Snapshot authorised editable content. Conversion returns a derivative;
+    /// it never edits the stored block or accepts a recognition proposal.
+    pub fn conversion_source(&self, block: Id, region: Option<Id>) -> Result<ConversionSource> {
+        let (tx, rx) = mpsc::channel();
+        self.mailbox
+            .admit(Message::ConversionSource(block, region, tx), false, 128)?;
+        rx.recv().map_err(|_| Error::WorkerFailed)?
     }
     pub fn recognition_source(&self, block: Id, region: Option<Id>) -> Result<RecognitionSource> {
         let (tx, rx) = mpsc::channel();

@@ -1,0 +1,26 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.29s
+     Running tests/host_conversion.rs (/tmp/stem-pen-response-target/debug/deps/host_conversion-174bbf2df57fde4d)
+
+running 5 tests
+test derivative_preserves_lexemes_source_identity_and_runtime_revocation ... ok
+test capture_relock_and_close_revoke_prepared_and_delivered_conversion ... ok
+test protection_change_revokes_snapshot_and_refuses_new_source ... FAILED
+test running_callback_is_off_writer_and_observes_capture_cancellation ... ok
+test source_admission_is_shared_bounded_and_denied_blocks_stay_denied ... ok
+
+failures:
+
+---- protection_change_revokes_snapshot_and_refuses_new_source stdout ----
+
+thread 'protection_change_revokes_snapshot_and_refuses_new_source' panicked at core/tests/host_conversion.rs:24:5:
+Some("authentication required")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    protection_change_revokes_snapshot_and_refuses_new_source
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.19s
+
+error: test failed, to rerun pass `-p stem-core --test host_conversion`

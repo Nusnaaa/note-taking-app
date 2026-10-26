@@ -15,6 +15,8 @@ use std::{
     },
     thread::{self, ThreadId},
 };
+mod conversion;
+pub use conversion::{ConversionSource, HostCompletedConversion, HostConversionWork};
 mod activation;
 pub(super) mod discard;
 pub use discard::{HostDiscardedEngineImport, HostEngineDiscardPlan, HostPreparedEngineDiscard};
@@ -104,6 +106,8 @@ fn retire_now(task: Retirement) {
 }
 enum Phase {
     Source(Option<InkSnapshot>),
+    ConversionSource(Option<crate::content::Content>),
+    ConversionPrepared(Option<Box<crate::processing::ConversionWork>>),
     Prepared(Option<Box<RecognitionWork>>),
     ActivationInput,
     StoredPlan(Option<Box<crate::store::EngineActivationPlan>>),

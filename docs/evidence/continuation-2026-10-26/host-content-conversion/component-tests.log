@@ -1,0 +1,47 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.12s
+     Running tests/host_conversion.rs (/tmp/stem-pen-response-target/debug/deps/host_conversion-174bbf2df57fde4d)
+
+running 5 tests
+test derivative_preserves_lexemes_source_identity_and_runtime_revocation ... ok
+test capture_relock_and_close_revoke_prepared_and_delivered_conversion ... ok
+test running_callback_is_off_writer_and_observes_capture_cancellation ... ok
+test protection_change_revokes_snapshot_and_refuses_new_source ... ok
+test source_admission_is_shared_bounded_and_denied_blocks_stay_denied ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+
+     Running tests/host_recognition.rs (/tmp/stem-pen-response-target/debug/deps/host_recognition-8970191f4059537e)
+
+running 18 tests
+test blocked_inference_never_holds_writer_and_relock_rejects_late_output ... ok
+test batch_acceptance_spanning_documents_records_independent_document_undo ... ok
+test cancelled_stale_unscoped_and_forged_results_cannot_publish ... ok
+test capture_priority_cancels_old_work_and_nested_contacts_never_resume_each_other ... ok
+test capture_priority_reaches_a_running_adapter_and_does_not_wait_for_it_to_save_ink ... ok
+test completed_work_cannot_resurrect_after_relock_reauthentication_or_reopen ... ok
+test excessive_trusted_capture_sessions_disable_optional_work_but_preserve_authoring ... ok
+test host_close_invalidates_prepared_work_while_pending_reviews_remain_explicit ... ok
+test host_manual_recognition_review_correction_and_acceptance_preserve_original_ink ... ok
+test idle_runtime_cleanup_is_off_writer_and_reentrant_close_never_releases_ownership_early ... ok
+test overlapping_region_or_whole_block_selections_leave_every_review_pending ... ok
+test pending_reviews_are_discoverable_after_restart_without_a_loaded_model_and_hide_locked_source ... ok
+test processing_admission_counts_unrun_sources_and_close_retires_them_without_waiting_for_callers ... ok
+test reentrant_close_from_model_callback_cancels_without_self_join ... ok
+test selected_regions_publish_independent_reviews_and_explicit_batch_acceptance_is_atomic ... ok
+test shutdown_keeps_library_ownership_until_blocked_worker_really_retires ... ok
+test source_permissions_are_current_and_review_cannot_bypass_a_block_lock ... ok
+test encoded_source_byte_budget_is_independent_of_job_count_and_does_not_evict_input ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 17.88s
+
+     Running tests/processing_work.rs (/tmp/stem-pen-response-target/debug/deps/processing_work-0922126a6c9bfdf6)
+
+running 4 tests
+test converter_work_is_owned_cancelled_by_retirement_and_contains_format_panics ... ok
+test prepared_work_freezes_engine_choice_and_keeps_explicit_proposal_acceptance ... ok
+test removal_failed_reverification_and_manager_drop_invalidate_prepared_work ... ok
+test running_work_observes_removal_and_pins_resources_until_actual_worker_retirement ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
