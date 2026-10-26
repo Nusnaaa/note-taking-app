@@ -237,6 +237,12 @@ impl Store {
             return Err(Error::Unavailable);
         }
 
+        let pin = v
+            .local_resource
+            .as_ref()
+            .map(|path| crate::provisioning::ResourcePin::acquire(Path::new(path)))
+            .transpose()?;
+        let adapter = crate::processing::pinned::recogniser(adapter, pin);
         let resource = if let Some(path) = &v.local_resource {
             let file = std::fs::File::open(path)?;
 
@@ -314,6 +320,12 @@ impl Store {
             return Err(Error::Unavailable);
         }
 
+        let pin = v
+            .local_resource
+            .as_ref()
+            .map(|path| crate::provisioning::ResourcePin::acquire(Path::new(path)))
+            .transpose()?;
+        let adapter = crate::processing::pinned::converter(adapter, pin);
         let resource = if let Some(path) = &v.local_resource {
             let file = std::fs::File::open(path)?;
 

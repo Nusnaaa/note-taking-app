@@ -3,6 +3,7 @@
 use crate::{content::Content, digest, store::InkSnapshot, Error, Result};
 use serde::{Deserialize, Serialize};
 mod activation;
+pub(crate) mod pinned;
 pub use activation::{ActivationWork, CompletedActivation};
 mod retirement;
 pub use retirement::{DetachedRuntime, ReadyRuntime};

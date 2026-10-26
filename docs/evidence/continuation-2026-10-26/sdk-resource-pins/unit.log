@@ -1,0 +1,12 @@
+$ cargo test -p stem-core --lib provisioning::resource_lock::tests --locked --offline
+exit_code=0
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.16s
+     Running unittests src/lib.rs (/tmp/stem-pen-response-target/debug/deps/stem_core-8a459d8a65baac19)
+
+running 2 tests
+test provisioning::resource_lock::tests::exclusive_guard_blocks_new_readers_and_pins_the_inode_after_payload_deletion ... ok
+test provisioning::resource_lock::tests::coordination_names_and_symlink_or_nonempty_control_files_are_never_adopted_or_removed ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 39 filtered out; finished in 0.01s
+

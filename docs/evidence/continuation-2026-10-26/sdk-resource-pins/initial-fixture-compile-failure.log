@@ -1,0 +1,37 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+warning: unused import: `Arc`
+ --> core/tests/resource_pins.rs:5:18
+  |
+5 |     sync::{mpsc, Arc, Mutex},
+  |                  ^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+error[E0046]: not all trait items implemented, missing: `probe`
+  --> core/tests/resource_pins.rs:60:1
+   |
+60 | impl Recogniser for Model {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ missing `probe` in implementation
+   |
+   = help: implement the missing item: `fn probe(&self) -> Result<(), stem_core::Error> { todo!() }`
+
+error[E0046]: not all trait items implemented, missing: `probe`
+   --> core/tests/resource_pins.rs:114:1
+    |
+114 | impl Recogniser for BlockingDrop {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ missing `probe` in implementation
+    |
+    = help: implement the missing item: `fn probe(&self) -> Result<(), stem_core::Error> { todo!() }`
+
+error[E0046]: not all trait items implemented, missing: `probe`
+   --> core/tests/resource_pins.rs:179:5
+    |
+179 |     impl Recogniser for Running {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^ missing `probe` in implementation
+    |
+    = help: implement the missing item: `fn probe(&self) -> Result<(), stem_core::Error> { todo!() }`
+
+For more information about this error, try `rustc --explain E0046`.
+warning: `stem-core` (test "resource_pins") generated 1 warning
+error: could not compile `stem-core` (test "resource_pins") due to 3 previous errors; 1 warning emitted
+warning: build failed, waiting for other jobs to finish...

@@ -98,16 +98,23 @@ impl EngineActivationPlan {
         factory: impl FnOnce(&Descriptor, Option<&[u8]>, &JobControl) -> Result<Box<dyn Recogniser>>,
     ) -> Result<PreparedEngineActivation> {
         Manager::validate_recogniser(&self.version.descriptor)?;
+        let pin = self
+            .version
+            .local_resource
+            .as_ref()
+            .map(|path| crate::provisioning::ResourcePin::acquire(Path::new(path)))
+            .transpose()?;
+        let mut factory = crate::processing::pinned::FactoryOwner::new(factory, &pin);
         let resource = self.resource(max_load_bytes, control)?;
         self.check(control)?;
-        let adapter = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            factory(
+        let adapter = crate::processing::pinned::factory(&pin, || {
+            factory.take()(
                 &self.version.descriptor,
                 resource.as_ref().map(|r| r.as_slice()),
                 control,
             )
-        }))
-        .map_err(|_| Error::WorkerFailed)??;
+        })?;
+        let adapter = crate::processing::pinned::recogniser(adapter, pin);
         self.check(control)?;
         let mut candidate = Manager::new();
         candidate.register_recogniser(self.version.descriptor.clone(), adapter)?;
@@ -128,16 +135,23 @@ impl EngineActivationPlan {
         factory: impl FnOnce(&Descriptor, Option<&[u8]>, &JobControl) -> Result<Box<dyn Converter>>,
     ) -> Result<PreparedEngineActivation> {
         Manager::validate_converter(&self.version.descriptor)?;
+        let pin = self
+            .version
+            .local_resource
+            .as_ref()
+            .map(|path| crate::provisioning::ResourcePin::acquire(Path::new(path)))
+            .transpose()?;
+        let mut factory = crate::processing::pinned::FactoryOwner::new(factory, &pin);
         let resource = self.resource(max_load_bytes, control)?;
         self.check(control)?;
-        let adapter = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            factory(
+        let adapter = crate::processing::pinned::factory(&pin, || {
+            factory.take()(
                 &self.version.descriptor,
                 resource.as_ref().map(|r| r.as_slice()),
                 control,
             )
-        }))
-        .map_err(|_| Error::WorkerFailed)??;
+        })?;
+        let adapter = crate::processing::pinned::converter(adapter, pin);
         self.check(control)?;
         let mut candidate = Manager::new();
         candidate.register_converter(self.version.descriptor.clone(), adapter)?;

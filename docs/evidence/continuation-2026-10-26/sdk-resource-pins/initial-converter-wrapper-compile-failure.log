@@ -1,0 +1,35 @@
+    Checking stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+error[E0308]: mismatched types
+  --> core/src/processing/pinned.rs:56:13
+   |
+56 |             self.inner.as_ref().expect("provider").formats()
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Result<_, Error>`, found `Vec<Format>`
+   |
+   = note: expected enum `std::result::Result<_, Error>`
+            found struct `std::vec::Vec<processing::Format>`
+help: try wrapping the expression in `Ok`
+   |
+56 |             Ok(self.inner.as_ref().expect("provider").formats())
+   |             +++                                                +
+
+error[E0308]: mismatched types
+  --> core/src/processing/pinned.rs:55:9
+   |
+54 |       fn formats(&self) -> Vec<Format> {
+   |                            ----------- expected `std::vec::Vec<processing::Format>` because of return type
+55 | /         factory(&Some(Arc::clone(&self.pin)), || {
+56 | |             self.inner.as_ref().expect("provider").formats()
+57 | |         })
+   | |__________^ expected `Vec<Format>`, found `Result<_, Error>`
+   |
+   = note: expected struct `std::vec::Vec<processing::Format>`
+                found enum `std::result::Result<_, Error>`
+help: consider using `Result::expect` to unwrap the `std::result::Result<_, Error>` value, panicking if the value is a `Result::Err`
+   |
+57 |         }).expect("REASON")
+   |           +++++++++++++++++
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `stem-core` (lib) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `stem-core` (lib test) due to 2 previous errors

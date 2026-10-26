@@ -2,7 +2,9 @@
 //! loading. The host feeds explicitly selected bytes and retains the install ID.
 pub(crate) mod discard;
 mod ownership;
+mod resource_lock;
 pub(crate) use ownership::TransferOwnership;
+pub(crate) use resource_lock::{ResourceExclusive, ResourcePin};
 pub(crate) mod recovery;
 use crate::{
     digest,
@@ -368,6 +370,7 @@ pub struct ResourceLeases {
 pub struct ResourceLease {
     file: std::fs::File,
     reservation: ResourceReservation,
+    _pin: Arc<ResourcePin>,
 }
 struct ResourceReservation {
     state: Arc<Mutex<BTreeMap<PathBuf, usize>>>,
@@ -375,6 +378,7 @@ struct ResourceReservation {
 }
 impl ResourceLeases {
     pub fn acquire(&self, path: &Path, expected_sha256: &str) -> Result<ResourceLease> {
+        let pin = ResourcePin::acquire(path)?;
         let path = path.canonicalize()?;
         let mut state = self.state.lock().map_err(|_| Error::WorkerFailed)?;
         let mut file = std::fs::File::open(&path)?;
@@ -395,6 +399,7 @@ impl ResourceLeases {
         *count = count.checked_add(1).ok_or(Error::ResourceLimit)?;
         Ok(ResourceLease {
             file,
+            _pin: pin,
             reservation: ResourceReservation {
                 state: self.state.clone(),
                 path,
@@ -402,7 +407,14 @@ impl ResourceLeases {
         })
     }
     pub fn remove(&self, path: &Path) -> Result<()> {
+        if !std::fs::symlink_metadata(path)?.file_type().is_file() {
+            return Err(Error::Integrity);
+        }
         let path = path.canonicalize()?;
+        let _exclusive = ResourceExclusive::acquire(&path).map_err(|error| match error {
+            Error::ResourceLimit => Error::Conflict,
+            other => other,
+        })?;
         let state = self.state.lock().map_err(|_| Error::WorkerFailed)?;
         if state.get(&path).copied().unwrap_or(0) > 0 {
             return Err(Error::Conflict);
@@ -427,6 +439,7 @@ impl ResourceLease {
         *count = count.checked_add(1).ok_or(Error::ResourceLimit)?;
         Ok(Self {
             file,
+            _pin: Arc::clone(&self._pin),
             reservation: ResourceReservation {
                 state: self.reservation.state.clone(),
                 path: self.reservation.path.clone(),
