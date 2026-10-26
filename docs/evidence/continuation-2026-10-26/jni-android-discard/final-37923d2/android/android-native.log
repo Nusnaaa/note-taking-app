@@ -1,0 +1,6 @@
+$ /tmp/stem-cargo/bin/cargo build -p stem-bridge --target aarch64-linux-android --release --locked --offline
+exit_code=0
+
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-jni-work/core)
+   Compiling stem-bridge v0.1.0 (/tmp/stem-engine-catalogue-jni-work/bridge)
+    Finished `release` profile [optimized] target(s) in 3m 56s

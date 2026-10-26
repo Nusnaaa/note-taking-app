@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.BackendOwnershipTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-26T14:23:47" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="3.191">
+  <properties/>
+  <testcase name="failedWorkspaceInitialisationLeavesNoNativeHandleAndCanRecoverAfterFixtureRepair" classname="org.stemnotebook.backend.BackendOwnershipTest" time="0.123"/>
+  <testcase name="failedNativeOpenAutomaticallyRetiresOwnershipAndAllowsExplicitRecovery" classname="org.stemnotebook.backend.BackendOwnershipTest" time="0.093"/>
+  <testcase name="duplicateAndAliasedBackendAreRejectedBeforeFactoriesOrCacheCleanup" classname="org.stemnotebook.backend.BackendOwnershipTest" time="2.535"/>
+  <testcase name="factoryFailureClosesPassedProviderAndDoesNotLeakANativeHandleOrOwnership" classname="org.stemnotebook.backend.BackendOwnershipTest" time="0.088"/>
+  <testcase name="nativeDrainDoesNotReleaseAppOwnershipWhileProviderIsStillRunning" classname="org.stemnotebook.backend.BackendOwnershipTest" time="0.144"/>
+  <testcase name="nativeDrainRetainsOwnershipUntilBlockedParserDisposalFinishes" classname="org.stemnotebook.backend.BackendOwnershipTest" time="0.208"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

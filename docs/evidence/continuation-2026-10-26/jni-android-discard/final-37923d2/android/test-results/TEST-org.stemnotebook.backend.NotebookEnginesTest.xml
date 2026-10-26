@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.NotebookEnginesTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-26T14:26:54" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="1.149">
+  <properties/>
+  <testcase name="engineOwnersUseTheJniParentLoader" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.039"/>
+  <testcase name="queueBoundsAndQueuedCancellationDoNotConstructAnotherSdk" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.076"/>
+  <testcase name="failedDiscardPreservesActionIdentityWithoutPromisingRollbackOrInventingPendingHistory" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.083"/>
+  <testcase name="resourceInputOpeningRemainsOwnedAcrossControllerAndBackendClose" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.066"/>
+  <testcase name="resourceImportPublishesStableOffsetBeforeOpeningAndClearsVerifiedFactoryBytes" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.119"/>
+  <testcase name="recoveryIsReadOnlyRedactedLibraryBoundAndSurvivesReopen" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.119"/>
+  <testcase name="failedProviderIsRedactedRetiredAndDoesNotStrandTheOptionalWorker" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.071"/>
+  <testcase name="workerWorkflowPreservesSourceAndKnownReceiptsAfterLateCancellation" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.094"/>
+  <testcase name="catalogueTracksPagingDefaultAndExplicitReload" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.12"/>
+  <testcase name="explicitDiscardReturnsDurableTypedHistoryAndRetainsStableActionIdentity" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.083"/>
+  <testcase name="backendCloseKeepsOwnershipThroughBlockedInferenceAndSdkRetirement" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.085"/>
+  <testcase name="removalPreservesAcceptedContentAndKnownReceiptAcrossReopen" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.118"/>
+  <testcase name="removalAcknowledgesMetadataWhileSdkRetiresAndCloseKeepsOwnership" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.076"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
