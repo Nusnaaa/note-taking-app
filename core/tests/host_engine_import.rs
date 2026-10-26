@@ -305,6 +305,14 @@ fn foreign_host_and_stale_generation_cannot_publish_and_fresh_resume_keeps_trans
         Err(Error::Conflict)
     ));
     drop(prepared);
+    let until = std::time::Instant::now() + Duration::from_secs(10);
+    while h.recognition_status().reserved != 0 {
+        assert!(
+            std::time::Instant::now() < until,
+            "previous import owner did not retire"
+        );
+        thread::sleep(Duration::from_millis(1));
+    }
     let resumed = h
         .engine_import_plan(descriptor(bytes), bytes.len() as u64, true)
         .unwrap()
@@ -318,4 +326,73 @@ fn foreign_host_and_stale_generation_cannot_publish_and_fresh_resume_keeps_trans
     drop(prepared);
     h.close().unwrap();
     other.close().unwrap();
+}
+
+#[test]
+fn host_prepared_publication_owns_transfer_until_actual_retirement() {
+    use stem_core::provisioning::Transfer;
+    let (root, h) = fixture(8);
+    let bytes = b"held publication fixture";
+    let models = root.path().join("models");
+    let transfer = h
+        .engine_import_plan(descriptor(bytes), bytes.len() as u64, true)
+        .unwrap()
+        .start(&models, None, &control())
+        .unwrap();
+    let id = transfer.id();
+    let prepared = transfer.prepare(Cursor::new(bytes), &control()).unwrap();
+    assert!(matches!(
+        Transfer::resume(&models, id),
+        Err(Error::ResourceLimit)
+    ));
+    h.commit_engine_import(&prepared).unwrap();
+    assert!(matches!(
+        Transfer::resume(&models, id),
+        Err(Error::ResourceLimit)
+    ));
+    drop(prepared);
+    let until = std::time::Instant::now() + Duration::from_secs(10);
+    while h.recognition_status().reserved != 0 {
+        assert!(std::time::Instant::now() < until);
+        thread::sleep(Duration::from_millis(1));
+    }
+    assert_eq!(
+        Transfer::resume(&models, id).unwrap().committed_bytes(),
+        bytes.len() as u64
+    );
+    h.close().unwrap();
+}
+#[test]
+fn cancelled_prepared_import_retires_ownership_without_staging_metadata() {
+    use stem_core::provisioning::Transfer;
+    let (root, h) = fixture(8);
+    let bytes = b"cancelled ownership fixture";
+    let models = root.path().join("models");
+    let transfer = h
+        .engine_import_plan(descriptor(bytes), bytes.len() as u64, true)
+        .unwrap()
+        .start(&models, None, &control())
+        .unwrap();
+    let id = transfer.id();
+    let prepared = transfer.prepare(Cursor::new(bytes), &control()).unwrap();
+    assert!(matches!(
+        Transfer::resume(&models, id),
+        Err(Error::ResourceLimit)
+    ));
+    let pen = Id::new();
+    h.set_capture_priority(pen, true).unwrap();
+    h.set_capture_priority(pen, false).unwrap();
+    assert!(h.commit_engine_import(&prepared).is_err());
+    let until = std::time::Instant::now() + Duration::from_secs(10);
+    while h.recognition_status().reserved != 0 {
+        assert!(std::time::Instant::now() < until);
+        thread::sleep(Duration::from_millis(1));
+    }
+    assert_eq!(
+        Transfer::resume(&models, id).unwrap().committed_bytes(),
+        bytes.len() as u64
+    );
+    assert!(h.engine_catalogue(None, 8).unwrap().versions.is_empty());
+    drop(prepared);
+    h.close().unwrap();
 }

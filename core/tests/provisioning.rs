@@ -48,8 +48,14 @@ fn incomplete_hash_mismatch_and_no_consent_do_not_activate_resources() {
     t.append(0, b"invalid").unwrap();
     assert!(matches!(t.finish(), Err(Error::Integrity)));
     assert!(!d.path().join(format!("{}.resource", t.id())).exists());
+    let id = t.id();
     t.cancel().unwrap();
-    assert_eq!(std::fs::read_dir(d.path()).unwrap().count(), 0);
+    // Coordination inodes remain stable across retries and are never unlinked.
+    assert_eq!(std::fs::read_dir(d.path()).unwrap().count(), 1);
+    assert_eq!(
+        std::fs::read(d.path().join(format!("{id}.owner.lock"))).unwrap(),
+        b""
+    );
 }
 #[test]
 fn active_resource_lease_prevents_deletion_until_worker_releases_it() {
@@ -173,4 +179,107 @@ fn completed_transfer_rejects_a_symlink_target_without_adopting_external_bytes()
     std::os::unix::fs::symlink(&outside, models.join(format!("{id}.resource"))).unwrap();
     assert!(matches!(transfer.finish(), Err(Error::Integrity)));
     assert_eq!(std::fs::read(outside).unwrap(), bytes);
+}
+
+#[test]
+fn competing_resume_cannot_truncate_until_the_original_owner_releases() {
+    use std::io::Write;
+    let root = tempfile::tempdir().unwrap();
+    let mut owner = Transfer::begin(root.path(), descriptor(b"abcdef"), 6, true).unwrap();
+    let id = owner.id();
+    assert!(matches!(
+        Transfer::resume(root.path(), id),
+        Err(Error::ResourceLimit)
+    ));
+    owner.append(0, b"abc").unwrap(); // Atomic ledger replacement keeps the lock.
+    let part = root.path().join(format!("{id}.part"));
+    std::fs::OpenOptions::new()
+        .append(true)
+        .open(&part)
+        .unwrap()
+        .write_all(b"tail")
+        .unwrap();
+    assert!(matches!(
+        Transfer::resume(root.path(), id),
+        Err(Error::ResourceLimit)
+    ));
+    assert_eq!(std::fs::read(&part).unwrap(), b"abctail");
+    drop(owner);
+    let resumed = Transfer::resume(root.path(), id).unwrap();
+    assert_eq!(resumed.committed_bytes(), 3);
+    assert_eq!(std::fs::read(part).unwrap(), b"abc");
+}
+#[test]
+fn transfer_ownership_excludes_another_process_and_releases_on_process_exit() {
+    if let Some(root) = std::env::var_os("STEM_TRANSFER_LOCK_CHILD_ROOT") {
+        let id =
+            stem_core::Id::parse(&std::env::var("STEM_TRANSFER_LOCK_CHILD_ID").unwrap()).unwrap();
+        let transfer = Transfer::resume(std::path::Path::new(&root), id);
+        if std::env::var_os("STEM_TRANSFER_LOCK_CHILD_AVAILABLE").is_some() {
+            assert_eq!(transfer.unwrap().committed_bytes(), 3);
+            // Reacquire and exit without Rust destructors, exercising OS release.
+            let transfer = Transfer::resume(std::path::Path::new(&root), id).unwrap();
+            std::mem::forget(transfer);
+            std::process::exit(0);
+        } else {
+            assert!(matches!(transfer, Err(Error::ResourceLimit)));
+        }
+        return;
+    }
+    let root = tempfile::tempdir().unwrap();
+    let mut owner = Transfer::begin(root.path(), descriptor(b"abcdef"), 6, true).unwrap();
+    owner.append(0, b"abc").unwrap();
+    let id = owner.id();
+    let child = |available: bool| {
+        let mut command = std::process::Command::new(std::env::current_exe().unwrap());
+        command
+            .args([
+                "--exact",
+                "transfer_ownership_excludes_another_process_and_releases_on_process_exit",
+            ])
+            .env("STEM_TRANSFER_LOCK_CHILD_ROOT", root.path())
+            .env("STEM_TRANSFER_LOCK_CHILD_ID", id.to_string());
+        if available {
+            command.env("STEM_TRANSFER_LOCK_CHILD_AVAILABLE", "1");
+        }
+        let output = command.output().unwrap();
+        assert!(
+            output.status.success(),
+            "child failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+    };
+    child(false);
+    drop(owner);
+    child(true);
+    assert_eq!(
+        Transfer::resume(root.path(), id).unwrap().committed_bytes(),
+        3
+    );
+}
+#[cfg(unix)]
+#[test]
+fn ownership_record_symlinks_and_nonempty_files_are_not_followed_or_truncated() {
+    use std::os::unix::fs::symlink;
+    let root = tempfile::tempdir().unwrap();
+    let owner = Transfer::begin(root.path(), descriptor(b"abc"), 3, true).unwrap();
+    let id = owner.id();
+    drop(owner);
+    let lock = root.path().join(format!("{id}.owner.lock"));
+    std::fs::remove_file(&lock).unwrap();
+    let outside = tempfile::NamedTempFile::new().unwrap();
+    std::fs::write(outside.path(), b"external bytes").unwrap();
+    symlink(outside.path(), &lock).unwrap();
+    assert!(matches!(
+        Transfer::resume(root.path(), id),
+        Err(Error::Integrity)
+    ));
+    assert_eq!(std::fs::read(outside.path()).unwrap(), b"external bytes");
+    std::fs::remove_file(&lock).unwrap();
+    std::fs::write(&lock, b"unknown owner record").unwrap();
+    assert!(matches!(
+        Transfer::resume(root.path(), id),
+        Err(Error::Integrity)
+    ));
+    assert_eq!(std::fs::read(lock).unwrap(), b"unknown owner record");
 }

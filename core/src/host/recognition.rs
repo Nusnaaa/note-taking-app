@@ -103,7 +103,8 @@ enum Phase {
     ImportPlan(Option<Box<crate::store::EngineImportPlan>>),
     RecoveryPlan(Option<Box<crate::store::EngineRecoveryPlan>>),
     ImportTransfer(Option<Box<crate::store::EngineImportTransfer>>),
-    ImportPrepared(Option<Box<crate::store::PreparedEngineImport>>),
+    ImportPrepared(Arc<resource_import::ImportCandidate>),
+    ImportPublishing(Arc<resource_import::ImportCandidate>),
     StoredPrepared(Arc<stored_activation::StoredCandidate>),
     StoredPublishing(Arc<stored_activation::StoredCandidate>),
     StoredPublished {
@@ -152,6 +153,7 @@ impl Slot {
                 *phase,
                 Phase::Running
                     | Phase::StoredPublishing(_)
+                    | Phase::ImportPublishing(_)
                     | Phase::RemovalPublishing(_)
                     | Phase::Finished
             ) {

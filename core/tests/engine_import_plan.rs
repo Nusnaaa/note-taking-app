@@ -250,6 +250,7 @@ fn stale_generation_or_cancelled_commit_preserves_resumable_verified_resource() 
         Err(Error::Conflict)
     ));
     assert!(std::path::Path::new(prepared.version().local_resource.as_ref().unwrap()).exists());
+    drop(prepared); // Release the previous publication owner before resuming.
     let resumed = s
         .engine_import_plan(descriptor(bytes), bytes.len() as u64, true, &a)
         .unwrap()
@@ -262,6 +263,7 @@ fn stale_generation_or_cancelled_commit_preserves_resumable_verified_resource() 
         s.commit_engine_import(&fresh, &a),
         Err(Error::Cancelled)
     ));
+    drop(fresh); // A cancelled prepared publication still owns its transfer.
     let retry = s
         .engine_import_plan(descriptor(bytes), bytes.len() as u64, true, &a)
         .unwrap()
@@ -359,4 +361,36 @@ fn interrupted_reader_retries_data_and_final_eof_without_losing_durable_offset()
     assert_eq!(transfer.committed_bytes(), bytes.len() as u64);
     let prepared = transfer.finish(&control()).unwrap();
     assert_eq!(s.commit_engine_import(&prepared, &a).unwrap().id, id);
+}
+
+#[test]
+fn prepared_import_keeps_exclusive_ownership_through_sql_publication() {
+    let root = tempfile::tempdir().unwrap();
+    let mut s = Store::memory().unwrap();
+    let a = Access::public();
+    let bytes = b"model";
+    let mut transfer = s
+        .engine_import_plan(descriptor(bytes), 5, true, &a)
+        .unwrap()
+        .begin(root.path(), &control())
+        .unwrap();
+    let id = transfer.id();
+    transfer
+        .copy_remaining(&mut Cursor::new(bytes), &control())
+        .unwrap();
+    let prepared = transfer.finish(&control()).unwrap();
+    assert!(matches!(
+        Transfer::resume(root.path(), id),
+        Err(Error::ResourceLimit)
+    ));
+    s.commit_engine_import(&prepared, &a).unwrap();
+    assert!(matches!(
+        Transfer::resume(root.path(), id),
+        Err(Error::ResourceLimit)
+    ));
+    drop(prepared);
+    assert_eq!(
+        Transfer::resume(root.path(), id).unwrap().committed_bytes(),
+        5
+    );
 }

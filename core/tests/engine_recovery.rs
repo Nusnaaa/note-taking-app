@@ -126,7 +126,7 @@ fn completed_ledger_is_not_a_claim_of_current_hash_or_runtime_verification() {
     let mut transfer = begin(&s, root.path());
     transfer.append(0, b"model", &control()).unwrap();
     let id = transfer.id();
-    let _prepared = transfer.finish(&control()).unwrap();
+    let prepared = transfer.finish(&control()).unwrap();
     std::fs::write(root.path().join(format!("{id}.resource")), b"other").unwrap();
     let page = s
         .engine_recovery_plan(&Access::public())
@@ -134,6 +134,11 @@ fn completed_ledger_is_not_a_claim_of_current_hash_or_runtime_verification() {
         .scan(root.path(), None, 1, &control())
         .unwrap();
     assert_eq!(page.entries[0].state, RecoveryState::RecordedComplete);
+    assert!(matches!(
+        Transfer::resume(root.path(), id),
+        Err(Error::ResourceLimit)
+    ));
+    drop(prepared); // Recovery is read-only; mutating resume needs exclusive ownership.
     let transfer = s
         .engine_import_plan(descriptor(b"model"), 5, true, &Access::public())
         .unwrap()

@@ -1,0 +1,44 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-jni-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 33.81s
+     Running tests/engine_import_plan.rs (/tmp/stem-pen-response-target/debug/deps/engine_import_plan-c8fd6e0088a7129b)
+
+running 9 tests
+test plan_requires_consent_and_typed_eligibility_without_creating_files_or_metadata ... ok
+test legacy_transfer_requires_review_before_managed_resume_and_preserves_its_bytes ... ok
+test interrupted_reader_retries_data_and_final_eof_without_losing_durable_offset ... ok
+test staged_retry_reports_installed_metadata_but_never_revives_a_removed_version ... ok
+test import_records_bound_consent_and_stages_verified_resource_with_stable_retry ... ok
+test prepared_import_keeps_exclusive_ownership_through_sql_publication ... ok
+test stale_generation_or_cancelled_commit_preserves_resumable_verified_resource ... ok
+test truncated_trailing_corrupt_and_cancelled_inputs_never_stage_metadata ... ok
+test foreign_or_changed_resume_cannot_truncate_another_imports_unacknowledged_tail ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s
+
+     Running tests/engine_recovery.rs (/tmp/stem-pen-response-target/debug/deps/engine_recovery-51ef7fc4ab5da458)
+
+running 8 tests
+test missing_depot_is_not_created_and_invalid_bounds_or_cancel_fail ... ok
+test symlink_depot_and_ledger_are_never_followed_and_oversized_ledger_is_redacted ... ok
+test completed_ledger_is_not_a_claim_of_current_hash_or_runtime_verification ... FAILED
+test host_recovery_reservation_is_cancelled_by_capture_and_relock ... ok
+test discovery_never_truncates_or_publishes_and_redacts_unbound_and_corrupt_records ... ok
+test recovery_requires_current_app_access_and_bounded_host_reservations ... ok
+test discovery_pages_eligible_records_without_foreign_library_cursors ... ok
+test descriptor_bytes_limit_pages_without_losing_the_continuation ... ok
+
+failures:
+
+---- completed_ledger_is_not_a_claim_of_current_hash_or_runtime_verification stdout ----
+
+thread 'completed_ledger_is_not_a_claim_of_current_hash_or_runtime_verification' panicked at core/tests/engine_recovery.rs:141:10:
+called `Result::unwrap()` on an `Err` value: ResourceLimit
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    completed_ledger_is_not_a_claim_of_current_hash_or_runtime_verification
+
+test result: FAILED. 7 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.91s
+
+error: test failed, to rerun pass `-p stem-core --test engine_recovery`

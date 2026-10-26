@@ -1,0 +1,61 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-jni-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 31.54s
+     Running tests/engine_import_plan.rs (/tmp/stem-pen-response-target/debug/deps/engine_import_plan-c8fd6e0088a7129b)
+
+running 9 tests
+test plan_requires_consent_and_typed_eligibility_without_creating_files_or_metadata ... ok
+test legacy_transfer_requires_review_before_managed_resume_and_preserves_its_bytes ... ok
+test import_records_bound_consent_and_stages_verified_resource_with_stable_retry ... ok
+test staged_retry_reports_installed_metadata_but_never_revives_a_removed_version ... ok
+test prepared_import_keeps_exclusive_ownership_through_sql_publication ... ok
+test stale_generation_or_cancelled_commit_preserves_resumable_verified_resource ... ok
+test interrupted_reader_retries_data_and_final_eof_without_losing_durable_offset ... ok
+test foreign_or_changed_resume_cannot_truncate_another_imports_unacknowledged_tail ... ok
+test truncated_trailing_corrupt_and_cancelled_inputs_never_stage_metadata ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s
+
+     Running tests/engine_recovery.rs (/tmp/stem-pen-response-target/debug/deps/engine_recovery-51ef7fc4ab5da458)
+
+running 8 tests
+test symlink_depot_and_ledger_are_never_followed_and_oversized_ledger_is_redacted ... ok
+test missing_depot_is_not_created_and_invalid_bounds_or_cancel_fail ... ok
+test host_recovery_reservation_is_cancelled_by_capture_and_relock ... ok
+test completed_ledger_is_not_a_claim_of_current_hash_or_runtime_verification ... ok
+test discovery_never_truncates_or_publishes_and_redacts_unbound_and_corrupt_records ... ok
+test recovery_requires_current_app_access_and_bounded_host_reservations ... ok
+test discovery_pages_eligible_records_without_foreign_library_cursors ... ok
+test descriptor_bytes_limit_pages_without_losing_the_continuation ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.90s
+
+     Running tests/host_engine_import.rs (/tmp/stem-pen-response-target/debug/deps/host_engine_import-a03a7dc31d2d3ae9)
+
+running 7 tests
+test cancelled_prepared_import_retires_ownership_without_staging_metadata ... ok
+test host_prepared_publication_owns_transfer_until_actual_retirement ... ok
+test authoring_runs_during_blocked_reader_and_pen_cancel_preserves_explicit_resume ... ok
+test provider_error_payload_retires_inside_running_scope_and_cannot_escape_with_library_owner ... ok
+test close_waits_for_reader_return_and_actual_reader_destructor_before_reopen ... ok
+test metadata_reservation_is_bounded_and_completed_import_does_not_load_a_runtime ... ok
+test foreign_host_and_stale_generation_cannot_publish_and_fresh_resume_keeps_transfer_id ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+
+     Running tests/provisioning.rs (/tmp/stem-pen-response-target/debug/deps/provisioning-28285a43f5048abb)
+
+running 11 tests
+test active_resource_lease_prevents_deletion_until_worker_releases_it ... ok
+test cloned_worker_reservations_survive_thread_transfer_until_the_last_handle_retires ... ok
+test worker_file_clone_keeps_resource_reserved_after_owner_is_dropped ... ok
+test ownership_record_symlinks_and_nonempty_files_are_not_followed_or_truncated ... ok
+test completed_transfer_rejects_a_symlink_target_without_adopting_external_bytes ... ok
+test competing_resume_cannot_truncate_until_the_original_owner_releases ... ok
+test incomplete_hash_mismatch_and_no_consent_do_not_activate_resources ... ok
+test transfer_ownership_excludes_another_process_and_releases_on_process_exit ... ok
+test resume_discards_only_unacknowledged_tail_after_simulated_interruption ... ok
+test local_install_resume_retry_and_integrity_precede_publication ... ok
+test legacy_bounded_manifest_above_new_begin_budget_remains_resumable ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+

@@ -1,5 +1,7 @@
 //! Consent-based, resumable local model-resource transfer. No URL fetching or code
 //! loading. The host feeds explicitly selected bytes and retains the install ID.
+mod ownership;
+pub(crate) use ownership::TransferOwnership;
 pub(crate) mod recovery;
 use crate::{
     digest,
@@ -36,6 +38,7 @@ struct TransferBinding {
 pub struct Transfer {
     root: PathBuf,
     state: State,
+    ownership: Arc<TransferOwnership>,
 }
 impl Transfer {
     fn validate_logical_manifest(descriptor: &Descriptor, total: u64) -> Result<()> {
@@ -95,10 +98,14 @@ impl Transfer {
         }
         Self::validate_manifest(&descriptor, total)?;
         std::fs::create_dir_all(root)?;
+        let root = root.canonicalize()?;
+        let id = Id::new();
+        let ownership = TransferOwnership::acquire(&root, id)?;
         let transfer = Self {
-            root: root.canonicalize()?,
+            root,
+            ownership,
             state: State {
-                id: Id::new(),
+                id,
                 descriptor,
                 total,
                 committed: 0,
@@ -132,13 +139,52 @@ impl Transfer {
         expected: Option<(&str, &Descriptor, u64)>,
     ) -> Result<Self> {
         let root = root.canonicalize()?;
-        let meta = root.join(format!("{id}.install.json"));
-        if std::fs::symlink_metadata(&meta)?.file_type().is_symlink()
-            || std::fs::metadata(&meta)?.len() > 65536
-        {
+        // Check foreign/unbound manifests before creating a coordination file;
+        // then reread under exclusive ownership before any mutating resume.
+        Self::read_resume_state(&root, id, expected)?;
+        let ownership = TransferOwnership::acquire(&root, id)?;
+        let state = Self::read_resume_state(&root, id, expected)?;
+        let transfer = Self {
+            root,
+            state,
+            ownership,
+        };
+        let path = transfer.part();
+        if !std::fs::symlink_metadata(&path)?.file_type().is_file() {
             return Err(Error::Integrity);
         }
-        let state: State = serde_json::from_slice(&std::fs::read(meta)?)?;
+        let file = std::fs::OpenOptions::new()
+            .read(true)
+            .write(true)
+            .open(path)?;
+        if file.metadata()?.len() < transfer.state.committed {
+            return Err(Error::Integrity);
+        }
+        // Bytes after the last durable receipt were never acknowledged.
+        file.set_len(transfer.state.committed)?;
+        file.sync_all()?;
+        Ok(transfer)
+    }
+    fn read_resume_state(
+        root: &Path,
+        id: Id,
+        expected: Option<(&str, &Descriptor, u64)>,
+    ) -> Result<State> {
+        let meta = root.join(format!("{id}.install.json"));
+        let metadata = std::fs::symlink_metadata(&meta)?;
+        if !metadata.file_type().is_file() || metadata.len() > 65536 {
+            return Err(Error::Integrity);
+        }
+        let file = std::fs::File::open(meta)?;
+        if !file.metadata()?.file_type().is_file() {
+            return Err(Error::Integrity);
+        }
+        let mut bytes = Vec::new();
+        file.take(65537).read_to_end(&mut bytes)?;
+        if bytes.len() > 65536 {
+            return Err(Error::Integrity);
+        }
+        let state: State = serde_json::from_slice(&bytes)?;
         Self::validate_logical_manifest(&state.descriptor, state.total)?;
         if state.id != id
             || state.committed > state.total
@@ -153,22 +199,10 @@ impl Transfer {
                 return Err(Error::Conflict);
             }
         }
-        let transfer = Self { root, state };
-        let path = transfer.part();
-        if std::fs::symlink_metadata(&path)?.file_type().is_symlink() {
-            return Err(Error::Integrity);
-        }
-        let file = std::fs::OpenOptions::new()
-            .read(true)
-            .write(true)
-            .open(path)?;
-        if file.metadata()?.len() < transfer.state.committed {
-            return Err(Error::Integrity);
-        }
-        // Bytes after the last durable receipt were never acknowledged.
-        file.set_len(transfer.state.committed)?;
-        file.sync_all()?;
-        Ok(transfer)
+        Ok(state)
+    }
+    pub(crate) fn ownership(&self) -> Arc<TransferOwnership> {
+        Arc::clone(&self.ownership)
     }
     pub fn id(&self) -> Id {
         self.state.id

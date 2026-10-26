@@ -1,0 +1,75 @@
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/stem-android-user
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.9/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :backend:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :backend:preBuild UP-TO-DATE
+> Task :backend:preDebugBuild UP-TO-DATE
+> Task :backend:generateDebugResValues UP-TO-DATE
+> Task :backend:generateDebugResources UP-TO-DATE
+> Task :backend:packageDebugResources UP-TO-DATE
+> Task :backend:parseDebugLocalResources UP-TO-DATE
+> Task :backend:generateDebugRFile UP-TO-DATE
+> Task :backend:compileDebugKotlin UP-TO-DATE
+> Task :backend:javaPreCompileDebug UP-TO-DATE
+> Task :backend:compileDebugJavaWithJavac UP-TO-DATE
+> Task :backend:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :backend:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :backend:preDebugUnitTestBuild UP-TO-DATE
+> Task :backend:writeDebugAarMetadata UP-TO-DATE
+> Task :backend:checkDebugUnitTestAarMetadata UP-TO-DATE
+> Task :backend:compileDebugLibraryResources UP-TO-DATE
+> Task :backend:generateDebugUnitTestResValues UP-TO-DATE
+> Task :backend:mapDebugUnitTestSourceSetPaths UP-TO-DATE
+> Task :backend:generateDebugUnitTestResources UP-TO-DATE
+> Task :backend:mergeDebugUnitTestResources UP-TO-DATE
+> Task :backend:extractDeepLinksDebug UP-TO-DATE
+> Task :backend:processDebugManifest UP-TO-DATE
+> Task :backend:processDebugUnitTestManifest UP-TO-DATE
+> Task :backend:processDebugUnitTestResources UP-TO-DATE
+> Task :backend:compileDebugUnitTestKotlin UP-TO-DATE
+> Task :backend:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :backend:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :backend:mergeDebugShaders UP-TO-DATE
+> Task :backend:compileDebugShaders NO-SOURCE
+> Task :backend:generateDebugAssets UP-TO-DATE
+> Task :backend:mergeDebugAssets UP-TO-DATE
+> Task :backend:generateDebugUnitTestAssets UP-TO-DATE
+> Task :backend:packageDebugAssets UP-TO-DATE
+> Task :backend:mergeDebugUnitTestAssets UP-TO-DATE
+> Task :backend:packageDebugUnitTestForUnitTest UP-TO-DATE
+> Task :backend:generateDebugUnitTestConfig UP-TO-DATE
+> Task :backend:processDebugJavaRes UP-TO-DATE
+> Task :backend:processDebugUnitTestJavaRes UP-TO-DATE
+
+> Task :backend:testDebugUnitTest
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/stem-android-user
+
+> Task :backend:mergeDebugJniLibFolders UP-TO-DATE
+> Task :backend:mergeDebugNativeLibs NO-SOURCE
+> Task :backend:stripDebugDebugSymbols NO-SOURCE
+> Task :backend:copyDebugJniLibsProjectAndLocalJars UP-TO-DATE
+> Task :backend:extractDebugAnnotations UP-TO-DATE
+> Task :backend:extractDeepLinksForAarDebug UP-TO-DATE
+> Task :backend:mergeDebugGeneratedProguardFiles UP-TO-DATE
+> Task :backend:mergeDebugConsumerProguardFiles UP-TO-DATE
+> Task :backend:prepareDebugArtProfile UP-TO-DATE
+> Task :backend:prepareLintJarForPublish UP-TO-DATE
+> Task :backend:mergeDebugJavaResource UP-TO-DATE
+> Task :backend:syncDebugLibJars UP-TO-DATE
+> Task :backend:bundleDebugLocalLintAar UP-TO-DATE
+> Task :backend:createFullJarDebug UP-TO-DATE
+> Task :backend:preDebugAndroidTestBuild UP-TO-DATE
+> Task :backend:generateDebugAndroidTestResValues UP-TO-DATE
+> Task :backend:writeDebugLintModelMetadata UP-TO-DATE
+> Task :backend:generateDebugAndroidTestLintModel UP-TO-DATE
+> Task :backend:extractProguardFiles UP-TO-DATE
+> Task :backend:generateDebugLintReportModel UP-TO-DATE
+> Task :backend:generateDebugUnitTestLintModel UP-TO-DATE
+> Task :backend:lintAnalyzeDebug UP-TO-DATE
+> Task :backend:lintAnalyzeDebugAndroidTest UP-TO-DATE
+> Task :backend:lintAnalyzeDebugUnitTest UP-TO-DATE
+> Task :backend:lintReportDebug UP-TO-DATE
+> Task :backend:lintDebug
+
+BUILD SUCCESSFUL in 28s
+55 actionable tasks: 2 executed, 53 up-to-date

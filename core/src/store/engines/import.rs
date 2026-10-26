@@ -20,6 +20,7 @@ pub struct PreparedEngineImport {
     version: EngineVersion,
     consent_ms: i64,
     control: JobControl,
+    _ownership: std::sync::Arc<crate::provisioning::TransferOwnership>,
 }
 impl EngineImportPlan {
     pub fn descriptor(&self) -> &Descriptor {
@@ -122,6 +123,7 @@ impl EngineImportTransfer {
             version,
             consent_ms,
             control: control.clone(),
+            _ownership: self.transfer.ownership(),
         })
     }
 }

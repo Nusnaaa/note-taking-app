@@ -1,0 +1,15 @@
+# Stable transfer ownership and pinned import publication
+
+Native: `cargo test -p stem-core --test provisioning --test engine_import_plan --test host_engine_import --test engine_recovery --locked --offline`: 35 passed, zero failed/ignored. `cargo test -p stem-core --lib host::recognition::resource_import::ownership_tests --locked --offline`: 1 passed, zero failed/ignored (36 filtered). `cargo clippy --workspace --all-targets --locked --offline -- -D warnings`, `cargo fmt --all -- --check`, `python3 tools/traceability.py --check`, `git diff --check`: passed. Offline Rust cache, default debug, CARGO_INCREMENTAL=0, CARGO_BUILD_JOBS=2, /tmp/stem-pen-response-target.
+
+Seven new cases (3 provisioning, 1 Store import, 2 Host import, 1 publication-race unit) cover contention before truncation, stable coordination across ledger replacement, actual child-process exclusion and OS release when a child exits without Rust destructors, symlink/nonempty coordination refusal, prepared ownership through SQL publication, cancellation/retirement acknowledgements, and capture while the publishing cell is pinned. Existing retry cases explicitly release stale/cancelled prepared owners before mutating resume. Coordination inodes remain after cancellation; no model bytes live in them.
+
+The initial selected run failed the recovery RecordedComplete case because it attempted mutating resume while retaining its prepared owner. The retained failure is followed by the revised assertion that resume is busy while held, then explicit owner release before hash verification. Read-only recovery remains available while ownership is held; recorded completion still does not imply current integrity.
+
+JNI regression: build stem-bridge, copy the desktop library to the isolated project's target/debug, then run BoundarySmoke with -Xcheck:jni against existing compiled and R8-shrunk fixture classes. Both runs passed 43 groups; Java production/fixture sources are unchanged by this batch. Existing intentional provider-retirement error fixtures emit contained panic output and pass their fail-closed assertions.
+
+Android regression: cached Gradle 8.9 `--offline --no-daemon -p android :backend:testDebugUnitTest --tests org.stemnotebook.backend.NotebookEnginesTest --tests org.stemnotebook.backend.EngineModelSourceTest --tests org.stemnotebook.backend.BackendOwnershipTest :backend:lintDebug --console=plain --max-workers=2`: 19 tests, zero failures/errors/skips; lint passed. This uses the new desktop JNI library in API-35 simulation.
+
+ARM64: `cargo build -p stem-bridge --target aarch64-linux-android --release --locked --offline` passed with NDK27.0.12077973 android30 clang/linker/ar, release codegen units 1, CARGO_INCREMENTAL=0, CARGO_BUILD_JOBS=2 and the isolated target. readelf confirms AArch64. This is compilation/linking, not an actual Android device/filesystem lock test.
+
+Full-source validation is separate. Deliberate discard, fresh SQLite authority/audit before deletion, and installed SDK-aware reclamation remain open. All eight backend gaps remain open; no real-model licensing/quality, device performance or hard-isolation acceptance is implied.

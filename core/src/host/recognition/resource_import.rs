@@ -1,5 +1,5 @@
-//! Host-owned resource import. Only metadata reaches the writer. Reader callbacks
-//! and error/resource disposal stay inside the optional worker's running scope.
+//! Host-owned resource import. Publication borrows metadata on the writer.
+//! Actual reader/error/ownership disposal stays on optional retirement workers.
 use super::activation::{finish_running, LifecycleInput, Running};
 use super::*;
 use crate::{
@@ -76,6 +76,40 @@ pub(super) fn worker<T>(run: impl FnOnce() -> Result<T>) -> Result<T> {
     }))
     .map_err(|_| Error::WorkerFailed)?
 }
+pub(super) struct ImportCandidate(Mutex<crate::store::PreparedEngineImport>);
+struct Publishing {
+    slot: Arc<Slot>,
+    armed: bool,
+}
+impl Publishing {
+    fn finish(&mut self) {
+        let current = {
+            let mut state = self.slot.lease.scope.state();
+            let mut phase = self.slot.phase.lock().unwrap_or_else(|p| p.into_inner());
+            if let Phase::ImportPublishing(candidate) =
+                std::mem::replace(&mut *phase, Phase::Finished)
+            {
+                *phase = Phase::ImportPrepared(candidate);
+            }
+            if let Some(entry) = state.entries.get_mut(&self.slot.authority.ticket) {
+                entry.running = None;
+            }
+            !state.closed && self.slot.authority.check().is_ok()
+        };
+        self.armed = false;
+        if !current {
+            self.slot.cancel_idle();
+        }
+    }
+}
+impl Drop for Publishing {
+    fn drop(&mut self) {
+        if self.armed {
+            self.finish();
+            self.slot.cancel_idle();
+        }
+    }
+}
 impl RecognitionScope {
     pub(in crate::host) fn engine_import_plan(
         self: &Arc<Self>,
@@ -101,25 +135,39 @@ impl RecognitionScope {
     ) -> Result<EngineVersion> {
         let slot = publication.slot.upgrade().ok_or(Error::Cancelled)?;
         self.check_optional_authority(&slot.authority)?;
-        let prepared = take_running(&slot, |phase| match phase {
-            Phase::ImportPrepared(value) => value.take(),
-            _ => None,
-        })?;
-        let mut running = Running {
+        let mut publishing = Publishing {
             slot: Arc::clone(&slot),
-            armed: true,
+            armed: false,
         };
-        let result = store.commit_engine_import(&prepared, access);
-        let settled = finish_running(&slot, Phase::ImportPrepared(Some(prepared)), &mut running);
-        // Pen cancellation after the final transaction check cannot turn a known
-        // committed metadata receipt into a rollback/no-effect claim.
-        match result {
-            Ok(version) => Ok(version),
-            Err(error) => {
-                let _ = settled;
-                Err(error)
+        let candidate = {
+            let mut state = self.state();
+            self.check_optional_authority(&slot.authority)?;
+            if state.closed {
+                return Err(Error::Cancelled);
             }
-        }
+            let mut phase = slot.phase.lock().map_err(|_| Error::WorkerFailed)?;
+            let Phase::ImportPrepared(candidate) = &*phase else {
+                return Err(Error::Cancelled);
+            };
+            let candidate = Arc::clone(candidate);
+            state
+                .entries
+                .get_mut(&slot.authority.ticket)
+                .ok_or(Error::Cancelled)?
+                .running = Some(thread::current().id());
+            *phase = Phase::ImportPublishing(Arc::clone(&candidate));
+            publishing.armed = true;
+            candidate
+        };
+        let result = {
+            let prepared = candidate.0.lock().map_err(|_| Error::WorkerFailed)?;
+            store.commit_engine_import(&prepared, access)
+        };
+        // The phase pins the ownership guard until writer temporaries have gone.
+        drop(candidate);
+        publishing.finish();
+        // Preserve known SQL success even when cancellation races its reply.
+        result
     }
 }
 impl HostEngineImportPlan {
@@ -201,7 +249,7 @@ impl HostEngineImportTransfer {
         })?;
         finish_running(
             &self.slot,
-            Phase::ImportPrepared(Some(Box::new(prepared))),
+            Phase::ImportPrepared(Arc::new(ImportCandidate(Mutex::new(prepared)))),
             &mut running,
         )?;
         Ok(HostPreparedEngineImport {
@@ -218,5 +266,88 @@ impl HostPreparedEngineImport {
         ImportPublication {
             slot: Arc::downgrade(&self.slot),
         }
+    }
+}
+
+#[cfg(test)]
+mod ownership_tests {
+    use super::*;
+    use crate::{
+        host::Host,
+        provisioning::{resource_digest, Transfer},
+    };
+    use std::{
+        io::Cursor,
+        time::{Duration, Instant},
+    };
+    #[test]
+    fn capture_cannot_retire_the_import_cell_while_sql_publication_is_in_progress() {
+        let root = tempfile::tempdir().unwrap();
+        let host = Arc::new(Host::open(root.path().join("library.db"), 8).unwrap());
+        let bytes = b"owned import race fixture";
+        let descriptor=serde_json::from_value(serde_json::json!({"id":"synthetic-import-race","version":"1","adapter_version":"1","family":"Recogniser","input":"OrderedStrokesV1","tasks":["Prose"],"internals":"StrokeOnlyVerified","offline":true,"content_egress":false,"personal_use_evidence":"app-owned import race fixture","redistributable_resources":false,"resource_sha256":resource_digest(bytes),"runtime_contract":"stem-processing-v1"})).unwrap();
+        let control = JobControl::new(Duration::from_secs(30)).unwrap();
+        let models = root.path().join("models");
+        let transfer = host
+            .engine_import_plan(descriptor, bytes.len() as u64, true)
+            .unwrap()
+            .start(&models, None, &control)
+            .unwrap();
+        let id = transfer.id();
+        let prepared = Arc::new(transfer.prepare(Cursor::new(bytes), &control).unwrap());
+        let candidate = {
+            let phase = prepared.slot.phase.lock().unwrap();
+            let Phase::ImportPrepared(candidate) = &*phase else {
+                panic!("unprepared fixture")
+            };
+            Arc::clone(candidate)
+        };
+        let data = candidate.0.lock().unwrap();
+        let publisher = Arc::clone(&host);
+        let publication = Arc::clone(&prepared);
+        let job = thread::spawn(move || publisher.commit_engine_import(&publication));
+        let until = Instant::now() + Duration::from_secs(10);
+        loop {
+            if matches!(
+                *prepared.slot.phase.lock().unwrap(),
+                Phase::ImportPublishing(_)
+            ) {
+                break;
+            }
+            if Instant::now() >= until {
+                drop(data);
+                drop(candidate);
+                let _ = job.join();
+                panic!("publication did not enter");
+            }
+            thread::yield_now();
+        }
+        let pen = Id::new();
+        host.set_capture_priority(pen, true).unwrap();
+        host.set_capture_priority(pen, false).unwrap();
+        let pinned = matches!(
+            *prepared.slot.phase.lock().unwrap(),
+            Phase::ImportPublishing(_)
+        );
+        assert!(matches!(
+            Transfer::resume(&models, id),
+            Err(Error::ResourceLimit)
+        ));
+        drop(data);
+        drop(candidate);
+        assert!(job.join().unwrap().is_err());
+        assert!(pinned, "capture released a publishing import cell");
+        drop(prepared);
+        let until = Instant::now() + Duration::from_secs(10);
+        while host.recognition_status().reserved != 0 {
+            assert!(Instant::now() < until);
+            thread::sleep(Duration::from_millis(1));
+        }
+        assert_eq!(
+            Transfer::resume(&models, id).unwrap().committed_bytes(),
+            bytes.len() as u64
+        );
+        assert!(host.engine_catalogue(None, 8).unwrap().versions.is_empty());
+        host.close().unwrap();
     }
 }
