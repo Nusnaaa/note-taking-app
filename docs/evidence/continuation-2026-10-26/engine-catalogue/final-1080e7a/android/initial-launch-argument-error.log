@@ -1,0 +1,3 @@
+usage: validate_android.py [-h] [--sdk SDK] [--jdk JDK] [--gradle GRADLE]
+                           [--online]
+validate_android.py: error: SDK, JDK and Gradle paths are required
