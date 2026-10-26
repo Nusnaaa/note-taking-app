@@ -151,10 +151,19 @@ fn schema9_upgrade_preserves_original_payload_hash_and_capture_receipt_byte_for_
     assert!(!before.0.contains("\"end\""));
     db.execute_batch("DROP TRIGGER IF EXISTS workspace_layer_identity; DROP TRIGGER IF EXISTS stroke_layer_identity; DROP TRIGGER IF EXISTS view_layer_identity; DROP TABLE canvas_layers; DROP TRIGGER view_workspace_identity; DROP TRIGGER stroke_workspace_identity; DROP TABLE workspace_state; DROP TABLE workspace_panes;")
         .unwrap();
+    // Remove the schema17-only empty action table from this legacy layout.
+    assert_eq!(
+        db.query_row("SELECT count(*) FROM engine_resource_actions", [], |r| r
+            .get::<_, i64>(0))
+            .unwrap(),
+        0
+    );
+    db.execute_batch("DROP TABLE engine_resource_actions;")
+        .unwrap();
     db.pragma_update(None, "user_version", 9).unwrap();
     drop(db);
     let mut s = Store::open(&path).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 16);
+    assert_eq!(s.schema_version().unwrap(), 17);
     assert_eq!(
         s.append_capture(
             ticket,
@@ -235,11 +244,15 @@ fn encrypted_schema10_retains_interruption_and_old_schema_cannot_claim_it() {
         .finish_backup(plan, password, &mut TestAuth(true), true)
         .unwrap();
     let restored = Store::restore_backup_password(&backup.bytes, password).unwrap();
-    assert_eq!(restored.schema_version().unwrap(), 16);
+    assert_eq!(restored.schema_version().unwrap(), 17);
     assert_eq!(restored.source_ink(b.id, &a).unwrap(), vec![original]);
     let plain = crypto::decrypt(&backup.bytes, Credential::Password(password)).unwrap();
     let mut downgraded: serde_json::Value = serde_json::from_slice(&plain).unwrap();
-    assert_eq!(downgraded["schema"], 16);
+    assert_eq!(downgraded["schema"], 17);
+    downgraded["tables"]
+        .as_object_mut()
+        .unwrap()
+        .remove("engine_resource_actions");
     downgraded["schema"] = 9.into();
     downgraded["tables"]
         .as_object_mut()
@@ -290,6 +303,10 @@ fn legacy_schema9_backup_defaults_to_completed_without_rewriting_source_or_recei
         .unwrap();
     let plain = crypto::decrypt(&backup.bytes, Credential::Password(password)).unwrap();
     let mut old: serde_json::Value = serde_json::from_slice(&plain).unwrap();
+    old["tables"]
+        .as_object_mut()
+        .unwrap()
+        .remove("engine_resource_actions");
     old["schema"] = 9.into();
     old["tables"]
         .as_object_mut()

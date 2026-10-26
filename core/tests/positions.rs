@@ -367,6 +367,10 @@ fn encrypted_backup_retains_stale_bookmarks_and_schema10_defaults_without_rewrit
     );
     let plain = crypto::decrypt(&backup.bytes, Credential::Password(password)).unwrap();
     let mut old: serde_json::Value = serde_json::from_slice(&plain).unwrap();
+    old["tables"]
+        .as_object_mut()
+        .unwrap()
+        .remove("engine_resource_actions");
     old["schema"] = 10.into();
     old["tables"]
         .as_object_mut()
@@ -390,7 +394,7 @@ fn encrypted_backup_retains_stale_bookmarks_and_schema10_defaults_without_rewrit
     }
     let legacy = crypto::encrypt(&serde_json::to_vec(&old).unwrap(), password).unwrap();
     let restored = Store::restore_backup_password(&legacy.bytes, password).unwrap();
-    assert_eq!(restored.schema_version().unwrap(), 16);
+    assert_eq!(restored.schema_version().unwrap(), 17);
     assert!(restored.view(v.id, &a).unwrap().bookmark.is_none());
 }
 #[test]
@@ -555,10 +559,19 @@ fn schema10_upgrade_keeps_legacy_view_payload_byte_for_byte_and_absent_bookmark_
     assert!(!before.contains("bookmark"));
     db.execute_batch("DROP TRIGGER IF EXISTS workspace_layer_identity; DROP TRIGGER IF EXISTS stroke_layer_identity; DROP TRIGGER IF EXISTS view_layer_identity; DROP TABLE canvas_layers; DROP TRIGGER view_workspace_identity; DROP TRIGGER stroke_workspace_identity; DROP TABLE workspace_state; DROP TABLE workspace_panes;")
         .unwrap();
+    // Remove the schema17-only empty action table from this legacy layout.
+    assert_eq!(
+        db.query_row("SELECT count(*) FROM engine_resource_actions", [], |r| r
+            .get::<_, i64>(0))
+            .unwrap(),
+        0
+    );
+    db.execute_batch("DROP TABLE engine_resource_actions;")
+        .unwrap();
     db.pragma_update(None, "user_version", 10).unwrap();
     drop(db);
     let s = Store::open(&path).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 16);
+    assert_eq!(s.schema_version().unwrap(), 17);
     assert_eq!(s.view(legacy.id, &a).unwrap(), legacy);
     drop(s);
     let db = rusqlite::Connection::open(&path).unwrap();

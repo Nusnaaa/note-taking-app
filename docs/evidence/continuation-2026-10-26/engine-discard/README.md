@@ -1,0 +1,9 @@
+# Native unpublished-import discard (schema 17)
+
+This increment implements Core/Store discard only. Host lifecycle, JNI/Android discard and installed SDK resource reclamation remain open. ADR 030 records the boundary and format changes. No production H.I., real model, device performance or broad acceptance result is inferred.
+
+The new integration fixture checks durable consent before deletion; original consent identity; retained coordination ownership; independent note/raw-ink preservation; rollback before permission; publication and lock exclusion; fresh authority; cancellation; explicit Pending retry across reopen and after physical deletion; foreign/legacy refusal; app-only bounded history; no following symlink payloads; preparation-specific opaque permits; real schema-16 migration; and encrypted classic/streaming backup history validation.
+
+Development failures are retained separately. The library-binding failure exposed compact versus hyphenated UUID comparison and was fixed by parsing identities. The Host schema-gate failure exposed the remaining strict-open maximum and expected migration version; both now allow schema 17. Synthetic old-format fixtures explicitly remove the newly introduced empty table/stream segment before claiming an older schema. The incorrect synthetic footer offset, private-directory permissions, missing test import and Clippy pattern are fixture/development corrections, not production success evidence. The Cargo-home launch error ran no tests.
+
+The 74-test targeted run succeeded before the full-workspace Host schema-gate correction. Its raw output is retained separately from the final workspace result. The initial full workspace run failed with 35/37 core unit tests passing; it is not a completed native validation. Final checks and source hashes are recorded separately once terminal. All broader requirement/candidate acceptance gaps remain OPEN.

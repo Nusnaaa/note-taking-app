@@ -138,6 +138,10 @@ fn encrypted_style_backup_retains_exact_metadata_and_cannot_be_disguised_as_sche
     assert_eq!(restored.source_ink(b.id, &a).unwrap(), vec![original]);
     let plain = crypto::decrypt(&bytes, Credential::Password(password)).unwrap();
     let mut doc: serde_json::Value = serde_json::from_slice(&plain).unwrap();
+    doc["tables"]
+        .as_object_mut()
+        .unwrap()
+        .remove("engine_resource_actions");
     doc["schema"] = 12.into();
     doc["tables"]
         .as_object_mut()
@@ -173,10 +177,19 @@ fn legacy_source_payload_hash_and_receipt_are_not_rewritten_by_schema13_upgrade(
         .unwrap();
     assert!(!before.0.contains("style"));
     db.execute_batch("DROP TRIGGER workspace_layer_identity; DROP TRIGGER stroke_layer_identity; DROP TRIGGER view_layer_identity; DROP TABLE canvas_layers;").unwrap();
+    // Remove the schema17-only empty action table from this legacy layout.
+    assert_eq!(
+        db.query_row("SELECT count(*) FROM engine_resource_actions", [], |r| r
+            .get::<_, i64>(0))
+            .unwrap(),
+        0
+    );
+    db.execute_batch("DROP TABLE engine_resource_actions;")
+        .unwrap();
     db.pragma_update(None, "user_version", 12).unwrap();
     drop(db);
     let mut s = Store::open(&path).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 16);
+    assert_eq!(s.schema_version().unwrap(), 17);
     s.append_capture(
         ticket,
         WritingTarget::Entity(n.id),

@@ -1,0 +1,57 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-jni-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 34.34s
+     Running tests/backup.rs (/tmp/stem-pen-response-target/debug/deps/backup-84f7ac3d814cf80c)
+
+running 9 tests
+test backup_plan_cannot_cross_library_or_survive_a_write ... ok
+test backup_requires_deliberate_ink_scope_and_fresh_protected_authentication ... ok
+test rich_library_restores_objects_views_anchors_proposals_profiles_and_capture_receipts ... ok
+test malformed_authenticated_backup_is_rejected_before_exposing_restored_store ... ok
+test restore_publication_never_overwrites_live_database_and_reopens ... ok
+test external_asset_backup_is_explicit_authorised_and_revocation_safe ... ok
+test whole_library_backup_retains_trash_history_membership_undo_and_source_metadata ... ok
+test schema8_logical_backup_upgrades_without_inventing_old_undo_actions ... ok
+test purge_retires_detailed_undo_payloads_and_backup_rejects_forged_journal_rows ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 24.29s
+
+     Running tests/engine_discard.rs (/tmp/stem-pen-response-target/debug/deps/engine_discard-8de16e058c2a97fd)
+
+running 9 tests
+test symlink_payload_refuses_the_entire_discard_before_any_file_is_deleted ... ok
+test authorisation_permit_cannot_be_rebound_to_a_different_preparation_of_the_same_record ... ok
+test publication_and_sql_failure_prevent_deletion_and_keep_history_atomic ... ok
+test discard_records_original_consent_before_delete_and_preserves_notebook_content ... ok
+test resource_actions_require_fresh_app_access_and_page_without_paths ... ok
+test cancelled_and_foreign_authorisation_never_delete_and_retry_can_finish_after_lost_completion ... ok
+test cancellation_after_authorisation_preserves_files_and_retry_survives_reopen ... ok
+test discard_rejects_legacy_foreign_and_pending_version_cannot_publish_again ... ok
+test schema16_migrates_without_changing_notebooks_and_both_backups_preserve_action_history ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 27.45s
+
+     Running tests/interrupted_capture.rs (/tmp/stem-pen-response-target/debug/deps/interrupted_capture-72ee18fce9a89e0b)
+
+running 6 tests
+test checkpoints_preserve_stable_begin_order_and_interruption_never_invents_samples ... ok
+test unfinished_prefix_cannot_enter_store_queue_or_portable_document_and_sealed_retry_is_exact ... ok
+test native_v5_preserves_interruption_provenance_and_legacy_tags_cannot_hide_it ... ok
+test schema9_upgrade_preserves_original_payload_hash_and_capture_receipt_byte_for_byte ... FAILED
+test legacy_schema9_backup_defaults_to_completed_without_rewriting_source_or_receipt ... ok
+test encrypted_schema10_retains_interruption_and_old_schema_cannot_claim_it ... ok
+
+failures:
+
+---- schema9_upgrade_preserves_original_payload_hash_and_capture_receipt_byte_for_byte stdout ----
+
+thread 'schema9_upgrade_preserves_original_payload_hash_and_capture_receipt_byte_for_byte' panicked at core/tests/interrupted_capture.rs:156:36:
+called `Result::unwrap()` on an `Err` value: Storage(SqlInputError { error: Error { code: Unknown, extended_code: 1 }, msg: "table engine_resource_actions already exists", sql: "-- Durable explicit resource decisions, independent of notebook contents and files.\nCREATE TABLE engine_resource_actions(\n id TEXT PRIMARY KEY,\n version TEXT NOT NULL,\n payload TEXT NOT NULL CHECK(json_valid(payload))\n) STRICT;\nCREATE INDEX engine_resource_actions_version ON engine_resource_actions(version);\nPRAGMA user_version=17;\n", offset: 97 })
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    schema9_upgrade_preserves_original_payload_hash_and_capture_receipt_byte_for_byte
+
+test result: FAILED. 5 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 19.83s
+
+error: test failed, to rerun pass `-p stem-core --test interrupted_capture`

@@ -1,8 +1,8 @@
 # Whole-library backup v1
 
-Current writer: schema 16. The schema-8 description below is historical; later
+Current writer: schema 17. The schema-8 description below is historical; later
 sections describe supported migrations, streaming and semantic-validation changes.
-See [pressure response](pressure-response-v1.md) for the latest feature boundary.
+See the schema-17 resource-action extension below for the latest feature boundary.
 
 This is a logical snapshot of the implemented schema, independent of native subset
 v3. It covers current stored state, not unimplemented application features. The only
@@ -129,3 +129,12 @@ eraser preference JSON without changing this format's table/column order. Stream
 readers accept known schema 15 and 16, while semantic feature checks reject new
 pressure fields labelled as schema 15. Existing row payloads/receipts are not
 rewritten by the tag migration. See [pressure-response-v1.md](pressure-response-v1.md).
+
+
+## Schema 17 resource-action history
+
+The writer now appends `engine_resource_actions(id, version, payload)` as table index 31. Both encrypted whole-library formats preserve explicit resource-discard decisions and original import consent metadata. The strict table and payload validator retain only known version-1 action records; payload identity must match both SQL keys, and discard history cannot contradict a published engine-version row. No path, model bytes or live deletion permit is included.
+
+JSON restore accepts known schemas through 17. For older schemas the new table must be absent and is created empty; carrying it under an older tag is rejected. Streaming writes schema 17 and accepts 15/16/17. The new empty-table segment is three bytes (index plus row terminator); older streams omit it. The existing footer still contains its eight-byte magic and eight-byte row count. Native notebook subset v10 is unchanged.
+
+Pending action history survives backup/reopen without automatically resuming deletion. Restore creates a new library identity, so old action provenance is historical and cannot grant deletion authority. Model-resource omissions are reported when pending model content may be absent from the snapshot. See [ADR 030](../decisions/ADR-030-unpublished-import-discard.md).

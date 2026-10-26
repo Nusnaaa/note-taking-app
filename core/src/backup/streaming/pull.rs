@@ -79,7 +79,7 @@ impl Store {
             return Err(Error::Denied);
         }
         let mut pending = BODY.to_vec();
-        pending.extend_from_slice(&16u32.to_be_bytes());
+        pending.extend_from_slice(&17u32.to_be_bytes());
         pending.extend_from_slice(&(plan.omissions.len() as u32).to_be_bytes());
         for omission in &plan.omissions {
             write_bytes(&mut pending, omission.as_bytes())?;

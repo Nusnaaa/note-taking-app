@@ -342,6 +342,10 @@ fn encrypted_backup_preserves_layer_undo_and_rejects_downgraded_current_and_hist
     );
     let plain = crypto::decrypt(&bytes, Credential::Password(password)).unwrap();
     let mut old: serde_json::Value = serde_json::from_slice(&plain).unwrap();
+    old["tables"]
+        .as_object_mut()
+        .unwrap()
+        .remove("engine_resource_actions");
     old["schema"] = 13.into();
     old["tables"]
         .as_object_mut()
@@ -360,6 +364,10 @@ fn encrypted_backup_preserves_layer_undo_and_rejects_downgraded_current_and_hist
     let bytes = blob(&s);
     let plain = crypto::decrypt(&bytes, Credential::Password(password)).unwrap();
     let mut old: serde_json::Value = serde_json::from_slice(&plain).unwrap();
+    old["tables"]
+        .as_object_mut()
+        .unwrap()
+        .remove("engine_resource_actions");
     old["schema"] = 13.into();
     old["tables"]
         .as_object_mut()
@@ -385,10 +393,19 @@ fn legacy_canvas_migrates_to_an_implicit_base_without_rewriting_original_payload
         })
         .unwrap();
     db.execute_batch("DROP TRIGGER workspace_layer_identity;DROP TRIGGER stroke_layer_identity;DROP TRIGGER view_layer_identity;DROP TABLE canvas_layers;").unwrap();
+    // Remove the schema17-only empty action table from this legacy layout.
+    assert_eq!(
+        db.query_row("SELECT count(*) FROM engine_resource_actions", [], |r| r
+            .get::<_, i64>(0))
+            .unwrap(),
+        0
+    );
+    db.execute_batch("DROP TABLE engine_resource_actions;")
+        .unwrap();
     db.pragma_update(None, "user_version", 13).unwrap();
     drop(db);
     let s = Store::open(&path).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 16);
+    assert_eq!(s.schema_version().unwrap(), 17);
     assert_eq!(s.canvas_layers(c.id, &a).unwrap().revision, 0);
     assert_eq!(
         ids(s.canvas_scene(c.id, None, 0, 10, &a).unwrap()),

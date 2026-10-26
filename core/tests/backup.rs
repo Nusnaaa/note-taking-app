@@ -497,6 +497,10 @@ fn schema8_logical_backup_upgrades_without_inventing_old_undo_actions() {
         .unwrap();
     let plain = crypto::decrypt(&encrypted.bytes, Credential::Password(PASSWORD)).unwrap();
     let mut doc: serde_json::Value = serde_json::from_slice(&plain).unwrap();
+    doc["tables"]
+        .as_object_mut()
+        .unwrap()
+        .remove("engine_resource_actions");
     doc["schema"] = 8.into();
     doc["tables"]
         .as_object_mut()
@@ -524,7 +528,7 @@ fn schema8_logical_backup_upgrades_without_inventing_old_undo_actions() {
         .retain(|row| row[0]["value"] != "edit_operation");
     let old = crypto::encrypt(&serde_json::to_vec(&doc).unwrap(), PASSWORD).unwrap();
     let restored = Store::restore_backup_password(&old.bytes, PASSWORD).unwrap();
-    assert_eq!(restored.schema_version().unwrap(), 16);
+    assert_eq!(restored.schema_version().unwrap(), 17);
     assert_eq!(
         restored.block(b.id, &a).unwrap().content.literal(),
         "schema-eight content"

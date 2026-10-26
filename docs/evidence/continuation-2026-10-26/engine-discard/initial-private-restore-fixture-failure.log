@@ -1,0 +1,45 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-jni-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 34.20s
+     Running tests/backup.rs (/tmp/stem-pen-response-target/debug/deps/backup-84f7ac3d814cf80c)
+
+running 9 tests
+test backup_plan_cannot_cross_library_or_survive_a_write ... ok
+test backup_requires_deliberate_ink_scope_and_fresh_protected_authentication ... ok
+test rich_library_restores_objects_views_anchors_proposals_profiles_and_capture_receipts ... ok
+test external_asset_backup_is_explicit_authorised_and_revocation_safe ... ok
+test malformed_authenticated_backup_is_rejected_before_exposing_restored_store ... ok
+test restore_publication_never_overwrites_live_database_and_reopens ... ok
+test whole_library_backup_retains_trash_history_membership_undo_and_source_metadata ... ok
+test schema8_logical_backup_upgrades_without_inventing_old_undo_actions ... ok
+test purge_retires_detailed_undo_payloads_and_backup_rejects_forged_journal_rows ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 24.35s
+
+     Running tests/engine_discard.rs (/tmp/stem-pen-response-target/debug/deps/engine_discard-8de16e058c2a97fd)
+
+running 9 tests
+test authorisation_permit_cannot_be_rebound_to_a_different_preparation_of_the_same_record ... ok
+test discard_records_original_consent_before_delete_and_preserves_notebook_content ... ok
+test symlink_payload_refuses_the_entire_discard_before_any_file_is_deleted ... ok
+test publication_and_sql_failure_prevent_deletion_and_keep_history_atomic ... ok
+test resource_actions_require_fresh_app_access_and_page_without_paths ... ok
+test cancelled_and_foreign_authorisation_never_delete_and_retry_can_finish_after_lost_completion ... ok
+test cancellation_after_authorisation_preserves_files_and_retry_survives_reopen ... ok
+test discard_rejects_legacy_foreign_and_pending_version_cannot_publish_again ... ok
+test schema16_migrates_without_changing_notebooks_and_both_backups_preserve_action_history ... FAILED
+
+failures:
+
+---- schema16_migrates_without_changing_notebooks_and_both_backups_preserve_action_history stdout ----
+
+thread 'schema16_migrates_without_changing_notebooks_and_both_backups_preserve_action_history' panicked at core/tests/engine_discard.rs:451:6:
+called `Result::unwrap()` on an `Err` value: Denied
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    schema16_migrates_without_changing_notebooks_and_both_backups_preserve_action_history
+
+test result: FAILED. 8 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 27.63s
+
+error: test failed, to rerun pass `-p stem-core --test engine_discard`

@@ -158,6 +158,9 @@ impl Store {
                 }
             }
         }
+        if tx.prepare("SELECT 1 FROM engine_resource_actions WHERE json_extract(payload,'$.state')='Pending' LIMIT 1")?.exists([])? {
+            omissions.insert(MODEL_OMISSION.to_string());
+        }
         tx.commit()?;
         Ok(StreamBackupPlan {
             library,
@@ -236,7 +239,7 @@ impl Store {
             let mut schema = [0; 4];
             input.read_exact(&mut schema)?;
             let source_schema = u32::from_be_bytes(schema);
-            if &magic != BODY || !matches!(source_schema, 15 | 16) {
+            if &magic != BODY || !matches!(source_schema, 15..=17) {
                 return Err(Error::Unsupported);
             }
             let mut omissions = [0; 4];
@@ -252,7 +255,9 @@ impl Store {
                 }
             }
             let mut count = 0u64;
-            for (index, &(table, width)) in TABLES.iter().enumerate() {
+            for (index, &(table, width)) in TABLES.iter().enumerate().filter(|(_, (table, _))| {
+                source_schema >= 17 || *table != "engine_resource_actions"
+            }) {
                 control.check()?;
                 let mut marker = [0; 2];
                 input.read_exact(&mut marker)?;
@@ -311,7 +316,7 @@ impl Store {
             control.check()?;
             tx.commit()?;
             destination.validate_backup_state_controlled(
-                if source_schema == 16 { 10 } else { 9 },
+                if source_schema >= 16 { 10 } else { 9 },
                 Some(control),
             )?;
             control.check()?;

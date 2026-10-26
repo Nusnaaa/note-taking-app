@@ -1,5 +1,6 @@
 //! Consent-based, resumable local model-resource transfer. No URL fetching or code
 //! loading. The host feeds explicitly selected bytes and retains the install ID.
+pub(crate) mod discard;
 mod ownership;
 pub(crate) use ownership::TransferOwnership;
 pub(crate) mod recovery;

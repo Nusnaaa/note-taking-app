@@ -39,7 +39,7 @@ use std::{
     path::Path,
 };
 
-// Column order is the on-disk contract of schemas 9/10/11/12/13/14/15/16. Unknown tables/widths fail closed.
+// Column order is the on-disk contract of schemas 9/10/11/12/13/14/15/16/17. Unknown tables/widths fail closed.
 const TABLES: &[(&str, usize)] = &[
     ("settings", 2),
     ("entities", 3),
@@ -72,6 +72,7 @@ const TABLES: &[(&str, usize)] = &[
     ("workspace_panes", 7),
     ("workspace_state", 4),
     ("canvas_layers", 2),
+    ("engine_resource_actions", 3),
 ];
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -194,7 +195,7 @@ impl Store {
 
         let mut snapshot = Snapshot {
             format: "STEM-LIBRARY-1".into(),
-            schema: 16,
+            schema: 17,
             tables: BTreeMap::new(),
             omissions: vec![],
         };
@@ -253,6 +254,13 @@ impl Store {
                     asset_count += 1;
                 }
 
+                if name == "engine_resource_actions" {
+                    let action: crate::store::EngineResourceAction =
+                        serde_json::from_str(cells[2].text()?)?;
+                    if action.state == crate::store::ResourceActionState::Pending {
+                        snapshot.omissions.push("Optional model resource excluded; reinstall and verify locally after restore.".into());
+                    }
+                }
                 if name == "engine_versions" {
                     let mut v: EngineVersion = serde_json::from_str(cells[2].text()?)?;
 
@@ -379,10 +387,18 @@ impl Store {
             snapshot.schema = 9;
         }
 
-        if snapshot.format != "STEM-LIBRARY-1" || !matches!(snapshot.schema, 9..=16) {
+        if snapshot.format != "STEM-LIBRARY-1" || !matches!(snapshot.schema, 9..=17) {
             return Err(Error::Unsupported);
         }
 
+        if source_schema < 17 {
+            if snapshot.tables.contains_key("engine_resource_actions") {
+                return Err(Error::Invalid("legacy resource-action extension"));
+            }
+            snapshot
+                .tables
+                .insert("engine_resource_actions".into(), vec![]);
+        }
         if source_schema < 14 {
             if snapshot.tables.contains_key("canvas_layers") {
                 return Err(Error::Invalid("legacy layer extension"));
@@ -879,6 +895,26 @@ impl Store {
             }
         }
 
+        let mut action_query =
+            db.prepare("SELECT id,version,payload FROM engine_resource_actions")?;
+        for row in action_query.query_map([], |r| {
+            Ok((
+                r.get::<_, String>(0)?,
+                r.get::<_, String>(1)?,
+                r.get::<_, String>(2)?,
+            ))
+        })? {
+            if let Some(control) = control {
+                control.check()?;
+            }
+            let (id, version, payload) = row?;
+            let action: crate::store::EngineResourceAction = serde_json::from_str(&payload)?;
+            action.validate()?;
+            if action.id.to_string() != id || action.version.to_string() != version {
+                return Err(Error::Integrity);
+            }
+        }
+        if db.query_row("SELECT EXISTS(SELECT 1 FROM engine_resource_actions a JOIN engine_versions v ON v.id=a.version)",[],|r|r.get::<_,bool>(0))? {return Err(Error::Integrity);}
         let mut payload_query = db.prepare("SELECT id,payload FROM engine_versions")?;
         for row in
             payload_query.query_map([], |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?)))?

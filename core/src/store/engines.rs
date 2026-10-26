@@ -3,11 +3,16 @@
 use super::*;
 mod activation;
 mod catalogue;
+mod discard;
 mod import;
 mod recovery;
 mod removal;
 pub use activation::{EngineActivationPlan, PreparedEngineActivation};
 pub use catalogue::{EngineCatalogue, EngineCatalogueRow};
+pub use discard::{
+    DiscardedEngineImport, EngineDiscardPermit, EngineDiscardPlan, EngineResourceAction,
+    EngineResourceActions, PreparedEngineDiscard, ResourceActionKind, ResourceActionState,
+};
 pub use import::{EngineImportPlan, EngineImportTransfer, PreparedEngineImport};
 pub use recovery::EngineRecoveryPlan;
 pub use removal::EngineRemovalPlan;

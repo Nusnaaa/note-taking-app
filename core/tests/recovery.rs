@@ -44,7 +44,7 @@ fn v1_to_current_migration_preserves_entities_and_is_repeatable() {
     .unwrap();
     drop(db);
     let s = Store::open(&path).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 16);
+    assert_eq!(s.schema_version().unwrap(), 17);
     assert_eq!(s.entity(id, &Access::public()).unwrap().created_ms, 1);
     drop(s);
     let s = Store::open(path).unwrap();

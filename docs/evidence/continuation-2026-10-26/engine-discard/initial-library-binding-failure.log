@@ -1,0 +1,87 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-jni-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 34.11s
+     Running tests/backup.rs (/tmp/stem-pen-response-target/debug/deps/backup-84f7ac3d814cf80c)
+
+running 9 tests
+test backup_plan_cannot_cross_library_or_survive_a_write ... ok
+test backup_requires_deliberate_ink_scope_and_fresh_protected_authentication ... ok
+test rich_library_restores_objects_views_anchors_proposals_profiles_and_capture_receipts ... ok
+test whole_library_backup_retains_trash_history_membership_undo_and_source_metadata ... ok
+test malformed_authenticated_backup_is_rejected_before_exposing_restored_store ... ok
+test restore_publication_never_overwrites_live_database_and_reopens ... ok
+test external_asset_backup_is_explicit_authorised_and_revocation_safe ... ok
+test schema8_logical_backup_upgrades_without_inventing_old_undo_actions ... ok
+test purge_retires_detailed_undo_payloads_and_backup_rejects_forged_journal_rows ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 23.73s
+
+     Running tests/engine_discard.rs (/tmp/stem-pen-response-target/debug/deps/engine_discard-8de16e058c2a97fd)
+
+running 8 tests
+test discard_records_original_consent_before_delete_and_preserves_notebook_content ... FAILED
+test cancelled_and_foreign_authorisation_never_delete_and_retry_can_finish_after_lost_completion ... FAILED
+test resource_actions_require_fresh_app_access_and_page_without_paths ... FAILED
+test publication_and_sql_failure_prevent_deletion_and_keep_history_atomic ... FAILED
+test symlink_payload_refuses_the_entire_discard_before_any_file_is_deleted ... FAILED
+test cancellation_after_authorisation_preserves_files_and_retry_survives_reopen ... FAILED
+test discard_rejects_legacy_foreign_and_pending_version_cannot_publish_again ... FAILED
+test schema16_migrates_without_changing_notebooks_and_both_backups_preserve_action_history ... FAILED
+
+failures:
+
+---- discard_records_original_consent_before_delete_and_preserves_notebook_content stdout ----
+
+thread 'discard_records_original_consent_before_delete_and_preserves_notebook_content' panicked at core/tests/engine_discard.rs:67:10:
+called `Result::unwrap()` on an `Err` value: Conflict
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- cancelled_and_foreign_authorisation_never_delete_and_retry_can_finish_after_lost_completion stdout ----
+
+thread 'cancelled_and_foreign_authorisation_never_delete_and_retry_can_finish_after_lost_completion' panicked at core/tests/engine_discard.rs:160:10:
+called `Result::unwrap()` on an `Err` value: Conflict
+
+---- resource_actions_require_fresh_app_access_and_page_without_paths stdout ----
+
+thread 'resource_actions_require_fresh_app_access_and_page_without_paths' panicked at core/tests/engine_discard.rs:255:14:
+called `Result::unwrap()` on an `Err` value: Conflict
+
+---- publication_and_sql_failure_prevent_deletion_and_keep_history_atomic stdout ----
+
+thread 'publication_and_sql_failure_prevent_deletion_and_keep_history_atomic' panicked at core/tests/engine_discard.rs:109:10:
+called `Result::unwrap()` on an `Err` value: Conflict
+
+---- symlink_payload_refuses_the_entire_discard_before_any_file_is_deleted stdout ----
+
+thread 'symlink_payload_refuses_the_entire_discard_before_any_file_is_deleted' panicked at core/tests/engine_discard.rs:295:5:
+assertion failed: matches!(s.engine_discard_plan(id, true, None,
+    &a).unwrap().prepare(root.path(), &control()), Err(Error::ReviewRequired))
+
+---- cancellation_after_authorisation_preserves_files_and_retry_survives_reopen stdout ----
+
+thread 'cancellation_after_authorisation_preserves_files_and_retry_survives_reopen' panicked at core/tests/engine_discard.rs:324:10:
+called `Result::unwrap()` on an `Err` value: Conflict
+
+---- discard_rejects_legacy_foreign_and_pending_version_cannot_publish_again stdout ----
+
+thread 'discard_rejects_legacy_foreign_and_pending_version_cannot_publish_again' panicked at core/tests/engine_discard.rs:221:10:
+called `Result::unwrap()` on an `Err` value: Conflict
+
+---- schema16_migrates_without_changing_notebooks_and_both_backups_preserve_action_history stdout ----
+
+thread 'schema16_migrates_without_changing_notebooks_and_both_backups_preserve_action_history' panicked at core/tests/engine_discard.rs:397:10:
+called `Result::unwrap()` on an `Err` value: Conflict
+
+
+failures:
+    cancellation_after_authorisation_preserves_files_and_retry_survives_reopen
+    cancelled_and_foreign_authorisation_never_delete_and_retry_can_finish_after_lost_completion
+    discard_records_original_consent_before_delete_and_preserves_notebook_content
+    discard_rejects_legacy_foreign_and_pending_version_cannot_publish_again
+    publication_and_sql_failure_prevent_deletion_and_keep_history_atomic
+    resource_actions_require_fresh_app_access_and_page_without_paths
+    schema16_migrates_without_changing_notebooks_and_both_backups_preserve_action_history
+    symlink_payload_refuses_the_entire_discard_before_any_file_is_deleted
+
+test result: FAILED. 0 passed; 8 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+error: test failed, to rerun pass `-p stem-core --test engine_discard`

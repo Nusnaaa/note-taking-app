@@ -175,6 +175,13 @@ impl Store {
         if Self::setting(&self.db, "library_id")? != prepared.plan.library {
             return Err(Error::Conflict);
         }
+        if self.db.query_row(
+            "SELECT EXISTS(SELECT 1 FROM engine_resource_actions WHERE version=?1)",
+            [prepared.version.id.to_string()],
+            |r| r.get::<_, bool>(0),
+        )? {
+            return Err(Error::Conflict);
+        }
         let exists: bool = self.db.query_row(
             "SELECT EXISTS(SELECT 1 FROM engine_versions WHERE id=?1)",
             [prepared.version.id.to_string()],

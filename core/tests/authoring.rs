@@ -291,7 +291,11 @@ fn native_copy_and_schema15_backup_keep_scoped_presets_and_reject_downgraded_ext
     )
     .unwrap();
     let mut snapshot: serde_json::Value = serde_json::from_slice(&opened).unwrap();
-    assert_eq!(snapshot["schema"], 16);
+    assert_eq!(snapshot["schema"], 17);
+    snapshot["tables"]
+        .as_object_mut()
+        .unwrap()
+        .remove("engine_resource_actions");
     snapshot["schema"] = 14.into();
     let wrong = crypto::encrypt(
         &serde_json::to_vec(&snapshot).unwrap(),
@@ -342,10 +346,19 @@ fn schema14_upgrade_keeps_unconfigured_view_payload_exactly_without_inventing_pr
         )
         .unwrap();
     assert!(!original.contains("authoring"));
+    // Remove the schema17-only empty action table from this legacy layout.
+    assert_eq!(
+        db.query_row("SELECT count(*) FROM engine_resource_actions", [], |r| r
+            .get::<_, i64>(0))
+            .unwrap(),
+        0
+    );
+    db.execute_batch("DROP TABLE engine_resource_actions;")
+        .unwrap();
     db.pragma_update(None, "user_version", 14).unwrap();
     drop(db);
     let s = Store::open(&path).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 16);
+    assert_eq!(s.schema_version().unwrap(), 17);
     assert_eq!(s.view(v.id, &a).unwrap(), v);
     drop(s);
     let db = rusqlite::Connection::open(&path).unwrap();

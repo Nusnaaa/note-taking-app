@@ -287,6 +287,10 @@ fn aggregate_and_stream_backups_keep_exact_pressure_metadata_and_reject_schema_d
     );
     let plain = crypto::decrypt(&archive.bytes, Credential::Password(password)).unwrap();
     let mut document: serde_json::Value = serde_json::from_slice(&plain).unwrap();
+    document["tables"]
+        .as_object_mut()
+        .unwrap()
+        .remove("engine_resource_actions");
     document["schema"] = 15.into();
     let downgraded = crypto::encrypt(&serde_json::to_vec(&document).unwrap(), password).unwrap();
     assert!(Store::restore_backup_password(&downgraded.bytes, password).is_err());
@@ -367,14 +371,18 @@ fn legacy_layout_stream_reads_schema15_without_inventing_pressure_settings() {
             &control,
         )
         .unwrap();
-    // Synthetic legacy-layout fixture: schema16 adds no SQL columns/tables, and
-    // these rows contain no pressure/eraser extension. Change only its tag.
+    // Synthetic schema15 fixture has no pressure/eraser fields. Schema17 adds
+    // the final action table; remove its empty segment before changing the tag.
     let mut reader =
         DecryptStream::new(bytes.as_slice(), Credential::Password(password), 10000000).unwrap();
     let mut plain = Vec::new();
     reader.read_to_end(&mut plain).unwrap();
     reader.finish().unwrap();
     assert_eq!(&plain[..8], b"STEMLIB2");
+    let end = plain.len() - 16; // Footer magic plus the eight-byte row count.
+    assert_eq!(&plain[end..end + 8], b"STEMEND2");
+    assert_eq!(&plain[end - 3..end], &[0, 31, 0]); // Empty schema17 action table.
+    plain.drain(end - 3..end);
     plain[8..12].copy_from_slice(&15u32.to_be_bytes());
     let mut writer = EncryptStream::new(Vec::new(), password).unwrap();
     writer.write_all(&plain).unwrap();
@@ -398,7 +406,7 @@ fn legacy_layout_stream_reads_schema15_without_inventing_pressure_settings() {
         restored.store().source_ink(block.id, &a).unwrap(),
         vec![original]
     );
-    assert_eq!(restored.store().schema_version().unwrap(), 16);
+    assert_eq!(restored.store().schema_version().unwrap(), 17);
 }
 
 #[test]
