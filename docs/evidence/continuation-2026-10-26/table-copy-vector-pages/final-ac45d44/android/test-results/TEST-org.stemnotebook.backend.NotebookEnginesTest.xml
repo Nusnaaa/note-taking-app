@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.NotebookEnginesTest" tests="17" skipped="0" failures="0" errors="0" timestamp="2026-10-26T21:19:01" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="1.422">
+  <properties/>
+  <testcase name="engineOwnersUseTheJniParentLoader" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.035"/>
+  <testcase name="queueBoundsAndQueuedCancellationDoNotConstructAnotherSdk" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.069"/>
+  <testcase name="failedDiscardPreservesActionIdentityWithoutPromisingRollbackOrInventingPendingHistory" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.08"/>
+  <testcase name="resourceInputOpeningRemainsOwnedAcrossControllerAndBackendClose" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.066"/>
+  <testcase name="resourceImportPublishesStableOffsetBeforeOpeningAndClearsVerifiedFactoryBytes" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.115"/>
+  <testcase name="controllerCloseRevokesAnUnconsumedNativeReviewEvenWithSurvivingPendingAndReviewHandles" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.094"/>
+  <testcase name="recoveryIsReadOnlyRedactedLibraryBoundAndSurvivesReopen" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.112"/>
+  <testcase name="failedProviderIsRedactedRetiredAndDoesNotStrandTheOptionalWorker" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.064"/>
+  <testcase name="workerWorkflowPreservesSourceAndKnownReceiptsAfterLateCancellation" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.08"/>
+  <testcase name="queuedConfirmationCancellationRetiresTheConsumedReviewBeforeItsWorkerCanRun" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.083"/>
+  <testcase name="captureRevokesAReviewAndUncertainFailureRetainsItsActionWithoutInventingPendingMetadata" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.078"/>
+  <testcase name="reclamationReviewRetainsOwnerAcrossConsentAndReturnsImmutableTypedHistory" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.084"/>
+  <testcase name="catalogueTracksPagingDefaultAndExplicitReload" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.102"/>
+  <testcase name="explicitDiscardReturnsDurableTypedHistoryAndRetainsStableActionIdentity" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.072"/>
+  <testcase name="backendCloseKeepsOwnershipThroughBlockedInferenceAndSdkRetirement" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.095"/>
+  <testcase name="removalPreservesAcceptedContentAndKnownReceiptAcrossReopen" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.116"/>
+  <testcase name="removalAcknowledgesMetadataWhileSdkRetiresAndCloseKeepsOwnership" classname="org.stemnotebook.backend.NotebookEnginesTest" time="0.076"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

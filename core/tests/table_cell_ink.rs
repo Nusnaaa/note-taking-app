@@ -1344,6 +1344,27 @@ fn host_table_structure_command_runs_through_the_writer() {
         .unwrap();
     assert_eq!(page.fragments[0].points.len(), 1);
     assert!(page.next.is_some());
+    let destination = Id::parse(
+        call(Command::Create {
+            kind: Kind::Note,
+            parent: None,
+            title: "host move".into(),
+        })["id"]
+            .as_str()
+            .unwrap(),
+    )
+    .unwrap();
+    let moved: Vec<Block> = serde_json::from_value(call(Command::MoveTable {
+        block: captured.id,
+        revision: captured.revision,
+        target: stem_core::store::WritingTarget::Entity(destination),
+    }))
+    .unwrap();
+    assert!(!moved[0].visible);
+    assert_ne!(moved[1].id, captured.id);
+    call(Command::Undo {
+        entity: destination,
+    });
 }
 
 fn cell_layout() -> stem_core::objects::TableLayout {
@@ -3443,4 +3464,463 @@ fn locked_whole_table_copy_can_join_a_custom_layer_without_granting_a_new_scope(
         store.canvas_layers(canvas.id, &scope).unwrap().layers[0].blocks,
         vec![copied.id]
     );
+}
+
+#[test]
+fn whole_table_cut_between_masters_is_one_linked_undo_with_independent_destination_identity() {
+    use stem_core::store::WritingTarget;
+    let (mut store, access, source, target, _, _) = linked_cell_fixture();
+    let original_ink = store.source_ink(source.id, &access).unwrap();
+    let result = store
+        .move_table(
+            source.id,
+            source.revision,
+            WritingTarget::Entity(target.entity),
+            &access,
+        )
+        .unwrap();
+    assert!(!result[0].visible);
+    assert_ne!(result[1].id, source.id);
+    assert_eq!(result[1].entity, target.entity);
+    assert_eq!(store.source_ink(source.id, &access).unwrap(), original_ink);
+    let mut independent = store.source_ink(result[1].id, &access).unwrap().remove(0);
+    assert_ne!(independent.id, original_ink[0].id);
+    independent.id = original_ink[0].id;
+    assert_eq!(independent, original_ink[0]);
+    store.undo(target.entity, &access).unwrap();
+    assert!(store.block(source.id, &access).unwrap().visible);
+    assert!(!store.block(result[1].id, &access).unwrap().visible);
+    assert_eq!(
+        store.block(source.id, &access).unwrap().content,
+        source.content
+    );
+    store.redo(source.entity, &access).unwrap();
+    assert!(!store.block(source.id, &access).unwrap().visible);
+    assert!(store.block(result[1].id, &access).unwrap().visible);
+    store.undo(source.entity, &access).unwrap();
+    store.redo(target.entity, &access).unwrap();
+    assert_eq!(store.source_ink(result[1].id, &access).unwrap().len(), 1);
+}
+#[test]
+fn same_master_whole_table_cut_into_exercise_keeps_one_authoring_undo() {
+    use stem_core::store::WritingTarget;
+    let (mut store, access, note, source, _, _) = fixture();
+    let exercise = store
+        .create_exercise(note, "cut target", &[], &access)
+        .unwrap();
+    let before = store.edit_history_depth(note, &access).unwrap();
+    let result = store
+        .move_table(
+            source.id,
+            source.revision,
+            WritingTarget::Exercise(exercise.id),
+            &access,
+        )
+        .unwrap();
+    assert_eq!(
+        store.edit_history_depth(note, &access).unwrap().0,
+        before.0 + 1
+    );
+    assert_eq!(
+        store.exercise_blocks(exercise.id, 0, 10, &access).unwrap()[0].id,
+        result[1].id
+    );
+    store.undo(note, &access).unwrap();
+    assert!(store.block(source.id, &access).unwrap().visible);
+    assert!(store
+        .exercise_blocks(exercise.id, 0, 10, &access)
+        .unwrap()
+        .iter()
+        .all(|b| !b.visible));
+    store.redo(note, &access).unwrap();
+    assert!(!store.block(source.id, &access).unwrap().visible);
+}
+#[test]
+fn whole_table_cut_failure_and_scope_refusal_leave_source_and_target_unchanged() {
+    use stem_core::{security::Scope, store::WritingTarget};
+    let (mut store, access, source, target, _, _) = linked_cell_fixture();
+    let source_depth = store.edit_history_depth(source.entity, &access).unwrap();
+    let target_depth = store.edit_history_depth(target.entity, &access).unwrap();
+    store.inject_failure(FailurePoint::BeforeCommit);
+    assert!(matches!(
+        store.move_table(
+            source.id,
+            source.revision,
+            WritingTarget::Entity(target.entity),
+            &access
+        ),
+        Err(Error::Interrupted)
+    ));
+    assert_eq!(store.block(source.id, &access).unwrap(), source);
+    assert_eq!(
+        store.blocks(target.entity, 0, 10, &access).unwrap().len(),
+        1
+    );
+    assert_eq!(
+        store.edit_history_depth(source.entity, &access).unwrap(),
+        source_depth
+    );
+    assert_eq!(
+        store.edit_history_depth(target.entity, &access).unwrap(),
+        target_depth
+    );
+    assert!(matches!(
+        store.move_table(
+            source.id,
+            source.revision - 1,
+            WritingTarget::Entity(target.entity),
+            &access
+        ),
+        Err(Error::Conflict)
+    ));
+    let key = common::access([Scope::Entity(target.entity)]);
+    let entity = store.entity(target.entity, &access).unwrap();
+    store
+        .set_lock(entity.id, entity.revision, true, &key)
+        .unwrap();
+    assert!(matches!(
+        store.move_table(
+            source.id,
+            source.revision,
+            WritingTarget::Entity(target.entity),
+            &access
+        ),
+        Err(Error::Denied)
+    ));
+    assert_eq!(store.block(source.id, &access).unwrap(), source);
+}
+#[test]
+fn whole_table_cut_backup_roundtrip_and_new_redo_branch_preserve_linked_history() {
+    use stem_core::{backup::BackupOptions, store::WritingTarget};
+    let (mut store, access, source, target, first, _) = linked_cell_fixture();
+    let result = store
+        .move_table(
+            source.id,
+            source.revision,
+            WritingTarget::Entity(target.entity),
+            &access,
+        )
+        .unwrap();
+    let password = "Synthetic whole table linked cut backup passphrase";
+    let backup = store
+        .finish_backup(
+            store
+                .prepare_backup(
+                    BackupOptions {
+                        include_original_ink: true,
+                        include_authorised_source_assets: false,
+                    },
+                    &access,
+                )
+                .unwrap(),
+            password,
+            &mut TestAuth(true),
+            true,
+        )
+        .unwrap();
+    let mut restored = Store::restore_backup_password(&backup.bytes, password).unwrap();
+    restored.undo(source.entity, &access).unwrap();
+    assert!(restored.block(source.id, &access).unwrap().visible);
+    assert!(!restored.block(result[1].id, &access).unwrap().visible);
+    restored.redo(target.entity, &access).unwrap();
+    assert_eq!(
+        restored
+            .table_ink_scene(result[1].id, &access)
+            .unwrap()
+            .len(),
+        1
+    );
+    restored.undo(target.entity, &access).unwrap();
+    let current = restored.block(source.id, &access).unwrap();
+    restored
+        .edit_cell(
+            source.id,
+            current.revision,
+            first,
+            CellValue::Text("new source branch".into()),
+            &access,
+        )
+        .unwrap();
+    assert!(matches!(
+        restored.redo(target.entity, &access),
+        Err(Error::Unavailable)
+    ));
+    assert!(!restored.block(result[1].id, &access).unwrap().visible);
+}
+
+fn canvas_table_fixture() -> (Store, Access, Id, Block, Id) {
+    let (mut store, access, _, source, first, _) = fixture();
+    let canvas = store
+        .create(Kind::Canvas, None, "table scene", &access)
+        .unwrap();
+    let Content::Table(mut table) = source.content else {
+        panic!()
+    };
+    table.layout = Some(cell_layout());
+    let block = store
+        .append_content(canvas.id, Content::Table(table), &access)
+        .unwrap();
+    let block = capture(&mut store, &access, &block, first, 0);
+    (store, access, canvas.id, block, first)
+}
+fn canvas_table_scope(
+    store: &Store,
+    canvas: Id,
+    embedding: Option<Id>,
+    access: &Access,
+) -> stem_core::store::CanvasTableInkScope {
+    use stem_core::store::{CanvasEmbedRevision, CanvasTableInkScope};
+    let scene = store.canvas_scene(canvas, embedding, 0, 0, access).unwrap();
+    CanvasTableInkScope {
+        canvas,
+        entity_revision: scene.entity_revision,
+        layer_revision: scene.layer_revision,
+        embedding: embedding.map(|id| CanvasEmbedRevision {
+            id,
+            revision: scene.embed_revision.unwrap(),
+        }),
+    }
+}
+#[test]
+fn canvas_table_pages_bind_current_membership_and_layer_visibility_without_hiding_source_queries() {
+    use stem_core::store::CanvasLayers;
+    let (mut store, access, canvas, block, _) = canvas_table_fixture();
+    let scope = canvas_table_scope(&store, canvas, None, &access);
+    let page = store
+        .canvas_table_ink_scene_page(scope.clone(), block.id, block.revision, None, 1, &access)
+        .unwrap();
+    assert_eq!(page.ink.fragments.len(), 1);
+    assert!(page.clip.is_none());
+    let state = store
+        .set_canvas_layers(
+            CanvasLayers {
+                canvas,
+                revision: 0,
+                base_visible: false,
+                layers: vec![],
+            },
+            0,
+            &access,
+        )
+        .unwrap();
+    assert!(matches!(
+        store.canvas_table_ink_scene_page(scope, block.id, block.revision, None, 1, &access),
+        Err(Error::Conflict)
+    ));
+    let hidden = canvas_table_scope(&store, canvas, None, &access);
+    assert!(matches!(
+        store.canvas_table_ink_scene_page(hidden, block.id, block.revision, None, 1, &access),
+        Err(Error::Unavailable)
+    ));
+    assert_eq!(
+        store
+            .table_ink_scene_page(block.id, block.revision, None, 1, &access)
+            .unwrap()
+            .fragments
+            .len(),
+        1
+    );
+    let other = store
+        .create(Kind::Canvas, None, "other canvas", &access)
+        .unwrap();
+    let wrong = canvas_table_scope(&store, other.id, None, &access);
+    assert!(matches!(
+        store.canvas_table_ink_scene_page(wrong, block.id, block.revision, None, 1, &access),
+        Err(Error::Invalid("canvas table member"))
+    ));
+    assert_eq!(state.revision, 1);
+}
+#[test]
+fn embedded_table_page_composes_camera_and_frame_without_clipping_original_points() {
+    use stem_core::{objects::Rect, store::Camera};
+    let (mut store, access, canvas, block, _) = canvas_table_fixture();
+    let host = store
+        .create(Kind::Note, None, "embedding host", &access)
+        .unwrap();
+    let frame = Rect {
+        x: 100.,
+        y: 200.,
+        width: 80.,
+        height: 40.,
+    };
+    let embedding = store.create_embed(host.id, canvas, frame, &access).unwrap();
+    let old = canvas_table_scope(&store, canvas, Some(embedding.id), &access);
+    let embedding = store
+        .edit_embed(
+            embedding.id,
+            embedding.revision,
+            Camera {
+                centre_x: 0.,
+                centre_y: 0.,
+                zoom: 2.,
+                rotation_rad: std::f64::consts::FRAC_PI_2,
+            },
+            frame,
+            false,
+            &access,
+        )
+        .unwrap();
+    assert!(matches!(
+        store.canvas_table_ink_scene_page(old, block.id, block.revision, None, 2, &access),
+        Err(Error::Conflict)
+    ));
+    let scope = canvas_table_scope(&store, canvas, Some(embedding.id), &access);
+    let original = store.source_ink(block.id, &access).unwrap().remove(0);
+    let page = store
+        .canvas_table_ink_scene_page(scope, block.id, block.revision, None, 2, &access)
+        .unwrap();
+    assert_eq!(page.clip, Some(frame));
+    assert_eq!(page.ink.fragments[0].points, original.points);
+    let t = page.ink.fragments[0].source_to_surface;
+    assert!((t.tx - 140.).abs() < 1e-9);
+    assert!((t.ty - 220.).abs() < 1e-9);
+    assert!((t.a).abs() < 1e-9);
+    assert!((t.b - 2.).abs() < 1e-9);
+    assert!((t.c + 2.).abs() < 1e-9);
+    let origin = (t.tx, t.ty);
+    assert_eq!(origin, (140., 220.));
+    assert_eq!(store.source_ink(block.id, &access).unwrap()[0], original);
+}
+#[test]
+fn embedded_table_page_honours_override_and_fresh_parent_protection() {
+    use stem_core::{objects::Rect, security::Scope, store::LayerRef};
+    let (mut store, access, canvas, block, _) = canvas_table_fixture();
+    let host = store
+        .create(Kind::Note, None, "private embedding host", &access)
+        .unwrap();
+    let embedding = store
+        .create_embed(
+            host.id,
+            canvas,
+            Rect {
+                x: 0.,
+                y: 0.,
+                width: 50.,
+                height: 40.,
+            },
+            &access,
+        )
+        .unwrap();
+    let embedding = store
+        .set_embed_layers(embedding.id, embedding.revision, Some(vec![]), &access)
+        .unwrap();
+    let hidden = canvas_table_scope(&store, canvas, Some(embedding.id), &access);
+    assert!(matches!(
+        store.canvas_table_ink_scene_page(hidden, block.id, block.revision, None, 2, &access),
+        Err(Error::Unavailable)
+    ));
+    let embedding = store
+        .set_embed_layers(
+            embedding.id,
+            embedding.revision,
+            Some(vec![LayerRef::Base]),
+            &access,
+        )
+        .unwrap();
+    let scope = canvas_table_scope(&store, canvas, Some(embedding.id), &access);
+    let scoped = common::access([Scope::Entity(host.id)]);
+    let entity = store.entity(host.id, &access).unwrap();
+    store
+        .set_lock(host.id, entity.revision, true, &scoped)
+        .unwrap();
+    assert!(matches!(
+        store.canvas_table_ink_scene_page(
+            scope.clone(),
+            block.id,
+            block.revision,
+            None,
+            2,
+            &access
+        ),
+        Err(Error::Denied)
+    ));
+    assert_eq!(
+        store
+            .canvas_table_ink_scene_page(scope, block.id, block.revision, None, 2, &scoped)
+            .unwrap()
+            .ink
+            .fragments
+            .len(),
+        1
+    );
+}
+#[test]
+fn denied_embed_payload_is_not_decoded_by_direct_or_canvas_scene_reads() {
+    use stem_core::{
+        objects::Rect,
+        security::Scope,
+        store::{CanvasEmbedRevision, CanvasTableInkScope},
+    };
+    let root = tempfile::tempdir().unwrap();
+    let path = root.path().join("embed-privacy.db");
+    let mut store = Store::open(&path).unwrap();
+    let access = Access::public();
+    let canvas = store.create(Kind::Canvas, None, "source", &access).unwrap();
+    let host = store
+        .create(Kind::Note, None, "private host", &access)
+        .unwrap();
+    let first = Id::new();
+    let block = store
+        .append_content(
+            canvas.id,
+            Content::Table(Table {
+                rows: vec![vec![
+                    Cell {
+                        id: first,
+                        value: CellValue::Text("private".into()),
+                    },
+                    Cell {
+                        id: Id::new(),
+                        value: CellValue::Text(String::new()),
+                    },
+                ]],
+                header_rows: 0,
+                layout: Some(cell_layout()),
+            }),
+            &access,
+        )
+        .unwrap();
+    let block = capture(&mut store, &access, &block, first, 0);
+    let embedding = store
+        .create_embed(
+            host.id,
+            canvas.id,
+            Rect {
+                x: 0.,
+                y: 0.,
+                width: 50.,
+                height: 40.,
+            },
+            &access,
+        )
+        .unwrap();
+    let scene = store.canvas_scene(canvas.id, None, 0, 0, &access).unwrap();
+    let scope = CanvasTableInkScope {
+        canvas: canvas.id,
+        entity_revision: scene.entity_revision,
+        layer_revision: scene.layer_revision,
+        embedding: Some(CanvasEmbedRevision {
+            id: embedding.id,
+            revision: embedding.revision,
+        }),
+    };
+    let key = common::access([Scope::Entity(host.id)]);
+    let entity = store.entity(host.id, &access).unwrap();
+    store
+        .set_lock(host.id, entity.revision, true, &key)
+        .unwrap();
+    let db = rusqlite::Connection::open(path).unwrap();
+    db.execute(
+        "UPDATE embeds SET payload='{}' WHERE id=?1",
+        [embedding.id.to_string()],
+    )
+    .unwrap();
+    assert!(matches!(
+        store.embed(embedding.id, &access),
+        Err(Error::Denied)
+    ));
+    assert!(matches!(
+        store.canvas_table_ink_scene_page(scope, block.id, block.revision, None, 1, &access),
+        Err(Error::Denied)
+    ));
 }

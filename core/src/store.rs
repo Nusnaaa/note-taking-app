@@ -2,6 +2,7 @@
 //! FULL synchronous WAL commits are acknowledgements of SQLite's durable boundary,
 //! not guarantees about uncommitted events or faulty storage hardware.
 mod authoring;
+mod canvas_table_scene;
 mod capture_recovery;
 mod editing;
 mod editing_links;
@@ -15,7 +16,9 @@ mod positions;
 mod proposals;
 mod regions;
 mod table_copy;
+mod table_move;
 mod table_scene;
+pub use canvas_table_scene::{CanvasEmbedRevision, CanvasTableInkPage, CanvasTableInkScope};
 pub use table_scene::{CellInkFragment, TableInkCursor, TableInkScenePage};
 mod table_ink;
 mod table_transfer;

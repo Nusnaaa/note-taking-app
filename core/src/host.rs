@@ -245,6 +245,18 @@ pub enum Command {
         cursor: Option<crate::store::TableInkCursor>,
         max_points: u32,
     },
+    CanvasTableInkScenePage {
+        scope: crate::store::CanvasTableInkScope,
+        block: Id,
+        revision: u64,
+        cursor: Option<crate::store::TableInkCursor>,
+        max_points: u32,
+    },
+    MoveTable {
+        block: Id,
+        revision: u64,
+        target: WritingTarget,
+    },
     CopyTable {
         block: Id,
         revision: u64,
@@ -1515,6 +1527,7 @@ impl Host {
                 | Command::CanvasScene { .. }
                 | Command::TableInkScene { .. }
                 | Command::TableInkScenePage { .. }
+                | Command::CanvasTableInkScenePage { .. }
                 | Command::Embed { .. }
                 | Command::Views { .. }
                 | Command::View { .. }
@@ -1815,6 +1828,20 @@ fn execute(
             } => serde_json::to_value(
                 s.table_ink_scene_page(block, revision, cursor, max_points, a)?,
             )?,
+            Command::CanvasTableInkScenePage {
+                scope,
+                block,
+                revision,
+                cursor,
+                max_points,
+            } => serde_json::to_value(
+                s.canvas_table_ink_scene_page(scope, block, revision, cursor, max_points, a)?,
+            )?,
+            Command::MoveTable {
+                block,
+                revision,
+                target,
+            } => serde_json::to_value(s.move_table(block, revision, target, a)?)?,
             Command::CopyTable {
                 block,
                 revision,

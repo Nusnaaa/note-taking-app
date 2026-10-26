@@ -584,24 +584,31 @@ impl Store {
     }
 
     pub(crate) fn read_embed(db: &Connection, id: Id, access: &Access) -> Result<Embed> {
-        let json: String = db
+        let (host, source): (String, String) = db
             .query_row(
-                "SELECT payload FROM embeds WHERE id=?1",
+                "SELECT host,source FROM embeds WHERE id=?1",
                 [id.to_string()],
-                |r| r.get(0),
+                |r| Ok((r.get(0)?, r.get(1)?)),
             )
             .optional()?
             .ok_or(Error::Unavailable)?;
-
+        let host = Id::parse(&host)?;
+        let source = Id::parse(&source)?;
+        Self::authorise(db, host, access, false)?;
+        Self::authorise(db, source, access, false)?;
+        Self::require_content_access(db, source, access)?;
+        let json: String = db.query_row(
+            "SELECT payload FROM embeds WHERE id=?1",
+            [id.to_string()],
+            |r| r.get(0),
+        )?;
         let e: Embed = serde_json::from_str(&json)?;
+        if e.id != id || e.host != host || e.source != source {
+            return Err(Error::Integrity);
+        }
         e.validate_layers()?;
-
-        Self::authorise(db, e.host, access, false)?;
-
-        Self::authorise(db, e.source, access, false)?;
-
-        Self::require_content_access(db, e.source, access)?;
-
+        e.camera.validate()?;
+        e.frame.validate()?;
         Ok(e)
     }
 
