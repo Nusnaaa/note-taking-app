@@ -1,4 +1,6 @@
-JNI provider boundary: completed Android validation
-===================================================
+JNI provider boundary: complete matched validation
+==================================================
 
-Exact 007921b passed all ARM64/JNI/R8/Gradle packaging/lint checks, with 351 JVM tests (zero failures/errors/skips) and 34 groups in both unshrunk and optimized release-classfile JNI smoke runs. Commands/results, XML and lint retained. Matching native validation is still running (test stage passed); no full native completion is claimed yet. This predates the Kotlin controller and establishes neither real-model/SDK/device behaviour nor whole-backend acceptance. All eight gaps remain open.
+Exact 007921b native and Android reports have identical hashes for 316 source files. Native format, workspace/all-target Clippy, all 413 tests (zero failed/ignored), release build and traceability passed. Android ARM64/JNI/R8/Gradle packaging/lint, 351 JVM tests (zero failures/errors/skips), and 34 groups in both unshrunk/optimized JNI smoke passed. Commands/results, hashes and Android XML/lint retained. Native used default debug and RUST_TEST_THREADS=2; these are build/scheduling choices, not performance claims or an explanation for retained E01/E02 watchdog failures.
+
+This predates Kotlin controller adoption. Synthetic provider cases do not establish eligible model, model-use/publication rights, resource-backed Java array handoff/wipe, actual device/ART or full backend acceptance. All eight gaps remain open.
