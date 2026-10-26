@@ -255,6 +255,28 @@ impl Store {
         Ok((mime, bytes))
     }
 
+    /// Structural changes to typed tables. Ink placement needs an explicit cell
+    /// coordinate mapping before dimension changes can safely move its contents.
+    pub fn edit_table(
+        &mut self,
+        block: Id,
+        revision: u64,
+        edit: crate::objects::TableEdit,
+        access: &Access,
+    ) -> Result<Block> {
+        self.edit_block(block, revision, access, |block| {
+            let Content::Table(table) = &mut block.content else {
+                return Err(Error::Invalid("table block"));
+            };
+            if !block.source_ids.is_empty() || !block.regions.is_empty() {
+                return Err(Error::ReviewRequired);
+            }
+            table.restructure(edit)?;
+            block.manually_corrected = true;
+            Ok(())
+        })
+    }
+
     pub fn edit_cell(
         &mut self,
         block: Id,

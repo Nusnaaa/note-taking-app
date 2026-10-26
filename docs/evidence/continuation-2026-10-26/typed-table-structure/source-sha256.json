@@ -1,0 +1,6 @@
+{
+  "core/src/objects.rs": "9069cc1c31af3954459f5eab33fc4d3e523185561cc4419b90b9a1266a8e8650",
+  "core/src/store/objects.rs": "1e04f90225493f0b7f9d37429f8860b86d25ca1b95c129c40046af5c0a2a53f2",
+  "core/src/host.rs": "1c2cc49299e7c8d0bd3d45e3e441e8a6547935f9cb128e31b16e6e98636751c6",
+  "core/tests/table_cell_ink.rs": "8e443f553b852c622000af839de1bd50cd4feae66111ee1b9f13027a6785dbcd"
+}

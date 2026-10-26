@@ -1,0 +1,22 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+error[E0308]: mismatched types
+    --> core/tests/table_cell_ink.rs:1246:27
+     |
+1246 |     let host = Host::open(&path, 8).unwrap();
+     |                ---------- ^^^^^ expected `PathBuf`, found `&PathBuf`
+     |                |
+     |                arguments to this function are incorrect
+     |
+note: associated function defined here
+    --> /tmp/stem-engine-catalogue-work/core/src/host.rs:592:12
+     |
+ 592 |     pub fn open(path: PathBuf, capacity: usize) -> Result<Self> {
+     |            ^^^^
+help: consider removing the borrow
+     |
+1246 -     let host = Host::open(&path, 8).unwrap();
+1246 +     let host = Host::open(path, 8).unwrap();
+     |
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `stem-core` (test "table_cell_ink") due to 1 previous error

@@ -1062,3 +1062,205 @@ fn version_ten_tables_with_repeated_local_ids_import_and_capture_without_rewriti
     assert_eq!(one.content, blocks[0].content);
     assert_eq!(two.content, blocks[1].content);
 }
+
+#[test]
+fn typed_table_structure_is_atomic_revision_bound_and_undoable() {
+    use stem_core::objects::TableEdit;
+    let (mut store, access, note, block, first, second) = fixture();
+    let inserted = store
+        .edit_table(
+            block.id,
+            block.revision,
+            TableEdit::InsertRow { index: 0 },
+            &access,
+        )
+        .unwrap();
+    let Content::Table(table) = &inserted.content else {
+        panic!()
+    };
+    assert_eq!(table.rows.len(), 2);
+    assert_eq!(table.rows[1][0].id, first);
+    assert_eq!(table.rows[1][1].id, second);
+    assert!(table.rows[0]
+        .iter()
+        .all(|cell| cell.value == CellValue::Text(String::new())));
+    assert!(matches!(
+        store.edit_table(
+            block.id,
+            block.revision,
+            TableEdit::RemoveRow { index: 0 },
+            &access
+        ),
+        Err(Error::Conflict)
+    ));
+    store.undo(note, &access).unwrap();
+    assert_eq!(
+        store.block(block.id, &access).unwrap().content,
+        block.content
+    );
+    store.redo(note, &access).unwrap();
+    assert_eq!(
+        store.block(block.id, &access).unwrap().content,
+        inserted.content
+    );
+    let current = store.block(block.id, &access).unwrap();
+    assert!(store
+        .edit_table(
+            block.id,
+            current.revision,
+            TableEdit::RemoveColumn { index: 7 },
+            &access
+        )
+        .is_err());
+    assert_eq!(store.block(block.id, &access).unwrap(), current);
+}
+
+#[test]
+fn table_structure_preserves_headers_and_rejects_empty_or_oversized_candidates() {
+    use stem_core::objects::TableEdit;
+    let (_, _, _, block, first, _) = fixture();
+    let Content::Table(mut table) = block.content else {
+        panic!()
+    };
+    table.header_rows = 1;
+    table
+        .restructure(TableEdit::InsertRow { index: 0 })
+        .unwrap();
+    assert_eq!(table.header_rows, 2);
+    table
+        .restructure(TableEdit::InsertRow { index: 2 })
+        .unwrap();
+    assert_eq!(table.header_rows, 2);
+    table
+        .restructure(TableEdit::RemoveRow { index: 0 })
+        .unwrap();
+    assert_eq!(table.header_rows, 1);
+    assert_eq!(table.rows[0][0].id, first);
+    table
+        .restructure(TableEdit::InsertColumn { index: 1 })
+        .unwrap();
+    assert_eq!(table.rows[0][0].id, first);
+    table
+        .restructure(TableEdit::RemoveColumn { index: 1 })
+        .unwrap();
+    table
+        .restructure(TableEdit::RemoveColumn { index: 1 })
+        .unwrap();
+    let before = table.clone();
+    assert!(table
+        .restructure(TableEdit::RemoveColumn { index: 0 })
+        .is_err());
+    assert_eq!(table, before);
+    table.rows = (0..1000)
+        .map(|_| {
+            vec![Cell {
+                id: Id::new(),
+                value: CellValue::Text(String::new()),
+            }]
+        })
+        .collect();
+    let before = table.clone();
+    assert!(table
+        .restructure(TableEdit::InsertRow { index: 1000 })
+        .is_err());
+    assert_eq!(table, before);
+}
+
+#[test]
+fn structural_table_edits_do_not_guess_handwriting_placement() {
+    use stem_core::objects::TableEdit;
+    let (mut store, access, _, block, first, _) = fixture();
+    let captured = capture(&mut store, &access, &block, first, 0);
+    assert!(matches!(
+        store.edit_table(
+            block.id,
+            captured.revision,
+            TableEdit::InsertRow { index: 0 },
+            &access
+        ),
+        Err(Error::ReviewRequired)
+    ));
+    assert_eq!(store.block(block.id, &access).unwrap(), captured);
+}
+
+#[test]
+fn structural_table_failure_rolls_back_and_fresh_lock_denies_edits() {
+    use stem_core::{objects::TableEdit, security::Scope};
+    let (mut store, access, _, block, _, _) = fixture();
+    store.inject_failure(FailurePoint::BeforeCommit);
+    assert!(matches!(
+        store.edit_table(
+            block.id,
+            block.revision,
+            TableEdit::InsertColumn { index: 0 },
+            &access
+        ),
+        Err(Error::Interrupted)
+    ));
+    assert_eq!(store.block(block.id, &access).unwrap(), block);
+    let scoped = common::access([Scope::Block(block.id)]);
+    let locked = store
+        .set_block_lock(block.id, block.revision, true, &scoped)
+        .unwrap();
+    assert!(matches!(
+        store.edit_table(
+            block.id,
+            locked.revision,
+            TableEdit::RemoveColumn { index: 0 },
+            &access
+        ),
+        Err(Error::Denied)
+    ));
+    assert_eq!(store.block(block.id, &scoped).unwrap(), locked);
+}
+
+#[test]
+fn host_table_structure_command_runs_through_the_writer() {
+    use stem_core::{
+        host::{Command, Host, Request},
+        objects::TableEdit,
+    };
+    let root = tempfile::tempdir().unwrap();
+    let path = root.path().join("library.db");
+    let (block, note) = {
+        let mut store = Store::open(&path).unwrap();
+        let access = Access::public();
+        let note = store
+            .create(Kind::Note, None, "structure", &access)
+            .unwrap();
+        let block = store
+            .append_content(
+                note.id,
+                Content::Table(Table {
+                    rows: vec![vec![Cell {
+                        id: Id::new(),
+                        value: CellValue::Text("retained".into()),
+                    }]],
+                    header_rows: 0,
+                }),
+                &access,
+            )
+            .unwrap();
+        (block, note.id)
+    };
+    let host = Host::open(path, 8).unwrap();
+    let request = serde_json::to_string(&Request {
+        version: 1,
+        command: Command::EditTable {
+            block: block.id,
+            revision: block.revision,
+            edit: TableEdit::InsertColumn { index: 1 },
+        },
+    })
+    .unwrap();
+    let response = host.request(&request).unwrap();
+    assert!(response.ok, "{:?}", response.error);
+    let edited: Block = serde_json::from_value(response.data.unwrap()).unwrap();
+    assert_eq!(edited.entity, note);
+    let Content::Table(table) = edited.content else {
+        panic!()
+    };
+    assert_eq!(table.rows[0].len(), 2);
+    assert_eq!(table.rows[0][0].value, CellValue::Text("retained".into()));
+    assert!(!host.request(&request).unwrap().ok);
+}

@@ -96,6 +96,16 @@ pub struct Table {
     pub header_rows: u32,
 }
 
+/// Explicit structural edits; inserted cells start as empty authored text.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "type", deny_unknown_fields)]
+pub enum TableEdit {
+    InsertRow { index: usize },
+    RemoveRow { index: usize },
+    InsertColumn { index: usize },
+    RemoveColumn { index: usize },
+}
+
 impl Table {
     pub fn validate(&self) -> Result<()> {
         let columns = self.rows.first().map_or(0, Vec::len);
@@ -126,6 +136,48 @@ impl Table {
             }
         }
 
+        Ok(())
+    }
+
+    /// Validate a detached candidate before replacing the table, including bounds.
+    pub fn restructure(&mut self, edit: TableEdit) -> Result<()> {
+        self.validate()?;
+        let mut next = self.clone();
+        let rows = next.rows.len();
+        let columns = next.rows[0].len();
+        let empty = || Cell {
+            id: Id::new(),
+            value: CellValue::Text(String::new()),
+        };
+        match edit {
+            TableEdit::InsertRow { index } if index <= rows => {
+                next.rows
+                    .insert(index, (0..columns).map(|_| empty()).collect());
+                // Insertion inside the header extends it; insertion at its boundary is body.
+                if index < next.header_rows as usize {
+                    next.header_rows += 1;
+                }
+            }
+            TableEdit::RemoveRow { index } if index < rows && rows > 1 => {
+                next.rows.remove(index);
+                if index < next.header_rows as usize {
+                    next.header_rows -= 1;
+                }
+            }
+            TableEdit::InsertColumn { index } if index <= columns => {
+                for row in &mut next.rows {
+                    row.insert(index, empty());
+                }
+            }
+            TableEdit::RemoveColumn { index } if index < columns && columns > 1 => {
+                for row in &mut next.rows {
+                    row.remove(index);
+                }
+            }
+            _ => return Err(Error::Invalid("table edit bounds")),
+        }
+        next.validate()?;
+        *self = next;
         Ok(())
     }
 

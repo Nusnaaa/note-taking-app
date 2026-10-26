@@ -239,6 +239,11 @@ pub enum Command {
         bounds: Rect,
         z: i32,
     },
+    EditTable {
+        block: Id,
+        revision: u64,
+        edit: crate::objects::TableEdit,
+    },
     EditCell {
         block: Id,
         revision: u64,
@@ -1776,6 +1781,11 @@ fn execute(
                 bounds,
                 z,
             } => serde_json::to_value(s.set_layout(block, expected, bounds, z, a)?)?,
+            Command::EditTable {
+                block,
+                revision,
+                edit,
+            } => serde_json::to_value(s.edit_table(block, revision, edit, a)?)?,
             Command::EditCell {
                 block,
                 revision,
