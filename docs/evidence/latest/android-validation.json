@@ -1,5 +1,5 @@
 {
-  "source_commit": "d4b96153ec1c7b7cc246be1035ffc7aedcb98ace",
+  "source_commit": "0240da46de0e442523162fac9f2d50d66144f55b",
   "working_tree_before": "",
   "source_sha256": {
     ".gitignore": "47df1768ba52b16ac4fd14a3042d10ecc149fe248e1ddeb2b100a177d279f9f9",
@@ -137,13 +137,14 @@
     "core/src/export/image_crop.rs": "dbd1e86eb5988dd24c0602b4f36185e19b9f02f59602c33fafbc566b639ae625",
     "core/src/export/source_ink.rs": "e63c1a751651d95b110eda38abedd84c386d54bffce40a8c96c95f4b518064d6",
     "core/src/help.rs": "a829ef9b06668ff734dd5c1b72de00afd76c865f6fd6118dadc84a1d001b2988",
-    "core/src/host.rs": "2f0983bac8ca66571779b5a2d1cf1a2ece353778f223ea6c707d825fca84d23a",
+    "core/src/host.rs": "fa943b500835890dd397b0b27e40701ec60c0f8281c6cbdc8e8bf1d47646620d",
     "core/src/host/backup.rs": "d53b5ccf33babb86b26f986353e663794d7fa6753cf8155dbdfde69dabb73dce",
     "core/src/host/deletion.rs": "57db1f4ef7f3843a839f8a7906fde7b192b6bc6d682e5ea17f85728567f3c2e7",
     "core/src/host/mailbox.rs": "e94e7c33ed3e1c56172ba52f23169a54fa80f55f10f5365caa63b3418626186f",
     "core/src/host/ownership.rs": "4754a1671bfb7410bd741696d5004732fa354f71a2bbb5a5badef40e4098af7f",
     "core/src/host/pdf.rs": "a2234618fcfa05e273402a57eecacb515e517eba27d17211e0dfe5d8b9fdc8da",
-    "core/src/host/recognition.rs": "e04711a2fdeb5f5c3e02e84a9b8c9542dd4ce6fd1aebd6a25f1f7ffd1efd5400",
+    "core/src/host/recognition.rs": "e88709e221b72aafe84bba860d0f1b735ae43fb2718fe114c82da0eeacdf264e",
+    "core/src/host/recognition/activation.rs": "426a95f49e98415f75cff4afe2b4365ca3491c67a8af9fe33d39cc5213d57c17",
     "core/src/host/restore.rs": "022abbb1934d6443331c6978875b262dff8be43a122cbfdf16271781bcc89530",
     "core/src/ink.rs": "b7188c46a2a72387132b853f8bd33a37b4329b9963547076657278b3aedb2070",
     "core/src/ink/erasure.rs": "61c70a4a04f03231de3e3c0915448afd8cde489feb7377bc68ba6f8a7ae4eb0b",
@@ -151,7 +152,7 @@
     "core/src/lib.rs": "dd8a3fb56d844e4c1967586e686499b0779319bfa22ea2e888c3bb1eda4b4396",
     "core/src/objects.rs": "071a855f967d86b13f2549667538bf8e90d49003f503d95feed766a52d60440b",
     "core/src/portable.rs": "100cb8272712e8c78f7c769dd1abbf317ed96d734c66803e69fcd32237cf368e",
-    "core/src/processing.rs": "980f8677fef425f4febcd7d8364ba93376d183bfc565261534d65432e3c55334",
+    "core/src/processing.rs": "94279e4ec297718ab51fac4d98fbdb6c5ea9338daf306867a6136bb761ed98bb",
     "core/src/processing/activation.rs": "d10432657a42cf0db035c4535e2bbec07c803a7116c52dc40eeb5b055e945935",
     "core/src/provisioning.rs": "d372e0dc3e3bdd2ecf620843e61a723d77cfdf80d0ea927bba7d442c91eb2e25",
     "core/src/render.rs": "49efca3a4d906df3c25036e1ab664e089f584b4aca8ff54f0de73a4f2e167cf0",
@@ -193,6 +194,7 @@
     "core/tests/exercises.rs": "60c72a93dc16e8d42e1fb9327d4de3e7082babdeca2559442007e0b21d7e3e03",
     "core/tests/export.rs": "d1acfbe1f9993519afc273b72ebdb96694222836864773b6746a873c349fa4ae",
     "core/tests/host.rs": "8f8b09914098b325b1e39d1cd2f29721007a30e22821b93a4a22f69dc7698b9c",
+    "core/tests/host_activation.rs": "8d233d5c7e81eebb53783fd1133d767debd3e027ec59ecd81befdd6ec5d0b35b",
     "core/tests/host_backup.rs": "7bce2e54b91a7c87674b858e19dbf04e5b2866ccaafede774af83cb4cf92f59d",
     "core/tests/host_deletion.rs": "20eaffe1f0fd2a88ebb2f2547a037cd318601aa86a49639437d722ab1606c8f8",
     "core/tests/host_pdf.rs": "04a2868e327f8210b68a581fbe2032bd09d1fbe5cd0b17a08a687e501df6f038",
@@ -234,6 +236,7 @@
     "docs/decisions/ADR-014-compound-source-space-erasure.md": "868aaff762bdc84eb85454fdb41097d6f157b99e3c93c4d02025d670063a3cb5",
     "docs/decisions/ADR-015-cropped-image-derivatives.md": "a45817d46934f18b7dbc64d6dac5a9d529269aac0515d279bdf1270613fd8b4c",
     "docs/decisions/ADR-016-owned-engine-activation.md": "d3d200d3d5f11063dcbde9a982d71fe9546888f8183415100b64a175245b7d97",
+    "docs/decisions/ADR-017-host-owned-activation.md": "e3ae90b7f47cd5650eb0848110935be86429c2d2928e00e81699c69daf4854f6",
     "docs/decisions/owner-authorisation-2026-10-22.md": "4fedeef87589b9028ce27cc4ee64878fae9fdd42cbbe9a8d8c093ca3091c0788",
     "docs/formats/BACKUP_POLICY_STORE.md": "86e0fd1acad565e730be2f8c8a8870020ab822f1e5603858c31f4010fe53b975",
     "docs/formats/BACKUP_PUBLICATION_HISTORY.md": "421c2dd947cc2b2128304fdeebfa801ee873c7b76f27582a5bbf05881536bd0a",
@@ -245,6 +248,7 @@
     "docs/formats/cropped-image-derivative-v1.md": "3889a0c8959fdfa93c485896ab196176a2a8d7df9d2084a282565bf76d6ce2da",
     "docs/formats/eraser-gesture-v1.md": "43101d6bf89332844223e9e6bc4fd09560a1d4e0b77a0cb51a4a562ccf437038",
     "docs/formats/full-library-backup-v1.md": "bc30ab921c7cb3afaed7df442ea3ffbe80644966452066d066d3be6fa30d9f74",
+    "docs/formats/host-activation-v1.md": "5ef5a59e838c549bc4032329f3112af7f30c389f6594d80ec47c8bde60886832",
     "docs/formats/native-subset-v1.md": "a2fa7e32fce52d5cdfe22c6f0722b0ac5c979e9c725dbc1d7be0efd70af94e92",
     "docs/formats/native-subset-v10.md": "9d6a7fb25dfd760d986fe2547500dbd775f312eea40e1f7272eb489211e1bc74",
     "docs/formats/native-subset-v2.md": "465abc5203e3d0a34c890003ff5fe1c188675142919f6b153a586b60d59bfb9d",
@@ -284,20 +288,20 @@
     "docs/verification/DEFERRED_MANUAL.md": "c694b9fe185c216204dfd72aa6c55d1f8d21e06c431bb50b126bce1a6b514e1c",
     "docs/verification/HOST_INTEGRATION.md": "d9ce8070ccc73e4f55ce3d5c736abe330ead837819ef8d068253b83db52ac70b",
     "docs/verification/TEST_PLAN.md": "9072e4e45bb15ff1a859d7cab76d45dd9289fbd19ec6556a636afebec2460c82",
-    "docs/verification/backend-gaps.json": "4274ba9729a7db2f2ff8ed2d754e1fbc7761ba8225276f71d020c01526c9bca1",
-    "docs/verification/candidates-current.csv": "e87dc50c5b232bda663d8808cda3944c3e79b42581633433513889fd0219d961",
-    "docs/verification/inherited-current.csv": "b0f646203cda216fde8ed46e17c4f21e9453b28f566c5778b6b79a6cd092fc66",
-    "docs/verification/requirements-current.csv": "9924e6e35447db955f2a9437b87c14cde026d9dc18e7d5f49b4323c8265f6738",
+    "docs/verification/backend-gaps.json": "0c82e6fd26b14aa6e33757012af838f580dfc6a1cfc1f5e8e1e2ff6e062a6237",
+    "docs/verification/candidates-current.csv": "fa7541dfc2c62f9f3525cc29a7666ee3eb2c3822ed75f5476f99011c7f65c795",
+    "docs/verification/inherited-current.csv": "9a38fa4f1de098bc6fc3bd7512beec00a3751e03c13d8252f2a0dade8b129713",
+    "docs/verification/requirements-current.csv": "dc885179b7c0fe856b92491bb49955cbbdd17fe7071e3d50d20d958e3ba357e3",
     "docs/verification/traceability-manifest.json": "15d09e00b540a512b8e0b6afd98b06824e93d743d80317963ebe18d91d3adb22",
     "rust-toolchain.toml": "c33d1f0b1b8fda448bea32d7dc867aa64947c87169fd9de7122ffccad1dd80f9",
     "tools/backend_gate.py": "6c924452f65676d8534651723073555ae5657430c9580e73e87d712e9ad7671b",
     "tools/dependency_inventory.py": "51dc9dcd28cab69c8af36b976d65aa67557d6afe8827be162a431d1854232315",
-    "tools/traceability.py": "c39ef851dd595e22bd8dd0c958002b46dd510e246e36dbce7eb9bfe44ff86fd2",
+    "tools/traceability.py": "7c66bc19f076ce25dd9369baeba2298a1c67ab8f66f3fc8a14a0d3931695ae6d",
     "tools/validate.py": "2a25d3f4c6d487754f7b73bc0f415809cdf9e8416fe9f651f0302522a373711a",
     "tools/validate_android.py": "db39e2663790d7d807e1a6a50a60480bd69ae09a19930c76819fef29daea0a21",
     "tools/validate_jni.py": "f94111ea41b4a1d778cf9c9967a2a74251f93515e372b670c50a16c50aa7d45e"
   },
-  "started_utc": "2026-10-26T01:07:11.990596+00:00",
+  "started_utc": "2026-10-26T01:47:29.113696+00:00",
   "checks": [
     {
       "name": "android-native",
@@ -343,7 +347,7 @@
       "command": [
         "/usr/lib/jvm/java-21-openjdk-amd64/bin/javac",
         "-d",
-        "/home/linus/Projects/software/note-taking-app/repo/target/jni-cyq_c327",
+        "/home/linus/Projects/software/note-taking-app/repo/target/jni-8hyjp8jg",
         "android/backend/src/main/java/org/stemnotebook/backend/NativeBridge.java",
         "bridge/tests/java/BoundarySmoke.java",
         "bridge/tests/java/BackupBoundarySmoke.java",
@@ -360,7 +364,7 @@
         "-Xcheck:jni",
         "-Djava.library.path=target/debug",
         "-cp",
-        "/home/linus/Projects/software/note-taking-app/repo/target/jni-cyq_c327",
+        "/home/linus/Projects/software/note-taking-app/repo/target/jni-8hyjp8jg",
         "BoundarySmoke"
       ],
       "exit_code": 0,
@@ -396,8 +400,8 @@
         "--pg-map-output",
         "/home/linus/Projects/software/note-taking-app/repo/docs/evidence/latest/jni-shrinker.map",
         "--output",
-        "/home/linus/Projects/software/note-taking-app/repo/target/jni-cyq_c327/shrunk.jar",
-        "/home/linus/Projects/software/note-taking-app/repo/target/jni-cyq_c327/input.jar"
+        "/home/linus/Projects/software/note-taking-app/repo/target/jni-8hyjp8jg/shrunk.jar",
+        "/home/linus/Projects/software/note-taking-app/repo/target/jni-8hyjp8jg/input.jar"
       ],
       "exit_code": 0,
       "result": "PASS"
@@ -409,7 +413,7 @@
         "-Xcheck:jni",
         "-Djava.library.path=target/debug",
         "-cp",
-        "/home/linus/Projects/software/note-taking-app/repo/target/jni-cyq_c327/shrunk.jar",
+        "/home/linus/Projects/software/note-taking-app/repo/target/jni-8hyjp8jg/shrunk.jar",
         "BoundarySmoke"
       ],
       "exit_code": 0,
@@ -446,22 +450,22 @@
     "CC_aarch64_linux_android": "/tmp/stem-android-sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android30-clang",
     "AR_aarch64_linux_android": "/tmp/stem-android-sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar"
   },
-  "full_working_tree_before": " M docs/evidence/latest/android-elf.log\n M docs/evidence/latest/android-gradle.log\n M docs/evidence/latest/android-native.log\n M docs/evidence/latest/android-validation.json\n M docs/evidence/latest/jni-compile.log\n M docs/evidence/latest/jni-library.log\n M docs/evidence/latest/jni-shrink.log\n M docs/evidence/latest/jni-shrunk-smoke.log\n M docs/evidence/latest/jni-smoke.log\n M docs/evidence/latest/lint.log\n M docs/evidence/latest/release-build.log\n M docs/evidence/latest/tests.log\n M docs/evidence/latest/validation.json\n?? docs/evidence/continuation-2026-10-24/host-restore/\n?? docs/evidence/continuation-2026-10-26/compound-erasure/final-f9e7ad0/\n?? docs/evidence/continuation-2026-10-26/eraser-gesture/final-9e3d8cf/",
+  "full_working_tree_before": "?? docs/evidence/continuation-2026-10-24/host-restore/\n?? docs/evidence/continuation-2026-10-26/host-activation/final-0240da4/",
   "jni_smoke_groups": 28,
   "jni_shrunk_smoke_groups": 28,
   "jni_shrinker": {
     "version": "Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/stem-android-user\nR8 8.6.2-dev (build abaab469b5ebd4dd2bb91ba0ed6f45277faae4ca from go/r8bot (luci-r8-custom-ci-archive-0-77gl))",
     "tool_sha256": "305622ad00535684534eb8f742cbf5e628a9abc09d8ea4d39d1babb95bf0cee5",
-    "input_sha256": "963b0f3520309476a58f3b067faaa9ae9457e64edbd69d42c7ae0b4a21933b66",
+    "input_sha256": "7afd5832e12dd833ba7fa58c194a1f0bd7394f1f8cb8224e8a7d1716e45188e3",
     "output_sha256": "061127cde345384216dca67bc27112f46532982632eed5254b81f1623e4be34e",
     "mode": "R8 release classfile; tree shaking, optimization and minification enabled; desktop JVM execution, not device DEX"
   },
   "jni_shrink_policy": "PASS",
   "consumer_rules_policy": "PASS",
   "consumer_rules_sha256": "8b3c0e5f5358ac4e5461fa069cc12d4c3153dbabf374e9173d562749f7ddf576",
-  "release_aar_sha256": "21b3db0022efba42972ea1d4594a0eb8fd3ed64640e970804990c70ecac2773e",
-  "aar_sha256": "2e9c13716e246bd2466888d5ad9802dceeb301403314077db443ff2315154900",
-  "packaged_arm64_library_bytes": 5763648,
+  "release_aar_sha256": "7fe5e004d17884729202a6793d29f4b506dbbf2f581779eda644cc6bca0859fe",
+  "aar_sha256": "51cd6af7e928556db7f2a7145704280779b572a807a548a5836dc12b25337738",
+  "packaged_arm64_library_bytes": 5778096,
   "android_tests": {
     "tests": 351,
     "failures": 0,
@@ -469,7 +473,7 @@
     "skipped": 0
   },
   "merged_manifest_policy": "PASS",
-  "native_sha256": "423cd080828a11b72e1f2b63ec73bfba2f43d5e67de496c767c8774872545deb",
+  "native_sha256": "b3820a1cc0ce15636287fbac9c4ea8068748cd48c8c6635a696c3e37960ee290",
   "manifest_scope": "Debug/release AAR merge contracts only: INTERNET removal marker, no backup/transfer, no cleartext, isolated non-exported PDF service, BIND_JOB_SERVICE-protected backup service and boot permission. Final APK/device enforcement NOT RUN.",
-  "finished_utc": "2026-10-26T01:23:52.360538+00:00"
+  "finished_utc": "2026-10-26T02:04:10.620314+00:00"
 }

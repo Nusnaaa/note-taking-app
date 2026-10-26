@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.NotebookBackupsTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-26T01:58:23" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="53.903">
+  <properties/>
+  <testcase name="postNativeWorkerRetirementStillOwnsTheAndroidLibrary" classname="org.stemnotebook.backend.NotebookBackupsTest" time="4.618"/>
+  <testcase name="authoringAfterReviewInvalidatesItAndReleasesTheOldNativePlan" classname="org.stemnotebook.backend.NotebookBackupsTest" time="0.067"/>
+  <testcase name="unknownPrivateDraftsBlockBackupAndRemainUntouched" classname="org.stemnotebook.backend.NotebookBackupsTest" time="0.075"/>
+  <testcase name="originalInkSurvivesEncryptedStagingAndReviewedDurablePublication" classname="org.stemnotebook.backend.NotebookBackupsTest" time="4.496"/>
+  <testcase name="aKnownUncommittedCaptureMustBeRecoveredBeforeBackup" classname="org.stemnotebook.backend.NotebookBackupsTest" time="4.385"/>
+  <testcase name="publicationCommitDrainsToAnOutcomeDespiteLaterCancellationAndClose" classname="org.stemnotebook.backend.NotebookBackupsTest" time="4.577"/>
+  <testcase name="blockedSinkRetirementAllowsAuthoringAndThenRejectsTheStaleBackup" classname="org.stemnotebook.backend.NotebookBackupsTest" time="4.393"/>
+  <testcase name="existingDestinationAndCorruptedCiphertextCannotBePublished" classname="org.stemnotebook.backend.NotebookBackupsTest" time="4.569"/>
+  <testcase name="aValidOlderArtifactDoesNotClaimToCoverNewAuthoring" classname="org.stemnotebook.backend.NotebookBackupsTest" time="4.545"/>
+  <testcase name="quotaAndSinkRetirementFailureExposeNoArtifactAndLeaveAuthoringUsable" classname="org.stemnotebook.backend.NotebookBackupsTest" time="13.008"/>
+  <testcase name="cancelledPreAdmissionFileWorkRetainsOwnershipAndBoundedWorkerAdmission" classname="org.stemnotebook.backend.NotebookBackupsTest" time="0.225"/>
+  <testcase name="relockRetiresPrivateArtifactAndItsRecoveryKeyCapability" classname="org.stemnotebook.backend.NotebookBackupsTest" time="4.584"/>
+  <testcase name="publicationAfterLinkFailureIsUncertainAndRetainsAnExplicitRecoveryPath" classname="org.stemnotebook.backend.NotebookBackupsTest" time="4.361"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
