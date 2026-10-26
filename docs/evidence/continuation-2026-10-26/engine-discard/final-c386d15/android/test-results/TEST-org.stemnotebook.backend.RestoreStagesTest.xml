@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.RestoreStagesTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-10-26T13:54:15" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="0.561">
+  <properties/>
+  <testcase name="payloadChangedAfterTransferIsPreservedWithAnUncertainReceipt" classname="org.stemnotebook.backend.RestoreStagesTest" time="0.049"/>
+  <testcase name="symlinksAndHardlinksStayUnclassifiedAndNeverFollowTheirTargets" classname="org.stemnotebook.backend.RestoreStagesTest" time="0.039"/>
+  <testcase name="changedMarkerCannotReuseAnOldReview" classname="org.stemnotebook.backend.RestoreStagesTest" time="0.033"/>
+  <testcase name="knownPrivateStageRequiresReviewAndDiscardsOnlyItsOwnFiles" classname="org.stemnotebook.backend.RestoreStagesTest" time="0.035"/>
+  <testcase name="markerAndFilenameAloneCannotAuthorizeDeletionOfUnclassifiedData" classname="org.stemnotebook.backend.RestoreStagesTest" time="0.036"/>
+  <testcase name="changedPayloadWithRestoredSizeAndModificationTimeCannotUseTheOldReview" classname="org.stemnotebook.backend.RestoreStagesTest" time="0.032"/>
+  <testcase name="boundedPaginationAndIncompleteInspectionsNeverGrantDeletion" classname="org.stemnotebook.backend.RestoreStagesTest" time="0.041"/>
+  <testcase name="interruptedEmptyReservationsCanBeReviewedWithoutDeletingUnknownContent" classname="org.stemnotebook.backend.RestoreStagesTest" time="0.074"/>
+  <testcase name="onlyAMatchingPrivateLibraryMarkerCanClassifyScratch" classname="org.stemnotebook.backend.RestoreStagesTest" time="0.037"/>
+  <testcase name="replacementOfTheOwnedRootCannotRedirectInspectionIntoHealthyFiles" classname="org.stemnotebook.backend.RestoreStagesTest" time="0.028"/>
+  <testcase name="interruptedMetadataCleanupIsRecognisedWithoutInventingRemainingPayload" classname="org.stemnotebook.backend.RestoreStagesTest" time="0.044"/>
+  <testcase name="unknownMarkerExtensionsOrVersionsCannotGrantPermanentDiscard" classname="org.stemnotebook.backend.RestoreStagesTest" time="0.029"/>
+  <testcase name="preCommitFaultPreservesTheSourceAndRemovesOnlyTheEmptyReservation" classname="org.stemnotebook.backend.RestoreStagesTest" time="0.035"/>
+  <testcase name="renamedQuarantineCanBeReviewedAndDiscardedAfterRestart" classname="org.stemnotebook.backend.RestoreStagesTest" time="0.048"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
