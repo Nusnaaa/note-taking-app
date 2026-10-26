@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.BackupCatalogueTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-26T14:55:57" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="6.066">
+  <properties/>
+  <testcase name="unknownNamespacesAndMissingIndexesAreNotModifiedOrRepaired" classname="org.stemnotebook.backend.BackupCatalogueTest" time="5.099"/>
+  <testcase name="acknowledgedSnapshotsSurviveReopenWithoutConflatingPendingOrNewEdits" classname="org.stemnotebook.backend.BackupCatalogueTest" time="0.166"/>
+  <testcase name="failedMetadataCommitCannotAdvanceTheRecordedSnapshot" classname="org.stemnotebook.backend.BackupCatalogueTest" time="0.074"/>
+  <testcase name="invalidSnapshotDestinationAndAcknowledgementCannotCreateReceipts" classname="org.stemnotebook.backend.BackupCatalogueTest" time="0.048"/>
+  <testcase name="exhaustedSequenceCannotWrapOrAdvanceTheRecordedSnapshot" classname="org.stemnotebook.backend.BackupCatalogueTest" time="0.076"/>
+  <testcase name="existingForeignOrFutureDatabasesArePreservedWithoutInitialisation" classname="org.stemnotebook.backend.BackupCatalogueTest" time="0.051"/>
+  <testcase name="linksAndDirectoryReplacementAreRejectedBeforeOpeningSqlite" classname="org.stemnotebook.backend.BackupCatalogueTest" time="0.079"/>
+  <testcase name="lostPostCommitAcknowledgementKeepsTheCommittedReceiptForRestartDiscovery" classname="org.stemnotebook.backend.BackupCatalogueTest" time="0.064"/>
+  <testcase name="trustedAppAncestorAliasesWorkButCannotRedirectAnAnchoredCatalogue" classname="org.stemnotebook.backend.BackupCatalogueTest" time="0.054"/>
+  <testcase name="pageCursorsStayBoundedAndDoNotRepeatNewlyAddedReceipts" classname="org.stemnotebook.backend.BackupCatalogueTest" time="0.164"/>
+  <testcase name="inclusionAndOmissionFactsRemainAvailableAfterRestart" classname="org.stemnotebook.backend.BackupCatalogueTest" time="0.064"/>
+  <testcase name="corruptedReceiptFieldsFailInsteadOfBeingSilentlyRepaired" classname="org.stemnotebook.backend.BackupCatalogueTest" time="0.059"/>
+  <testcase name="providerReadbackIsRecordedAsSuchWithoutClaimingRemoteDurabilityOrContactingIt" classname="org.stemnotebook.backend.BackupCatalogueTest" time="0.065"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
