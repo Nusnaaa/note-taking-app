@@ -239,7 +239,7 @@ impl Store {
             let mut schema = [0; 4];
             input.read_exact(&mut schema)?;
             let source_schema = u32::from_be_bytes(schema);
-            if &magic != BODY || !matches!(source_schema, 15..=22) {
+            if &magic != BODY || !matches!(source_schema, 15..=23) {
                 return Err(Error::Unsupported);
             }
             let mut omissions = [0; 4];
@@ -259,6 +259,7 @@ impl Store {
                 (source_schema >= 17 || *table != "engine_resource_actions")
                     && (source_schema >= 18 || *table != "engine_reclamations")
                     && (source_schema >= 22 || *table != "edit_links")
+                    && (source_schema >= 23 || *table != "native_imports")
             }) {
                 control.check()?;
                 let mut marker = [0; 2];
@@ -307,8 +308,8 @@ impl Store {
                 }
             }
             input.read_exact(&mut magic)?;
-            if source_schema < 22
-                && u16::from_be_bytes([magic[0], magic[1]]) as usize == TABLES.len() - 1
+            if (source_schema < 23 && u16::from_be_bytes([magic[0], magic[1]]) as usize == 34)
+                || (source_schema < 22 && u16::from_be_bytes([magic[0], magic[1]]) as usize == 33)
             {
                 return Err(Error::Unsupported);
             }

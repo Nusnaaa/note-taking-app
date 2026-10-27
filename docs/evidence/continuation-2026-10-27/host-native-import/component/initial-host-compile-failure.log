@@ -1,0 +1,38 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+error[E0603]: function `digest` is private
+   --> core/tests/host_native_import.rs:287:49
+    |
+287 |         &serde_json::json!({"sha256":stem_core::digest(payload.as_bytes()),"payload":payload}),
+    |                                                 ^^^^^^ private function
+    |
+note: the function `digest` is defined here
+   --> /tmp/stem-engine-catalogue-work/core/src/lib.rs:90:1
+    |
+ 90 | pub(crate) fn digest(bytes: &[u8]) -> String {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `content::Content`
+ --> core/tests/host_native_import.rs:5:5
+  |
+5 |     content::Content,
+  |     ^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+error[E0599]: no variant or associated item named `RecoveryKey` found for enum `Credential` in the current scope
+   --> core/tests/host_native_import.rs:169:30
+    |
+169 |             Some(Credential::RecoveryKey(&encrypted.recovery_key)),
+    |                              ^^^^^^^^^^^ variant or associated item not found in `Credential<'_>`
+    |
+help: there is a variant with a similar name
+    |
+169 -             Some(Credential::RecoveryKey(&encrypted.recovery_key)),
+169 +             Some(Credential::Recovery(&encrypted.recovery_key)),
+    |
+
+Some errors have detailed explanations: E0599, E0603.
+For more information about an error, try `rustc --explain E0599`.
+warning: `stem-core` (test "host_native_import") generated 1 warning
+error: could not compile `stem-core` (test "host_native_import") due to 2 previous errors; 1 warning emitted
+warning: build failed, waiting for other jobs to finish...

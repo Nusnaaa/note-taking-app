@@ -273,14 +273,14 @@ fn classic_backup_preserves_cells_ink_and_rejects_legacy_tags_even_after_undo() 
         )
         .unwrap();
     let restored = Store::restore_backup_password(&backup.bytes, password).unwrap();
-    assert_eq!(restored.schema_version().unwrap(), 22);
+    assert_eq!(restored.schema_version().unwrap(), 23);
     assert_eq!(
         restored.source_ink(block.id, &access).unwrap(),
         store.source_ink(block.id, &access).unwrap()
     );
     let plain = crypto::decrypt(&backup.bytes, crypto::Credential::Password(password)).unwrap();
     let mut json: serde_json::Value = serde_json::from_slice(&plain).unwrap();
-    assert_eq!(json["schema"], 22);
+    assert_eq!(json["schema"], 23);
     json["schema"] = 19.into();
     let disguised = crypto::encrypt(&serde_json::to_vec(&json).unwrap(), password).unwrap();
     assert!(matches!(
@@ -338,6 +338,13 @@ fn streaming_backup_preserves_cell_targets_and_blocks_legacy_schema_smuggling() 
     let mut plain = Vec::new();
     reader.read_to_end(&mut plain).unwrap();
     reader.finish().unwrap();
+    // Remove only asserted-empty newer extensions so rejection exercises the
+    // cell/layout feature gate rather than an unrelated unknown footer table.
+    for table in [34u8, 33u8] {
+        let at = plain.len() - 19;
+        assert_eq!(&plain[at..at + 3], &[0, table, 0]);
+        plain.drain(at..at + 3);
+    }
     plain[8..12].copy_from_slice(&19u32.to_be_bytes());
     let mut writer = crypto::stream::EncryptStream::new(Vec::new(), password).unwrap();
     writer.write_all(&plain).unwrap();
@@ -930,7 +937,7 @@ fn schema19_legacy_shape_preserves_pending_review_and_raw_receipt_during_migrati
     db.pragma_update(None, "user_version", 19).unwrap();
     drop(db);
     let mut migrated = Store::open(&path).unwrap();
-    assert_eq!(migrated.schema_version().unwrap(), 22);
+    assert_eq!(migrated.schema_version().unwrap(), 23);
     let db = rusqlite::Connection::open(&path).unwrap();
     assert_eq!(
         db.query_row(
@@ -1745,14 +1752,14 @@ fn layout_classic_backup_preserves_origins_and_refuses_schema20_history() {
         )
         .unwrap();
     let restored = Store::restore_backup_password(&backup.bytes, password).unwrap();
-    assert_eq!(restored.schema_version().unwrap(), 22);
+    assert_eq!(restored.schema_version().unwrap(), 23);
     assert_eq!(
         restored.source_ink(block.id, &access).unwrap(),
         store.source_ink(block.id, &access).unwrap()
     );
     let plain = crypto::decrypt(&backup.bytes, crypto::Credential::Password(password)).unwrap();
     let mut json: serde_json::Value = serde_json::from_slice(&plain).unwrap();
-    assert_eq!(json["schema"], 22);
+    assert_eq!(json["schema"], 23);
     json["schema"] = 20.into();
     let disguised = crypto::encrypt(&serde_json::to_vec(&json).unwrap(), password).unwrap();
     assert!(matches!(
@@ -1813,6 +1820,13 @@ fn layout_stream_backup_preserves_origins_and_refuses_schema20() {
     let mut plain = Vec::new();
     reader.read_to_end(&mut plain).unwrap();
     reader.finish().unwrap();
+    // Remove only asserted-empty newer extensions so rejection exercises the
+    // cell/layout feature gate rather than an unrelated unknown footer table.
+    for table in [34u8, 33u8] {
+        let at = plain.len() - 19;
+        assert_eq!(&plain[at..at + 3], &[0, table, 0]);
+        plain.drain(at..at + 3);
+    }
     plain[8..12].copy_from_slice(&20u32.to_be_bytes());
     let mut writer = crypto::stream::EncryptStream::new(Vec::new(), password).unwrap();
     writer.write_all(&plain).unwrap();
@@ -2616,7 +2630,7 @@ fn linked_history_classic_backup_replays_both_documents_and_rejects_downgrade_or
     );
     let plain = crypto::decrypt(&backup.bytes, crypto::Credential::Password(password)).unwrap();
     let original: serde_json::Value = serde_json::from_slice(&plain).unwrap();
-    assert_eq!(original["schema"], 22);
+    assert_eq!(original["schema"], 23);
     let mut old = original.clone();
     old["schema"] = 21.into();
     let encrypted = crypto::encrypt(&serde_json::to_vec(&old).unwrap(), password).unwrap();
@@ -2877,7 +2891,7 @@ fn schema21_physical_fixture_migrates_without_rewriting_ink_receipts_or_existing
     db.pragma_update(None, "user_version", 21).unwrap();
     drop(db);
     let mut store = Store::open(&path).unwrap();
-    assert_eq!(store.schema_version().unwrap(), 22);
+    assert_eq!(store.schema_version().unwrap(), 23);
     let db = rusqlite::Connection::open(&path).unwrap();
     assert_eq!(
         db.query_row(
@@ -2948,6 +2962,9 @@ fn schema21_stream_shape_without_new_table_remains_readable() {
     reader.read_to_end(&mut plain).unwrap();
     reader.finish().unwrap();
     assert_eq!(&plain[plain.len() - 16..plain.len() - 8], b"STEMEND2");
+    let at = plain.len() - 19;
+    assert_eq!(&plain[at..at + 3], &[0, 34, 0]); // Empty schema23 import receipts.
+    plain.drain(at..at + 3);
     let at = plain.len() - 19;
     assert_eq!(&plain[at..at + 3], &[0, 33, 0]);
     plain.drain(at..at + 3);

@@ -1,0 +1,27 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.33s
+     Running tests/host_native_import.rs (/tmp/stem-pen-response-target/debug/deps/host_native_import-e5cba79fd27e3955)
+
+running 6 tests
+test malformed_import_and_capture_priority_release_shared_transfer_admission ... ok
+test native_import_confirmation_cancellation_stale_generation_and_foreign_host_do_not_publish ... ok
+test native_import_fresh_app_verification_is_off_writer_and_reentrant_close_cancels ... ok
+test native_import_remaps_ids_and_receipt_reconciles_discarded_response_after_reopen ... FAILED
+test untrusted_source_omission_metadata_requires_explicit_acknowledgment ... ok
+test encrypted_import_requires_correct_credential_and_preserves_locked_flags_without_grants ... ok
+
+failures:
+
+---- native_import_remaps_ids_and_receipt_reconciles_discarded_response_after_reopen stdout ----
+
+thread 'native_import_remaps_ids_and_receipt_reconciles_discarded_response_after_reopen' panicked at core/tests/host_native_import.rs:95:75:
+called `Result::unwrap()` on an `Err` value: Unsupported
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    native_import_remaps_ids_and_receipt_reconciles_discarded_response_after_reopen
+
+test result: FAILED. 5 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.85s
+
+error: test failed, to rerun pass `-p stem-core --test host_native_import`

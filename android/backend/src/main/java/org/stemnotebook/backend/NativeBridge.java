@@ -325,6 +325,43 @@ public final class NativeBridge {
         }
         @Override public void close(){synchronized(this){if(closed)return;closed=true;}releaseDerivativeExport(host,token);}
     }
+    /** Caller-worker native copy import. Retain operation before publication. */
+    public static native NativeImport beginNativeImport(long host);
+    private static native String prepareNativeImport(long host,long token,byte[] bytes,char[] credential,boolean recovery,long budgetMillis);
+    private static native String publishNativeImport(long host,long token,Verification proof,boolean confirmed,boolean acknowledgeOmissions);
+    private static native void releaseNativeImport(long host,long token);
+    /** JSON receipt or literal null. Retire pending work before interpreting absence. */
+    public static native String nativeImportReceipt(long host,String operation);
+    public static final class NativeImport implements AutoCloseable {
+        private final long host,token;
+        public final String operation;
+        private boolean started,prepared,finished,closed;
+        private NativeImport(long host,long token,String operation){this.host=host;this.token=token;this.operation=operation;}
+        /** Null credential means plaintext; otherwise password or explicit recovery key. */
+        public String prepare(byte[] bytes,char[] credential,boolean recovery,long budgetMillis){
+            if(bytes==null||bytes.length>64*1024*1024+208||budgetMillis<1||budgetMillis>3600000||
+                (credential==null&&recovery)||(credential!=null&&(credential.length<1||credential.length>4096)))
+                throw new IllegalStateException("Native import operation failed");
+            synchronized(this){if(started||closed)throw new IllegalStateException("Native import operation failed");started=true;}
+            byte[] snapshot=null;char[] secret=null;
+            try {
+                snapshot=bytes.clone();secret=credential==null?null:credential.clone();
+                String summary=prepareNativeImport(host,token,snapshot,secret,recovery,budgetMillis);
+                synchronized(this){if(closed)throw new IllegalStateException("Native import operation failed");prepared=true;}
+                return summary;
+            } catch(Throwable error){close();throw new IllegalStateException("Native import operation failed");}
+            finally{if(snapshot!=null)java.util.Arrays.fill(snapshot,(byte)0);if(secret!=null)java.util.Arrays.fill(secret,'\0');}
+        }
+        /** On any lost response, close pending work and reconcile operation on the library. */
+        public String publish(Verification proof,boolean confirmed,boolean acknowledgeOmissions){
+            if(proof==null)throw new IllegalStateException("Native import operation failed");
+            synchronized(this){if(!prepared||finished||closed)throw new IllegalStateException("Native import operation failed");finished=true;}
+            // A known committed receipt must survive concurrent close/cancellation.
+            try{return publishNativeImport(host,token,proof,confirmed,acknowledgeOmissions);}
+            finally{close();}
+        }
+        @Override public void close(){synchronized(this){if(closed)return;closed=true;}releaseNativeImport(host,token);}
+    }
     public static final class DerivativeExportData implements AutoCloseable {
         public final String kind;
         public final byte[] markdown,pdf;

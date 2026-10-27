@@ -9,7 +9,11 @@ use crate::{
     Error, Id, Result,
 };
 mod export_work;
+mod import_work;
 pub(crate) use export_work::ExportStamp;
+pub(crate) use import_work::prepare_bytes as prepare_native_import_bytes;
+pub(crate) use import_work::PreparedNativeImport;
+pub use import_work::{NativeImportReceipt, NativeImportSummary, NATIVE_IMPORT_MAX_BYTES};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -541,17 +545,17 @@ impl Store {
             if !self.protection_scopes(id, None)?.is_empty() {
                 e.locked = true;
             }
-            let mut stmt = self
-                .db
-                .prepare("SELECT id FROM blocks WHERE entity=?1 ORDER BY ordinal,id LIMIT 10001")?;
+            let mut stmt = self.db.prepare(
+                "SELECT id FROM blocks WHERE entity=?1 ORDER BY ordinal,id LIMIT 100001",
+            )?;
             let block_ids = stmt
                 .query_map([id.to_string()], |r| r.get::<_, String>(0))?
                 .collect::<std::result::Result<Vec<_>, _>>()?;
-            if block_ids.len() > 10000 {
+            if block_ids.len() > 100000 {
                 return Err(Error::ResourceLimit);
             }
             for bid in block_ids {
-                if blocks.len() >= 10000 {
+                if blocks.len() >= 100000 {
                     return Err(Error::ResourceLimit);
                 }
                 let bid = Id::parse(&bid)?;
@@ -679,7 +683,9 @@ impl Store {
     pub fn copy_exercise_independent(&mut self, exercise: Id, access: &Access) -> Result<Id> {
         let plan = self.prepare_exercise_export(exercise, true, access)?;
         let mut doc = plan.document;
-        doc.entities[0].title.push_str(" (independent copy)");
+        if doc.entities[0].title.len() <= 4096 - " (independent copy)".len() {
+            doc.entities[0].title.push_str(" (independent copy)");
+        }
         doc.entities[0].created_ms = now_ms();
         doc.entities[0].modified_ms = now_ms();
         let ids =
@@ -688,202 +694,14 @@ impl Store {
     }
     fn import_document(
         &mut self,
-        mut doc: NativeDocument,
+        doc: NativeDocument,
         access: &Access,
         copy_guard: Option<(&str, &BTreeSet<Scope>)>,
         recovered: bool,
     ) -> Result<Vec<Id>> {
-        doc.validate()?;
-        let mut ids = BTreeMap::new();
-        for e in &doc.entities {
-            ids.insert(e.id, Id::new());
-        }
-        for b in &doc.blocks {
-            ids.insert(b.current.id, Id::new());
-            for block in std::iter::once(&b.current).chain(b.history.iter().map(|h| &h.block)) {
-                for region in &block.regions {
-                    ids.entry(region.id).or_default();
-                }
-                if let crate::content::Content::Table(table) = &block.content {
-                    for cell in table.rows.iter().flatten() {
-                        ids.entry(cell.id).or_default();
-                    }
-                }
-            }
-            for s in &b.strokes {
-                ids.insert(s.id, Id::new());
-            }
-        }
-        for e in &doc.exercises {
-            ids.insert(e.id, Id::new());
-        }
-        doc.attachments.add_ids(&mut ids);
-        for e in &mut doc.entities {
-            e.id = ids[&e.id];
-            e.parent = e.parent.map(|p| ids[&p]);
-            if recovered {
-                e.title = format!("{} (recovered)", e.title);
-            }
-        }
-        let remap_block = |b: &mut Block| {
-            if let crate::content::Content::Table(table) = &mut b.content {
-                for cell in table.rows.iter_mut().flatten() {
-                    cell.id = ids[&cell.id];
-                }
-                if let Some(layout) = &mut table.layout {
-                    for ink in &mut layout.ink_origins {
-                        ink.cell = ids[&ink.cell];
-                        ink.stroke = ids[&ink.stroke];
-                    }
-                }
-            }
-            b.id = ids[&b.id];
-            b.entity = ids[&b.entity];
-            b.source_ids = b.source_ids.iter().map(|i| ids[i]).collect();
-            for region in &mut b.regions {
-                region.id = ids[&region.id];
-                region.cell = region.cell.map(|cell| ids[&cell]);
-                region.strokes = region.strokes.iter().map(|id| ids[id]).collect();
-            }
-            b.visible_strokes = b.visible_strokes.iter().map(|i| ids[i]).collect();
-            if let crate::content::Content::Image(image) = &mut b.content {
-                image.asset = ids[&image.asset];
-            }
-        };
-        for b in &mut doc.blocks {
-            remap_block(&mut b.current);
-            for h in &mut b.history {
-                remap_block(&mut h.block);
-            }
-            for s in &mut b.strokes {
-                s.id = ids[&s.id];
-            }
-        }
-        for l in &mut doc.links {
-            l.id = Id::new();
-            l.origin = ids[&l.origin];
-            l.target = ids[&l.target];
-            l.anchor = l.anchor.map(|a| ids[&a]);
-        }
-        for e in &mut doc.exercises {
-            e.id = ids[&e.id];
-            e.master = ids[&e.master];
-            e.heading = e.heading.map(|h| ids[&h]);
-        }
-        for m in &mut doc.memberships {
-            m.block = ids[&m.block];
-            m.exercise = ids[&m.exercise];
-        }
-        for h in &mut doc.headings {
-            *h = ids[h];
-        }
-        for r in &mut doc.rules {
-            r.master = ids[&r.master];
-        }
-        for m in &mut doc.modes {
-            m.entity = ids[&m.entity];
-        }
-        doc.attachments.remap(&ids);
-        doc.validate()?;
-        self.write(|db| {
-            Self::require_app(db, access)?;
-            if let Some((expected, scopes)) = copy_guard {
-                if Self::setting(db, "generation")? != expected {
-                    return Err(Error::Conflict);
-                }
-                if scopes.iter().any(|scope| !access.permits(scope)) {
-                    return Err(Error::Denied);
-                }
-            }
-            // Parent insertion order is not trusted. Defer FK checks until commit.
-            db.execute_batch("PRAGMA defer_foreign_keys=ON;")?;
-            for e in &doc.entities {
-                Self::save_entity(db, e)?;
-            }
-            Self::import_assets(db, &doc.attachments)?;
-            for (ordinal, b) in doc.blocks.iter().enumerate() {
-                db.execute(
-                    "INSERT INTO blocks VALUES(?1,?2,?3,?4)",
-                    rusqlite::params![
-                        b.current.id.to_string(),
-                        b.current.entity.to_string(),
-                        ordinal as i64,
-                        serde_json::to_string(&b.current)?
-                    ],
-                )?;
-                for s in &b.strokes {
-                    let p = serde_json::to_string(s)?;
-                    db.execute(
-                        "INSERT INTO strokes VALUES(?1,?2,?3,?4)",
-                        rusqlite::params![
-                            s.id.to_string(),
-                            b.current.id.to_string(),
-                            p,
-                            digest(p.as_bytes())
-                        ],
-                    )?;
-                }
-                // Translate historical active-use times to destination clock while
-                // keeping their age relative to the newest retained entry.
-                let tick: i64 = Self::setting(db, "active_ms")?
-                    .parse()
-                    .map_err(|_| Error::Integrity)?;
-                let newest = b.history.iter().map(|h| h.active_ms).max().unwrap_or(0);
-                for h in &b.history {
-                    let age = newest - h.active_ms;
-                    let t = tick.saturating_sub(age.min(i64::MAX as u64) as i64).max(0);
-                    db.execute(
-                        "INSERT INTO history VALUES(?1,?2,?3,?4)",
-                        rusqlite::params![
-                            b.current.id.to_string(),
-                            h.revision,
-                            t,
-                            serde_json::to_string(&h.block)?
-                        ],
-                    )?;
-                }
-            }
-            for e in &doc.exercises {
-                Self::save_exercise(db, e)?;
-            }
-            for m in &doc.memberships {
-                db.execute(
-                    "INSERT INTO exercise_members VALUES(?1,?2)",
-                    rusqlite::params![m.block.to_string(), m.exercise.to_string()],
-                )?;
-                db.execute(
-                    "INSERT INTO membership_versions VALUES(?1,?2)",
-                    rusqlite::params![m.block.to_string(), m.version],
-                )?;
-            }
-            for h in &doc.headings {
-                db.execute("INSERT INTO confirmed_headings VALUES(?1)", [h.to_string()])?;
-            }
-            for r in &doc.rules {
-                db.execute(
-                    "INSERT INTO exercise_rules VALUES(?1,?2)",
-                    rusqlite::params![r.master.to_string(), r.keyword],
-                )?;
-            }
-            for m in &doc.modes {
-                db.execute(
-                    "INSERT INTO modes VALUES(?1,?2)",
-                    rusqlite::params![m.entity.to_string(), serde_json::to_string(&m.mode)?],
-                )?;
-            }
-            Self::import_attachment_relations(db, &doc.attachments)?;
-            for l in &doc.links {
-                db.execute(
-                    "INSERT INTO links VALUES(?1,?2,?3,?4,'{}')",
-                    rusqlite::params![
-                        l.id.to_string(),
-                        l.origin.to_string(),
-                        l.target.to_string(),
-                        l.anchor.map(|i| i.to_string())
-                    ],
-                )?;
-            }
-            Ok(doc.entities.iter().map(|e| e.id).collect())
-        })
+        let prepared = import_work::prepare_document(doc, recovered, None)?;
+        Ok(self
+            .publish_prepared_native(prepared, access, copy_guard, None, None)?
+            .entities)
     }
 }

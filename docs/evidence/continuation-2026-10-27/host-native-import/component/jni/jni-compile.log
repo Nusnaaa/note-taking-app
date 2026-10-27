@@ -1,0 +1,3 @@
+$ /usr/lib/jvm/java-21-openjdk-amd64/bin/javac -d /tmp/stem-jni-2thl8jsh/classes android/backend/src/main/java/org/stemnotebook/backend/NativeBridge.java bridge/tests/java/BackupBoundarySmoke.java bridge/tests/java/BoundarySmoke.java bridge/tests/java/ConverterBoundarySmoke.java bridge/tests/java/DerivativeExportBoundarySmoke.java bridge/tests/java/EngineBoundarySmoke.java bridge/tests/java/EngineDiscardBoundarySmoke.java bridge/tests/java/EngineImportBoundarySmoke.java bridge/tests/java/EngineReclamationBoundarySmoke.java bridge/tests/java/EngineRemovalBoundarySmoke.java bridge/tests/java/NativeExportBoundarySmoke.java bridge/tests/java/NativeImportBoundarySmoke.java bridge/tests/java/OpenBoundarySmoke.java bridge/tests/java/RestoreBoundarySmoke.java
+exit_code=0
+

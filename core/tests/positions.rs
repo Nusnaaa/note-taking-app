@@ -399,7 +399,7 @@ fn encrypted_backup_retains_stale_bookmarks_and_schema10_defaults_without_rewrit
     }
     let legacy = crypto::encrypt(&serde_json::to_vec(&old).unwrap(), password).unwrap();
     let restored = Store::restore_backup_password(&legacy.bytes, password).unwrap();
-    assert_eq!(restored.schema_version().unwrap(), 22);
+    assert_eq!(restored.schema_version().unwrap(), 23);
     assert!(restored.view(v.id, &a).unwrap().bookmark.is_none());
 }
 #[test]
@@ -583,7 +583,7 @@ fn schema10_upgrade_keeps_legacy_view_payload_byte_for_byte_and_absent_bookmark_
     db.pragma_update(None, "user_version", 10).unwrap();
     drop(db);
     let s = Store::open(&path).unwrap();
-    assert_eq!(s.schema_version().unwrap(), 22);
+    assert_eq!(s.schema_version().unwrap(), 23);
     assert_eq!(s.view(legacy.id, &a).unwrap(), legacy);
     drop(s);
     let db = rusqlite::Connection::open(&path).unwrap();

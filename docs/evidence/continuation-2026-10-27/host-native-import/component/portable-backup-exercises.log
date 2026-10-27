@@ -1,0 +1,92 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+warning: unused import: `import_work::PreparedNativeImport`
+  --> core/src/portable.rs:15:16
+   |
+15 | pub(crate) use import_work::PreparedNativeImport;
+   |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` on by default
+
+warning: field `receipt` is never read
+   --> core/src/portable/import_work.rs:547:16
+    |
+545 | pub(crate) struct NativeImportResult {
+    |                   ------------------ field in this struct
+546 |     pub(crate) entities: Vec<Id>,
+547 |     pub(crate) receipt: Option<NativeImportReceipt>,
+    |                ^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` on by default
+
+warning: `stem-core` (lib) generated 2 warnings (run `cargo fix --lib -p stem-core` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 40.39s
+     Running tests/backup.rs (/tmp/stem-pen-response-target/debug/deps/backup-84f7ac3d814cf80c)
+
+running 9 tests
+test backup_plan_cannot_cross_library_or_survive_a_write ... ok
+test backup_requires_deliberate_ink_scope_and_fresh_protected_authentication ... ok
+test external_asset_backup_is_explicit_authorised_and_revocation_safe ... ok
+test malformed_authenticated_backup_is_rejected_before_exposing_restored_store ... ok
+test restore_publication_never_overwrites_live_database_and_reopens ... ok
+test rich_library_restores_objects_views_anchors_proposals_profiles_and_capture_receipts ... ok
+test purge_retires_detailed_undo_payloads_and_backup_rejects_forged_journal_rows ... ok
+test whole_library_backup_retains_trash_history_membership_undo_and_source_metadata ... ok
+test schema8_logical_backup_upgrades_without_inventing_old_undo_actions ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 39.67s
+
+     Running tests/backup_stream.rs (/tmp/stem-pen-response-target/debug/deps/backup_stream-54cda4bb691b182d)
+
+running 8 tests
+test cancelled_stream_restore_removes_private_staging_and_does_not_modify_source ... ok
+test authorised_retained_pdf_bytes_are_explicit_while_revoked_relationships_stay_revoked ... ok
+test concurrent_generation_change_prevents_finalising_an_old_read_snapshot ... ok
+test incremental_library_restore_preserves_ink_undo_and_source_relationships_then_publishes_without_overwrite ... ok
+test restore_rejects_shared_or_symlinked_directories_before_creating_private_content ... ok
+test stream_review_requires_ink_consent_fresh_scope_and_current_source_generation_before_any_output ... ok
+test truncation_trailing_data_malformed_tables_and_budget_failures_leave_no_restore_scratch ... ok
+test whole_library_larger_than_legacy_limit_roundtrips_with_incremental_encryption_and_private_sqlite_restore has been running for over 60 seconds
+test whole_library_larger_than_legacy_limit_roundtrips_with_incremental_encryption_and_private_sqlite_restore ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 90.64s
+
+     Running tests/exercises.rs (/tmp/stem-pen-response-target/debug/deps/exercises-09e20565645f15cb)
+
+running 18 tests
+test duplicate_titles_keep_distinct_identity_and_metadata_failures_share_status ... ok
+test exercise_locks_cover_master_search_history_inference_links_export_and_deletion ... ok
+test current_native_preserves_exercise_identity_relationships_locks_modes_and_heading_rules ... ok
+test extracting_a_protected_heading_does_not_disclose_its_title ... ok
+test existing_membership_survives_heading_confirmation_removal_rename_and_reopen ... ok
+test failed_extraction_and_reassignment_roll_back_every_membership ... ok
+test flat_and_search_views_follow_visibility_and_permissions_without_copying_content ... ok
+test independent_copy_preserves_ink_but_has_separate_ids_edits_modes_and_status ... ok
+test legacy_v1_native_remains_readable_and_malformed_v2_membership_is_rejected ... ok
+test linked_append_is_atomic_and_keeps_master_order_and_shared_save_state ... ok
+test master_trash_restore_and_purge_preserve_then_remove_exercise_state ... ok
+test protected_reassignment_carries_lock_even_when_unassigned ... ok
+test only_confirmed_matching_headings_extract_previously_unassigned_work ... ok
+test reassignment_rejects_stale_review_cross_master_and_aba_history ... ok
+test removing_view_preserves_master_ink_membership_and_protection ... ok
+test reassignment_requires_preview_confirmation_and_undo_preserves_new_content ... ok
+test selected_exercise_export_excludes_unrelated_master_content_and_roundtrips ... ok
+test shared_edits_use_one_revision_and_stale_second_connection_cannot_overwrite ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.35s
+
+     Running tests/portable.rs (/tmp/stem-pen-response-target/debug/deps/portable-09189a7e4c5d6f73)
+
+running 10 tests
+test both_protected_export_paths_require_fresh_authentication ... ok
+test concurrent_change_during_export_authentication_invalidates_output ... ok
+test corrupt_native_import_and_interruption_do_not_touch_existing_documents ... ok
+test encrypted_header_payload_truncation_and_weak_credentials_fail_closed ... ok
+test encrypted_native_roundtrip_creates_independent_copy_and_keeps_current_work ... ok
+test export_plan_cannot_survive_later_lock_or_source_change ... ok
+test hostile_cross_kind_identifier_aliases_are_rejected_before_import ... ok
+test hostile_native_relationships_rejected_even_with_recomputed_checksum ... ok
+test raw_ink_requires_deliberate_inclusion_and_subset_export_never_follows_links ... ok
+test encrypted_package_opens_with_password_or_independent_recovery_key ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 16.03s
+

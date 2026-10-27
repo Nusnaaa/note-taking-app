@@ -902,6 +902,38 @@ mod tests {
     }
 
     #[test]
+    fn native_import_receipt_corruptions_are_rejected_by_both_restore_oracles() {
+        let s = fixture();
+        let entity: String =
+            s.db.query_row("SELECT id FROM entities LIMIT 1", [], |r| r.get(0))
+                .unwrap();
+        let operation = Id::new();
+        let digest = "c".repeat(64);
+        let valid = serde_json::json!({"operation":operation,"artifact_digest":digest,
+            "entities":[entity],"completed_ms":0});
+        for payload in [
+            valid.clone(),
+            serde_json::json!({"operation":Id::new(),"artifact_digest":digest,"entities":[entity],"completed_ms":0}),
+            serde_json::json!({"operation":operation,"artifact_digest":"d".repeat(64),"entities":[entity],"completed_ms":0}),
+            serde_json::json!({"operation":operation,"artifact_digest":digest,"entities":[Id::new()],"completed_ms":0}),
+            serde_json::json!({"operation":operation,"artifact_digest":digest,"entities":[entity,entity],"completed_ms":0}),
+            serde_json::json!({"operation":operation,"artifact_digest":digest,"entities":[],"completed_ms":0}),
+            serde_json::json!({"operation":operation,"artifact_digest":digest,"entities":[entity],"completed_ms":-1}),
+        ] {
+            s.db.execute("DELETE FROM native_imports", []).unwrap();
+            s.db.execute(
+                "INSERT INTO native_imports VALUES(?1,?2,?3)",
+                rusqlite::params![operation.to_string(), digest, payload.to_string()],
+            )
+            .unwrap();
+            let expected = payload == valid;
+            assert_eq!(s.validate_backup_state(13).is_ok(), expected);
+            assert_eq!(s.validate_backup_state_aggregate(13).is_ok(), expected);
+            no_work_tables(&s);
+        }
+    }
+
+    #[test]
     fn cancellation_inside_semantic_validation_removes_work_indexes() {
         let s = fixture();
         let control = JobControl::new(Duration::from_secs(300)).unwrap();

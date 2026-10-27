@@ -336,7 +336,7 @@ impl Attachments {
 
 use crate::{security::Access, store::Store};
 
-use rusqlite::{Connection, OptionalExtension};
+use rusqlite::OptionalExtension;
 
 impl Store {
     pub(crate) fn export_attachments(
@@ -476,74 +476,5 @@ impl Store {
         }
 
         Ok(out)
-    }
-
-    pub(crate) fn import_assets(db: &Connection, a: &Attachments) -> Result<()> {
-        for image in &a.assets {
-            db.execute(
-                "INSERT INTO image_assets VALUES(?1,?2,?3,?4,?5)",
-                rusqlite::params![
-                    image.id.to_string(),
-                    image.entity.to_string(),
-                    image.mime,
-                    image.bytes,
-                    image.digest
-                ],
-            )?;
-        }
-
-        Ok(())
-    }
-
-    pub(crate) fn import_attachment_relations(db: &Connection, a: &Attachments) -> Result<()> {
-        for state in &a.layers {
-            db.execute(
-                "INSERT INTO canvas_layers VALUES(?1,?2)",
-                rusqlite::params![state.canvas.to_string(), serde_json::to_string(state)?],
-            )?;
-        }
-
-        for l in &a.layouts {
-            db.execute(
-                "INSERT INTO layouts VALUES(?1,?2)",
-                rusqlite::params![l.block.to_string(), serde_json::to_string(&l.layout)?],
-            )?;
-        }
-
-        for g in &a.groups {
-            db.execute(
-                "INSERT INTO object_groups VALUES(?1,?2,?3)",
-                rusqlite::params![
-                    g.id.to_string(),
-                    g.entity.to_string(),
-                    serde_json::to_string(g)?
-                ],
-            )?;
-        }
-
-        for e in &a.embeds {
-            db.execute(
-                "INSERT INTO embeds VALUES(?1,?2,?3,?4)",
-                rusqlite::params![
-                    e.id.to_string(),
-                    e.host.to_string(),
-                    e.source.to_string(),
-                    serde_json::to_string(e)?
-                ],
-            )?;
-        }
-
-        for v in &a.views {
-            db.execute(
-                "INSERT INTO view_settings VALUES(?1,?2,?3)",
-                rusqlite::params![
-                    v.id.to_string(),
-                    v.entity.to_string(),
-                    serde_json::to_string(v)?
-                ],
-            )?;
-        }
-
-        Ok(())
     }
 }

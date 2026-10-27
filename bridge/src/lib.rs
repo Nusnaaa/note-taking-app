@@ -4,6 +4,7 @@ mod backup;
 mod derivative_export;
 mod engines;
 mod native_export;
+mod native_import;
 mod restore;
 use jni::{
     objects::{JClass, JString},
@@ -138,6 +139,7 @@ pub extern "system" fn Java_org_stemnotebook_backend_NativeBridge_close(
         backup::close(handle);
         native_export::close(handle);
         derivative_export::close(handle);
+        native_import::close(handle);
         restore::close(handle);
         host.close().ok()?;
         Some(())

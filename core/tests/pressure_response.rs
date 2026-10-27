@@ -376,7 +376,8 @@ fn legacy_layout_stream_reads_schema15_without_inventing_pressure_settings() {
         )
         .unwrap();
     // Synthetic schema15 fixture has no pressure/eraser fields. Schemas17/18
-    // append action tables and schema22 appends links; remove all three asserted-empty segments before changing the tag.
+    // append action tables, schema22 appends links and schema23 import receipts;
+    // remove all four asserted-empty segments before changing the tag.
     let mut reader =
         DecryptStream::new(bytes.as_slice(), Credential::Password(password), 10000000).unwrap();
     let mut plain = Vec::new();
@@ -385,6 +386,9 @@ fn legacy_layout_stream_reads_schema15_without_inventing_pressure_settings() {
     assert_eq!(&plain[..8], b"STEMLIB2");
     let end = plain.len() - 16; // Footer magic plus the eight-byte row count.
     assert_eq!(&plain[end..end + 8], b"STEMEND2");
+    assert_eq!(&plain[end - 3..end], &[0, 34, 0]); // Empty schema23 import receipts.
+    plain.drain(end - 3..end);
+    let end = plain.len() - 16;
     assert_eq!(&plain[end - 3..end], &[0, 33, 0]); // Empty schema22 linked-history table.
     plain.drain(end - 3..end);
     let end = plain.len() - 16;
@@ -416,7 +420,7 @@ fn legacy_layout_stream_reads_schema15_without_inventing_pressure_settings() {
         restored.store().source_ink(block.id, &a).unwrap(),
         vec![original]
     );
-    assert_eq!(restored.store().schema_version().unwrap(), 22);
+    assert_eq!(restored.store().schema_version().unwrap(), 23);
 }
 
 #[test]

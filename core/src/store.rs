@@ -123,6 +123,7 @@ const V18: &str = include_str!("../migrations/018.sql");
 const V19: &str = include_str!("../migrations/019.sql");
 const V20: &str = include_str!("../migrations/020.sql");
 const V21: &str = include_str!("../migrations/021.sql");
+const V23: &str = include_str!("../migrations/023.sql");
 const V22: &str = include_str!("../migrations/022.sql");
 const V17: &str = include_str!("../migrations/017.sql");
 const V14: &str = include_str!("../migrations/014.sql");
@@ -147,7 +148,7 @@ impl Store {
                 PRAGMA trusted_schema=OFF;",
         )?;
         let version: i64 = db.pragma_query_value(None, "user_version", |r| r.get(0))?;
-        if !(0..=22).contains(&version) {
+        if !(0..=23).contains(&version) {
             return Err(Error::Unsupported);
         }
         let tx = db.transaction_with_behavior(TransactionBehavior::Immediate)?;
@@ -216,6 +217,9 @@ impl Store {
         }
         if version < 22 {
             tx.execute_batch(V22)?;
+        }
+        if version < 23 {
+            tx.execute_batch(V23)?;
         }
         tx.commit()?;
         Ok(Self {
@@ -314,6 +318,13 @@ impl Store {
         result
     }
     pub(crate) fn write<T>(&mut self, f: impl FnOnce(&Connection) -> Result<T>) -> Result<T> {
+        self.write_checked(f, || Ok(()))
+    }
+    pub(crate) fn write_checked<T>(
+        &mut self,
+        f: impl FnOnce(&Connection) -> Result<T>,
+        before_commit: impl FnOnce() -> Result<()>,
+    ) -> Result<T> {
         self.save_state = SaveState::Saving;
         let failure = std::mem::replace(&mut self.failure, FailurePoint::None);
         let result = (|| {
@@ -328,6 +339,7 @@ impl Store {
             if failure == FailurePoint::BeforeCommit {
                 return Err(Error::Interrupted);
             }
+            before_commit()?;
             tx.commit()?;
             Ok(value)
         })();

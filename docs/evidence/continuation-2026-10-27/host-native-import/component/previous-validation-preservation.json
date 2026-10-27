@@ -1,0 +1,296 @@
+{
+  "archive_commit": "4626064",
+  "checked_files": [
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/docs/evidence/latest/android-elf.log",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/android-elf.log",
+      "sha256": "ac1a928bbbdfa59a095e686e392f54d22615beb01ff2e9f2b5ca457a954a9f66"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/docs/evidence/latest/android-gradle.log",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/android-gradle.log",
+      "sha256": "bcd514b60e4bfe7081e0c944945c515c3434bf45d683cf24048c466e6dbec0df"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/docs/evidence/latest/android-native.log",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/android-native.log",
+      "sha256": "2cfad93ff75132c3d780428771835dae19b111973231906f3ffe63cecab2d35f"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/docs/evidence/latest/android-validation.json",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/android-validation.json",
+      "sha256": "dc083b3ebf2cbdc159da93a1e34a8b99a64f8eb920a9d7e76623afe592db6a9e"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/docs/evidence/latest/jni-compile.log",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/jni-compile.log",
+      "sha256": "55e1d52a1c3c1b0127b620899565e00b508c19e435eba1c71a62f4a73f7af431"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/docs/evidence/latest/jni-library.log",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/jni-library.log",
+      "sha256": "1be3691008fd1b0f41e07ad667a8d9eb62054915e2c0995eab4873ee5a9ef594"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/docs/evidence/latest/jni-shrink.log",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/jni-shrink.log",
+      "sha256": "dab147de104161b6a44d466521446e4f002aa2e39e3781efea5e6f9d7274f24a"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/docs/evidence/latest/jni-shrinker-version.log",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/jni-shrinker-version.log",
+      "sha256": "e0452aa0c9d67125b390db9cdadf25623bac587f90449f05d75a72b95c056688"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/docs/evidence/latest/jni-shrinker.map",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/jni-shrinker.map",
+      "sha256": "476340e906f8cba47d86f91e6645f3ff82b7c093fe99decf6410616e6f1d8258"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/docs/evidence/latest/jni-shrunk-smoke.log",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/jni-shrunk-smoke.log",
+      "sha256": "a5a8d045762f98d7e36c29286757c97c749876ce56901b418bbcbd532debbcfe"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/docs/evidence/latest/jni-smoke.log",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/jni-smoke.log",
+      "sha256": "ab851d850dfa095e590ed73a48259e65bde5565b722b0f10b33fd306605054fc"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.ActiveCaptureJournalTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.ActiveCaptureJournalTest.xml",
+      "sha256": "20492e4a0f0b2d2bed3c14a264c7c382d3fe407cd26eff049d5f7f6c9714a2ce"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.BackendAdmissionIntegrationTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.BackendAdmissionIntegrationTest.xml",
+      "sha256": "5dc657e0154cb76fe8d804ca5084d26eceda7c57df341b0f6782455c23bb3ce0"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.BackendOwnershipTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.BackendOwnershipTest.xml",
+      "sha256": "a6fe82707ea933d47d77b6d4d5d9eec64e54a965462132d3c7ded2f280991b47"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.BackendWriterTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.BackendWriterTest.xml",
+      "sha256": "0f6739a4d8d279016700b16c722f62fbf356170d4d5d3bdf061f6da2e28f2d0d"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.BackupCatalogueIntegrationTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.BackupCatalogueIntegrationTest.xml",
+      "sha256": "40bf9cee6c708d78298cd73fd42389ed0ab438694c231f9db78a4f871b9be7d6"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.BackupCatalogueTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.BackupCatalogueTest.xml",
+      "sha256": "1dac727d6af771c598058d4f50e1e047fbece1dbedb8809a16f8f58c0aaf7da8"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.BackupJobRoutesTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.BackupJobRoutesTest.xml",
+      "sha256": "42c9e59b1caee2a51fb24c0259e16692573decc0e44bddbd1771d323daab098d"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.BackupJobSchedulerTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.BackupJobSchedulerTest.xml",
+      "sha256": "9e2c1ee49475a5613fbba53c1c023680d7962f2f0eb47556987e52eec66beefd"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.BackupPersistentAccessTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.BackupPersistentAccessTest.xml",
+      "sha256": "85f7428adc47058c6b5ee604454a14847e3e04eb8d7c57b979e6040f88f914ea"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.BackupPolicyMigrationTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.BackupPolicyMigrationTest.xml",
+      "sha256": "ee13cd46903d73fd8a072fc29e15efaa3295b6dadb4ec8285342d305de2c06ab"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.BackupPolicyStoreTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.BackupPolicyStoreTest.xml",
+      "sha256": "ad1c588913ce7e9ceb67933e59c1712b4f17de6798955c72ece3c8e2fd4ae304"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.BackupProviderTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.BackupProviderTest.xml",
+      "sha256": "7043c337a115ae8deb8621a6acb77003c0c978a69a1ed58d470857d9274d0191"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.BackupSchedulePolicyTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.BackupSchedulePolicyTest.xml",
+      "sha256": "a63d644d9053bdc575956aee2fd945c3ec5cf61c1a3d3fa2781346c0164241bc"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.BackupSecretProtectorTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.BackupSecretProtectorTest.xml",
+      "sha256": "ce747b9188609d1266e9825c24d38cc33164f45e7a47109e14a780b34d052727"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.CaptureOutboxTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.CaptureOutboxTest.xml",
+      "sha256": "1656eb2d5529e972b807e55f0d97d7242b089e7ccce4d98084a70e4f33cee4bd"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.CellCaptureIntegrationTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.CellCaptureIntegrationTest.xml",
+      "sha256": "6a3c300ecf524ad279a24fc4b22e03cc4c0509c15d2dbde7aa592de636e77fb4"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.DeletionCaptureIntegrationTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.DeletionCaptureIntegrationTest.xml",
+      "sha256": "5acd46d68ac531c350e8666380d03a4cd58f5a79e1d1003fd210071373f991a6"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.EngineModelSourceTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.EngineModelSourceTest.xml",
+      "sha256": "bf1b84ecee65d417845e450755d207d635a5c35597d45b9cc419cb4b7fe364eb"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.InkAccumulatorTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.InkAccumulatorTest.xml",
+      "sha256": "6270c287eb20ae10e3726e2c17505b2ebd3f1452427978b63eb73e589576ed10"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.InterruptedCaptureTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.InterruptedCaptureTest.xml",
+      "sha256": "c110031a7be175f96ed9ad3db569b98593c38cc79ff365fadb35111cde3581a5"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.JournaledCaptureIntegrationTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.JournaledCaptureIntegrationTest.xml",
+      "sha256": "f6376a3a746dc6bb097ff6c9e2f56efe67d95201f3b331b99a991f2ab8f55453"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.MotionCaptureTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.MotionCaptureTest.xml",
+      "sha256": "17311d824208a8548291c15d00e53b48fae7af0f11f8f3e0177818d809ad0477"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.NativeBackupBoundaryTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.NativeBackupBoundaryTest.xml",
+      "sha256": "25767fe2cd4296a29c5663b3ffb842a03aa5e2c31735069d114eb7b8e4272ff3"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.NotebookBackupJobServiceTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.NotebookBackupJobServiceTest.xml",
+      "sha256": "89f91772e0630da81f0a9a1e491fc75f3430d4287d205e0445949f805007e687"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.NotebookBackupsTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.NotebookBackupsTest.xml",
+      "sha256": "492763235de138340f087ed33122bea2a734d8724ab05382dcc2e7eb743dbcb1"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.NotebookConvertersTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.NotebookConvertersTest.xml",
+      "sha256": "2d04573afc34028a5dd25419ec5eebe1d52ff41fe0ef76cebe2dec3e0c237aa7"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.NotebookEnginesTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.NotebookEnginesTest.xml",
+      "sha256": "8d9b991f6133ca1f505ec8120215f0112aaf09e99239095d2c30cb3829349e01"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.NotebookRestoresTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.NotebookRestoresTest.xml",
+      "sha256": "4da6fc343baf6c1b62b3652eed6f91dc075123013ff9915023feab8bf3d4813c"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.NotebookRuntimeTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.NotebookRuntimeTest.xml",
+      "sha256": "22c66a5db1d9e422042bebb594676a013fa9d50b60cb3c80500aa2ee453a8bc2"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.NotebookSchedulesTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.NotebookSchedulesTest.xml",
+      "sha256": "8903a9023d29d9b602458729ad0cfe4e749b06852f2477b9328a3f70071f7cd9"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.PdfConnectionTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.PdfConnectionTest.xml",
+      "sha256": "a4665e8f62c32dd93296a0d09fa8d0e340c957912579cbe555658910542894a9"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.PdfParserClientTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.PdfParserClientTest.xml",
+      "sha256": "66abd907408f852f2a16a7c0723986b21423b925c1c32dc18a1fb540d71f3308"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.PdfPixelsTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.PdfPixelsTest.xml",
+      "sha256": "d79f8cd99f8ee755d09488375277b436968037ac49179b9c3ead40cfd6c6715c"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.PdfProviderTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.PdfProviderTest.xml",
+      "sha256": "e70d160c9f76cc18b19a9ff243e156f778051a098a3caf703d57864b57862ac8"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.PdfRetentionTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.PdfRetentionTest.xml",
+      "sha256": "d42bd50b101f5f8a8d4ea90e1aff1139bdee6e21eabd68c0d87f38c81bc35980"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.PdfSelectionTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.PdfSelectionTest.xml",
+      "sha256": "629111afeaca3da4e389eed01ea3f8a034048c59bad9a7e992ef29c973e61071"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.PdfWorkerCleanupTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.PdfWorkerCleanupTest.xml",
+      "sha256": "4fd10122621677fc238a9e226988d3862a2e14a8f85896ea7db29cb0848c5760"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.PdfWorkspaceTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.PdfWorkspaceTest.xml",
+      "sha256": "1dad0d2c47ee728012a538cadb7fe52541f12425661dec9ca2d5784eab2490ad"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.RestoreStageLifecycleTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.RestoreStageLifecycleTest.xml",
+      "sha256": "200e1b46e28119c3df45aaf675f0a72da27d6fd890f31c945fec9ff3ea02d0eb"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.RestoreStagesTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.RestoreStagesTest.xml",
+      "sha256": "2658eee36feeb96f15fbd8afe6416c350b5cc11b4a61f226e12e16308500f58f"
+    },
+    {
+      "raw": "/tmp/stem-engine-catalogue-jni-work/android/backend/build/test-results/testDebugUnitTest/TEST-org.stemnotebook.backend.SharedNotebookPoolTest.xml",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/android/test-results/TEST-org.stemnotebook.backend.SharedNotebookPoolTest.xml",
+      "sha256": "9bf1c05f23e5fcf0c9f9c8fbdf9e9e2ea940e407034d5443777e3097192ffcee"
+    },
+    {
+      "raw": "/home/linus/Projects/software/note-taking-app/repo/docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/native/format.log",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/native/format.log",
+      "sha256": "e28126cccf40d8b6fe263afa38d924c0b22746bde4e646d45bc92f2347a5e2a7"
+    },
+    {
+      "raw": "/home/linus/Projects/software/note-taking-app/repo/docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/native/lint.log",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/native/lint.log",
+      "sha256": "b26ad9f09997e4fc2eaaff3e6f003f49d8a7d1c1898a337c8ccfcf43a566a3cd"
+    },
+    {
+      "raw": "/home/linus/Projects/software/note-taking-app/repo/docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/native/release-build.log",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/native/release-build.log",
+      "sha256": "9713de72edef8b4880280be64fc97fb09f32b8c2a3686f20a8cb72365d87d9e3"
+    },
+    {
+      "raw": "/home/linus/Projects/software/note-taking-app/repo/docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/native/tests.log",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/native/tests.log",
+      "sha256": "e929088d24ec9c063f67259b3bd25a5886b241bf73ef890cf094346a584e9454"
+    },
+    {
+      "raw": "/home/linus/Projects/software/note-taking-app/repo/docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/native/traceability.log",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/native/traceability.log",
+      "sha256": "ae57b86ab436d80d63725d610e9666f053804515a4ad03a2572eb5157a0252af"
+    },
+    {
+      "raw": "/home/linus/Projects/software/note-taking-app/repo/docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/native/validation.json",
+      "archive": "docs/evidence/continuation-2026-10-26/host-derivative-export/final-0f19dd2/native/validation.json",
+      "sha256": "0e44506258d8f69fb724047c0b2f2153c1e79c0c1d7b014a8e8f0face2d6cb38"
+    }
+  ],
+  "moved_completed_native_leaf_to": "/tmp/stem-preserved-0f19-native-293_iw9n/native"
+}

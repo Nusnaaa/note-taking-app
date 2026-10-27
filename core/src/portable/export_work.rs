@@ -45,6 +45,9 @@ pub(crate) struct ExportStamp {
     scopes: BTreeSet<Scope>,
 }
 impl ExportStamp {
+    pub(crate) fn guard(&self) -> (&str, &BTreeSet<Scope>) {
+        (&self.generation, &self.scopes)
+    }
     pub(crate) fn new(library: String, generation: String, scopes: BTreeSet<Scope>) -> Self {
         Self {
             library,

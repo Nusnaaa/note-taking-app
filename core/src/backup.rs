@@ -75,6 +75,7 @@ const TABLES: &[(&str, usize)] = &[
     ("engine_resource_actions", 3),
     ("engine_reclamations", 3),
     ("edit_links", 3),
+    ("native_imports", 3),
 ];
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -197,7 +198,7 @@ impl Store {
 
         let mut snapshot = Snapshot {
             format: "STEM-LIBRARY-1".into(),
-            schema: 22,
+            schema: 23,
             tables: BTreeMap::new(),
             omissions: vec![],
         };
@@ -396,10 +397,20 @@ impl Store {
             snapshot.schema = 9;
         }
 
-        if snapshot.format != "STEM-LIBRARY-1" || !matches!(snapshot.schema, 9..=22) {
+        if snapshot.format != "STEM-LIBRARY-1" || !matches!(snapshot.schema, 9..=23) {
             return Err(Error::Unsupported);
         }
 
+        if source_schema < 23 {
+            if snapshot
+                .tables
+                .get("native_imports")
+                .is_some_and(|rows| !rows.is_empty())
+            {
+                return Err(Error::Unsupported);
+            }
+            snapshot.tables.insert("native_imports".into(), vec![]);
+        }
         if source_schema < 22 {
             if snapshot
                 .tables
@@ -706,6 +717,7 @@ impl Store {
         control: Option<&crate::processing::JobControl>,
     ) -> Result<()> {
         self.validate_edit_journal(control)?;
+        self.validate_native_import_receipts(control)?;
         if native_version < 13 {
             let mut query = self.db.prepare(
                 "SELECT before_row,after_row FROM edit_changes WHERE table_name='blocks'",

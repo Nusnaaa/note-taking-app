@@ -1,0 +1,4 @@
+PASS: JNI native import independent copy, exact authored text, operation identity before commit and durable lost-response reconciliation after reopen (1)
+PASS: JNI native import confirmation, malformed input/UTF16, single use, shared admission, cancellation and stale-generation rejection without receipts (1)
+PASS: JNI native import explicit encrypted credential/recovery, wrong-secret refusal and retained locks without automatic grants (1)
+PASS: JNI native import fresh app proof off writer and reentrant callback cancellation before publication (1)

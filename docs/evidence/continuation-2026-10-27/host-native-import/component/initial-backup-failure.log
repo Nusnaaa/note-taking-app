@@ -1,0 +1,41 @@
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+warning: unused import: `import_work::PreparedNativeImport`
+  --> core/src/portable.rs:15:16
+   |
+15 | pub(crate) use import_work::PreparedNativeImport;
+   |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` on by default
+
+warning: `stem-core` (lib) generated 1 warning (run `cargo fix --lib -p stem-core` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 39.46s
+     Running tests/backup.rs (/tmp/stem-pen-response-target/debug/deps/backup-84f7ac3d814cf80c)
+
+running 9 tests
+test backup_plan_cannot_cross_library_or_survive_a_write ... ok
+test backup_requires_deliberate_ink_scope_and_fresh_protected_authentication ... ok
+test external_asset_backup_is_explicit_authorised_and_revocation_safe ... ok
+test malformed_authenticated_backup_is_rejected_before_exposing_restored_store ... ok
+test restore_publication_never_overwrites_live_database_and_reopens ... ok
+test rich_library_restores_objects_views_anchors_proposals_profiles_and_capture_receipts ... ok
+test purge_retires_detailed_undo_payloads_and_backup_rejects_forged_journal_rows ... ok
+test whole_library_backup_retains_trash_history_membership_undo_and_source_metadata ... ok
+test schema8_logical_backup_upgrades_without_inventing_old_undo_actions ... FAILED
+
+failures:
+
+---- schema8_logical_backup_upgrades_without_inventing_old_undo_actions stdout ----
+
+thread 'schema8_logical_backup_upgrades_without_inventing_old_undo_actions' panicked at core/tests/backup.rs:535:5:
+assertion `left == right` failed
+  left: 23
+ right: 22
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    schema8_logical_backup_upgrades_without_inventing_old_undo_actions
+
+test result: FAILED. 8 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 41.35s
+
+error: test failed, to rerun pass `-p stem-core --test backup`

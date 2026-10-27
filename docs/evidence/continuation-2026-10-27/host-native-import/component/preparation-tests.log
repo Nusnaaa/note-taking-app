@@ -1,0 +1,17 @@
+    Blocking waiting for file lock on build directory
+   Compiling stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 17s
+     Running unittests src/lib.rs (/tmp/stem-pen-response-target/debug/deps/stem_core-8a459d8a65baac19)
+
+running 8 tests
+test portable::import_work::tests::checked_commit_cancellation_rolls_back_rows_and_generation ... ok
+test portable::import_work::tests::native_export_keeps_the_existing_format_capacity_above_ten_thousand_blocks ... ok
+test portable::import_work::tests::prepared_import_cannot_upsert_existing_identity_and_failed_probe_leaves_no_temp_state ... ok
+test portable::import_work::tests::receipt_and_import_rows_rollback_together_and_replay_never_duplicates_or_advances_generation ... ok
+test portable::import_work::tests::schema_22_migration_preserves_existing_content_without_inventing_receipts ... ok
+test portable::import_work::tests::streaming_backup_retains_committed_import_receipt ... ok
+test portable::import_work::tests::valid_maximum_title_is_retained_and_imported_protection_never_grants_access ... ok
+test portable::import_work::tests::import_receipts_survive_backup_and_old_schema_cannot_hide_nonempty_receipts ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 47 filtered out; finished in 21.12s
+

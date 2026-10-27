@@ -1,0 +1,62 @@
+$ /tmp/stem-cargo/bin/cargo clippy -p stem-bridge --all-targets --locked --offline -- -D warnings
+exit_code=101
+
+    Checking stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+error: large size difference between variants
+  --> core/src/host/native_import.rs:46:1
+   |
+46 | /   pub(super) enum Request {
+47 | |       Begin {
+48 | |           lease: Arc<Lease>,
+49 | |           reply: mpsc::Sender<Result<NativeImportSource>>,
+50 | |       },
+51 | | /     Publish {
+52 | | |         prepared: PreparedNativeImport,
+53 | | |         operation: Id,
+54 | | |         digest: String,
+...  | |
+58 | | |         reply: mpsc::Sender<Result<NativeImportReceipt>>,
+59 | | |     },
+   | | |_____- the largest variant contains at least 408 bytes
+60 | | /     Receipt {
+61 | | |         operation: Id,
+62 | | |         reply: mpsc::Sender<Result<Option<NativeImportReceipt>>>,
+63 | | |     },
+   | | |_____- the second-largest variant contains at least 32 bytes
+64 | |   }
+   | |___^ the entire enum is at least 408 bytes
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#large_enum_variant
+   = note: `-D clippy::large-enum-variant` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::large_enum_variant)]`
+help: consider boxing the large fields or introducing indirection in some other way to reduce the total size of the enum
+   |
+52 ~         prepared: Box<PreparedNativeImport>,
+53 |         operation: Id,
+54 |         digest: String,
+55 |         authority: WorkAuthority,
+56 ~         stamp: Box<ExportStamp>,
+   |
+
+error: this `if` statement can be collapsed
+   --> core/src/portable/import_work.rs:154:9
+    |
+154 | /         if recovered {
+155 | |             if e.title.len() <= 4096 - " (recovered)".len() {
+156 | |                 e.title = format!("{} (recovered)", e.title);
+157 | |             }
+158 | |         }
+    | |_________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#collapsible_if
+    = note: `-D clippy::collapsible-if` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::collapsible_if)]`
+help: collapse nested if block
+    |
+154 ~         if recovered
+155 ~             && e.title.len() <= 4096 - " (recovered)".len() {
+156 |                 e.title = format!("{} (recovered)", e.title);
+157 ~             }
+    |
+
+error: could not compile `stem-core` (lib) due to 2 previous errors

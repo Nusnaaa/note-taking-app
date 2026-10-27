@@ -1,0 +1,44 @@
+    Blocking waiting for file lock on build directory
+    Checking stem-core v0.1.0 (/tmp/stem-engine-catalogue-work/core)
+error: items after a test module
+   --> core/src/portable/import_work.rs:629:1
+    |
+629 |   mod tests {
+    |   ^^^^^^^^^
+...
+973 | / pub(crate) fn prepare_bytes(
+974 | |     bytes: &[u8],
+975 | |     credential: Option<crypto::Credential<'_>>,
+976 | |     control: &JobControl,
+977 | | ) -> Result<PreparedNativeImport> {
+    | |_________________________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#items_after_test_module
+    = note: `-D clippy::items-after-test-module` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::items_after_test_module)]`
+    = help: move the items to before the test module was defined
+
+    Checking stem-bridge v0.1.0 (/tmp/stem-engine-catalogue-work/bridge)
+error: could not compile `stem-core` (lib test) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: large size difference between variants
+  --> bridge/src/native_import.rs:20:1
+   |
+20 | / enum Phase {
+21 | |     Source(Option<NativeImportSource>),
+   | |     ---------------------------------- the second-largest variant contains at least 136 bytes
+22 | |     Review(Option<NativeImportReview>),
+   | |     ---------------------------------- the largest variant contains at least 384 bytes
+23 | | }
+   | |_^ the entire enum is at least 384 bytes
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#large_enum_variant
+   = note: `-D clippy::large-enum-variant` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::large_enum_variant)]`
+help: consider boxing the large fields or introducing indirection in some other way to reduce the total size of the enum
+   |
+22 -     Review(Option<NativeImportReview>),
+22 +     Review(Box<Option<NativeImportReview>>),
+   |
+
+error: could not compile `stem-bridge` (lib) due to 1 previous error

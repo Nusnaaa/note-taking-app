@@ -21,6 +21,8 @@ use std::{
     sync::{mpsc, Arc, Mutex},
     thread,
 };
+mod native_import;
+pub use native_import::{NativeImportReview, NativeImportSource};
 mod derivative;
 pub use derivative::{
     DerivativeFormat, DerivativeOutput, DerivativeReview, DerivativeSummary, HostDerivativeSource,
@@ -526,6 +528,7 @@ impl Response {
 }
 
 enum Message {
+    NativeImport(Box<native_import::Request>),
     DerivativeExport(Box<derivative::Request>),
     NativeExport(Box<export::Request>),
     Backup(Box<backup::Request>),
@@ -722,6 +725,18 @@ impl Host {
                         deletion.clear();
                     }
                     match envelope.message {
+                        Message::NativeImport(request) => {
+                            native_import::handle(
+                                *request,
+                                &mut store,
+                                &access,
+                                &recognition_scope,
+                                |failed| {
+                                    let _ =
+                                        input.complete(envelope.authoring, envelope.bytes, failed);
+                                },
+                            );
+                        }
                         Message::DerivativeExport(request) => {
                             derivative::handle(
                                 *request,
