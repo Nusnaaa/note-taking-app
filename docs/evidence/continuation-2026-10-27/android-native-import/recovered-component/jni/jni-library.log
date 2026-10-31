@@ -1,0 +1,4 @@
+$ /home/linus/Projects/software/note-taking-app/repo/target/tooling/cargo/bin/cargo build -p stem-bridge --locked --offline
+exit_code=0
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.15s

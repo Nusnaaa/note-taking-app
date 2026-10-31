@@ -1,0 +1,10 @@
+jni-format: PASS
+jni-lint: PASS
+jni-tests: PASS
+jni-library: PASS
+jni-compile: PASS
+jni-smoke: PASS
+jni-shrinker-version: PASS
+jni-shrink: PASS
+jni-shrunk-smoke: PASS
+jni-traceability: PASS

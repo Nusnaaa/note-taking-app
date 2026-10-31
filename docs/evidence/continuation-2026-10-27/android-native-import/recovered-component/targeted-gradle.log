@@ -1,0 +1,75 @@
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/home/linus/Projects/software/note-taking-app/repo/target/tooling/android-user
+
+Welcome to Gradle 8.9!
+
+Here are the highlights of this release:
+ - Enhanced Error and Warning Messages
+ - IDE Integration Improvements
+ - Daemon JVM Information
+
+For more details see https://docs.gradle.org/8.9/release-notes.html
+
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.9/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+Checking the license for package Android SDK Platform-Tools in /home/linus/Projects/software/note-taking-app/repo/target/tooling/android-sdk/licenses
+License for package Android SDK Platform-Tools accepted.
+Preparing "Install Android SDK Platform-Tools v.37.0.1".
+"Install Android SDK Platform-Tools v.37.0.1" ready.
+Installing Android SDK Platform-Tools in /home/linus/Projects/software/note-taking-app/repo/target/tooling/android-sdk/platform-tools
+"Install Android SDK Platform-Tools v.37.0.1" complete.
+"Install Android SDK Platform-Tools v.37.0.1" finished.
+> Task :backend:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :backend:preBuild UP-TO-DATE
+> Task :backend:preDebugBuild UP-TO-DATE
+> Task :backend:generateDebugResValues UP-TO-DATE
+> Task :backend:generateDebugResources UP-TO-DATE
+> Task :backend:packageDebugResources UP-TO-DATE
+> Task :backend:parseDebugLocalResources UP-TO-DATE
+> Task :backend:generateDebugRFile UP-TO-DATE
+> Task :backend:javaPreCompileDebug UP-TO-DATE
+> Task :backend:preDebugUnitTestBuild UP-TO-DATE
+> Task :backend:writeDebugAarMetadata UP-TO-DATE
+> Task :backend:checkDebugUnitTestAarMetadata UP-TO-DATE
+> Task :backend:compileDebugLibraryResources UP-TO-DATE
+> Task :backend:generateDebugUnitTestResValues UP-TO-DATE
+> Task :backend:mapDebugUnitTestSourceSetPaths UP-TO-DATE
+> Task :backend:generateDebugUnitTestResources UP-TO-DATE
+> Task :backend:mergeDebugUnitTestResources UP-TO-DATE
+> Task :backend:extractDeepLinksDebug UP-TO-DATE
+> Task :backend:processDebugManifest UP-TO-DATE
+> Task :backend:processDebugUnitTestManifest UP-TO-DATE
+> Task :backend:processDebugUnitTestResources UP-TO-DATE
+> Task :backend:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :backend:mergeDebugShaders UP-TO-DATE
+> Task :backend:compileDebugShaders NO-SOURCE
+> Task :backend:generateDebugAssets UP-TO-DATE
+> Task :backend:mergeDebugAssets UP-TO-DATE
+> Task :backend:generateDebugUnitTestAssets UP-TO-DATE
+> Task :backend:packageDebugAssets UP-TO-DATE
+> Task :backend:mergeDebugUnitTestAssets UP-TO-DATE
+> Task :backend:packageDebugUnitTestForUnitTest UP-TO-DATE
+> Task :backend:generateDebugUnitTestConfig UP-TO-DATE
+> Task :backend:compileDebugKotlin
+
+> Task :backend:compileDebugJavaWithJavac
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/home/linus/Projects/software/note-taking-app/repo/target/tooling/android-user
+
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/home/linus/Projects/software/note-taking-app/repo/target/tooling/android-user
+
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/home/linus/Projects/software/note-taking-app/repo/target/tooling/android-user
+
+
+> Task :backend:bundleLibCompileToJarDebug
+> Task :backend:bundleLibRuntimeToJarDebug
+> Task :backend:processDebugJavaRes UP-TO-DATE
+> Task :backend:compileDebugUnitTestKotlin
+w: file:///home/linus/Projects/software/note-taking-app/repo/android/backend/src/test/java/org/stemnotebook/backend/BackupJobSchedulerTest.kt:30:53 'val networkType: Int' is deprecated. Deprecated in Java.
+
+> Task :backend:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :backend:processDebugUnitTestJavaRes UP-TO-DATE
+
+> Task :backend:testDebugUnitTest
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/home/linus/Projects/software/note-taking-app/repo/target/tooling/android-user
+
+BUILD SUCCESSFUL in 4m 15s
+32 actionable tasks: 6 executed, 26 up-to-date
