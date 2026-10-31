@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.PdfPixelsTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-31T15:31:11" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="0.079">
+  <properties/>
+  <testcase name="malformedTruncatedOversizedAndTrailingFramesFail" classname="org.stemnotebook.backend.PdfPixelsTest" time="0.029"/>
+  <testcase name="cancellationDuringRowsFailsWithoutPublishingAPartialBitmap" classname="org.stemnotebook.backend.PdfPixelsTest" time="0.025"/>
+  <testcase name="exactArgbRowsRoundTripWithoutAnImageDecoder" classname="org.stemnotebook.backend.PdfPixelsTest" time="0.024"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

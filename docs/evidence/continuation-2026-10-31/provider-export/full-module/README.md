@@ -1,0 +1,9 @@
+# Complete Android-module provider-export check
+
+`gradle -p android :backend:testDebugUnitTest :backend:lint :backend:assembleDebug :backend:assembleRelease --offline --no-daemon --max-workers=2` terminated0. All396 tests across43 suites passed, zero failures/errors/skips. Lint reported no issues. Debug/release AAR manifest contracts and consumer rules passed the existing repository policy; both packaged ARM64 images match the previously reproduced NDK stripping result. Exact logs, current TEST XML, manifests, lint XML, package/source/binary hashes and command are retained. No binary/AAR is committed.
+
+This run used final provider-export code, including clearing the owned password copy after encryption, before provider I/O. Android code was frozen during the command. `verification.json` records the dirty-tree base head and post-run source hashes; later documentation/traceability edits are not a clean-source whole-tree equality claim. Rust and the Java native-boundary implementation did not change; current desktop/ARM64 builds were reused. This is not a clean-commit paired full native/Android driver or physical-device/real-provider/cloud-durability acceptance.
+
+Environment matches neighboring component evidence: pinned Gradle8.9/JDK21/SDK35, persistent ignored Gradle/Android user caches under `target/tooling`, with `JAVA_TOOL_OPTIONS=-Duser.home=<absolute repository>/target/tooling/android-user`. The earlier eight provider tests are included in396, as are the import/ownership/admission regressions. No duplicate test counts are added. The first six publication tests and initial compile failure remain separately retained.
+
+All eight backend gaps stay OPEN. Before complete catalogue recovery/resource acceptance, add paged attempt discovery and normalized per-file storage/updates; whole-record JSON is not a proven large-catalogue design. Native PDF-linked-source and complete scene fidelity remain inherited gaps. Production H.I. stays deferred.
