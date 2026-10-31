@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.ExportCatalogueTest" tests="6" skipped="0" failures="3" errors="0" timestamp="2026-10-31T15:48:03" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="7.706">
+  <properties/>
+  <testcase name="migrationFailureRollsBackAllConvertedRowsAndPurposeBeforeRetry" classname="org.stemnotebook.backend.ExportCatalogueTest" time="6.9">
+    <failure message="java.lang.IllegalArgumentException: Failed requirement." type="java.lang.IllegalArgumentException">java.lang.IllegalArgumentException: Failed requirement.
+	at org.stemnotebook.backend.ExportCatalogue.validateDatabase(ExportCatalogue.kt:232)
+	at org.stemnotebook.backend.ExportCatalogue.database(ExportCatalogue.kt:213)
+	at org.stemnotebook.backend.ExportCatalogue.lookup(ExportCatalogue.kt:83)
+	at org.stemnotebook.backend.ExportCatalogue.lookup$default(ExportCatalogue.kt:83)
+	at org.stemnotebook.backend.ExportCatalogueTest.migrationFailureRollsBackAllConvertedRowsAndPurposeBeforeRetry(ExportCatalogueTest.kt:62)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:56)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.junit.rules.ExternalResource$1.evaluate(ExternalResource.java:54)
+	at org.junit.runners.ParentRunner$3.evaluate(ParentRunner.java:306)
+	at org.robolectric.RobolectricTestRunner$HelperTestRunner$1.evaluate(RobolectricTestRunner.java:502)
+	at org.robolectric.internal.SandboxTestRunner$2.lambda$evaluate$2(SandboxTestRunner.java:285)
+	at org.robolectric.internal.bytecode.Sandbox.lambda$runOnMainThread$0(Sandbox.java:104)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+</failure>
+  </testcase>
+  <testcase name="duplicateIncrementalBindingRollsBackAndCannotUpgradeIncompleteAttempt" classname="org.stemnotebook.backend.ExportCatalogueTest" time="0.293"/>
+  <testcase name="historyCursorIsIndexedStableAndLibraryScopedWhileNewRowsArrive" classname="org.stemnotebook.backend.ExportCatalogueTest" time="0.211"/>
+  <testcase name="largeLegacyPayloadMigratesInChunksAndNormalizedRowsStayReadable" classname="org.stemnotebook.backend.ExportCatalogueTest" time="0.199">
+    <failure message="java.lang.IllegalArgumentException: Failed requirement." type="java.lang.IllegalArgumentException">java.lang.IllegalArgumentException: Failed requirement.
+	at org.stemnotebook.backend.ExportCatalogue.validateDatabase(ExportCatalogue.kt:232)
+	at org.stemnotebook.backend.ExportCatalogue.database(ExportCatalogue.kt:213)
+	at org.stemnotebook.backend.ExportCatalogue.lookup(ExportCatalogue.kt:83)
+	at org.stemnotebook.backend.ExportCatalogueTest.largeLegacyPayloadMigratesInChunksAndNormalizedRowsStayReadable(ExportCatalogueTest.kt:74)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:56)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.junit.rules.ExternalResource$1.evaluate(ExternalResource.java:54)
+	at org.junit.runners.ParentRunner$3.evaluate(ParentRunner.java:306)
+	at org.robolectric.RobolectricTestRunner$HelperTestRunner$1.evaluate(RobolectricTestRunner.java:502)
+	at org.robolectric.internal.SandboxTestRunner$2.lambda$evaluate$2(SandboxTestRunner.java:285)
+	at org.robolectric.internal.bytecode.Sandbox.lambda$runOnMainThread$0(Sandbox.java:104)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+</failure>
+  </testcase>
+  <testcase name="realV1RowsMigrateWithSequencesUrisStatesAndNextSequencePreserved" classname="org.stemnotebook.backend.ExportCatalogueTest" time="0.049">
+    <failure message="java.lang.IllegalArgumentException: Failed requirement." type="java.lang.IllegalArgumentException">java.lang.IllegalArgumentException: Failed requirement.
+	at org.stemnotebook.backend.ExportCatalogue.validateDatabase(ExportCatalogue.kt:232)
+	at org.stemnotebook.backend.ExportCatalogue.database(ExportCatalogue.kt:213)
+	at org.stemnotebook.backend.ExportCatalogue.lookup(ExportCatalogue.kt:83)
+	at org.stemnotebook.backend.ExportCatalogue.lookup$default(ExportCatalogue.kt:83)
+	at org.stemnotebook.backend.ExportCatalogueTest.realV1RowsMigrateWithSequencesUrisStatesAndNextSequencePreserved(ExportCatalogueTest.kt:54)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:56)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.junit.rules.ExternalResource$1.evaluate(ExternalResource.java:54)
+	at org.junit.runners.ParentRunner$3.evaluate(ParentRunner.java:306)
+	at org.robolectric.RobolectricTestRunner$HelperTestRunner$1.evaluate(RobolectricTestRunner.java:502)
+	at org.robolectric.internal.SandboxTestRunner$2.lambda$evaluate$2(SandboxTestRunner.java:285)
+	at org.robolectric.internal.bytecode.Sandbox.lambda$runOnMainThread$0(Sandbox.java:104)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+</failure>
+  </testcase>
+  <testcase name="malformedLegacyRecordNeverLeavesAPartiallyNormalizedDatabase" classname="org.stemnotebook.backend.ExportCatalogueTest" time="0.054"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.NotebookExportsTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-10-31T16:02:14" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="9.614">
+  <properties/>
+  <testcase name="restartDiscoversPastAttemptsWithoutProviderAccessAndAppRelockDeniesHistory" classname="org.stemnotebook.backend.NotebookExportsTest" time="0.191"/>
+  <testcase name="backendCloseRetainsOwnershipThroughBlockedCreateAndPreservesOutcome" classname="org.stemnotebook.backend.NotebookExportsTest" time="0.094"/>
+  <testcase name="unknownCatalogueAndSymlinkNamespaceAreRefusedWithoutRepair" classname="org.stemnotebook.backend.NotebookExportsTest" time="0.031"/>
+  <testcase name="cataloguePreservesAttemptAndRefusesForeignOrRegressedRecords" classname="org.stemnotebook.backend.NotebookExportsTest" time="0.1"/>
+  <testcase name="markdownAssetsAndPdfUseReviewedNativeOutputWithoutSourceRepair" classname="org.stemnotebook.backend.NotebookExportsTest" time="0.247"/>
+  <testcase name="providerSideEffectsAndCorruptReadbackRemainDurablyUncertain" classname="org.stemnotebook.backend.NotebookExportsTest" time="0.214"/>
+  <testcase name="protectedOutputRequiresFreshProofAndRevokedDestinationCreatesNothing" classname="org.stemnotebook.backend.NotebookExportsTest" time="8.456"/>
+  <testcase name="nonemptyAndRacingDocumentsAreNeverExplicitlyTruncated" classname="org.stemnotebook.backend.NotebookExportsTest" time="0.15"/>
+  <testcase name="nativePublicationWritesManifestLastAndReconcilesAfterControllerReopen" classname="org.stemnotebook.backend.NotebookExportsTest" time="0.13"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

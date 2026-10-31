@@ -35,6 +35,9 @@ class NotebookExports internal constructor(directory: File,private val nativeHan
     data class Part(val name: String,val bytes: Long,val sha256: String,val document: Uri?)
     data class Receipt(val id: UUID,val library: UUID,val format: Format,val tree: Uri,val folder: Uri?,val parts: List<Part>,val outcome: Outcome,val descriptorSynced: Boolean)
     data class Reconciliation(val receipt: Receipt?)
+    /** Past recorded attempt headers; reading a page never contacts providers. */
+    data class Attempt(val sequence: Long,val id: UUID,val format: Format,val createdMillis: Long,val tree: Uri,val folder: Uri?,val partCount: Int,val outcome: Outcome,val descriptorSynced: Boolean)
+    data class History(val attempts: List<Attempt>,val next: Long?)
     class Publication internal constructor(val receipt: Receipt,val catalogueRecorded: Boolean,private val key: CharArray?) : Closeable {
         private var closed=false
         @Synchronized fun copyRecoveryKey(): CharArray? { check(!closed);return key?.clone() }
@@ -278,19 +281,22 @@ class NotebookExports internal constructor(directory: File,private val nativeHan
                 payload["STEM-export.json"]=manifest
                 var record=ExportCatalogue.Record(review.id,review.library,review.summary.format.name,System.currentTimeMillis().coerceAtLeast(0),selected.tree,null,
                     parts+ExportCatalogue.Part("STEM-export.json",manifest.size.toLong(),digest(manifest)),ExportCatalogue.State.Uncertain,false)
-                catalogue.write(record);current()
+                catalogue.write(record,operation::check);current()
                 try {
                     operation.attempted=true
                     val folder=documents.create(selected.observed.root,"STEM-export-${review.id}",DocumentsContract.Document.MIME_TYPE_DIR)
                     validateUri(folder,selected.tree);require(folder!=selected.observed.root && documents.isChild(selected.observed.root,folder))
-                    record=record.copy(folder=folder);catalogue.write(record)
+                    record=record.copy(folder=folder);catalogue.setFolder(record.id,record.library,folder,operation::check)
                     require(documents.name(folder,signal)=="STEM-export-${review.id}")
                     var synced=true
-                    for((index,part) in record.parts.withIndex()) {
+                    val mutableParts=record.parts.toMutableList();record=record.copy(parts=mutableParts)
+                    val knownDocuments=HashSet<Uri>()
+                    for((index,part) in mutableParts.withIndex()) {
                         current()
                         val uri=documents.create(folder,part.name,mime(part.name));validateUri(uri,selected.tree)
-                        require(uri!=folder && uri!=selected.observed.root && record.parts.none { it.document==uri } && documents.isChild(folder,uri))
-                        record=record.copy(parts=record.parts.mapIndexed { i,p -> if(i==index) p.copy(document=uri) else p });catalogue.write(record)
+                        require(uri!=folder && uri!=selected.observed.root && uri !in knownDocuments && documents.isChild(folder,uri))
+                        knownDocuments.add(uri);mutableParts[index]=part.copy(document=uri)
+                        catalogue.setPart(record.id,record.library,index,uri,operation::check)
                         require(documents.name(uri,signal)==part.name)
                         // Never open a nonempty returned document for overwrite.
                         val empty=documents.open(uri,false,signal);operation.attachIo(empty)
@@ -317,7 +323,7 @@ class NotebookExports internal constructor(directory: File,private val nativeHan
                         current()
                     }
                     record=record.copy(state=ExportCatalogue.State.ProviderVerified,descriptorSynced=synced)
-                    val recorded=try { catalogue.write(record);true } catch(_: Exception) { false }
+                    val recorded=try { catalogue.verified(record.id,record.library,synced);true } catch(_: Exception) { false }
                     Publication(receipt(record),recorded,key).also { delivered=true }
                 } catch(_: Throwable) {
                     val recorded=try { catalogue.write(record);true } catch(_: Exception) { false }
@@ -328,7 +334,17 @@ class NotebookExports internal constructor(directory: File,private val nativeHan
     }
     fun reconcile(id: UUID): Pending<Reconciliation> = submit(30000) { operation ->
         operation.identity=id;val host=nativeHandle();NativeBridge.backupGeneration(host);operation.check()
-        Reconciliation(catalogue.lookup(id,UUID.fromString(NativeBridge.captureLibraryIdentity(host)))?.let(::receipt))
+        Reconciliation(catalogue.lookup(id,UUID.fromString(NativeBridge.captureLibraryIdentity(host)),operation::check)?.let(::receipt))
+    }
+    /** Discover attempts after a restart without retaining their UUIDs. A cursor
+     * is the last returned sequence; later insertions do not shift older pages. */
+    fun history(before: Long?=null,limit: Int=25): Pending<History> {
+        if(limit !in 1..100 || before!=null && before<=0) throw Failure(FailureReason.InvalidInput)
+        return submit(30000) { operation ->
+            val host=nativeHandle();NativeBridge.backupGeneration(host);operation.check()
+            val page=catalogue.history(UUID.fromString(NativeBridge.captureLibraryIdentity(host)),before,limit,operation::check)
+            History(Collections.unmodifiableList(page.attempts.map { a -> Attempt(a.sequence,a.id,Format.valueOf(a.format),a.createdMillis,a.tree,a.folder,a.partCount,Outcome.valueOf(a.state.name),a.descriptorSynced) }),page.next)
+        }
     }
     /** Retire optional input and idle reviews, preserving committed receipts. */
     fun invalidate() {

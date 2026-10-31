@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.ExportCatalogueTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-31T16:00:35" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="4.54">
+  <properties/>
+  <testcase name="migrationFailureRollsBackAllConvertedRowsAndPurposeBeforeRetry" classname="org.stemnotebook.backend.ExportCatalogueTest" time="0.074"/>
+  <testcase name="duplicateIncrementalBindingRollsBackAndCannotUpgradeIncompleteAttempt" classname="org.stemnotebook.backend.ExportCatalogueTest" time="0.087"/>
+  <testcase name="historyCursorIsIndexedStableAndLibraryScopedWhileNewRowsArrive" classname="org.stemnotebook.backend.ExportCatalogueTest" time="0.106"/>
+  <testcase name="largeLegacyPayloadMigratesInChunksAndNormalizedRowsStayReadable" classname="org.stemnotebook.backend.ExportCatalogueTest" time="2.175"/>
+  <testcase name="realV1RowsMigrateWithSequencesUrisStatesAndNextSequencePreserved" classname="org.stemnotebook.backend.ExportCatalogueTest" time="0.097"/>
+  <testcase name="malformedLegacyRecordNeverLeavesAPartiallyNormalizedDatabase" classname="org.stemnotebook.backend.ExportCatalogueTest" time="0.041"/>
+  <testcase name="incrementalMetadataBudgetRefusalDoesNotChangeTheStoredPlan" classname="org.stemnotebook.backend.ExportCatalogueTest" time="1.959"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

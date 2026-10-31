@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.PdfRetentionTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-10-31T16:06:28" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="4.179">
+  <properties/>
+  <testcase name="changedBytesPermissionLossAndLowStorageLeaveNoRetainedAssetOrTemporaryCopy" classname="org.stemnotebook.backend.PdfRetentionTest" time="0.109"/>
+  <testcase name="independentHistoricalChoiceRecordsSeparateAuthorityAndSurvivesLiveRevocation" classname="org.stemnotebook.backend.PdfRetentionTest" time="0.322"/>
+  <testcase name="startupRetiresOnlyDisposableRetentionCrashFiles" classname="org.stemnotebook.backend.PdfRetentionTest" time="0.029"/>
+  <testcase name="delayedNativeReadPlanCannotExtendAuthenticationLifetime" classname="org.stemnotebook.backend.PdfRetentionTest" time="0.04"/>
+  <testcase name="failedDisposableCacheRemovalClosesAcquisitionInsteadOfAdmittingMoreCopies" classname="org.stemnotebook.backend.PdfRetentionTest" time="0.088"/>
+  <testcase name="cancellationAfterStagingBeforeFinalReopenCannotPublishAnAssetAndReleasesCapacity" classname="org.stemnotebook.backend.PdfRetentionTest" time="0.325"/>
+  <testcase name="relockDuringRetentionDiscardsPendingBytesAndPreservesAcceptedLink" classname="org.stemnotebook.backend.PdfRetentionTest" time="0.083"/>
+  <testcase name="retentionFinalSubmissionWaitsForActualReceiptAcrossCancellationAndDeadline" classname="org.stemnotebook.backend.PdfRetentionTest" time="1.137"/>
+  <testcase name="unconfirmedOrInvalidRetentionChoicesDoNotReadOrMutateSource" classname="org.stemnotebook.backend.PdfRetentionTest" time="0.086"/>
+  <testcase name="lostPermissionAtFinalReopenReleasesNativeStageAndAllowsAnExplicitRetry" classname="org.stemnotebook.backend.PdfRetentionTest" time="0.432"/>
+  <testcase name="blockedProviderTimeoutRetainsAdmissionWhileNotesRemainWritable" classname="org.stemnotebook.backend.PdfRetentionTest" time="1.114"/>
+  <testcase name="defaultLinkHasNoCopyAndConfirmedManagedAcquisitionUsesFrozenChunks" classname="org.stemnotebook.backend.PdfRetentionTest" time="0.331"/>
+  <testcase name="oversizedPdfCannotEnterRetentionStagingOrLeaveAReadCache" classname="org.stemnotebook.backend.PdfRetentionTest" time="0.083"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

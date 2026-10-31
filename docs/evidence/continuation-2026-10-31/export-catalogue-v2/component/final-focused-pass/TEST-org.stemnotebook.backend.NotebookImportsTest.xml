@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.NotebookImportsTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-31T15:57:01" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="14.197">
+  <properties/>
+  <testcase name="blockedProviderCancellationRetainsBackendOwnershipUntilActualRetirement" classname="org.stemnotebook.backend.NotebookImportsTest" time="0.082"/>
+  <testcase name="confirmationPermissionAndGenerationChangesNeverSilentlyDuplicateAnImport" classname="org.stemnotebook.backend.NotebookImportsTest" time="0.13"/>
+  <testcase name="encryptedRecoveryPreservesLocksAndCallerOwnedCredentialArrays" classname="org.stemnotebook.backend.NotebookImportsTest" time="8.457"/>
+  <testcase name="lostTypedResponseReconcilesTheOriginalOperationWithoutReimport" classname="org.stemnotebook.backend.NotebookImportsTest" time="0.111"/>
+  <testcase name="deadlineCancelsBlockedInputAndRetiresItsNativeReservation" classname="org.stemnotebook.backend.NotebookImportsTest" time="5.064"/>
+  <testcase name="closingPreparationRetiresReviewWhileCommittedReceiptStaysObservable" classname="org.stemnotebook.backend.NotebookImportsTest" time="0.119"/>
+  <testcase name="selectedNativeCopyPreservesExactObservationsAndReconcilesAfterReopen" classname="org.stemnotebook.backend.NotebookImportsTest" time="0.118"/>
+  <testcase name="appProofRunsOffWriterAndKnownReceiptSurvivesLateControllerClose" classname="org.stemnotebook.backend.NotebookImportsTest" time="0.116"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

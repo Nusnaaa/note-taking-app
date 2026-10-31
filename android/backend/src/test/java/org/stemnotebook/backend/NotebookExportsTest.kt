@@ -182,6 +182,20 @@ class NotebookExportsTest {
             assertTrue(docs.files.values.all { it.readText().startsWith("KEEP") })
         } finally { close(exports);NativeBridge.close(host) }
     }
+    @Test fun restartDiscoversPastAttemptsWithoutProviderAccessAndAppRelockDeniesHistory() {
+        val host=NativeBridge.open(temporary.newFolder().resolve("library.db").path);val id=note(host);val docs=Documents(temporary.newFolder())
+        val directory=temporary.newFolder().resolve("catalogue");var exports=NotebookExports(directory,{ host },docs)
+        try {
+            val review=observe { exports.reviewNative("""{"Entities":["$id"]}""",true).await() };val selected=observe { review.destination(tree,flags).await() }
+            val receipt=observe { selected.publish({ true },true,true,true).await() };val expected=receipt.receipt.id;receipt.close()
+            close(exports);exports=NotebookExports(directory,{ host },docs)
+            docs.allowed=false;docs.files.values.forEach { it.delete() }
+            val page=observe { exports.history(limit=1).await() };assertEquals(expected,page.attempts.single().id);assertNull(page.next)
+            assertEquals(NotebookExports.Outcome.ProviderVerified,page.attempts.single().outcome) // Past acknowledgement, not current availability.
+            NativeBridge.authenticate(host,"[\"App\"]") { true };call(host,"""{"op":"SetAppLock","enabled":true}""");call(host,"""{"op":"Relock"}""")
+            observe { failure { exports.history().await() } }
+        } finally { close(exports);NativeBridge.close(host) }
+    }
     @Test fun cataloguePreservesAttemptAndRefusesForeignOrRegressedRecords() {
         val directory=temporary.newFolder().resolve("catalogue");val catalogue=ExportCatalogue(directory)
         val id=UUID.randomUUID();val library=UUID.randomUUID();val uri=DocumentsContract.buildDocumentUriUsingTree(tree,"folder")
