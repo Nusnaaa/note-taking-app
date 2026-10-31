@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.stemnotebook.backend.CellCaptureIntegrationTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-31T13:49:23" hostname="linus-ROG-Zephyrus-M16-GU603HE-GU603HE" time="7.297">
+  <properties/>
+  <testcase name="distinctTablesWithRepeatedLocalCellIdsCaptureIndependently" classname="org.stemnotebook.backend.CellCaptureIntegrationTest" time="0.105"/>
+  <testcase name="staleCellCheckpointSurvivesReopenAndRequiresExplicitFreshRetarget" classname="org.stemnotebook.backend.CellCaptureIntegrationTest" time="0.119"/>
+  <testcase name="incorrectOwnerCannotPublishAValidForeignTableTarget" classname="org.stemnotebook.backend.CellCaptureIntegrationTest" time="0.079"/>
+  <testcase name="completedContactsReleaseLookupCapacityWhileCallerRetryBindingSurvives" classname="org.stemnotebook.backend.CellCaptureIntegrationTest" time="6.878"/>
+  <testcase name="sequentialCellsCaptureAndScopedRecognitionPreserveNeighbours" classname="org.stemnotebook.backend.CellCaptureIntegrationTest" time="0.116"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

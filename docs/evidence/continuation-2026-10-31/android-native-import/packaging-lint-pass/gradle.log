@@ -1,0 +1,87 @@
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/home/linus/Projects/software/note-taking-app/repo/target/tooling/android-user
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.9/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :backend:preBuild UP-TO-DATE
+> Task :backend:preDebugBuild UP-TO-DATE
+> Task :backend:mergeDebugJniLibFolders UP-TO-DATE
+> Task :backend:mergeDebugNativeLibs UP-TO-DATE
+> Task :backend:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :backend:generateDebugResValues UP-TO-DATE
+> Task :backend:generateDebugResources UP-TO-DATE
+> Task :backend:packageDebugResources UP-TO-DATE
+> Task :backend:parseDebugLocalResources UP-TO-DATE
+> Task :backend:generateDebugRFile UP-TO-DATE
+> Task :backend:compileDebugKotlin UP-TO-DATE
+> Task :backend:stripDebugDebugSymbols
+> Task :backend:extractDebugAnnotations
+> Task :backend:extractDeepLinksForAarDebug UP-TO-DATE
+> Task :backend:javaPreCompileDebug UP-TO-DATE
+> Task :backend:compileDebugJavaWithJavac UP-TO-DATE
+> Task :backend:mergeDebugGeneratedProguardFiles UP-TO-DATE
+> Task :backend:mergeDebugConsumerProguardFiles
+> Task :backend:copyDebugJniLibsProjectAndLocalJars
+> Task :backend:mergeDebugShaders UP-TO-DATE
+> Task :backend:compileDebugShaders NO-SOURCE
+> Task :backend:generateDebugAssets UP-TO-DATE
+> Task :backend:packageDebugAssets UP-TO-DATE
+> Task :backend:prepareDebugArtProfile UP-TO-DATE
+> Task :backend:prepareLintJarForPublish UP-TO-DATE
+> Task :backend:processDebugManifest UP-TO-DATE
+> Task :backend:processDebugJavaRes UP-TO-DATE
+> Task :backend:mergeDebugJavaResource UP-TO-DATE
+> Task :backend:syncDebugLibJars
+> Task :backend:writeDebugAarMetadata UP-TO-DATE
+> Task :backend:bundleDebugLocalLintAar
+> Task :backend:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :backend:createFullJarDebug
+> Task :backend:preDebugAndroidTestBuild UP-TO-DATE
+> Task :backend:generateDebugAndroidTestResValues UP-TO-DATE
+> Task :backend:writeDebugLintModelMetadata UP-TO-DATE
+> Task :backend:generateDebugAndroidTestLintModel
+> Task :backend:extractProguardFiles UP-TO-DATE
+> Task :backend:generateDebugLintReportModel
+> Task :backend:preDebugUnitTestBuild UP-TO-DATE
+> Task :backend:generateDebugUnitTestLintModel
+> Task :backend:lintAnalyzeDebugAndroidTest
+> Task :backend:lintAnalyzeDebug
+> Task :backend:lintAnalyzeDebugUnitTest
+> Task :backend:bundleDebugAar
+> Task :backend:assembleDebug
+> Task :backend:preReleaseBuild UP-TO-DATE
+> Task :backend:mergeReleaseJniLibFolders
+> Task :backend:mergeReleaseNativeLibs
+> Task :backend:stripReleaseDebugSymbols
+> Task :backend:copyReleaseJniLibsProjectAndLocalJars
+> Task :backend:generateReleaseResValues UP-TO-DATE
+> Task :backend:extractDeepLinksForAarRelease UP-TO-DATE
+> Task :backend:generateReleaseResources UP-TO-DATE
+> Task :backend:packageReleaseResources UP-TO-DATE
+> Task :backend:parseReleaseLocalResources UP-TO-DATE
+> Task :backend:generateReleaseRFile UP-TO-DATE
+> Task :backend:lintReportDebug
+> Task :backend:lintDebug
+> Task :backend:lint
+> Task :backend:javaPreCompileRelease UP-TO-DATE
+> Task :backend:mergeReleaseShaders UP-TO-DATE
+> Task :backend:compileReleaseShaders NO-SOURCE
+> Task :backend:generateReleaseAssets UP-TO-DATE
+> Task :backend:packageReleaseAssets UP-TO-DATE
+> Task :backend:prepareReleaseArtProfile UP-TO-DATE
+> Task :backend:processReleaseManifest UP-TO-DATE
+> Task :backend:writeReleaseAarMetadata UP-TO-DATE
+> Task :backend:mapReleaseSourceSetPaths UP-TO-DATE
+> Task :backend:mergeReleaseResources UP-TO-DATE
+> Task :backend:verifyReleaseResources UP-TO-DATE
+> Task :backend:compileReleaseKotlin
+> Task :backend:extractReleaseAnnotations
+> Task :backend:compileReleaseJavaWithJavac
+> Task :backend:mergeReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :backend:mergeReleaseConsumerProguardFiles
+> Task :backend:processReleaseJavaRes UP-TO-DATE
+> Task :backend:mergeReleaseJavaResource UP-TO-DATE
+> Task :backend:syncReleaseLibJars
+> Task :backend:bundleReleaseAar
+> Task :backend:assembleRelease
+
+BUILD SUCCESSFUL in 1m 53s
+68 actionable tasks: 26 executed, 42 up-to-date

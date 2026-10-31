@@ -1,0 +1,35 @@
+{
+  "recorded_utc": "2026-10-31T14:57:54.026984+00:00",
+  "source_commit": "2e66168632f25142081a134eb56298e25a8a9057",
+  "scope": "Component commands across evidence-only dirty tree; not a clean-source full-driver result or device acceptance. All87 Android source hashes match the targeted-run manifest.",
+  "gradle_packaging_lint_exit_code": 0,
+  "arm64_release_exit_code": 0,
+  "arm64_unstripped_sha256": "9cc188e0b1a795fd8c2e29afb2e5ca262d1fcdf47d5d09b1f4c893e763c7f45f",
+  "arm64_packaged_sha256": "8825658bb4251a5a767b38cf63eca1f99a7a6475b7ea21f8e28d5659d1697b33",
+  "strip_command": "target/tooling/android-sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip --strip-unneeded -o target/tooling/expected-stripped.so target/aarch64-linux-android/release/libstem_bridge.so",
+  "packages": {
+    "debug": {
+      "sha256": "8ac8047225ecb9f8a48bea2dd3cf8e09e0d4aaede40b2361085d7a1d508aa0cb",
+      "arm64_matches_reproduced_strip_unneeded": true,
+      "consumer_rules_match": true,
+      "manifest_policy": "PASS"
+    },
+    "release": {
+      "sha256": "bd597646d2b894da9405a27e85a5d69e3549348cbd488627d2a9df799f546e56",
+      "arm64_matches_reproduced_strip_unneeded": true,
+      "consumer_rules_match": true,
+      "manifest_policy": "PASS"
+    }
+  },
+  "lint_severities": {},
+  "android_source_match_count": 87,
+  "full_android_tests": {
+    "tests": 388,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "overall_initial_command_exit": 1,
+    "initial_failure": "Missing lint-gradle:31.7.3 in restored offline cache; raw failure and fresh42 TEST XML preserved separately."
+  },
+  "device_tests": "NOT RUN"
+}

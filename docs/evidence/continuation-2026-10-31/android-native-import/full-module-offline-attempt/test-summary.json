@@ -1,0 +1,352 @@
+{
+  "summary": {
+    "tests": 388,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "suites": 42,
+    "timestamps": [
+      "2026-10-31"
+    ],
+    "command_exit_code": 1,
+    "overall_pass": false
+  },
+  "suites": [
+    {
+      "name": "org.stemnotebook.backend.ActiveCaptureJournalTest",
+      "tests": "20",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:47:42"
+    },
+    {
+      "name": "org.stemnotebook.backend.BackendAdmissionIntegrationTest",
+      "tests": "15",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:47:44"
+    },
+    {
+      "name": "org.stemnotebook.backend.BackendOwnershipTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:47:54"
+    },
+    {
+      "name": "org.stemnotebook.backend.BackendWriterTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:47:56"
+    },
+    {
+      "name": "org.stemnotebook.backend.BackupCatalogueIntegrationTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:47:56"
+    },
+    {
+      "name": "org.stemnotebook.backend.BackupCatalogueTest",
+      "tests": "13",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:48:18"
+    },
+    {
+      "name": "org.stemnotebook.backend.BackupJobRoutesTest",
+      "tests": "13",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:48:23"
+    },
+    {
+      "name": "org.stemnotebook.backend.BackupJobSchedulerTest",
+      "tests": "9",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:48:24"
+    },
+    {
+      "name": "org.stemnotebook.backend.BackupPersistentAccessTest",
+      "tests": "11",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:48:25"
+    },
+    {
+      "name": "org.stemnotebook.backend.BackupPolicyMigrationTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:48:25"
+    },
+    {
+      "name": "org.stemnotebook.backend.BackupPolicyStoreTest",
+      "tests": "15",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:48:26"
+    },
+    {
+      "name": "org.stemnotebook.backend.BackupProviderTest",
+      "tests": "13",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:48:27"
+    },
+    {
+      "name": "org.stemnotebook.backend.BackupSchedulePolicyTest",
+      "tests": "12",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:49:22"
+    },
+    {
+      "name": "org.stemnotebook.backend.BackupSecretProtectorTest",
+      "tests": "13",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:49:23"
+    },
+    {
+      "name": "org.stemnotebook.backend.CaptureOutboxTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:49:23"
+    },
+    {
+      "name": "org.stemnotebook.backend.CellCaptureIntegrationTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:49:23"
+    },
+    {
+      "name": "org.stemnotebook.backend.DeletionCaptureIntegrationTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:49:30"
+    },
+    {
+      "name": "org.stemnotebook.backend.EngineModelSourceTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:49:31"
+    },
+    {
+      "name": "org.stemnotebook.backend.InkAccumulatorTest",
+      "tests": "8",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:49:31"
+    },
+    {
+      "name": "org.stemnotebook.backend.InterruptedCaptureTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:49:31"
+    },
+    {
+      "name": "org.stemnotebook.backend.JournaledCaptureIntegrationTest",
+      "tests": "20",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:49:31"
+    },
+    {
+      "name": "org.stemnotebook.backend.MotionCaptureTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:49:33"
+    },
+    {
+      "name": "org.stemnotebook.backend.NativeBackupBoundaryTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:49:33"
+    },
+    {
+      "name": "org.stemnotebook.backend.NotebookBackupJobServiceTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:50:02"
+    },
+    {
+      "name": "org.stemnotebook.backend.NotebookBackupsTest",
+      "tests": "13",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:50:03"
+    },
+    {
+      "name": "org.stemnotebook.backend.NotebookConvertersTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:50:53"
+    },
+    {
+      "name": "org.stemnotebook.backend.NotebookEnginesTest",
+      "tests": "17",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:50:53"
+    },
+    {
+      "name": "org.stemnotebook.backend.NotebookImportsTest",
+      "tests": "8",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:50:55"
+    },
+    {
+      "name": "org.stemnotebook.backend.NotebookRestoresTest",
+      "tests": "18",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:51:09"
+    },
+    {
+      "name": "org.stemnotebook.backend.NotebookRuntimeTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:53:20"
+    },
+    {
+      "name": "org.stemnotebook.backend.NotebookSchedulesTest",
+      "tests": "16",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:53:21"
+    },
+    {
+      "name": "org.stemnotebook.backend.PdfConnectionTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:54:33"
+    },
+    {
+      "name": "org.stemnotebook.backend.PdfParserClientTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:54:33"
+    },
+    {
+      "name": "org.stemnotebook.backend.PdfPixelsTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:54:36"
+    },
+    {
+      "name": "org.stemnotebook.backend.PdfProviderTest",
+      "tests": "8",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:54:37"
+    },
+    {
+      "name": "org.stemnotebook.backend.PdfRetentionTest",
+      "tests": "13",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:54:40"
+    },
+    {
+      "name": "org.stemnotebook.backend.PdfSelectionTest",
+      "tests": "9",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:54:44"
+    },
+    {
+      "name": "org.stemnotebook.backend.PdfWorkerCleanupTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:54:48"
+    },
+    {
+      "name": "org.stemnotebook.backend.PdfWorkspaceTest",
+      "tests": "11",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:54:48"
+    },
+    {
+      "name": "org.stemnotebook.backend.RestoreStageLifecycleTest",
+      "tests": "9",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:54:49"
+    },
+    {
+      "name": "org.stemnotebook.backend.RestoreStagesTest",
+      "tests": "14",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:55:06"
+    },
+    {
+      "name": "org.stemnotebook.backend.SharedNotebookPoolTest",
+      "tests": "15",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "timestamp": "2026-10-31T13:55:06"
+    }
+  ]
+}
